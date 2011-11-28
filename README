@@ -1,5 +1,19 @@
 idTech4.net
 ===================
 
-idTech4.net is a port of doom3 to c# with the end goal of running
-on the Xbox 360.
+idTech4.net is a port of doom3 to c# with the end goal of running on the Xbox 360.
+
+idEngine
+-------------------
+
+Contains the engine port.
+
+idGame
+-------------------
+
+Contains the game portion of the release.  This currently does not compile.  Before the engine was released in November, a proxy layer (written in c++) was used to marshal engine and game calls between c++ and managed code.
+
+idLib
+-------------------
+
+Contains shared code, this was primarily used with the proxy.  Unsure whether or not this will stay.
