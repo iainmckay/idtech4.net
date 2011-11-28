@@ -248,6 +248,26 @@ namespace idTech4
 		{
 			_internal.SetFloatInternal(value);
 		}
+
+		public int ToInt()
+		{
+			return _internal._intValue;
+		}
+
+		public float ToFloat()
+		{
+			return _internal._floatValue;
+		}
+
+		public bool ToBool()
+		{
+			return (_internal._intValue != 0);
+		}
+
+		public override string ToString()
+		{
+			return _internal._value;
+		}
 		#endregion
 
 		#region Private
@@ -299,28 +319,6 @@ namespace idTech4
 
 		}
 		#endregion
-		#endregion
-
-		#region Methods
-		public int ToInt()
-		{
-			return _internal._intValue;
-		}
-
-		public float ToFloat()
-		{
-			return _internal._floatValue;
-		}
-
-		public bool ToBool()
-		{
-			return (_internal._intValue != 0);
-		}
-
-		public override string ToString()
-		{
-			return _internal._value;
-		}
 		#endregion
 	}
 
@@ -641,7 +639,7 @@ namespace idTech4
 			Set(value.ToString(), true, false);
 		}
 
-		protected override int SetFloatInternal(float value)
+		protected override void SetFloatInternal(float value)
 		{
 			Set(value.ToString(), true, false);
 		}
