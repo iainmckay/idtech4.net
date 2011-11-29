@@ -787,7 +787,7 @@ namespace idTech4
 		{
 			if(this.IsInitialized == true)
 			{
-				throw new InvalidOperationException("CVar system already initialized");
+				throw new InvalidOperationException("cvar system already initialized");
 			}
 
 			idE.CmdSystem.AddCommand("toggle", "toggles a cvar", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Toggle));

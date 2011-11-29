@@ -331,7 +331,7 @@ namespace idTech4
 
 		#region Members
 		private bool _initialized;
-		private bool _wait;
+		private int _wait;
 		private string _cmdBuffer = string.Empty;
 
 		private Dictionary<string, CommandDefinition> _commands = new Dictionary<string, CommandDefinition>(StringComparer.CurrentCultureIgnoreCase);
@@ -364,11 +364,12 @@ namespace idTech4
 			AddCommand("listToolCmds", "lists tool commands", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListToolCommands));
 
 			// TODO
-			/*AddCommand("exec", Exec_f, "executes a config file", CommandFlags.System, ArgCompletion_ConfigName);
-			AddCommand("vstr", Vstr_f, "inserts the current value of a cvar as command text", CommandFlags.System);
-			AddCommand("echo", Echo_f, "prints text", CommandFlags.System);
-			AddCommand("parse", Parse_f, "prints tokenized string", CommandFlags.System);
-			AddCommand("wait", Wait_f, "delays remaining buffered commands one or more frames", CommandFlags.System);*/
+			/*AddCommand("exec", Exec_f, "executes a config file", CommandFlags.System, ArgCompletion_ConfigName);*/
+
+			AddCommand("vstr", "inserts the current value of a cvar as command text", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_VStr));
+			AddCommand("echo", "prints text", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Echo));
+			AddCommand("parse", "prints tokenized string", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Parse));
+			AddCommand("wait", "delays remaining buffered commands one or more frames", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Wait));
 
 			_initialized = true;
 		}
@@ -451,10 +452,10 @@ namespace idTech4
 			
 			while(_cmdBuffer.Length > 0)
 			{
-				if(_wait == true)
+				if(_wait > 0)
 				{
 					// skip out while text still remains in buffer, leaving it for next frame.
-					_wait = false;
+					_wait--;
 					break;
 				}
 
@@ -619,6 +620,68 @@ namespace idTech4
 		private void Cmd_ListToolCommands(object sender, CommandEventArgs e)
 		{
 			ListByFlags(e.Args, CommandFlags.Tool);
+		}
+
+		/// <summary>
+		/// Inserts the current value of a cvar as command text.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void Cmd_VStr(object sender, CommandEventArgs e)
+		{
+			if(e.Args.Length != 2)
+			{
+				idConsole.WriteLine("vstr <variablename> : execute a variable command");
+			}
+			else
+			{
+				idE.CmdSystem.BufferCommandText(Execute.Append, idE.CvarSystem.GetString(e.Args.Get(1)));
+			}
+		}
+
+		/// <summary>
+		/// Just prints the rest of the line to the console.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void Cmd_Echo(object sender, CommandEventArgs e)
+		{
+			for(int i = 1; i < e.Args.Length; i++)
+			{
+				idConsole.Write("{0} ", e.Args.Get(i));
+			}
+
+			idConsole.WriteLine("");
+		}
+
+		/// <summary>
+		/// Causes execution of the remainder of the command buffer to be delayed until next frame.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void Cmd_Wait(object sender, CommandEventArgs e)
+		{
+			if(e.Args.Length == 2)
+			{
+				int.TryParse(e.Args.Get(1), out _wait);
+			}
+			else
+			{
+				_wait = 1;
+			}
+		}
+
+		/// <summary>
+		/// This just prints out how the rest of the line was parsed, as a debugging tool.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void Cmd_Parse(object sender, CommandEventArgs e)
+		{
+			for(int i = 0; i < e.Args.Length; i++)
+			{
+				idConsole.WriteLine("{0}: {1}", i, e.Args.Get(i));
+			}
 		}
 		#endregion
 		#endregion
