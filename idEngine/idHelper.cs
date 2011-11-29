@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using Microsoft.Xna.Framework;
 
 namespace idTech4
 {
@@ -97,6 +98,31 @@ namespace idTech4
 			}
 
 			return newStr.ToString();
+		}
+
+		public static string WrapText(string text, int columnWidth, int offset)
+		{
+			string str = string.Empty;
+			int lineCount = text.Length / columnWidth;
+
+			if((text.Length % columnWidth) != 0)
+			{
+				lineCount++;
+			}
+
+			for(int i = 0; i < lineCount; i++)
+			{
+				int width = columnWidth;
+
+				if(((i * columnWidth) + columnWidth) > text.Length)
+				{
+					width = text.Length - (i * columnWidth);
+				}
+
+				str += text.Substring(i * columnWidth, width).PadLeft(offset);
+			}
+
+			return str;
 		}
 	}
 }
