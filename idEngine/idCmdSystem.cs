@@ -295,6 +295,11 @@ namespace idTech4
 
 			_args = newArgs.ToArray();
 		}
+
+		public override string ToString()
+		{
+			return Get(1, -1, false);
+		}
 		#endregion
 	}
 

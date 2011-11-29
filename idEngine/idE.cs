@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Reflection;
 
 namespace idTech4
 {
@@ -45,7 +46,17 @@ namespace idTech4
 
 	public sealed class idE
 	{
+		public static readonly idPlatform Platform = new idPlatform();
+
 		public const string GameName = "DOOM 3";
+		public const string EngineVersion = "DOOM 1.3.1";
+
+		public static readonly string Version = string.Format("{0}.{1}{2} {3} {4} {5}", 
+			EngineVersion, 
+			idVersion.BuildCount,
+			(Platform.IsDebug == true) ? "-debug" : "",
+			(Platform.Is64Bit == true) ? "x86" : "x64",
+			idVersion.BuildDate, idVersion.BuildTime);
 
 		public const int MaxPrintMessageSize = 4096;
 		public const int MaxCommandArgs = 64;

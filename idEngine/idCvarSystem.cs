@@ -111,6 +111,10 @@ namespace idTech4
 			{
 				return _internal._flags;
 			}
+			internal set
+			{
+				_internal._flags = value;
+			}
 		}
 
 		/// <summary>
@@ -154,6 +158,28 @@ namespace idTech4
 			get
 			{
 				return _valueCompletion;
+			}
+		}
+
+		/// <summary>
+		/// Gets or sets if this cvar has been modified.
+		/// </summary>
+		public bool IsModified
+		{
+			get
+			{
+				return ((_flags & CvarFlags.Modified) != 0);
+			}
+			set
+			{
+				if(value == true)
+				{
+					_flags |= CvarFlags.Modified;
+				}
+				else
+				{
+					_flags &= ~CvarFlags.Modified;
+				}
 			}
 		}
 
@@ -203,7 +229,7 @@ namespace idTech4
 			Init(name, value, description, 1, -1, null, flags, valueCompletion);
 		}
 
-		/*public idCvar(string name, string value, string description, float valueMin, float valueMax, CvarFlags flags) 
+		public idCvar(string name, string value, string description, float valueMin, float valueMax, CvarFlags flags) 
 			: this(name, value, description, valueMin, valueMax, flags, null)
 		{
 
@@ -212,7 +238,6 @@ namespace idTech4
 		public idCvar(string name, string value, string description, float valueMin, float valueMax, CvarFlags flags, EventHandler<EventArgs> valueCompletion)
 		{
 		  Init(name, value, description, valueMin, valueMax, null, flags, valueCompletion);
-			Init(name, value, description, valueMin, valueMax, flags, valueCompletion);
 		}
 
 		public idCvar(string name, string value, string description, string[] valueStrings, CvarFlags flags)
@@ -224,7 +249,7 @@ namespace idTech4
 		public idCvar(string name, string value, string description, string[] valueStrings, CvarFlags flags, EventHandler<EventArgs> valueCompletion)
 		{
 			Init(name, value, description, 1, -1, valueStrings, flags, valueCompletion);
-		}*/
+		}
 		#endregion
 
 		#region Methods
@@ -299,22 +324,22 @@ namespace idTech4
 		#endregion
 
 		#region Protected
-		protected virtual void SetStringInternal(string value)
+		internal virtual void SetStringInternal(string value)
 		{
 
 		}
 
-		protected virtual void SetBoolInternal(bool value)
+		internal virtual void SetBoolInternal(bool value)
 		{
 
 		}
 
-		protected virtual void SetIntegerInternal(int value)
+		internal virtual void SetIntegerInternal(int value)
 		{
 
 		}
 
-		protected virtual void SetFloatInternal(float value)
+		internal virtual void SetFloatInternal(float value)
 		{
 
 		}
@@ -400,17 +425,17 @@ namespace idTech4
 					// the code has more than one static declaration of the same variable, make sure they have the same properties
 					if(_resetString.ToLower() == var.ToString().ToLower())
 					{
-						idConsole.Warning("CVar '{0}' declared multiple times with different initial value", _nameString);
+						idConsole.Warning("cvar '{0}' declared multiple times with different initial value", _nameString);
 					}
 
 					if((_flags & (CvarFlags.Bool | CvarFlags.Integer | CvarFlags.Float)) != (var.Flags & (CvarFlags.Bool | CvarFlags.Integer | CvarFlags.Float)))
 					{
-						idConsole.Warning("CVar '{0}' declared multiple times with different type", _nameString);
+						idConsole.Warning("cvar '{0}' declared multiple times with different type", _nameString);
 					}
 
 					if((_valueMin != var.MinValue) || (_valueMax != var.MaxValue))
 					{
-						idConsole.Warning("CVar '{0}' declared multiple times with different minimum/maximum", _nameString);
+						idConsole.Warning("cvar '{0}' declared multiple times with different minimum/maximum", _nameString);
 					}
 				}
 
@@ -452,7 +477,16 @@ namespace idTech4
 			if((_flags & CvarFlags.Bool) != 0)
 			{
 				bool tmpValue;
-				bool.TryParse(_value, out tmpValue);
+				int tmpValue2;
+
+				if(bool.TryParse(_value, out tmpValue) == false)
+				{
+					// try to parse as an int to handle 1/0
+					if(int.TryParse(_value, out tmpValue2) == true)
+					{
+						tmpValue = (tmpValue2 == 0) ? false : true;
+					}
+				}
 
 				_intValue = (tmpValue == true) ? 1 : 0;
 				_floatValue = _intValue;
@@ -551,7 +585,7 @@ namespace idTech4
 			}
 		}
 
-		private void UpdateCheat()
+		internal void UpdateCheat()
 		{
 			// all variables are considered cheats except for a few types
 			if((_flags & (CvarFlags.NoCheat | CvarFlags.Init | CvarFlags.ReadOnly | CvarFlags.Archive | CvarFlags.UserInfo | CvarFlags.ServerInfo | CvarFlags.NetworkSync)) != 0)
@@ -564,7 +598,7 @@ namespace idTech4
 			}
 		}
 
-		private void Set(string value, bool force, bool fromServer)
+		internal void Set(string value, bool force, bool fromServer)
 		{
 			// TODO
 			/*if ( session && session->IsMultiplayer() && !fromServer ) {
@@ -618,28 +652,29 @@ namespace idTech4
 
 			UpdateValue();
 
-	SetModified();
-	cvarSystem->SetModifiedFlags( flags );
-}
+			this.IsModified = true;
+
+			idE.CvarSystem.ModifiedFlags = _flags;
+		}
 		#endregion
 
 		#region Protected
-		protected override void SetStringInternal(string value)
+		internal override void SetStringInternal(string value)
 		{
 			Set(value, true, false);
 		}
 
-		protected override void SetBoolInternal(bool value)
+		internal override void SetBoolInternal(bool value)
 		{
 			Set(value.ToString(), true, false);
 		}
 
-		protected override void SetIntegerInternal(int value)
+		internal override void SetIntegerInternal(int value)
 		{
 			Set(value.ToString(), true, false);
 		}
 
-		protected override void SetFloatInternal(float value)
+		internal override void SetFloatInternal(float value)
 		{
 			Set(value.ToString(), true, false);
 		}
@@ -846,10 +881,50 @@ namespace idTech4
 			else
 			{
 				// set the value
-				// TODO: internal->Set( args.Args(), false, false );
+				intern.Set(args.ToString(), false, false);
 			}
 
 			return true;
+		}
+
+		public void SetString(string name, string value)
+		{
+			SetString(name, value, 0);
+		}
+
+		public void SetString(string name, string value, CvarFlags flags)
+		{
+			SetInternal(name, value, flags);
+		}
+
+		public void SetBool(string name, bool value)
+		{
+			SetBool(name, value, 0);
+		}
+
+		public void SetBool(string name, bool value, CvarFlags flags)
+		{
+			SetInternal(name, value.ToString(), flags);
+		}
+		
+		public void SetInteger(string name, int value)
+		{
+			SetInteger(name, value, 0);
+		}
+
+		public void SetInteger(string name, int value, CvarFlags flags)
+		{
+			SetInternal(name, value.ToString(), flags);
+		}
+
+		public void SetFloat(string name, float value)
+		{
+			SetFloat(name, value, 0);
+		}
+
+		public void SetFloat(string name, float value, CvarFlags flags)
+		{
+			SetInternal(name, value.ToString(), flags);
 		}
 		#endregion
 
@@ -864,6 +939,24 @@ namespace idTech4
 			return null;
 		}
 
+		private void SetInternal(string name, string value, CvarFlags flags)
+		{
+			idInternalCvar intern = FindInternal(name);
+
+			if(intern != null)
+			{
+				intern.SetStringInternal(value);
+				intern.Flags |= flags & ~CvarFlags.Static;
+				intern.UpdateCheat();
+			}
+			else
+			{
+				intern = new idInternalCvar(name, value, flags);
+
+				_cvarList.Add(intern.Name, intern);
+			}
+		}
+
 		private void RegisterStatics()
 		{
 			foreach(idCvar var in StaticList)
@@ -871,7 +964,7 @@ namespace idTech4
 				Register(var);
 			}
 
-			StaticList = null;
+			StaticList.Clear();
 		}
 		#endregion
 		#endregion

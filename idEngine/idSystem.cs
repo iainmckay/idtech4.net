@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Management;
 
 using Microsoft.Xna.Framework;
 
@@ -88,74 +89,71 @@ namespace idTech4
 			// TODO
 			try
 			{
+				InitCvars();
+
 				// initialize idLib
 				// idLib::Init();
-				
+
 				// clear warning buffer
 				idConsole.ClearWarnings(string.Format("{0} initialization", idE.GameName));
-
-				idCvar test = new idCvar("test", "abc", "blah", CvarFlags.System);
-				idCvar test2 = new idCvar("test", "abc2", "blah", CvarFlags.System);
 
 				idE.CmdSystem.Init();
 				idE.CvarSystem.Init();
 
-				idConsole.WriteLine("test: {0}", test.ToString());
-				idConsole.WriteLine("test2: {0}", test2.ToString());
+				// TODO
 				/*
-		// start file logging right away, before early console or whatever
-		StartupVariable( "win_outputDebugString", false );
+				// start file logging right away, before early console or whatever
+				StartupVariable( "win_outputDebugString", false );*/
 
-		// register all static CVars
-		idCVar::RegisterStaticVars();
+				// print engine version
+				idConsole.WriteLine(idE.Version);
 
-		// print engine version
-		Printf( "%s\n", version.string );
+				// initialize key input/binding, done early so bind command exists
+				/*idKeyInput::Init();*/
 
-		// initialize key input/binding, done early so bind command exists
-		idKeyInput::Init();
+				// init the console so we can take prints
+				// TODO: console->Init();
 
-		// init the console so we can take prints
-		console->Init();
+				// get architecture info
+				SysInit();
 
-		// get architecture info
-		Sys_Init();
+				/*
 
-		// initialize networking
-		Sys_InitNetworking();
+				// initialize networking
+				Sys_InitNetworking();
 
-		// override cvars from command line
-		StartupVariable( NULL, false );
+				// override cvars from command line
+				StartupVariable( NULL, false );
 
-		if ( !idAsyncNetwork::serverDedicated.GetInteger() && Sys_AlreadyRunning() ) {
-			Sys_Quit();
-		}
+				if ( !idAsyncNetwork::serverDedicated.GetInteger() && Sys_AlreadyRunning() ) {
+					Sys_Quit();
+				}
 
-		// initialize processor specific SIMD implementation
-		InitSIMD();
+				// initialize processor specific SIMD implementation
+				InitSIMD();
 
-		// init commands
-		InitCommands();
+				// init commands
+				InitCommands();
 
-#ifdef ID_WRITE_VERSION
-		config_compressor = idCompressor::AllocArithmetic();
-#endif
+		#ifdef ID_WRITE_VERSION
+				config_compressor = idCompressor::AllocArithmetic();
+		#endif
 
-		// game specific initialization
-		InitGame();
+				// game specific initialization
+				InitGame();
 
-		// don't add startup commands if no CD key is present
-#if ID_ENFORCE_KEY
-		if ( !session->CDKeysAreValid( false ) || !AddStartupCommands() ) {
-#else
-		if ( !AddStartupCommands() ) {
-#endif
-			// if the user didn't give any commands, run default action
-			session->StartMenu( true );
-		}
+				// don't add startup commands if no CD key is present
+		#if ID_ENFORCE_KEY
+				if ( !session->CDKeysAreValid( false ) || !AddStartupCommands() ) {
+		#else
+				if ( !AddStartupCommands() ) {
+		#endif
+					// if the user didn't give any commands, run default action
+					session->StartMenu( true );
+				}*/
 
-		Printf( "--- Common Initialization Complete ---\n" );
-
+				idConsole.WriteLine("--- Common Initialization Complete ---");
+				/*
 		// print all warnings queued during initialization
 		PrintWarnings();
 
@@ -167,10 +165,9 @@ namespace idTech4
 		console->ClearNotifyLines();
 		
 		ClearCommandLine();
+				*/
 
-		com_fullyInitialized = true;
-	}
-*/
+				_fullyInitialized = true;
 			}
 			catch(Exception)
 			{
@@ -355,6 +352,51 @@ namespace idTech4
 		#endregion
 
 		#region Private
+		private void InitCvars()
+		{
+			// these win_* cvars may need ifdef'd out on other platforms.  only targetting windows+xbox right now so
+			// shouldn't be an issue.
+			new idCvar("sys_arch", "", "", CvarFlags.System | CvarFlags.Init);
+			new idCvar("sys_cpustring", "detect", "", CvarFlags.System | CvarFlags.Init);
+			new idCvar("in_mouse", "1", "enable mouse input", CvarFlags.System | CvarFlags.Bool);
+			new idCvar("win_allowAltTab", "0", "allow Alt-Tab when fullscreen", CvarFlags.System | CvarFlags.Bool);
+			new idCvar("win_notaskkeys", "0", "disable windows task keys", CvarFlags.System | CvarFlags.Integer);
+			new idCvar("win_username", "", "windows user name", CvarFlags.System | CvarFlags.Init);
+			new idCvar("win_xpos", "3", "horizontal position of window", CvarFlags.System | CvarFlags.Archive | CvarFlags.Integer);
+			new idCvar("win_ypos", "22", "vertical position of window", CvarFlags.System | CvarFlags.Archive | CvarFlags.Integer);
+			new idCvar("win_outputDebugString", "0", "", CvarFlags.System | CvarFlags.Bool);
+			new idCvar("win_outputEditString", "1", "", CvarFlags.System | CvarFlags.Bool);
+			new idCvar("win_viewlog", "0", "", CvarFlags.System | CvarFlags.Integer);
+			new idCvar("win_timerUpdate", "0", "allows the game to be updated while dragging the window", CvarFlags.System | CvarFlags.Bool);
+			new idCvar("win_allowMultipleInstances", "0", "allow multiple instances running concurrently", CvarFlags.System | CvarFlags.Bool);
+
+			new idCvar("si_version", idE.Version, "engine version", CvarFlags.System | CvarFlags.ReadOnly | CvarFlags.ServerInfo);
+			new idCvar("com_skipRenderer", "0", "skip the renderer completely", CvarFlags.Bool | CvarFlags.System);
+			new idCvar("com_machineSpec", "-1", "hardware classification, -1 = not detected, 0 = low quality, 1 = medium quality, 2 = high quality, 3 = ultra quality", CvarFlags.Integer | CvarFlags.Archive | CvarFlags.System);
+			new idCvar("com_purgeAll", "0", "purge everything between level loads", CvarFlags.Bool | CvarFlags.Archive | CvarFlags.System);
+			new idCvar("com_memoryMarker", "-1", "used as a marker for memory stats", CvarFlags.Integer | CvarFlags.System | CvarFlags.Init);
+			new idCvar("com_preciseTic", "1", "run one game tick every async thread update", CvarFlags.Bool | CvarFlags.System);
+			new idCvar("com_asyncInput", "0", "sample input from the async thread", CvarFlags.Bool | CvarFlags.System);
+			new idCvar("com_asyncSound", "1", "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix", 0, 1, CvarFlags.Integer | CvarFlags.System);
+			new idCvar("com_forceGenericSIMD", "0", "force generic platform independent SIMD", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("developer", "0", "developer mode", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_allowConsole", "0", "allow toggling console with the tilde key", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_speeds", "0", "show engine timings", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_showFPS", "0", "show frames rendered per second", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_showMemoryUsage", "0", "show total and per frame memory usage", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_showAsyncStats", "0", "show async network stats", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_showSoundDecoders", "0", "show sound decoders", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_timestampPrints", "0", "print time with each console print, 1 = msec, 2 = sec", 0, 2, /* TODO: idCmdSystem::ArgCompletion_Integer<0,2>, */CvarFlags.System);
+			new idCvar("timescale", "1", "scales the time", 0.1f, 10.0f, CvarFlags.System | CvarFlags.Float);
+			new idCvar("logFile", "0", "1 = buffer log, 2 = flush after each print", 0, 2, /* TODO: idCmdSystem::ArgCompletion_Integer<0,2>,*/ CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("logFileName", "qconsole.log", "name of log file, if empty, qconsole.log will be used", CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_makingBuild", "0", "1 when making a build", CvarFlags.Bool | CvarFlags.System);
+			new idCvar("com_updateLoadSize", "0", "update the load size after loading a map", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_videoRam", "64", "holds the last amount of detected video ram", CvarFlags.Integer | CvarFlags.System | CvarFlags.NoCheat | CvarFlags.Archive);
+
+			new idCvar("com_product_lang_ext", "1", "Extension to use when creating language files.", CvarFlags.Integer | CvarFlags.System | CvarFlags.Archive);
+		}
+
 		/// <summary>
 		/// Show the early console as an error dialog.
 		/// </summary>
@@ -380,6 +422,122 @@ namespace idTech4
 			// TODO: Sys_ShutdownInput();
 
 			idE.Game.Exit();
+		}
+
+		private void SysInit()
+		{
+			// TODO
+			/*cmdSystem->AddCommand( "in_restart", Sys_In_Restart_f, CMD_FL_SYSTEM, "restarts the input system" );
+#ifdef DEBUG
+			cmdSystem->AddCommand( "createResourceIDs", CreateResourceIDs_f, CMD_FL_TOOL, "assigns resource IDs in _resouce.h files" );
+#endif
+#if 0
+			cmdSystem->AddCommand( "setAsyncSound", Sys_SetAsyncSound_f, CMD_FL_SYSTEM, "set the async sound option" );
+#endif*/
+
+			// not bothering with fetching the windows username.
+			idE.CvarSystem.SetString("win_username", "player");
+
+			//
+			// Windows version
+			//
+			OperatingSystem osInfo = Environment.OSVersion;
+
+			if((osInfo.Version.Major < 4)
+				|| (osInfo.Platform == PlatformID.Win32S)
+				|| (osInfo.Platform == PlatformID.Win32Windows))
+			{
+				idConsole.Error("{0} requires Windows XP or above", idE.GameName);
+			}
+			else if(osInfo.Platform == PlatformID.Win32NT)
+			{
+				if(osInfo.Version.Major <= 4)
+				{
+					idE.CvarSystem.SetString("sys_arch", "WinNT (NT)");
+				}
+				else if((osInfo.Version.Major == 5) && (osInfo.Version.Minor == 0))
+				{
+					idE.CvarSystem.SetString("sys_arch", "Win2K (NT)");
+				}
+				else if((osInfo.Version.Major == 5) && (osInfo.Version.Minor == 1))
+				{
+					idE.CvarSystem.SetString("sys_arch", "WinXP (NT)");
+				}
+				else if((osInfo.Version.Major == 6) && (osInfo.Version.Minor == 0))
+				{
+					idE.CvarSystem.SetString("sys_arch", "Vista");
+				}
+				else if((osInfo.Version.Major == 6) && (osInfo.Version.Minor == 1))
+				{
+					idE.CvarSystem.SetString("sys_arch", "Windows 7");
+				}
+				else
+				{
+					idE.CvarSystem.SetString("sys_arch", "Unknown NT variant");
+				}
+			}
+
+			//
+			// CPU type
+			//			
+			if(Environment.OSVersion.Version.Major >= 6)
+			{
+				idConsole.WriteLine("{0} MHz, {1} cores, {2} threads", idE.Platform.ClockSpeed, idE.Platform.CoreCount, idE.Platform.ThreadCount);
+			}
+			else
+			{
+				idConsole.WriteLine("{0} MHz", idE.Platform.ClockSpeed);
+			}
+
+			CpuCapabilities caps = idE.Platform.GetCpuCapabilities();
+
+			string capabilities = string.Empty;
+
+			if((caps & CpuCapabilities.AMD) != 0)
+			{
+				capabilities += "AMD CPU";
+			}
+			else if((caps & CpuCapabilities.Intel) != 0)
+			{
+				capabilities += "Intel CPU";
+			}
+			else if((caps & CpuCapabilities.Unsupported) != 0)
+			{
+				capabilities += "unsupported CPU";
+			}
+			else
+			{
+				capabilities += "generic CPU";
+			}
+
+			// TODO: can't make use of any of these features but nice to identify them anyway.
+			/*string += " with ";
+			if ( win32.cpuid & CPUID_MMX ) {
+				string += "MMX & ";
+			}
+			if ( win32.cpuid & CPUID_3DNOW ) {
+				string += "3DNow! & ";
+			}
+			if ( win32.cpuid & CPUID_SSE ) {
+				string += "SSE & ";
+			}
+			if ( win32.cpuid & CPUID_SSE2 ) {
+				string += "SSE2 & ";
+			}
+			if ( win32.cpuid & CPUID_SSE3 ) {
+				string += "SSE3 & ";
+			}
+			if ( win32.cpuid & CPUID_HTT ) {
+				string += "HTT & ";
+			}
+			string.StripTrailing( " & " );
+			string.StripTrailing( " with " );*/
+
+			idE.CvarSystem.SetString("sys_cpustring", capabilities);
+
+			idConsole.WriteLine(capabilities);
+			idConsole.WriteLine("{0} MB System Memory", idE.Platform.TotalPhysicalMemory);
+			idConsole.WriteLine("{0} MB Video Memory", idE.Platform.TotalVideoMemory);
 		}
 		#endregion
 		#endregion
