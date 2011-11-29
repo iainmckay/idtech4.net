@@ -60,6 +60,8 @@ namespace idTech4
 		private int _errorCount;
 
 		private List<string> _errorList = new List<string>();
+
+		private idCmdArgs[] _commandLineArguments = new idCmdArgs[] { };
 		#endregion
 
 		#region Constructor
@@ -84,7 +86,7 @@ namespace idTech4
 		/// Initialize everything.
 		/// </summary>
 		/// <param name="args"></param>
-		public void Init(LaunchParameters args)
+		public void Init(string[] args)
 		{
 			// TODO
 			try
@@ -97,13 +99,13 @@ namespace idTech4
 				// clear warning buffer
 				idConsole.ClearWarnings(string.Format("{0} initialization", idE.GameName));
 
+				ParseCommandLine(args);
+
 				idE.CmdSystem.Init();
 				idE.CvarSystem.Init();
 
-				// TODO
-				/*
 				// start file logging right away, before early console or whatever
-				StartupVariable( "win_outputDebugString", false );*/
+				StartupVariable("win_outputDebugString", false);
 
 				// print engine version
 				idConsole.WriteLine(idE.Version);
@@ -118,55 +120,52 @@ namespace idTech4
 				SysInit();
 
 				/*
-
 				// initialize networking
-				Sys_InitNetworking();
+				Sys_InitNetworking();*/
 
 				// override cvars from command line
-				StartupVariable( NULL, false );
+				StartupVariable(null, false);
 
-				if ( !idAsyncNetwork::serverDedicated.GetInteger() && Sys_AlreadyRunning() ) {
+				/*if ( !idAsyncNetwork::serverDedicated.GetInteger() && Sys_AlreadyRunning() ) {
 					Sys_Quit();
 				}
 
 				// initialize processor specific SIMD implementation
-				InitSIMD();
+				InitSIMD();*/
 
 				// init commands
 				InitCommands();
-
+				/*
 		#ifdef ID_WRITE_VERSION
 				config_compressor = idCompressor::AllocArithmetic();
 		#endif
 
 				// game specific initialization
-				InitGame();
+				InitGame();*/
 
 				// don't add startup commands if no CD key is present
-		#if ID_ENFORCE_KEY
-				if ( !session->CDKeysAreValid( false ) || !AddStartupCommands() ) {
-		#else
-				if ( !AddStartupCommands() ) {
-		#endif
+				if(AddStartupCommands() == false) 
+				{
 					// if the user didn't give any commands, run default action
-					session->StartMenu( true );
-				}*/
+					// TODO: session->StartMenu( true );
+				}
 
 				idConsole.WriteLine("--- Common Initialization Complete ---");
-				/*
-		// print all warnings queued during initialization
-		PrintWarnings();
+				
+				// print all warnings queued during initialization
+				idConsole.PrintWarnings();
 
+				// TODO
+				/*
 #ifdef	ID_DEDICATED
-		Printf( "\nType 'help' for dedicated server info.\n\n" );
+				Printf( "\nType 'help' for dedicated server info.\n\n" );
 #endif
 
-		// remove any prints from the notify lines
-		console->ClearNotifyLines();
-		
-		ClearCommandLine();
+				// remove any prints from the notify lines
+				console->ClearNotifyLines();
 				*/
 
+				_commandLineArguments = null;
 				_fullyInitialized = true;
 			}
 			catch(Exception)
@@ -177,14 +176,6 @@ namespace idTech4
 
 		public void Quit()
 		{
-			// TODO
-			/*#ifdef ID_ALLOW_TOOLS
-			if ( com_editors & EDITOR_RADIANT ) {
-				RadiantInit();
-				return;
-			}
-			#endif*/
-
 			// don't try to shutdown if we are in a recursive error
 			if(_errorEntered == ErrorType.None)
 			{
@@ -239,7 +230,7 @@ namespace idTech4
 
 			// shutdown idLib
 			// TODO: idLib::ShutDown();
-		}
+		}		
 		#endregion
 
 		#region Internal
@@ -349,6 +340,33 @@ namespace idTech4
 			Shutdown();
 			SysError(errorMessage);
 		}
+
+		internal void FatalError(string format, params object[] args)
+		{
+			// if we got a recursive error, make it fatal
+			if(_errorEntered != ErrorType.None)
+			{
+				// if we are recursively erroring while exiting
+				// from a fatal error, just kill the entire
+				// process immediately, which will prevent a
+				// full screen rendering window covering the
+				// error dialog
+				idConsole.WriteLine("FATAL: recursed fatal error:\n{0}", string.Format(format, args));
+
+				// write the console to a log file?
+				SysQuit();
+			}
+
+			_errorEntered = ErrorType.Fatal;
+
+			if(idE.CvarSystem.GetBool("r_fullscreen") == true)
+			{
+				idE.CmdSystem.BufferCommandText(Execute.Now, "vid_restart partial windowed");
+			}
+
+			Shutdown();
+			SysError(format, args);
+		}
 		#endregion
 
 		#region Private
@@ -395,6 +413,161 @@ namespace idTech4
 			new idCvar("com_videoRam", "64", "holds the last amount of detected video ram", CvarFlags.Integer | CvarFlags.System | CvarFlags.NoCheat | CvarFlags.Archive);
 
 			new idCvar("com_product_lang_ext", "1", "Extension to use when creating language files.", CvarFlags.Integer | CvarFlags.System | CvarFlags.Archive);
+		}
+
+		private void InitCommands()
+		{
+			idE.CmdSystem.AddCommand("error", "causes an error", CommandFlags.System | CommandFlags.Cheat, new EventHandler<CommandEventArgs>(Com_Error));
+
+			/*
+			cmdSystem->AddCommand( "crash", Com_Crash_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "causes a crash" );
+			cmdSystem->AddCommand( "freeze", Com_Freeze_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "freezes the game for a number of seconds" );*/
+
+			idE.CmdSystem.AddCommand("quit", "quits the game", CommandFlags.System, new EventHandler<CommandEventArgs>(Com_Quit));
+			idE.CmdSystem.AddCommand("exit", "exits the game", CommandFlags.System, new EventHandler<CommandEventArgs>(Com_Quit));
+
+			/*cmdSystem->AddCommand( "writeConfig", Com_WriteConfig_f, CMD_FL_SYSTEM, "writes a config file" );
+			cmdSystem->AddCommand( "reloadEngine", Com_ReloadEngine_f, CMD_FL_SYSTEM, "reloads the engine down to including the file system" );
+			cmdSystem->AddCommand( "setMachineSpec", Com_SetMachineSpec_f, CMD_FL_SYSTEM, "detects system capabilities and sets com_machineSpec to appropriate value" );
+			cmdSystem->AddCommand( "execMachineSpec", Com_ExecMachineSpec_f, CMD_FL_SYSTEM, "execs the appropriate config files and sets cvars based on com_machineSpec" );
+
+		#if	!defined( ID_DEMO_BUILD ) && !defined( ID_DEDICATED )
+			// compilers
+			cmdSystem->AddCommand( "dmap", Dmap_f, CMD_FL_TOOL, "compiles a map", idCmdSystem::ArgCompletion_MapName );
+			cmdSystem->AddCommand( "renderbump", RenderBump_f, CMD_FL_TOOL, "renders a bump map", idCmdSystem::ArgCompletion_ModelName );
+			cmdSystem->AddCommand( "renderbumpFlat", RenderBumpFlat_f, CMD_FL_TOOL, "renders a flat bump map", idCmdSystem::ArgCompletion_ModelName );
+			cmdSystem->AddCommand( "runAAS", RunAAS_f, CMD_FL_TOOL, "compiles an AAS file for a map", idCmdSystem::ArgCompletion_MapName );
+			cmdSystem->AddCommand( "runAASDir", RunAASDir_f, CMD_FL_TOOL, "compiles AAS files for all maps in a folder", idCmdSystem::ArgCompletion_MapName );
+			cmdSystem->AddCommand( "runReach", RunReach_f, CMD_FL_TOOL, "calculates reachability for an AAS file", idCmdSystem::ArgCompletion_MapName );
+			cmdSystem->AddCommand( "roq", RoQFileEncode_f, CMD_FL_TOOL, "encodes a roq file" );
+		#endif
+
+			cmdSystem->AddCommand( "printMemInfo", PrintMemInfo_f, CMD_FL_SYSTEM, "prints memory debugging data" );
+
+			// idLib commands
+			cmdSystem->AddCommand( "memoryDump", Mem_Dump_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "creates a memory dump" );
+			cmdSystem->AddCommand( "memoryDumpCompressed", Mem_DumpCompressed_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "creates a compressed memory dump" );
+			cmdSystem->AddCommand( "showStringMemory", idStr::ShowMemoryUsage_f, CMD_FL_SYSTEM, "shows memory used by strings" );
+			cmdSystem->AddCommand( "showDictMemory", idDict::ShowMemoryUsage_f, CMD_FL_SYSTEM, "shows memory used by dictionaries" );
+			cmdSystem->AddCommand( "listDictKeys", idDict::ListKeys_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "lists all keys used by dictionaries" );
+			cmdSystem->AddCommand( "listDictValues", idDict::ListValues_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "lists all values used by dictionaries" );
+			cmdSystem->AddCommand( "testSIMD", idSIMD::Test_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "test SIMD code" );
+
+			// localization
+			cmdSystem->AddCommand( "localizeGuis", Com_LocalizeGuis_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "localize guis" );
+			cmdSystem->AddCommand( "localizeMaps", Com_LocalizeMaps_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "localize maps" );
+			cmdSystem->AddCommand( "reloadLanguage", Com_ReloadLanguage_f, CMD_FL_SYSTEM, "reload language dict" );
+
+			//D3XP Localization
+			cmdSystem->AddCommand( "localizeGuiParmsTest", Com_LocalizeGuiParmsTest_f, CMD_FL_SYSTEM, "Create test files that show gui parms localized and ignored." );
+			cmdSystem->AddCommand( "localizeMapsTest", Com_LocalizeMapsTest_f, CMD_FL_SYSTEM, "Create test files that shows which strings will be localized." );
+
+			// build helpers
+			cmdSystem->AddCommand( "startBuild", Com_StartBuild_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "prepares to make a build" );
+			cmdSystem->AddCommand( "finishBuild", Com_FinishBuild_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "finishes the build process" );
+
+		#ifdef ID_DEDICATED
+			cmdSystem->AddCommand( "help", Com_Help_f, CMD_FL_SYSTEM, "shows help" );
+		#endif*/
+		}
+
+		private void ParseCommandLine(string[] commandLineArgs)
+		{
+			List<idCmdArgs> argList = new List<idCmdArgs>();
+			idCmdArgs current = null;
+
+			foreach(string arg in commandLineArgs)
+			{
+				if(arg.StartsWith("+") == true)
+				{
+					current = new idCmdArgs();
+					current.AppendArg(arg.Substring(1));
+
+					argList.Add(current);
+				}
+				else
+				{
+					if(current == null)
+					{
+						current = new idCmdArgs();
+						argList.Add(current);
+					}
+
+					current.AppendArg(arg);
+				}
+			}
+
+			_commandLineArguments = argList.ToArray();
+		}
+
+		/// <summary>
+		/// Adds command line parameters as script statements. Commands are separated by + signs.
+		/// </summary>
+		/// <returns>Returns true if any late commands were added, which will keep the demoloop from immediately starting.</returns>
+		private bool AddStartupCommands()
+		{
+			bool added = false;
+
+			// quote every token, so args with semicolons can work
+			foreach(idCmdArgs args in _commandLineArguments)
+			{
+				if(args.Length == 0)
+				{
+					continue;
+				}
+				
+				// set commands won't override menu startup
+				if(args.Get(0).ToLower().StartsWith("set") == true)
+				{
+					added = true;
+				}
+
+				// directly as tokenized so nothing gets screwed
+				idE.CmdSystem.BufferCommandText(Execute.Append, args.ToString());
+			}
+
+			return added;
+		}
+
+		/// <summary>
+		/// Searches for command line parameters that are set commands.
+		/// </summary>
+		/// <remarks>
+		/// If match is not NULL, only that cvar will be looked for.
+		/// That is necessary because cddir and basedir need to be set before the filesystem is started, but all other sets should
+		/// be after execing the config and default.
+		/// </remarks>
+		/// <param name="match"></param>
+		/// <param name="once"></param>
+		private void StartupVariable(string match, bool once)
+		{
+			List<idCmdArgs> final = new List<idCmdArgs>();
+
+			foreach(idCmdArgs args in _commandLineArguments)
+			{
+				if(args.Get(0).ToLower() != "set")
+				{
+					continue;
+				}
+
+				string s = args.Get(1);
+
+				if((match == null) || (StringComparer.InvariantCultureIgnoreCase.Compare(s, match) == 0))
+				{
+					idE.CvarSystem.SetString(s, args.Get(2));
+
+					if(once == false)
+					{
+						final.Add(args);
+					}
+				}
+				else
+				{
+					final.Add(args);
+				}
+			}
+
+			_commandLineArguments = final.ToArray();
 		}
 
 		/// <summary>
@@ -538,6 +711,34 @@ namespace idTech4
 			idConsole.WriteLine(capabilities);
 			idConsole.WriteLine("{0} MB System Memory", idE.Platform.TotalPhysicalMemory);
 			idConsole.WriteLine("{0} MB Video Memory", idE.Platform.TotalVideoMemory);
+		}
+		#endregion
+
+		#region Command handlers
+		/// <summary>
+		/// Just throw a fatal error to test error shutdown procedures.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void Com_Error(object sender, CommandEventArgs e)
+		{
+			if(idE.CvarSystem.GetBool("developer") == false)
+			{
+				idConsole.WriteLine("error may only be used in developer mode");
+			}
+			else if(e.Args.Length > 1)
+			{
+				idConsole.FatalError("Testing fatal error");
+			}
+			else
+			{
+				idConsole.Error("Testing drop error");
+			}
+		}
+
+		private void Com_Quit(object sender, CommandEventArgs e)
+		{
+			Quit();
 		}
 		#endregion
 		#endregion

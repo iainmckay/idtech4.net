@@ -61,6 +61,7 @@ namespace idTech4
 		public const int MaxPrintMessageSize = 4096;
 		public const int MaxCommandArgs = 64;
 		public const int MaxCommandStringLength = 2048;
+		public const int MaxWarningList = 256;
 
 		public static readonly idSystem System = new idSystem();
 		public static readonly idCvarSystem CvarSystem = new idCvarSystem();

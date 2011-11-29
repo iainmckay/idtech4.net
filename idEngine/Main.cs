@@ -55,16 +55,20 @@ namespace idTech4
 
 		#region Members
 		private GameTime _gameTime = new GameTime();
-		private GraphicsDeviceManager graphics;
+		private GraphicsDeviceManager _graphics;
+
+		private string[] _commandLineArgs;
 		#endregion
 
 		#region Constructor
-		public Main()
+		public Main(string[] args)
 			: base()
 		{
 			idE.Game = this;
+
+			_commandLineArgs = args;
 			
-			graphics = new GraphicsDeviceManager(this);
+			_graphics = new GraphicsDeviceManager(this);
 			Content.RootDirectory = "Content";
 		}
 		#endregion
@@ -105,26 +109,12 @@ namespace idTech4
 			Sys_SetPhysicalWorkMemory( 192 << 20, 1024 << 20 );
 			Sys_GetCurrentMemoryStatus( exeLaunchMemoryStats );*/
 
-			/*win32.hInstance = hInstance;
-			idStr::Copynz( sys_cmdline, lpCmdLine, sizeof( sys_cmdline ) );
-					*/
-
 			// done before Com/Sys_Init since we need this for error output
 			CreateConsole();
 
-			idE.System.Init(this.LaunchParameters);
+			idE.System.Init(_commandLineArgs);
+
 			/*
-			#if TEST_FPU_EXCEPTIONS != 0
-				common->Printf( Sys_FPU_GetState() );
-			#endif
-
-			#ifndef	ID_DEDICATED
-				if ( win32.win_notaskkeys.GetInteger() ) {
-					DisableTaskKeys( TRUE, FALSE, /*( win32.win_notaskkeys.GetInteger() == 2 )*/
-				/* FALSE );
-				}
-			#endif
-
 			Sys_StartAsyncThread();
 
 			// hide or show the early console as necessary

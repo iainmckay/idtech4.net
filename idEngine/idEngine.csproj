@@ -170,7 +170,10 @@
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\Microsoft.Xna.GameStudio.targets" />
   <PropertyGroup>
-    <PreBuildEvent>"$(SolutionDir)Externals\build-increment.cmd" $(ProjectDir)</PreBuildEvent>
+    <PreBuildEvent>"$(SolutionDir)Externals\pre-build-increment.cmd" $(ProjectDir)</PreBuildEvent>
+  </PropertyGroup>
+  <PropertyGroup>
+    <PostBuildEvent>"$(SolutionDir)Externals\post-build-increment.cmd" $(ProjectDir)</PostBuildEvent>
   </PropertyGroup>
   <!--
       To modify your build process, add your task inside one of the targets below and uncomment it. 

@@ -296,6 +296,21 @@ namespace idTech4
 			_args = newArgs.ToArray();
 		}
 
+		public void AppendArg(string text)
+		{
+			if(this.Length == 0)
+			{
+				_args = new string[] { text };
+			}
+			else
+			{
+				List<string> args = new List<string>(_args);
+				args.Add(text);
+
+				_args = args.ToArray();
+			}
+		}
+
 		public override string ToString()
 		{
 			return Get(1, -1, false);

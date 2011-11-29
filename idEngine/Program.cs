@@ -37,7 +37,7 @@ namespace idTech4
         /// </summary>
         public static void Main(string[] args)
         {
-            using (Main game = new Main())
+            using (Main game = new Main(args))
             {
                 game.Run();
             }

@@ -100,6 +100,16 @@ namespace idTech4
 		}
 
 		/// <summary>
+		/// Dump out of the game to a system dialog.
+		/// </summary>
+		/// <param name="format"></param>
+		/// <param name="args"></param>
+		public static void FatalError(string format, params object[] args)
+		{
+			idE.System.FatalError(format, args);			
+		}
+
+		/// <summary>
 		/// Prints WARNING messages and adds the message to a queue to be printed later on.
 		/// </summary>
 		/// <param name="format"></param>
@@ -255,6 +265,36 @@ namespace idTech4
 				}
 
 			#endif*/
+		}
+
+		public static void PrintWarnings()
+		{
+			if(_warningList.Count == 0)
+			{
+				return;
+			}
+
+			_warningList.Sort();
+
+			idConsole.WriteLine("------------- Warnings ---------------");
+			idConsole.WriteLine("during {0}...", _warningCaption);
+
+			foreach(string warning in _warningList)
+			{
+				idConsole.WriteLine("{0}WARNING: {1}{2}", idColorString.Yellow, idColorString.Red, warning);
+			}
+
+			if(_warningList.Count > 0)
+			{
+				if(_warningList.Count >= idE.MaxWarningList)
+				{
+					idConsole.WriteLine("more than {0} warnings", idE.MaxWarningList);
+				}
+				else
+				{
+					idConsole.WriteLine("{0} warnings", _warningList.Count);
+				}
+			}
 		}
 
 		public static void ClearInputHistory()
