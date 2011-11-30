@@ -59,6 +59,10 @@ namespace idTech4
 		private int _lastErrorTime;
 		private int _errorCount;
 
+		private int _frameTime; // time for the current frame in milliseconds.
+		private int _frameNumber; // variable frame number.
+		private int _ticNumber; // 60 hz tics
+
 		private List<string> _errorList = new List<string>();
 
 		private idCmdArgs[] _commandLineArguments = new idCmdArgs[] { };
@@ -135,23 +139,23 @@ namespace idTech4
 
 				// init commands
 				InitCommands();
-				/*
-		#ifdef ID_WRITE_VERSION
-				config_compressor = idCompressor::AllocArithmetic();
-		#endif
+
+				// TODO #ifdef ID_WRITE_VERSION
+				/*config_compressor = idCompressor::AllocArithmetic();
+				#endif*/
 
 				// game specific initialization
-				InitGame();*/
+				InitGame();
 
 				// don't add startup commands if no CD key is present
-				if(AddStartupCommands() == false) 
+				if(AddStartupCommands() == false)
 				{
 					// if the user didn't give any commands, run default action
 					// TODO: session->StartMenu( true );
 				}
 
 				idConsole.WriteLine("--- Common Initialization Complete ---");
-				
+
 				// print all warnings queued during initialization
 				idConsole.PrintWarnings();
 
@@ -171,6 +175,59 @@ namespace idTech4
 			catch(Exception)
 			{
 				Error("Error during initialization");
+			}
+		}
+
+		public void Frame()
+		{
+			try
+			{
+				// pump all the events
+				// TODO: Sys_GenerateEvents();
+
+				// write config file if anything changed
+				// TODO: WriteConfiguration(); 
+
+				// change SIMD implementation if required
+				// TODO
+				/*if ( com_forceGenericSIMD.IsModified() ) {
+					InitSIMD();
+				}*/
+
+				/*eventLoop->RunEventLoop();*/
+
+				_frameTime = _ticNumber * idE.UserCommandMillseconds;
+
+				/*idAsyncNetwork::RunFrame();
+
+				if ( idAsyncNetwork::IsActive() ) {
+					if ( idAsyncNetwork::serverDedicated.GetInteger() != 1 ) {
+						session->GuiFrameEvents();
+						session->UpdateScreen( false );
+					}
+				} else {
+					session->Frame();
+
+					// normal, in-sequence screen update
+					session->UpdateScreen( false );
+				}
+
+				// report timing information
+				if ( com_speeds.GetBool() ) {
+					static int	lastTime;
+					int		nowTime = Sys_Milliseconds();
+					int		com_frameMsec = nowTime - lastTime;
+					lastTime = nowTime;
+					Printf( "frame:%i all:%3i gfr:%3i rf:%3i bk:%3i\n", com_frameNumber, com_frameMsec, time_gameFrame, time_frontend, time_backend );
+					time_gameFrame = 0;
+					time_gameDraw = 0;
+				}	*/
+
+				_frameNumber++;
+			}
+			catch(Exception)
+			{
+				// an ERP_DROP was thrown
 			}
 		}
 
@@ -230,7 +287,48 @@ namespace idTech4
 
 			// shutdown idLib
 			// TODO: idLib::ShutDown();
-		}		
+		}
+
+		/// <summary>
+		/// Searches for command line parameters that are set commands.
+		/// </summary>
+		/// <remarks>
+		/// If match is not NULL, only that cvar will be looked for.
+		/// That is necessary because cddir and basedir need to be set before the filesystem is started, but all other sets should
+		/// be after execing the config and default.
+		/// </remarks>
+		/// <param name="match"></param>
+		/// <param name="once"></param>
+		public void StartupVariable(string match, bool once)
+		{
+			List<idCmdArgs> final = new List<idCmdArgs>();
+
+			foreach(idCmdArgs args in _commandLineArguments)
+			{
+				if(args.Get(0).ToLower() != "set")
+				{
+					continue;
+				}
+
+				string s = args.Get(1);
+
+				if((match == null) || (StringComparer.InvariantCultureIgnoreCase.Compare(s, match) == 0))
+				{
+					idE.CvarSystem.SetString(s, args.Get(2));
+
+					if(once == false)
+					{
+						final.Add(args);
+					}
+				}
+				else
+				{
+					final.Add(args);
+				}
+			}
+
+			_commandLineArguments = final.ToArray();
+		}
 		#endregion
 
 		#region Internal
@@ -471,6 +569,130 @@ namespace idTech4
 		#endif*/
 		}
 
+		private void InitGame()
+		{
+			// initialize the file system
+			idE.FileSystem.Init();
+
+			// initialize the declaration manager
+			/*declManager->Init();
+
+			// force r_fullscreen 0 if running a tool
+			CheckToolMode();
+
+			idFile *file = fileSystem->OpenExplicitFileRead( fileSystem->RelativePathToOSPath( CONFIG_SPEC, "fs_savepath" ) );
+			bool sysDetect = ( file == NULL );
+			if ( file ) {
+				fileSystem->CloseFile( file );
+			} else {
+				file = fileSystem->OpenFileWrite( CONFIG_SPEC );
+				fileSystem->CloseFile( file );
+			}
+	
+			idCmdArgs args;
+			if ( sysDetect ) {
+				SetMachineSpec();
+				Com_ExecMachineSpec_f( args );
+			}
+
+			// initialize the renderSystem data structures, but don't start OpenGL yet
+			renderSystem->Init();
+
+			// initialize string database right off so we can use it for loading messages
+			InitLanguageDict();
+
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04344" ) );
+
+			// load the font, etc
+			console->LoadGraphics();
+
+			// init journalling, etc
+			eventLoop->Init();
+
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04345" ) );
+
+			// exec the startup scripts
+			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "exec editor.cfg\n" );
+			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "exec default.cfg\n" );
+
+			// skip the config file if "safe" is on the command line
+			if ( !SafeMode() ) {
+				cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "exec " CONFIG_FILE "\n" );
+			}
+			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "exec autoexec.cfg\n" );
+
+			// reload the language dictionary now that we've loaded config files
+			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "reloadLanguage\n" );
+
+			// run cfg execution
+			cmdSystem->ExecuteCommandBuffer();
+
+			// re-override anything from the config files with command line args
+			StartupVariable( NULL, false );
+
+			// if any archived cvars are modified after this, we will trigger a writing of the config file
+			cvarSystem->ClearModifiedFlags( CVAR_ARCHIVE );
+
+			// cvars are initialized, but not the rendering system. Allow preference startup dialog
+			Sys_DoPreferences();
+
+			// init the user command input code
+			usercmdGen->Init();
+
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04346" ) );
+
+			// start the sound system, but don't do any hardware operations yet
+			soundSystem->Init();
+
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04347" ) );
+
+			// init async network
+			idAsyncNetwork::Init();
+
+		#ifdef	ID_DEDICATED
+			idAsyncNetwork::server.InitPort();
+			cvarSystem->SetCVarBool( "s_noSound", true );
+		#else
+			if ( idAsyncNetwork::serverDedicated.GetInteger() == 1 ) {
+				idAsyncNetwork::server.InitPort();
+				cvarSystem->SetCVarBool( "s_noSound", true );
+			} else {
+				// init OpenGL, which will open a window and connect sound and input hardware
+				PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04348" ) );
+				InitRenderSystem();
+			}
+		#endif
+
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04349" ) );
+
+			// initialize the user interfaces
+			uiManager->Init();
+
+			// startup the script debugger
+			// DebuggerServerInit();
+
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04350" ) );
+
+			// load the game dll
+			LoadGameDLL();
+	
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04351" ) );
+
+			// init the session
+			session->Init();
+
+			// have to do this twice.. first one sets the correct r_mode for the renderer init
+			// this time around the backend is all setup correct.. a bit fugly but do not want
+			// to mess with all the gl init at this point.. an old vid card will never qualify for 
+			if ( sysDetect ) {
+				SetMachineSpec();
+				Com_ExecMachineSpec_f( args );
+				cvarSystem->SetCVarInteger( "s_numberOfSpeakers", 6 );
+				cmdSystem->BufferCommandText( CMD_EXEC_NOW, "s_restart\n" );
+				cmdSystem->ExecuteCommandBuffer();
+			}*/
+		}
+
 		private void ParseCommandLine(string[] commandLineArgs)
 		{
 			List<idCmdArgs> argList = new List<idCmdArgs>();
@@ -515,7 +737,7 @@ namespace idTech4
 				{
 					continue;
 				}
-				
+
 				// set commands won't override menu startup
 				if(args.Get(0).ToLower().StartsWith("set") == true)
 				{
@@ -527,47 +749,6 @@ namespace idTech4
 			}
 
 			return added;
-		}
-
-		/// <summary>
-		/// Searches for command line parameters that are set commands.
-		/// </summary>
-		/// <remarks>
-		/// If match is not NULL, only that cvar will be looked for.
-		/// That is necessary because cddir and basedir need to be set before the filesystem is started, but all other sets should
-		/// be after execing the config and default.
-		/// </remarks>
-		/// <param name="match"></param>
-		/// <param name="once"></param>
-		private void StartupVariable(string match, bool once)
-		{
-			List<idCmdArgs> final = new List<idCmdArgs>();
-
-			foreach(idCmdArgs args in _commandLineArguments)
-			{
-				if(args.Get(0).ToLower() != "set")
-				{
-					continue;
-				}
-
-				string s = args.Get(1);
-
-				if((match == null) || (StringComparer.InvariantCultureIgnoreCase.Compare(s, match) == 0))
-				{
-					idE.CvarSystem.SetString(s, args.Get(2));
-
-					if(once == false)
-					{
-						final.Add(args);
-					}
-				}
-				else
-				{
-					final.Add(args);
-				}
-			}
-
-			_commandLineArguments = final.ToArray();
 		}
 
 		/// <summary>

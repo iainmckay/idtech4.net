@@ -77,6 +77,14 @@ namespace idTech4
 			}
 		}
 
+		public bool IsWindows
+		{
+			get
+			{
+				return true;
+			}
+		}
+
 		public bool IsDebug
 		{
 			get

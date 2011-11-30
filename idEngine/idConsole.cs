@@ -117,6 +117,7 @@ namespace idTech4
 		public static void Warning(string format, params object[] args)
 		{
 			string msg = string.Format(format, args);
+
 			WriteLine("{0}WARNING: {1}{2}", idColorString.Yellow, idColorString.Red, msg);
 
 			if(_warningList.Contains(msg) == false)

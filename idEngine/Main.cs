@@ -115,91 +115,30 @@ namespace idTech4
 			idE.System.Init(_commandLineArgs);
 
 			/*
-			Sys_StartAsyncThread();
+			Sys_StartAsyncThread();*/
 
 			// hide or show the early console as necessary
-			if ( win32.win_viewlog.GetInteger() || com_skipRenderer.GetBool() || idAsyncNetwork::serverDedicated.GetInteger() ) {
-				Sys_ShowConsole( 1, true );
-			} else {
-				Sys_ShowConsole( 0, false );
+			if((idE.CvarSystem.GetInt("win_viewlog") > 0) || (idE.CvarSystem.GetBool("com_skipRenderer") == true) /* TODO: || idAsyncNetwork::serverDedicated.GetInteger()*/) 
+			{
+				idE.SystemConsole.Show(1, true);
+			}
+			else
+			{
+				idE.SystemConsole.Show(0, false);
 			}
 
-			#ifdef SET_THREAD_AFFINITY 
+			/*#ifdef SET_THREAD_AFFINITY 
 				// give the main thread an affinity for the first cpu
 				SetThreadAffinityMask( GetCurrentThread(), 1 );
 			#endif
-
-			::SetCursor( hcurSave );
-
+			
 			// Launch the script debugger
 			if ( strstr( lpCmdLine, "+debugger" ) ) {
 				// DebuggerClientInit( lpCmdLine );
 				return 0;
-			}
-
-			::SetFocus( win32.hWnd );
-
-			// main game loop
-			while( 1 ) {
-
-				Win_Frame();
-
-				#ifdef DEBUG
-				Sys_MemFrame();
-				#endif
-
-				// set exceptions, even if some crappy syscall changes them!
-				Sys_FPU_EnableExceptions( TEST_FPU_EXCEPTIONS );
-
-				#ifdef ID_ALLOW_TOOLS
-				if ( com_editors ) {
-					if ( com_editors & EDITOR_GUI ) {
-						// GUI editor
-						GUIEditorRun();
-					} else if ( com_editors & EDITOR_RADIANT ) {
-						// Level Editor
-						RadiantRun();
-					}
-					else if (com_editors & EDITOR_MATERIAL ) {
-						//BSM Nerve: Add support for the material editor
-						MaterialEditorRun();
-					}
-					else {
-						if ( com_editors & EDITOR_LIGHT ) {
-							// in-game Light Editor
-							LightEditorRun();
-						}
-						if ( com_editors & EDITOR_SOUND ) {
-							// in-game Sound Editor
-							SoundEditorRun();
-						}
-						if ( com_editors & EDITOR_DECL ) {
-							// in-game Declaration Browser
-							DeclBrowserRun();
-						}
-						if ( com_editors & EDITOR_AF ) {
-							// in-game Articulated Figure Editor
-							AFEditorRun();
-						}
-						if ( com_editors & EDITOR_PARTICLE ) {
-							// in-game Particle Editor
-							ParticleEditorRun();
-						}
-						if ( com_editors & EDITOR_SCRIPT ) {
-							// in-game Script Editor
-							ScriptEditorRun();
-						}
-						if ( com_editors & EDITOR_PDA ) {
-							// in-game PDA Editor
-							PDAEditorRun();
-						}
-					}
-				}
-				#endif
-				
-				// run the game
-				common->Frame();
 			}*/
+
+			
 
 			base.Initialize();
 		}
@@ -234,9 +173,25 @@ namespace idTech4
 				this.Exit();
 
 			_gameTime = gameTime;
-			// TODO: Add your update logic here
+			
+			// if "viewlog" has been modified, show or hide the log console
+			if(idE.CvarSystem.IsModified("win_viewlog") == true)
+			{
+				if((idE.CvarSystem.GetBool("com_skipRenderer") == false) /* TODO: && idAsyncNetwork::serverDedicated.GetInteger() != 1)*/)
+				{
+					idE.SystemConsole.Show(idE.CvarSystem.GetInt("win_viewlog"), false);
+				}
 
+				idE.CvarSystem.ClearModified("win_viewlog");
+			}
 
+			// TODO
+/*#ifdef DEBUG
+			Sys_MemFrame();
+#endif
+*/
+
+			idE.System.Frame();
 
 			base.Update(gameTime);
 		}

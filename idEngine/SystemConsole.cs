@@ -142,7 +142,7 @@ namespace idTech4
 				_historyLines.Add(_input.Text);
 				_historyLine = _historyLines.Count;
 
-				idE.CmdSystem.BufferCommandText(_input.Text + '\n');
+				idE.CmdSystem.BufferCommandText(_input.Text);
 				// TODO: REMOVE
 				idE.CmdSystem.ExecuteCommandBuffer();
 

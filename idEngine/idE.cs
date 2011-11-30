@@ -31,6 +31,8 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
+using idTech4.IO;
+
 namespace idTech4
 {
 	public enum ErrorType
@@ -63,7 +65,14 @@ namespace idTech4
 		public const int MaxCommandStringLength = 2048;
 		public const int MaxWarningList = 256;
 
+		public const string BaseGameDirectory = "base";
+
+		/// <summary>60 frames per second.</summary>
+		public const int UserCommandHertz = 60;
+		public const int UserCommandMillseconds = 1000 / UserCommandHertz;
+
 		public static readonly idSystem System = new idSystem();
+		public static readonly idFileSystem FileSystem = new idFileSystem();
 		public static readonly idCvarSystem CvarSystem = new idCvarSystem();
 		public static readonly idCmdSystem CmdSystem = new idCmdSystem();
 

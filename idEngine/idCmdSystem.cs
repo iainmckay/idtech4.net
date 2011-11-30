@@ -35,290 +35,6 @@ using idTech4.Text;
 namespace idTech4
 {
 	/// <summary>
-	/// Command flags.
-	/// </summary>
-	public enum CommandFlags
-	{
-		All = -1,
-		/// <summary>Command is considered a cheat.</summary>
-		Cheat = 1 << 0,
-		/// <summary>System command.</summary>
-		System = 1 << 1,
-		/// <summary>Renderer command.</summary>
-		Renderer = 1 << 2,
-		/// <summary>Sound command.</summary>
-		Sound = 1 << 3,
-		/// <summary>Game command.</summary>
-		Game = 1 << 4,
-		/// <summary>Tool command.</summary>
-		Tool = 1 << 5
-	}
-
-	/// <summary>
-	/// Command buffer stuffing.
-	/// </summary>
-	public enum Execute
-	{
-		/// <summary>Don't return until completed.</summary>
-		Now,
-		/// <summary>Insert at current position, but don't run yet.</summary>
-		Insert,
-		/// <summary>Add to the end of the command buffer (normal case).</summary>
-		Append
-	}
-
-	/// <summary>
-	/// Command arguments.
-	/// </summary>
-	public sealed class CommandEventArgs : EventArgs
-	{
-		#region Properties
-		public idCmdArgs Args
-		{
-			get
-			{
-				return _args;
-			}
-		}
-		#endregion
-
-		#region Members
-		private idCmdArgs _args;
-		#endregion
-
-		#region Constructor
-		public CommandEventArgs(idCmdArgs args)
-			: base()
-		{
-			_args = args;
-		}
-		#endregion
-	}
-
-	/// <summary>
-	/// Command arguments.
-	/// </summary>
-	public sealed class idCmdArgs
-	{
-		#region Properties
-		public int Length
-		{
-			get
-			{
-				return _args.Length;
-			}
-		}
-		#endregion
-
-		#region Members
-		private string[] _args = new string[] { };
-		#endregion
-
-		#region Constructor
-		public idCmdArgs()
-		{
-
-		}
-
-		public idCmdArgs(string text, bool keepAsStrings)
-		{
-			TokenizeString(text, keepAsStrings);
-		}
-		#endregion
-
-		#region Methods
-		/// <summary>
-		/// Gets the argument at the specified index.
-		/// </summary>
-		/// <param name="idx"></param>
-		/// <returns>Argument value or an empty string if outside the range of arguments.</returns>
-		public string Get(int idx)
-		{
-			if((idx >= 0) && (idx < _args.Length))
-			{
-				return _args[idx];
-			}
-
-			return string.Empty;
-		}
-
-		/// <summary>
-		/// Gets the specified range as a single string.
-		/// </summary>
-		/// <param name="start"></param>
-		/// <param name="end"></param>
-		/// <returns></returns>
-		public string Get(int start, int end)
-		{
-			return Get(start, end, false);
-		}
-
-		/// <summary>
-		/// Gets the specified range as a single string.
-		/// </summary>
-		/// <param name="start"></param>
-		/// <param name="end"></param>
-		/// <returns></returns>
-		public string Get(int start, int end, bool escapeArgs)
-		{
-			if(end < 0)
-			{
-				end = _args.Length - 1;
-			}
-			else if(end >= _args.Length)
-			{
-				end = _args.Length - 1;
-			}
-
-			StringBuilder b = new StringBuilder();
-
-			if(escapeArgs == true)
-			{
-				b.Append('"');
-			}
-
-			for(int i = start; i <= end; i++)
-			{
-				if(i > start)
-				{
-					if(escapeArgs == true)
-					{
-						b.Append("\" \"");
-					}
-					else
-					{
-						b.Append(" ");
-					}
-				}
-
-				if((escapeArgs == true) && (_args[i].IndexOf('\\') != -1))
-				{
-					for(int j = 0; j < _args[i].Length; j++)
-					{
-						if(_args[i][j] == '\\')
-						{
-							b.Append("\\\\");
-						}
-						else
-						{
-							b.Append(_args[i].Substring(i));
-						}
-					}
-				}
-				else
-				{
-					b.Append(_args[i]);
-				}
-			}
-
-			if(escapeArgs == true)
-			{
-				b.Append('"');
-			}
-
-			return b.ToString();
-		}
-
-		public void Clear()
-		{
-			_args = new string[] { };
-		}
-
-		/// <summary>
-		/// Takes a string and breaks it up into arg tokens.
-		/// </summary>
-		/// <param name="text"></param>
-		/// <param name="keepAsStrings">true to only seperate tokens from whitespace and comments, ignoring punctuation.</param>
-		public void TokenizeString(string text, bool keepAsStrings)
-		{
-			// clear previous args.
-			_args = new string[] { };
-
-			if(text.Length == 0)
-			{
-				return;
-			}
-						
-			idLexer lexer = new idLexer();
-			lexer.LoadMemory(text, "idCmdSystem.TokenizeString");
-			lexer.Options = LexerOptions.NoErrors | LexerOptions.NoWarnings | LexerOptions.NoStringConcatination | LexerOptions.AllowPathNames | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowIPAddresses | ((keepAsStrings == true) ? LexerOptions.OnlyStrings : 0);
-
-			idToken token = null, number = null;
-			List<string> newArgs = new List<string>();
-			int len = 0, totalLength = 0;
-
-			while(true)
-			{
-				if(newArgs.Count == idE.MaxCommandArgs)
-				{
-					break; // this is usually something malicious.
-				}
-				
-				if((token = lexer.ReadToken()) == null)
-				{
-					break;
-				}
-				
-				if((keepAsStrings == false) && (token.Value == "-"))
-				{
-					// check for negative numbers.
-					if((number = lexer.CheckTokenType(TokenType.Number, 0)) != null)
-					{
-						token.Value = "-" + number;
-					}
-				}
-
-				// check for cvar expansion
-				if(token.Value == "$")
-				{
-					if((token = lexer.ReadToken()) == null)
-					{
-						break;
-					}
-
-					if(idE.CvarSystem.IsInitialized == true)
-					{
-						token.Value = idE.CvarSystem.GetString(token.ToString());
-					}
-					else
-					{
-						token.Value = "<unknown>";
-					}
-				}
-
-				len = token.Value.Length;
-				totalLength += len + 1;
-
-				// regular token
-				newArgs.Add(token.Value);
-			}
-
-			_args = newArgs.ToArray();
-		}
-
-		public void AppendArg(string text)
-		{
-			if(this.Length == 0)
-			{
-				_args = new string[] { text };
-			}
-			else
-			{
-				List<string> args = new List<string>(_args);
-				args.Add(text);
-
-				_args = args.ToArray();
-			}
-		}
-
-		public override string ToString()
-		{
-			return Get(1, -1, false);
-		}
-		#endregion
-	}
-
-	/// <summary>
 	/// Console command execution and command text buffering.
 	/// </summary>
 	/// <remarks>
@@ -430,7 +146,7 @@ namespace idTech4
 		}
 	
 		/// <summary>
-		/// Adds command text to the command buffer, does not add a final \n.
+		/// Adds command text to the command buffer.
 		/// </summary>
 		/// <param name="text"></param>
 		public void BufferCommandText(string text)
@@ -439,12 +155,17 @@ namespace idTech4
 		}
 
 		/// <summary>
-		/// Adds command text to the command buffer, does not add a final \n.
+		/// Adds command text to the command buffer.
 		/// </summary>
 		/// <param name="exec"></param>
 		/// <param name="text"></param>
 		public void BufferCommandText(Execute exec, string text)
 		{
+			if(text.EndsWith("\n") == false)
+			{
+				text += '\n';
+			}
+
 			switch(exec)
 			{
 				case Execute.Now:
@@ -710,6 +431,290 @@ namespace idTech4
 			public EventHandler<CommandEventArgs> Handler;
 			public EventHandler<CommandEventArgs> CompletionHandler;
 			public CommandFlags Flags;
+		}
+		#endregion
+	}
+
+	/// <summary>
+	/// Command flags.
+	/// </summary>
+	public enum CommandFlags
+	{
+		All = -1,
+		/// <summary>Command is considered a cheat.</summary>
+		Cheat = 1 << 0,
+		/// <summary>System command.</summary>
+		System = 1 << 1,
+		/// <summary>Renderer command.</summary>
+		Renderer = 1 << 2,
+		/// <summary>Sound command.</summary>
+		Sound = 1 << 3,
+		/// <summary>Game command.</summary>
+		Game = 1 << 4,
+		/// <summary>Tool command.</summary>
+		Tool = 1 << 5
+	}
+
+	/// <summary>
+	/// Command buffer stuffing.
+	/// </summary>
+	public enum Execute
+	{
+		/// <summary>Don't return until completed.</summary>
+		Now,
+		/// <summary>Insert at current position, but don't run yet.</summary>
+		Insert,
+		/// <summary>Add to the end of the command buffer (normal case).</summary>
+		Append
+	}
+
+	/// <summary>
+	/// Command arguments.
+	/// </summary>
+	public sealed class CommandEventArgs : EventArgs
+	{
+		#region Properties
+		public idCmdArgs Args
+		{
+			get
+			{
+				return _args;
+			}
+		}
+		#endregion
+
+		#region Members
+		private idCmdArgs _args;
+		#endregion
+
+		#region Constructor
+		public CommandEventArgs(idCmdArgs args)
+			: base()
+		{
+			_args = args;
+		}
+		#endregion
+	}
+
+	/// <summary>
+	/// Command arguments.
+	/// </summary>
+	public sealed class idCmdArgs
+	{
+		#region Properties
+		public int Length
+		{
+			get
+			{
+				return _args.Length;
+			}
+		}
+		#endregion
+
+		#region Members
+		private string[] _args = new string[] { };
+		#endregion
+
+		#region Constructor
+		public idCmdArgs()
+		{
+
+		}
+
+		public idCmdArgs(string text, bool keepAsStrings)
+		{
+			TokenizeString(text, keepAsStrings);
+		}
+		#endregion
+
+		#region Methods
+		/// <summary>
+		/// Gets the argument at the specified index.
+		/// </summary>
+		/// <param name="idx"></param>
+		/// <returns>Argument value or an empty string if outside the range of arguments.</returns>
+		public string Get(int idx)
+		{
+			if((idx >= 0) && (idx < _args.Length))
+			{
+				return _args[idx];
+			}
+
+			return string.Empty;
+		}
+
+		/// <summary>
+		/// Gets the specified range as a single string.
+		/// </summary>
+		/// <param name="start"></param>
+		/// <param name="end"></param>
+		/// <returns></returns>
+		public string Get(int start, int end)
+		{
+			return Get(start, end, false);
+		}
+
+		/// <summary>
+		/// Gets the specified range as a single string.
+		/// </summary>
+		/// <param name="start"></param>
+		/// <param name="end"></param>
+		/// <returns></returns>
+		public string Get(int start, int end, bool escapeArgs)
+		{
+			if(end < 0)
+			{
+				end = _args.Length - 1;
+			}
+			else if(end >= _args.Length)
+			{
+				end = _args.Length - 1;
+			}
+
+			StringBuilder b = new StringBuilder();
+
+			if(escapeArgs == true)
+			{
+				b.Append('"');
+			}
+
+			for(int i = start; i <= end; i++)
+			{
+				if(i > start)
+				{
+					if(escapeArgs == true)
+					{
+						b.Append("\" \"");
+					}
+					else
+					{
+						b.Append(" ");
+					}
+				}
+
+				if((escapeArgs == true) && (_args[i].IndexOf('\\') != -1))
+				{
+					for(int j = 0; j < _args[i].Length; j++)
+					{
+						if(_args[i][j] == '\\')
+						{
+							b.Append("\\\\");
+						}
+						else
+						{
+							b.Append(_args[i].Substring(i));
+						}
+					}
+				}
+				else
+				{
+					b.Append(_args[i]);
+				}
+			}
+
+			if(escapeArgs == true)
+			{
+				b.Append('"');
+			}
+
+			return b.ToString();
+		}
+
+		public void Clear()
+		{
+			_args = new string[] { };
+		}
+
+		/// <summary>
+		/// Takes a string and breaks it up into arg tokens.
+		/// </summary>
+		/// <param name="text"></param>
+		/// <param name="keepAsStrings">true to only seperate tokens from whitespace and comments, ignoring punctuation.</param>
+		public void TokenizeString(string text, bool keepAsStrings)
+		{
+			// clear previous args.
+			_args = new string[] { };
+
+			if(text.Length == 0)
+			{
+				return;
+			}
+
+			idLexer lexer = new idLexer();
+			lexer.LoadMemory(text, "idCmdSystem.TokenizeString");
+			lexer.Options = LexerOptions.NoErrors | LexerOptions.NoWarnings | LexerOptions.NoStringConcatination | LexerOptions.AllowPathNames | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowIPAddresses | ((keepAsStrings == true) ? LexerOptions.OnlyStrings : 0);
+
+			idToken token = null, number = null;
+			List<string> newArgs = new List<string>();
+			int len = 0, totalLength = 0;
+
+			while(true)
+			{
+				if(newArgs.Count == idE.MaxCommandArgs)
+				{
+					break; // this is usually something malicious.
+				}
+
+				if((token = lexer.ReadToken()) == null)
+				{
+					break;
+				}
+
+				if((keepAsStrings == false) && (token.Value == "-"))
+				{
+					// check for negative numbers.
+					if((number = lexer.CheckTokenType(TokenType.Number, 0)) != null)
+					{
+						token.Value = "-" + number;
+					}
+				}
+
+				// check for cvar expansion
+				if(token.Value == "$")
+				{
+					if((token = lexer.ReadToken()) == null)
+					{
+						break;
+					}
+
+					if(idE.CvarSystem.IsInitialized == true)
+					{
+						token.Value = idE.CvarSystem.GetString(token.ToString());
+					}
+					else
+					{
+						token.Value = "<unknown>";
+					}
+				}
+
+				len = token.Value.Length;
+				totalLength += len + 1;
+
+				// regular token
+				newArgs.Add(token.Value);
+			}
+
+			_args = newArgs.ToArray();
+		}
+
+		public void AppendArg(string text)
+		{
+			if(this.Length == 0)
+			{
+				_args = new string[] { text };
+			}
+			else
+			{
+				List<string> args = new List<string>(_args);
+				args.Add(text);
+
+				_args = args.ToArray();
+			}
+		}
+
+		public override string ToString()
+		{
+			return Get(1, -1, false);
 		}
 		#endregion
 	}
