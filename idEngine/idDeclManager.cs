@@ -121,8 +121,8 @@ namespace idTech4
 #endif
 
 			// decls used throughout the engine
-			/*RegisterDeclType("table", DeclType.Table, new idDeclAllocator<idDeclTable>());
-			RegisterDeclType("material", DeclType.Material, new idDeclAllocator<idMaterial>());
+			RegisterDeclType("table", DeclType.Table, new idDeclAllocator<idDeclTable>());
+			/*RegisterDeclType("material", DeclType.Material, new idDeclAllocator<idMaterial>());
 			RegisterDeclType("skin", DeclType.Skin, new idDeclAllocator<idDeclSkin>());
 			RegisterDeclType("sound", DeclType.Sound, new idDeclAllocator<idSoundShader>());
 
@@ -258,14 +258,7 @@ namespace idTech4
 
 		public DeclType GetDeclTypeFromName(string name)
 		{
-			DeclType type = (DeclType) Enum.Parse(typeof(DeclType), name, true);
-
-			if(type == 0)
-			{
-				return DeclType.Unknown;
-			}
-
-			return type;
+			return (DeclType) Enum.Parse(typeof(DeclType), name, true);
 		}
 
 		/// <summary>
@@ -302,7 +295,7 @@ namespace idTech4
 		}
 
 		/// <summary>
-		/// This finds or creats the decl, but does not cause a parse.  This is only used internally.
+		/// This finds or creates the decl, but does not cause a parse.  This is only used internally.
 		/// </summary>
 		/// <param name="type"></param>
 		/// <param name="name"></param>
@@ -368,6 +361,7 @@ namespace idTech4
 		
 	public enum DeclType
 	{
+		Unknown,
 		Table,
 		Material,
 		Skin,
@@ -382,9 +376,7 @@ namespace idTech4
 		Audio,
 		Email,
 		ModelExport,
-		MapDef,
-
-		Unknown
+		MapDef
 	}
 
 	public enum DeclState

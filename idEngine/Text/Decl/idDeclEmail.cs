@@ -34,14 +34,64 @@ namespace idTech4.Text.Decl
 {
 	public class idDeclEmail : idDecl
 	{
-#region Members
+		#region Properties
+		public string Text
+		{
+			get
+			{
+				return _text;
+			}
+		}
+
+		public string Subject
+		{
+			get
+			{
+				return _subject;
+			}
+		}
+
+		public string Date
+		{
+			get
+			{
+				return _date;
+			}
+		}
+
+		public string To
+		{
+			get
+			{
+				return _to;
+			}
+		}
+
+		public string From
+		{
+			get
+			{
+				return _from;
+			}
+		}
+
+		public string Image
+		{
+			get
+			{
+				return _image;
+			}
+		}
+		#endregion
+
+		#region Members
 		private string _text;
 		private string _subject;
 		private string _date;
 		private string _to;
 		private string _from;
 		private string _image;
-#endregion
+		#endregion
 
 		#region Constructor
 		public idDeclEmail()
@@ -135,7 +185,7 @@ namespace idTech4.Text.Decl
 
 		public override string GetDefaultDefinition()
 		{
-			return "{\n\t{\n\t\tto\t5Mail recipient\n\t\tsubject\t5Nothing\n\t\tfrom\t5No one\n\t}\n}"; 
+			return "{\n\t{\n\t\tto\t5Mail recipient\n\t\tsubject\t5Nothing\n\t\tfrom\t5No one\n\t}\n}";
 		}
 		#endregion
 	}

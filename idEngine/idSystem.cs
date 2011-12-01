@@ -413,7 +413,9 @@ namespace idTech4
 			}
 			else if(code == ErrorType.Drop)
 			{
-				idConsole.WriteLine("********************\nERROR: {0}\n********************", errorMessage);
+				idConsole.WriteLine("********************");
+				idConsole.WriteLine("ERROR: {0}", errorMessage);
+				idConsole.WriteLine("********************");
 
 				_errorEntered = ErrorType.None;
 
@@ -421,7 +423,9 @@ namespace idTech4
 			}
 			else
 			{
-				idConsole.WriteLine("********************\nERROR: {0}\n********************", errorMessage);
+				idConsole.WriteLine("********************");
+				idConsole.WriteLine("ERROR: {0}", errorMessage);
+				idConsole.WriteLine("********************");
 			}
 
 			if(idE.CvarSystem.GetBool("r_fullscreen") == true)
@@ -753,7 +757,7 @@ namespace idTech4
 		{
 			string errorMessage = string.Format(format, args);
 
-			idE.SystemConsole.Append(errorMessage);
+			idE.SystemConsole.Append(errorMessage + "\n");
 			idE.SystemConsole.Show(1, true);
 
 			// TODO: Win_SetErrorText( text );

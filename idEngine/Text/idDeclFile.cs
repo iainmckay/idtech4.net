@@ -157,7 +157,7 @@ namespace idTech4.Text
 
 				// get the decl type from the type name
 				identifiedType = idE.DeclManager.GetDeclTypeFromName(token.Value);
-
+				idConsole.WriteLine("IDE1: {0} -> {1}", identifiedType, token.Value);
 				if(identifiedType == DeclType.Unknown)
 				{
 					if(token.Value == "{")
@@ -218,7 +218,7 @@ namespace idTech4.Text
 
 				if(token.Value != "{")
 				{
-					lexer.Warning("Expecting '{' but found '{0}'", token.Value);
+					lexer.Warning("Expecting '{{' but found '{0}'", token.Value);
 					continue;
 				}
 

@@ -441,7 +441,7 @@ namespace idTech4.Text
 
 			// save script pointer
 			_lastScriptPosition = _scriptPosition;
-			
+
 			// save line counter
 			_lastLine = _line;
 
@@ -451,7 +451,7 @@ namespace idTech4.Text
 			// start of the white space
 			_whiteSpaceStartPosition = _scriptPosition;
 			_token.WhiteSpaceStartPosition = _scriptPosition;
-			
+
 			// read white space before token
 			if(ReadWhiteSpace() == false)
 			{
@@ -505,12 +505,12 @@ namespace idTech4.Text
 					{
 						if(ReadName(_token) == false)
 						{
-						return null;
+							return null;
 						}
 					}
 				}
 			}
-		
+
 			// if there is a leading quote
 			else if((c == '"') || (c == '\''))
 			{
@@ -660,9 +660,121 @@ namespace idTech4.Text
 
 			return false;
 		}
+
+		public float ParseFloat()
+		{
+			bool tmp = true;
+			return ParseFloat(out tmp, false);
+		}
+
+		/// <summary>
+		/// Read a floating point number.
+		/// </summary>
+		/// <remarks>
+		/// If errorFlag is NULL, a non-numeric token will issue an Error().  If it isn't NULL, it will issue a Warning() and set *errorFlag = true.
+		/// </remarks>
+		/// <param name="tmp"></param>
+		/// <returns></returns>
+		public float ParseFloat(out bool errorFlag)
+		{
+			return ParseFloat(out errorFlag, true);
+		}
+
+		public idToken ExpectTokenType(TokenType type, TokenSubType subType)
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				Error("couldn't read expected token");
+				return null;
+			}
+
+			if(token.Type != type)
+			{
+				Error("expected a {0} but found '{1}'", type.ToString().ToLower(), token.Value);
+				return null;
+			}
+
+			if(token.Type == TokenType.Number)
+			{
+				if((token.SubType & subType) != subType)
+				{
+					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), token.Value);
+					return null;
+				}
+			}
+			else if(token.Type == TokenType.Punctuation)
+			{
+				if(token.SubType != subType)
+				{
+					Error("expected '{0}' but found '{1}'", GetPunctuationFromID(subType), token.Value);
+					return null;
+				}
+			}
+
+			return token;	
+		}		
+
+		public string GetPunctuationFromID(TokenSubType id)
+		{
+			foreach(LexerPunctuation p in _punctuation)
+			{
+				if((int) p.N == (int) id)
+				{
+					return p.P;
+				}
+			}
+
+			return "unknown punctuation";
+		}
 		#endregion
 
 		#region Private
+		private float ParseFloat(out bool errorFlag, bool useErrorFlag)
+		{
+			idToken token;
+
+			errorFlag = false;
+
+			if((token = ReadToken()) == null)
+			{
+				if(useErrorFlag == true)
+				{
+					Warning("couldn't read expected floating point number");
+					errorFlag = true;
+				}
+				else
+				{
+					Error("couldn't read expected floating point number");
+				}
+
+				return 0;
+			}
+
+			if((token.Type == TokenType.Punctuation) && (token.Value == "-"))
+			{
+
+				/*if ( token.type == TT_PUNCTUATION && token == "-" ) {
+					idLexer::ExpectTokenType( TT_NUMBER, 0, &token );
+					return -token.GetFloatValue();*/
+			}
+			else if(token.Type != TokenType.Number)
+			{
+				if(useErrorFlag == true)
+				{
+					Warning("expected float value, found '{0}'", token.Value);
+					errorFlag = true;
+				}
+				else
+				{
+					Error("expected float value, found '{0}'", token.Value);
+				}
+			}
+
+			return (float) token.FloatValue;
+		}
+
 		/// <summary>
 		/// Reads two strings with only a white space between them as one string.
 		/// </summary>
@@ -710,7 +822,7 @@ namespace idTech4.Text
 					{
 						break;
 					}
-					
+
 					tmpScriptPosition = _scriptPosition;
 					tmpLine = _line;
 
@@ -740,7 +852,7 @@ namespace idTech4.Text
 							return false;
 						}
 					}
-					
+
 					// if there's no leading qoute
 					if(GetBufferCharacter(_scriptPosition) != quote)
 					{
@@ -752,7 +864,7 @@ namespace idTech4.Text
 					// step over the new leading quote
 					_scriptPosition++;
 				}
-				else 
+				else
 				{
 					if(GetBufferCharacter(_scriptPosition) == '\0')
 					{
@@ -795,7 +907,7 @@ namespace idTech4.Text
 		{
 			char c;
 			token.Type = TokenType.Name;
-			
+
 			do
 			{
 				token.Value += GetBufferCharacter(_scriptPosition++);
@@ -826,7 +938,7 @@ namespace idTech4.Text
 		private bool ReadWhiteSpace()
 		{
 			char c;
-			
+
 			while(true)
 			{
 				// skip white space
@@ -844,7 +956,7 @@ namespace idTech4.Text
 
 					_scriptPosition++;
 				}
-				
+
 				// skip comments
 				if(GetBufferCharacter(_scriptPosition) == '/')
 				{
@@ -1248,7 +1360,7 @@ namespace idTech4.Text
 				case '\'': c = '\''; break;
 				case '\"': c = '\"'; break;
 				//case '\?': c = '\?'; break;
-				case 'x': 
+				case 'x':
 					{
 						_scriptPosition++;
 
@@ -1317,11 +1429,11 @@ namespace idTech4.Text
 							Warning("too large value in escape character");
 							val = 0xFF;
 						}
-	
+
 						c = (char) val;
 						break;
 					}
-				}
+			}
 
 			// step over the escape character or the last digit of the number
 			_scriptPosition++;

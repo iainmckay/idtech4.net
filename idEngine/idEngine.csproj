@@ -138,6 +138,7 @@
       <DependentUpon>SystemConsole.cs</DependentUpon>
     </Compile>
     <Compile Include="Text\Decl\idDeclEmail.cs" />
+    <Compile Include="Text\Decl\idDeclTable.cs" />
     <Compile Include="Text\idDeclFile.cs" />
     <Compile Include="Text\idLexer.cs" />
     <Compile Include="Text\idToken.cs" />
