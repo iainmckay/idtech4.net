@@ -165,6 +165,12 @@ namespace idTech4.IO
 		private List<SearchPath> _searchPaths = new List<SearchPath>();
 		private string _gameFolder; // this will be a single name without separators.
 
+		private bool _loadedFileFromDir; // set to true once a file was loaded from a directory - can't switch to pure anymore.
+
+		private int _readCount; // total bytes read.
+		private int _loadCount;	// total files read.
+		private int _loadStack;	// total files in memory.
+
 		private List<int> _restartChecksums = new List<int>(); // used during a restart to set things in right order.
 		private List<int> _addonChecksums = new List<int>(); // list of checksums that should go to the search list directly (for restarts).
 		#endregion
@@ -239,17 +245,15 @@ namespace idTech4.IO
 			// try to start up normally
 			Startup();
 
-			// see if we are going to allow add-ons
-			/*SetRestrictions();
-			
 			// spawn a thread to handle background file reads
-			StartBackgroundDownloadThread();
+			// TODO: not interested in this right now. StartBackgroundDownloadThread();
 
+			// TODO: default.cfg
 			// if we can't find default.cfg, assume that the paths are
 			// busted and error out now, rather than getting an unreadable
 			// graphics screen when the font fails to load
 			// Dedicated servers can run with no outside files at all
-			if ( ReadFile( "default.cfg", NULL, NULL ) <= 0 ) {
+			/*if ( ReadFile( "default.cfg", NULL, NULL ) <= 0 ) {
 			common->FatalError( "Couldn't load default.cfg" );
 			}*/
 		}
@@ -290,6 +294,11 @@ namespace idTech4.IO
 			return GetFiles(relativePath, extension, false, false, null);
 		}
 
+		public idFileList GetFiles(string relativePath, string extension, bool sort)
+		{
+			return GetFiles(relativePath, extension, sort, false, null);
+		}
+
 		public idFileList GetFiles(string relativePath, string extension, bool sort, bool fullRelativePath, string gameDirectory)
 		{
 			string[] extensionList = GetExtensionList(extension);
@@ -319,6 +328,395 @@ namespace idTech4.IO
 
 			return list.ToArray();
 		}
+
+		public Stream OpenFileRead(string relativePath)
+		{
+			return OpenFileRead(relativePath, true, null);
+		}
+
+		public Stream OpenFileRead(string relativePath, bool allowCopyFiles)
+		{
+			return OpenFileRead(relativePath, allowCopyFiles, null);
+		}
+
+		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, string gameDirectory)
+		{
+			Pack p;
+
+			return OpenFileRead(relativePath, allowCopyFiles, out p, gameDirectory, FileSearch.SearchDirectories | FileSearch.SearchPaks);
+		}
+
+		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, out Pack foundInPack, FileSearch searchFlags)
+		{
+			return OpenFileRead(relativePath, allowCopyFiles, out foundInPack, null, searchFlags);
+		}
+
+		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, out Pack foundInPack, string gameDirectory, FileSearch searchFlags)
+		{
+			if(_searchPaths.Count == 0)
+			{
+				idConsole.FatalError("Filesystem call made without initialization");
+			}
+
+			if((relativePath == null) || (relativePath == string.Empty))
+			{
+				idConsole.FatalError("open file read: null 'relativePath' parameter passed");
+			}
+
+			foundInPack = null;
+
+			// qpaths are not supposed to have a leading slash
+			relativePath = relativePath.TrimEnd('/');
+
+			// make absolutely sure that it can't back up the path.
+			// The searchpaths do guarantee that something will always
+			// be prepended, so we don't need to worry about "c:" or "//limbo" 
+			if((relativePath.Contains("..") == true) || (relativePath.Contains("::") == true))
+			{
+				return null;
+			}
+
+			//
+			// search through the path, one element at a time
+			//
+			foreach(SearchPath searchPath in _searchPaths)
+			{
+				if((searchPath.Directory != null) && ((searchFlags & FileSearch.SearchDirectories) != 0))
+				{
+					// check a file in the directory tree
+
+					// if we are running restricted, the only files we
+					// will allow to come from the directory are .cfg files
+					if((idE.CvarSystem.GetBool("fs_restrict") == true) /* TODO: serverPaks.Num()*/)
+					{
+						if(FileAllowedFromDirectory(relativePath) == false)
+						{
+							continue;
+						}
+					}
+
+					idDirectory dir = searchPath.Directory;
+
+					if((gameDirectory != null) && (gameDirectory != string.Empty))
+					{
+						if(dir.GameDirectory != gameDirectory)
+						{
+							continue;
+						}
+					}
+
+					string netPath = CreatePath(dir.Path, dir.GameDirectory, relativePath);
+					Stream file = null;
+
+					try
+					{
+						file = File.OpenRead(netPath);
+					}
+					catch(Exception x)
+					{
+						idConsole.DeveloperWriteLine("OpenFileRead Exception: {0}", x.ToString());
+
+						continue;
+					}
+
+					if(idE.CvarSystem.GetInt("fs_debug") > 0)
+					{
+						idConsole.WriteLine("open file read: {0} (found in '{1}/{2}')", relativePath, dir.Path, dir.GameDirectory);
+					}
+
+					if((_loadedFileFromDir == false) && (FileAllowedFromDirectory(relativePath) == false))
+					{
+						// TODO
+						/*if(restartChecksums.Num())
+						{
+							common->FatalError("'%s' loaded from directory: Failed to restart with pure mode restrictions for server connect", relativePath);
+						}*/
+
+						idConsole.DeveloperWriteLine("filesystem: switching to pure mode will require a restart. '{0}' loaded from directory.", relativePath);
+						_loadedFileFromDir = true;
+					}
+
+					// TODO: if fs_copyfiles is set
+					/*if(allowCopyFiles && fs_copyfiles.GetInteger())
+					{
+
+						idStr copypath;
+						idStr name;
+						copypath = BuildOSPath(fs_savepath.GetString(), dir->gamedir, relativePath);
+						netpath.ExtractFileName(name);
+						copypath.StripFilename();
+						copypath += PATHSEPERATOR_STR;
+						copypath += name;
+
+						bool isFromCDPath = !dir->path.Cmp(fs_cdpath.GetString());
+						bool isFromSavePath = !dir->path.Cmp(fs_savepath.GetString());
+						bool isFromBasePath = !dir->path.Cmp(fs_basepath.GetString());
+
+						switch(fs_copyfiles.GetInteger())
+						{
+							case 1:
+								// copy from cd path only
+								if(isFromCDPath)
+								{
+									CopyFile(netpath, copypath);
+								}
+								break;
+							case 2:
+								// from cd path + timestamps
+								if(isFromCDPath)
+								{
+									CopyFile(netpath, copypath);
+								}
+								else if(isFromSavePath || isFromBasePath)
+								{
+									idStr sourcepath;
+									sourcepath = BuildOSPath(fs_cdpath.GetString(), dir->gamedir, relativePath);
+									FILE* f1 = OpenOSFile(sourcepath, "r");
+									if(f1)
+									{
+										ID_TIME_T t1 = Sys_FileTimeStamp(f1);
+										fclose(f1);
+										FILE* f2 = OpenOSFile(copypath, "r");
+										if(f2)
+										{
+											ID_TIME_T t2 = Sys_FileTimeStamp(f2);
+											fclose(f2);
+											if(t1 > t2)
+											{
+												CopyFile(sourcepath, copypath);
+											}
+										}
+									}
+								}
+								break;
+							case 3:
+								if(isFromCDPath || isFromBasePath)
+								{
+									CopyFile(netpath, copypath);
+								}
+								break;
+							case 4:
+								if(isFromCDPath && !isFromBasePath)
+								{
+									CopyFile(netpath, copypath);
+								}
+								break;
+						}
+					}*/
+
+					return file;
+				}
+				/*else if(search->pack && (searchFlags & FSFLAG_SEARCH_PAKS))
+				{
+
+					if(!search->pack->hashTable[hash])
+					{
+						continue;
+					}
+
+					// disregard if it doesn't match one of the allowed pure pak files
+					if(serverPaks.Num())
+					{
+						GetPackStatus(search->pack);
+						if(search->pack->pureStatus != PURE_NEVER && !serverPaks.Find(search->pack))
+						{
+							continue; // not on the pure server pak list
+						}
+					}
+
+					// look through all the pak file elements
+					pak = search->pack;
+
+					if(searchFlags & FSFLAG_BINARY_ONLY)
+					{
+						// make sure this pak is tagged as a binary file
+						if(pak->binary == BINARY_UNKNOWN)
+						{
+							int confHash;
+							fileInPack_t* pakFile;
+							confHash = HashFileName(BINARY_CONFIG);
+							pak->binary = BINARY_NO;
+							for(pakFile = search->pack->hashTable[confHash]; pakFile; pakFile = pakFile->next)
+							{
+								if(!FilenameCompare(pakFile->name, BINARY_CONFIG))
+								{
+									pak->binary = BINARY_YES;
+									break;
+								}
+							}
+						}
+						if(pak->binary == BINARY_NO)
+						{
+							continue; // not a binary pak, skip
+						}
+					}
+
+					for(pakFile = pak->hashTable[hash]; pakFile; pakFile = pakFile->next)
+					{
+						// case and separator insensitive comparisons
+						if(!FilenameCompare(pakFile->name, relativePath))
+						{
+							idFile_InZip* file = ReadFileFromZip(pak, pakFile, relativePath);
+
+							if(foundInPak)
+							{
+								*foundInPak = pak;
+							}
+
+							if(!pak->referenced && !(searchFlags & FSFLAG_PURE_NOREF))
+							{
+								// mark this pak referenced
+								if(fs_debug.GetInteger())
+								{
+									common->Printf("idFileSystem::OpenFileRead: %s -> adding %s to referenced paks\n", relativePath, pak->pakFilename.c_str());
+								}
+								pak->referenced = true;
+							}
+
+							if(fs_debug.GetInteger())
+							{
+								common->Printf("idFileSystem::OpenFileRead: %s (found in '%s')\n", relativePath, pak->pakFilename.c_str());
+							}
+							return file;
+						}
+					}
+				}
+			}*/
+
+				// TODO
+				/*if ( searchFlags & FSFLAG_SEARCH_ADDONS ) {
+					for ( search = addonPaks; search; search = search->next ) {
+						assert( search->pack );
+						fileInPack_t	*pakFile;
+						pak = search->pack;
+						for ( pakFile = pak->hashTable[hash]; pakFile; pakFile = pakFile->next ) {
+							if ( !FilenameCompare( pakFile->name, relativePath ) ) {
+								idFile_InZip *file = ReadFileFromZip( pak, pakFile, relativePath );
+								if ( foundInPak ) {
+									*foundInPak = pak;
+								}
+								// we don't toggle pure on paks found in addons - they can't be used without a reloadEngine anyway
+								if ( fs_debug.GetInteger( ) ) {
+									common->Printf( "idFileSystem::OpenFileRead: %s (found in addon pk4 '%s')\n", relativePath, search->pack->pakFilename.c_str() );
+								}
+								return file;
+							}
+						}
+					}*/
+			}
+
+			if(idE.CvarSystem.GetInt("fs_debug") > 0)
+			{
+				idConsole.WriteLine("Can't find {0}", relativePath);
+			}
+
+			return null;
+		}
+
+		public string ReadFile(string relativePath)
+		{
+			DateTime tmp;
+			return ReadFile(relativePath, out tmp);
+		}
+
+		/// <summary>
+		/// Reads a complete file.
+		/// </summary>
+		/// <param name="fileName"></param>
+		/// <param name="timeStamp"></param>
+		/// <returns>null if loading failed (file did not exist or other issue).</returns>
+		public string ReadFile(string relativePath, out DateTime timeStamp)
+		{
+			if(_searchPaths.Count == 0)
+			{
+				idConsole.FatalError("Filesystem call made without initialization");
+			}
+
+			if(relativePath == string.Empty)
+			{
+				idConsole.FatalError("read file with empty name");
+			}
+
+			timeStamp = DateTime.Now;
+
+			bool isConfig = false;
+
+			// if this is a .cfg file and we are playing back a journal, read
+			// it from the journal file
+			// TODO
+			/*if(strstr(relativePath, ".cfg") == relativePath + strlen(relativePath) - 4)
+			{
+				isConfig = true;
+				if(eventLoop && eventLoop->JournalLevel() == 2)
+				{
+					int r;
+
+					loadCount++;
+					loadStack++;
+
+					common->DPrintf("Loading %s from journal file.\n", relativePath);
+					len = 0;
+					r = eventLoop->com_journalDataFile->Read(&len, sizeof(len));
+					if(r != sizeof(len))
+					{
+						*buffer = NULL;
+						return -1;
+					}
+					buf = (byte*) Mem_ClearedAlloc(len + 1);
+					*buffer = buf;
+					r = eventLoop->com_journalDataFile->Read(buf, len);
+					if(r != len)
+					{
+						common->FatalError("Read from journalDataFile failed");
+					}
+
+					// guarantee that it will have a trailing 0 for string operations
+					buf[len] = 0;
+
+					return len;
+				}
+			}
+			else
+			{
+				isConfig = false;
+			}*/
+
+			// look for it in the filesystem or pack files
+			Stream s = OpenFileRead(relativePath);
+
+			if(s == null)
+			{
+				return null;
+			}
+
+			// TODO
+			/*if(timestamp)
+			{
+				*timestamp = f->Timestamp();
+			}*/
+
+			_loadCount++;
+			_loadStack++;
+
+			string content = string.Empty;
+
+			using(StreamReader reader = new StreamReader(s))
+			{
+				content = reader.ReadToEnd();
+			}
+						
+			// TODO
+			// if we are journalling and it is a config file, write it to the journal file
+			/*if(isConfig && eventLoop && eventLoop->JournalLevel() == 1)
+			{
+				common->DPrintf("Writing %s to journal file.\n", relativePath);
+				eventLoop->com_journalDataFile->Write(&len, sizeof(len));
+				eventLoop->com_journalDataFile->Write(buf, len);
+				eventLoop->com_journalDataFile->Flush();
+			}*/
+
+			return content;
+		}
 		#endregion
 
 		#region Private
@@ -337,7 +735,7 @@ namespace idTech4.IO
 			}
 
 			SetupGameDirectories(idE.BaseGameDirectory);
-		
+
 			// fs_game_base override
 			if((idE.CvarSystem.GetString("fs_game_base") != string.Empty) && (StringComparer.InvariantCultureIgnoreCase.Compare(idE.CvarSystem.GetString("fs_game_base"), idE.BaseGameDirectory) != 0))
 			{
@@ -356,7 +754,7 @@ namespace idTech4.IO
 			// scan	through and deal with dependencies
 
 			// TODO: we don't deal with addon paks yet.
-			#region 
+			#region
 			/*search = &searchPaths;
 			while ( *search ) {
 				if ( !( *search )->pack || !( *search )->pack->addon ) {
@@ -542,7 +940,7 @@ namespace idTech4.IO
 			pakFiles = pakFiles.OrderByDescending(x => x).ToArray();
 
 			foreach(string pakName in pakFiles)
-			{			
+			{
 				Pack pak = LoadZipFile(pakName);
 
 				if(pak == null)
@@ -641,7 +1039,7 @@ namespace idTech4.IO
 					}
 
 					string netPath = CreatePath(searchPath.Directory.Path, searchPath.Directory.GameDirectory, relativePath);
-					
+
 					// scan for files in the filesystem
 					if(Directory.Exists(netPath) == false)
 					{
@@ -667,7 +1065,7 @@ namespace idTech4.IO
 					}
 
 					List<string> sysFiles = new List<string>(tmp);
-					
+
 					sysFiles.Remove(".");
 					sysFiles.Remove("..");
 
@@ -704,10 +1102,10 @@ namespace idTech4.IO
 					{
 						pathLength++;
 					}
-					
+
 					// TODO: profile this to see if it's faster to cache the file table.
 					foreach(ZipEntry zipEntry in zipFile)
-					{	
+					{
 						string name = zipEntry.Name;
 
 						// if the name is not long anough to at least contain the path.
@@ -721,12 +1119,12 @@ namespace idTech4.IO
 						{
 							continue;
 						}
-						
+
 						// make sure the file is not in a subdirectory
 						if(name.IndexOf("/", pathLength) != -1)
 						{
 							continue;
-						}						
+						}
 
 						// check for extension match
 						bool extMatch = false;
@@ -746,12 +1144,12 @@ namespace idTech4.IO
 								}
 							}
 						}
-						
+
 						if(extMatch == false)
 						{
 							continue;
 						}
-						
+
 						if(fullRelativePath == true)
 						{
 							fileList.Add(Path.Combine(relativePath, name).TrimEnd('/'));
@@ -798,8 +1196,55 @@ namespace idTech4.IO
 					break;
 				}
 			}*/
-			
+
 			return pack;
+		}
+
+		/// <summary>
+		/// Some files can be obtained from directories without compromising si_pure.
+		/// </summary>
+		/// <param name="path"></param>
+		/// <returns></returns>
+		private bool FileAllowedFromDirectory(string path)
+		{
+			if((path.EndsWith(".cfg") == true) // for config files.
+				|| (path.EndsWith(".dat") == true) // for journal files.
+				|| (path.EndsWith(".dll") == true) // dynamic modules are handled a different way for pure.
+				|| (path.EndsWith(".scriptcfg") == true)) // configuration script, such as map cycle.
+			{
+				// TODO
+				/*#if ID_PURE_ALLOWDDS
+						 || !strcmp( path + l - 4, ".dds" )
+				#endif*/
+				// note: cd and xp keys, as well as config.spec are opened through an explicit OS path and don't hit this
+				return true;
+			}
+
+			// savegames
+			if((path.StartsWith("savegames") == true) && ((path.EndsWith(".tga") == true) || (path.EndsWith(".txt") == true) || (path.EndsWith(".save") == true)))
+			{
+				return true;
+			}
+
+			// screen shots
+			if((path.StartsWith("screenshots") == true) && (path.EndsWith(".tga") == true))
+			{
+				return true;
+			}
+
+			// objective tgas
+			if((path.StartsWith("maps/game") == true) && (path.EndsWith(".tga") == true))
+			{
+				return true;
+			}
+
+			// splash screens extracted from addons
+			if((path.StartsWith("guis/assets/splash/addon") == true) && (path.EndsWith(".tga") == true))
+			{
+				return true;
+			}
+
+			return false;
 		}
 		#endregion
 
@@ -846,7 +1291,7 @@ namespace idTech4.IO
 					idConsole.WriteLine(Path.Combine(path.Directory.Path, path.Directory.GameDirectory));
 				}
 			}
-						
+
 			// TODO
 			/*common->Printf("game DLL: 0x%x in pak: 0x%x\n", fileSystemLocal.gameDLLChecksum, fileSystemLocal.gamePakChecksum);*/
 
@@ -906,7 +1351,7 @@ namespace idTech4.IO
 				idConsole.WriteLine("---------------");
 
 				idFileList fileList = GetFiles(relativePath, extension);
-			
+
 				foreach(string file in fileList.Files)
 				{
 					idConsole.WriteLine("{0}", file);
@@ -917,6 +1362,15 @@ namespace idTech4.IO
 		}
 		#endregion
 		#endregion
+	}
+
+	public enum FileSearch
+	{
+		SearchDirectories = (1 << 0),
+		SearchPaks = (1 << 1),
+		Pure = (1 << 2),
+		BinaryOnly = (1 << 3),
+		SearchAddons = (1 << 4)
 	}
 
 	public class Pack

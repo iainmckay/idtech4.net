@@ -127,6 +127,36 @@ namespace idTech4
 		}
 
 		/// <summary>
+		/// Prints message that only shows up if the "developer" cvar is set.
+		/// </summary>
+		/// <param name="format"></param>
+		/// <param name="args"></param>
+		public static void DeveloperWriteLine(string format, params object[] args)
+		{
+			DeveloperWrite(format + '\n', args);
+		}
+
+		/// <summary>
+		/// Prints message that only shows up if the "developer" cvar is set.
+		/// </summary>
+		/// <param name="format"></param>
+		/// <param name="args"></param>
+		public static void DeveloperWrite(string format, params object[] args)
+		{
+			if((idE.CvarSystem.IsInitialized == false) || (idE.CvarSystem.GetBool("developer") == false))
+			{
+				return; // don't confuse non-developers with techie stuff...
+			}
+
+			// never refresh the screen, which could cause reentrency problems
+			bool temp = idE.System.RefreshOnPrint;
+
+			Write(string.Format("{0}{1}", idColorString.Red, string.Format(format, args)));
+
+			idE.System.RefreshOnPrint = temp;
+		}
+
+		/// <summary>
 		/// Both client and server can use this, and it will output to the appropriate place.
 		/// </summary>
 		/// <param name="format"></param>

@@ -293,6 +293,47 @@ namespace idTech4.Text
 				}
 			}
 		}
+
+		public int FileOffset
+		{
+			get
+			{
+				return _scriptPosition;
+			}
+		}
+
+		public int LineNumber
+		{
+			get
+			{
+				return _line;
+			}
+		}
+
+		public idToken UnreadToken
+		{
+			set
+			{
+				if(_tokenAvailable == true)
+				{
+					idConsole.FatalError("unread token called twice");
+				}
+
+				_token = value;
+				_tokenAvailable = true;
+			}
+		}
+
+		/// <summary>
+		/// Gets whether or not there were errors.
+		/// </summary>
+		public bool HadError
+		{
+			get
+			{
+				return _hadError;
+			}
+		}
 		#endregion
 
 		#region Members
@@ -324,6 +365,12 @@ namespace idTech4.Text
 		{
 			this.Punctuation = null;
 		}
+
+		public idLexer(LexerOptions options)
+			: this()
+		{
+			_options = options;
+		}
 		#endregion
 
 		#region Methods
@@ -341,7 +388,7 @@ namespace idTech4.Text
 
 		/// <summary>
 		/// Load a script from the given memory and a specified line offset,
-		// so source strings extracted from a file can still refer to proper line numbers in the file.
+		/// so source strings extracted from a file can still refer to proper line numbers in the file.
 		/// </summary>
 		/// <param name="text"></param>
 		/// <param name="name"></param>
@@ -554,6 +601,64 @@ namespace idTech4.Text
 			}
 
 			idConsole.Warning("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
+		}
+
+		/// <summary>
+		/// Skips until a matching close brace is found.
+		/// </summary>
+		/// <returns></returns>
+		public bool SkipBracedSection()
+		{
+			return SkipBracedSection(true);
+		}
+
+		/// <summary>
+		/// Skips until a matching close brace is found.
+		/// </summary>
+		/// <param name="parseFirstBrace"></param>
+		/// <returns></returns>
+		public bool SkipBracedSection(bool parseFirstBrace)
+		{
+			int depth = (parseFirstBrace == true) ? 0 : 1;
+			idToken token;
+
+			do
+			{
+				if((token = ReadToken()) == null)
+				{
+					return false;
+				}
+
+				if(token.Type == TokenType.Punctuation)
+				{
+					if(token.Value == "{")
+					{
+						depth++;
+					}
+					else if(token.Value == "}")
+					{
+						depth--;
+					}
+				}
+			}
+			while(depth > 0);
+
+			return true;
+		}
+
+		public bool SkipUntilString(string str)
+		{
+			idToken token;
+
+			while((token = ReadToken()) != null)
+			{
+				if(token.Value == str)
+				{
+					return true;
+				}
+			}
+
+			return false;
 		}
 		#endregion
 

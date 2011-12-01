@@ -114,14 +114,20 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="idCmdArgs.cs" />
+    <Compile Include="idCvar.cs" />
     <Compile Include="idCvarSystem.cs" />
+    <Compile Include="idDecl.cs" />
+    <Compile Include="idDeclManager.cs" />
     <Compile Include="idHelper.cs" />
     <Compile Include="idCmdSystem.cs" />
     <Compile Include="idConsole.cs" />
     <Compile Include="idE.cs" />
     <Compile Include="idPlatform.cs" />
+    <Compile Include="idSession.cs" />
     <Compile Include="idSystem.cs" />
     <Compile Include="IO\idFileSystem.cs" />
+    <Compile Include="Net\idAsyncNetwork.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
     <Compile Include="Main.cs" />
@@ -131,6 +137,8 @@
     <Compile Include="SystemConsole.Designer.cs">
       <DependentUpon>SystemConsole.cs</DependentUpon>
     </Compile>
+    <Compile Include="Text\Decl\idDeclEmail.cs" />
+    <Compile Include="Text\idDeclFile.cs" />
     <Compile Include="Text\idLexer.cs" />
     <Compile Include="Text\idToken.cs" />
     <Compile Include="Version.cs" />

@@ -38,6 +38,7 @@ namespace idTech4
 	public sealed class idSystem
 	{
 		#region Properties
+		#region Public
 		public int Time
 		{
 			get
@@ -45,6 +46,21 @@ namespace idTech4
 				return idE.Game.Time.ElapsedGameTime.Milliseconds;
 			}
 		}
+		#endregion
+
+		#region Internal
+		internal bool RefreshOnPrint
+		{
+			get
+			{
+				return _refreshOnPrint;
+			}
+			set
+			{
+				_refreshOnPrint = value;
+			}
+		}
+		#endregion
 		#endregion
 
 		#region Members
@@ -71,16 +87,7 @@ namespace idTech4
 		#region Constructor
 		public idSystem()
 		{
-			// TODO
-			/*logFile = NULL;
 
-			strcpy(errorMessage, "");
-
-			rd_buffer = NULL;
-			rd_buffersize = 0;
-			rd_flush = NULL;
-
-			gameDLL = 0;*/
 		}
 		#endregion
 
@@ -398,25 +405,12 @@ namespace idTech4
 				_errorList.Add(errorMessage);
 			}
 
-			// dont shut down the session for gui editor or debugger
-			// TODO
-			/*if ( !( com_editors & ( EDITOR_GUI | EDITOR_DEBUGGER ) ) ) {
-				session->Stop();
-			}*/
-
 			if(code == ErrorType.Disconnect)
 			{
 				_errorEntered = ErrorType.None;
 
 				throw new Exception(errorMessage);
 			}
-			// The gui editor doesnt want thing to com_error so it handles exceptions instead
-			// TODO
-			/*} 
-			 * else if( com_editors & ( EDITOR_GUI | EDITOR_DEBUGGER ) ) {
-				com_errorEntered = 0;
-				throw idException( errorMessage );
-			 */
 			else if(code == ErrorType.Drop)
 			{
 				idConsole.WriteLine("********************\nERROR: {0}\n********************", errorMessage);
@@ -575,10 +569,9 @@ namespace idTech4
 			idE.FileSystem.Init();
 
 			// initialize the declaration manager
-			/*declManager->Init();
+			idE.DeclManager.Init();
 
-			// force r_fullscreen 0 if running a tool
-			CheckToolMode();
+			/*
 
 			idFile *file = fileSystem->OpenExplicitFileRead( fileSystem->RelativePathToOSPath( CONFIG_SPEC, "fs_savepath" ) );
 			bool sysDetect = ( file == NULL );
@@ -775,7 +768,7 @@ namespace idTech4
 			// TODO: timeEndPeriod( 1 );
 			// TODO: Sys_ShutdownInput();
 
-			idE.Game.Exit();
+			//idE.Game.Exit();
 		}
 
 		private void SysInit()

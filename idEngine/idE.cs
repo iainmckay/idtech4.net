@@ -32,6 +32,7 @@ using System.Text;
 using System.Reflection;
 
 using idTech4.IO;
+using idTech4.Net;
 
 namespace idTech4
 {
@@ -67,16 +68,25 @@ namespace idTech4
 
 		public const string BaseGameDirectory = "base";
 
+		public const int MaxUserCommandRelay = 10;
+
+		public const string MasterServerAddress = "dnet.ua-corp.com";
+		public const int MasterServerPort = 27650;
+
 		/// <summary>60 frames per second.</summary>
 		public const int UserCommandHertz = 60;
 		public const int UserCommandMillseconds = 1000 / UserCommandHertz;
 
 		public static readonly idSystem System = new idSystem();
+		public static readonly idSession Session = new idSession();
 		public static readonly idFileSystem FileSystem = new idFileSystem();
 		public static readonly idCvarSystem CvarSystem = new idCvarSystem();
 		public static readonly idCmdSystem CmdSystem = new idCmdSystem();
 
+		public static readonly idDeclManager DeclManager = new idDeclManager();
+
 		internal static Main Game;
 		internal static SystemConsole SystemConsole = new SystemConsole();
+		internal static idAsyncNetwork AsyncNetwork = new idAsyncNetwork();
 	}
 }
