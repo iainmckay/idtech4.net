@@ -48,7 +48,7 @@ namespace idTech4
 		Black = '9'
 	}
 
-	public class idColorString
+	public sealed class idColorString
 	{
 		public const string Default = "^0";
 		public const string Red = "^1";
@@ -62,7 +62,7 @@ namespace idTech4
 		public const string Black = "^9";
 	}
 
-	public static class idHelper
+	public static sealed class idHelper
 	{
 		public static bool IsColor(string buffer, int index)
 		{

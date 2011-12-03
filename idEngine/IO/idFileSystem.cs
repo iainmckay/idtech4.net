@@ -159,7 +159,7 @@ namespace idTech4.IO
 	/// in search order, fs_game, fs_game_base, BASEGAME
 	/// for instance to base a mod of D3 + D3XP assets, fs_game mymod, fs_game_base d3xp
 	/// </remarks>
-	public class idFileSystem
+	public sealed class idFileSystem
 	{
 		#region Members
 		private List<SearchPath> _searchPaths = new List<SearchPath>();
@@ -1373,7 +1373,7 @@ namespace idTech4.IO
 		SearchAddons = (1 << 4)
 	}
 
-	public class Pack
+	public sealed class Pack
 	{
 		public string FileName; // c:\doom\base\pak0.pk4
 		public ZipFile Zip;
@@ -1396,7 +1396,7 @@ namespace idTech4.IO
 	} pack_t;*/
 	}
 
-	public class idDirectory
+	public sealed class idDirectory
 	{
 		public string Path; // c:\doom
 		public string GameDirectory; // base
@@ -1414,7 +1414,7 @@ namespace idTech4.IO
 		public idDirectory Directory;
 	}
 
-	public class idFileList
+	public sealed class idFileList
 	{
 		public string BaseDirectory;
 		public string[] Files;

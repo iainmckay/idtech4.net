@@ -302,7 +302,7 @@ namespace idTech4
 		#endregion
 	}
 
-	internal class idInternalCvar : idCvar
+	internal sealed class idInternalCvar : idCvar
 	{
 		#region Properties
 		public string ResetString

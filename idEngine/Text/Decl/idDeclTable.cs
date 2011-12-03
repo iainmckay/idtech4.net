@@ -36,7 +36,7 @@ namespace idTech4.Text.Decl
 	/// Tables are used to map a floating point input value to a floating point
 	///	output value, with optional wrap / clamp and interpolation.
 	/// </summary>
-	public class idDeclTable : idDecl
+	public sealed class idDeclTable : idDecl
 	{
 		#region Members
 		private bool _clamp;
@@ -79,6 +79,7 @@ namespace idTech4.Text.Decl
 				{
 					break;
 				}
+				idConsole.WriteLine("TOK: {0}", token.Value);
 
 				if(token.Value == "}")
 				{

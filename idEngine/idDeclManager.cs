@@ -64,7 +64,7 @@ namespace idTech4
 	/// During decl parsing, errors should never be issued, only warnings
 	/// followed by a call to MakeDefault().
 	/// </remarks>
-	public class idDeclManager
+	public sealed class idDeclManager
 	{
 		#region Properties
 		#region Internal
@@ -258,6 +258,11 @@ namespace idTech4
 
 		public DeclType GetDeclTypeFromName(string name)
 		{
+			if(Enum.IsDefined(typeof(DeclType), name) == false)
+			{
+				return DeclType.Unknown;
+			}
+
 			return (DeclType) Enum.Parse(typeof(DeclType), name, true);
 		}
 
@@ -305,7 +310,8 @@ namespace idTech4
 		{
 			if(_declTypes.ContainsKey(type) == false)
 			{
-				idConsole.FatalError("find type without parsing: bad type {0}", type);
+				idConsole.FatalError("find type without parsing: bad type {0}", type.ToString().ToLower());
+				return null;
 			}
 
 			string canonicalName = name;
@@ -335,6 +341,7 @@ namespace idTech4
 			newDecl.State = DeclState.Unparsed;
 			newDecl.SourceFile = _implicitDecls;
 			newDecl.ParsedOutsideLevelLoad = !_insideLevelLoad;
+			newDecl.Index = _declsByType[type].Count;
 
 			_declsByType[type].Add(newDecl);
 
@@ -392,7 +399,7 @@ namespace idTech4
 		public abstract idDecl Create();
 	}
 
-	public class idDeclAllocator<T> : idDeclAllocatorBase where T: idDecl, new() 
+	public sealed class idDeclAllocator<T> : idDeclAllocatorBase where T : idDecl, new() 
 	{
 		public override idDecl Create()
 		{
@@ -400,14 +407,14 @@ namespace idTech4
 		}
 	}
 
-	internal class idDeclType
+	internal sealed class idDeclType
 	{
 		public string Name;
 		public DeclType Type;
 		public idDeclAllocatorBase Allocator;
 	}
 
-	internal class idDeclFolder
+	internal sealed class idDeclFolder
 	{
 		public string Folder;
 		public string Extension;

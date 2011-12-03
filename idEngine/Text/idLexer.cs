@@ -33,123 +33,6 @@ using System.Text;
 namespace idTech4.Text
 {
 	/// <summary>
-	/// Lexer options.
-	/// </summary>
-	[Flags]
-	public enum LexerOptions
-	{
-		/// <summary>Don't print any errors.</summary>
-		NoErrors = 1 << 0,
-		/// <summary>Don't print any warnings.</summary>
-		NoWarnings = 1 << 1,
-		/// <summary>Errors aren't fatal.</summary>
-		NoFatalErrors = 1 << 2,
-		/// <summary>Multiple strings seperated by whitespaces are not concatenated.</summary>
-		NoStringConcatination = 1 << 3,
-		/// <summary>No escape characters inside strings.</summary>
-		NoStringEscapeCharacters = 1 << 4,
-		/// <summary>Don't use the $ sign for precompilation.</summary>
-		NoDollarPrecompilation = 1 << 5,
-		/// <summary>Don't include files embraced with < >.</summary>
-		NoBaseIncludes = 1 << 6,
-		/// <summary>Allow path seperators in names.</summary>
-		AllowPathNames = 1 << 7,
-		/// <summary>Allow names to start with a number.</summary>
-		AllowNumberNames = 1 << 8,
-		/// <summary>Allow IP addresses to be parsed as numbers.</summary>
-		AllowIPAddresses = 1 << 9,
-		/// <summary>Allow float exceptions like 1.#INF or 1.#IND to be parsed.</summary>
-		AllowFloatExceptions = 1 << 10,
-		/// <summary>Allow multi character literals.</summary>
-		AllowMultiCharacterLiterals = 1 << 11,
-		/// <summary>Allow multiple strings seperated by '\' to be concatenated.</summary>
-		AllowBackslashStringConcatination = 1 << 12,
-		/// <summary>Parse as whitespace deliminated strings (quoted strings keep quotes).</summary>
-		OnlyStrings = 1 << 13
-	}
-
-	/// <summary>
-	/// Lexer punctuation.
-	/// </summary>
-	public enum LexerPunctuationID
-	{
-		RightShiftAssign = 1,
-		LeftShiftAssign = 2,
-		Parameters = 3,
-		PreCompilerMerge = 4,
-
-		LogicAnd = 5,
-		LogicOr = 6,
-		LogicGreaterThanOrEqual = 7,
-		LogicLessThanOrEqual = 8,
-		LogicEqual = 9,
-		LogicNotEqual = 10,
-
-		MultiplyAssign = 11,
-		DivideAssign = 12,
-		ModulusAssign = 13,
-		AdditionAssign = 14,
-		SubtractAssign = 15,
-		Increment = 16,
-		Decrement = 17,
-
-		BinaryAndAssign = 18,
-		BinaryOrAssign = 19,
-		BinaryXORAssign = 20,
-		RightShift = 21,
-		LeftShift = 22,
-
-		PointerReference = 23,
-
-		CPP1 = 24,
-		CPP2 = 25,
-		Multiply = 26,
-		Divide = 27,
-		Modulus = 28,
-		Addition = 29,
-		Subtract = 30,
-		Assign = 31,
-
-		BinaryAnd = 32,
-		BinaryOr = 33,
-		BinaryXOR = 34,
-		BinaryNot = 35,
-
-		LogicNot = 36,
-		LogicGreater = 37,
-		LogicLess = 38,
-
-		Reference = 39,
-		Comma = 40,
-		Semicolon = 41,
-		Colon = 42,
-		QuestionMark = 43,
-
-		ParenthesesOpen = 44,
-		ParenthesesClose = 45,
-		BraceOpen = 46,
-		BraceClose = 47,
-		SquareBracketOpen = 48,
-		SquareBracketClose = 49,
-		Backslash = 50,
-
-		Precompile = 51,
-		Dollar = 52
-	}
-
-	public struct LexerPunctuation
-	{
-		public string P; // punctuation character(s).
-		public LexerPunctuationID N; // punctuation id.
-
-		public LexerPunctuation(string p, LexerPunctuationID n)
-		{
-			P = p;
-			N = n;
-		}
-	}
-
-	/// <summary>
 	/// Lexicographical parser
 	/// </summary>
 	/// <remarks>
@@ -157,7 +40,7 @@ namespace idTech4.Text
 	/// assumed to be in decimal format instead of octal. Binary numbers of
 	/// the form 0b.. or 0B.. can also be used.
 	/// </remarks>
-	public class idLexer
+	public sealed class idLexer
 	{
 		#region Constants
 		#region Default punctuation table
@@ -547,6 +430,29 @@ namespace idTech4.Text
 		}
 
 		/// <summary>
+		/// Read a token only if on the same line.
+		/// </summary>
+		/// <returns></returns>
+		public idToken ReadTokenOnLine()
+		{
+			idToken token = ReadToken();
+
+			if((token != null) && (token.LinesCrossed == 0))
+			{
+				return token;
+			}
+
+			// restore our position.
+			_scriptPosition = _lastScriptPosition;
+			_line = _lastLine;
+
+			return null;
+
+
+			idToken tok;
+		}
+
+		/// <summary>
 		/// Reads the token when a token with the given type is available.
 		/// </summary>
 		/// <param name="type"></param>
@@ -600,7 +506,7 @@ namespace idTech4.Text
 				return;
 			}
 
-			idConsole.Warning("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
+			idConsole.Warning("file {0}, line {1}: {2}\n", _fileName, _line, string.Format(format, args));
 		}
 
 		/// <summary>
@@ -661,6 +567,31 @@ namespace idTech4.Text
 			return false;
 		}
 
+		/// <summary>
+		/// Skip the rest of the current line.
+		/// </summary>
+		public bool SkipRestOfLine()
+		{
+			idToken token;
+
+			while((token = ReadToken()) != null)
+			{
+				if(token.LinesCrossed > 0)
+				{
+					_scriptPosition = _lastScriptPosition;
+					_line = _lastLine;
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+		
+		/// <summary>
+		/// Parses a floating point number.
+		/// </summary>
+		/// <returns></returns>
 		public float ParseFloat()
 		{
 			bool tmp = true;
@@ -668,7 +599,7 @@ namespace idTech4.Text
 		}
 
 		/// <summary>
-		/// Read a floating point number.
+		/// Parses a floating point number.
 		/// </summary>
 		/// <remarks>
 		/// If errorFlag is NULL, a non-numeric token will issue an Error().  If it isn't NULL, it will issue a Warning() and set *errorFlag = true.
@@ -678,6 +609,67 @@ namespace idTech4.Text
 		public float ParseFloat(out bool errorFlag)
 		{
 			return ParseFloat(out errorFlag, true);
+		}
+
+		public float[] Parse1DMatrix(int elementCount)
+		{
+			if(ExpectTokenString("(") == false)
+			{
+				return null;
+			}
+
+			float[] ret = new float[elementCount];
+
+			for(int i = 0; i < elementCount; i++)
+			{
+				ret[i] = ParseFloat();
+			}
+
+			if(ExpectTokenString(")") == false)
+			{
+				return null;
+			}
+
+			return true;
+		}
+
+		public string ParseRestOfLine()
+		{
+			idToken token;
+			StringBuilder b = new StringBuilder();
+
+			while((token = ReadToken()) != null)
+			{
+				if(token.LinesCrossed > 0)
+				{
+					_scriptPosition = _lastScriptPosition;
+					_line = _lastLine;
+
+					break;
+				}
+
+				if(b.Length > 0)
+				{
+					b.Append(" ");
+				}
+
+				b.Append(token.Value);
+			}
+
+			return b.ToString();
+		}
+
+		public idToken ExpectAnyToken()
+		{
+			idToken token = ReadToken();
+
+			if(token == null)
+			{
+				Error("couldn't read expected token");
+				return null;
+			}
+
+			return token;
 		}
 
 		public idToken ExpectTokenType(TokenType type, TokenSubType subType)
@@ -713,8 +705,26 @@ namespace idTech4.Text
 				}
 			}
 
-			return token;	
-		}		
+			return token;
+		}
+
+		public bool ExpectTokenString(string str)
+		{
+			idToken token = ReadToken();
+
+			if(token == null)
+			{
+				Error("couldn't find expected '{0}'", str);
+				return false;
+			}
+			else if(token.Value != str)
+			{
+				Error("expected '{0}' but found '{1}'", str, token.Value);
+				return false;
+			}
+
+			return true;
+		}
 
 		public string GetPunctuationFromID(TokenSubType id)
 		{
@@ -754,10 +764,9 @@ namespace idTech4.Text
 
 			if((token.Type == TokenType.Punctuation) && (token.Value == "-"))
 			{
+				token = ExpectTokenType(TokenType.Number, 0);
 
-				/*if ( token.type == TT_PUNCTUATION && token == "-" ) {
-					idLexer::ExpectTokenType( TT_NUMBER, 0, &token );
-					return -token.GetFloatValue();*/
+				return (float) -token.FloatValue;
 			}
 			else if(token.Type != TokenType.Number)
 			{
@@ -773,7 +782,7 @@ namespace idTech4.Text
 			}
 
 			return (float) token.FloatValue;
-		}
+		}		
 
 		/// <summary>
 		/// Reads two strings with only a white space between them as one string.
@@ -1469,5 +1478,122 @@ namespace idTech4.Text
 		}
 		#endregion
 		#endregion
+	}
+
+	/// <summary>
+	/// Lexer options.
+	/// </summary>
+	[Flags]
+	public enum LexerOptions
+	{
+		/// <summary>Don't print any errors.</summary>
+		NoErrors = 1 << 0,
+		/// <summary>Don't print any warnings.</summary>
+		NoWarnings = 1 << 1,
+		/// <summary>Errors aren't fatal.</summary>
+		NoFatalErrors = 1 << 2,
+		/// <summary>Multiple strings seperated by whitespaces are not concatenated.</summary>
+		NoStringConcatination = 1 << 3,
+		/// <summary>No escape characters inside strings.</summary>
+		NoStringEscapeCharacters = 1 << 4,
+		/// <summary>Don't use the $ sign for precompilation.</summary>
+		NoDollarPrecompilation = 1 << 5,
+		/// <summary>Don't include files embraced with < >.</summary>
+		NoBaseIncludes = 1 << 6,
+		/// <summary>Allow path seperators in names.</summary>
+		AllowPathNames = 1 << 7,
+		/// <summary>Allow names to start with a number.</summary>
+		AllowNumberNames = 1 << 8,
+		/// <summary>Allow IP addresses to be parsed as numbers.</summary>
+		AllowIPAddresses = 1 << 9,
+		/// <summary>Allow float exceptions like 1.#INF or 1.#IND to be parsed.</summary>
+		AllowFloatExceptions = 1 << 10,
+		/// <summary>Allow multi character literals.</summary>
+		AllowMultiCharacterLiterals = 1 << 11,
+		/// <summary>Allow multiple strings seperated by '\' to be concatenated.</summary>
+		AllowBackslashStringConcatination = 1 << 12,
+		/// <summary>Parse as whitespace deliminated strings (quoted strings keep quotes).</summary>
+		OnlyStrings = 1 << 13
+	}
+
+	/// <summary>
+	/// Lexer punctuation.
+	/// </summary>
+	public enum LexerPunctuationID
+	{
+		RightShiftAssign = 1,
+		LeftShiftAssign = 2,
+		Parameters = 3,
+		PreCompilerMerge = 4,
+
+		LogicAnd = 5,
+		LogicOr = 6,
+		LogicGreaterThanOrEqual = 7,
+		LogicLessThanOrEqual = 8,
+		LogicEqual = 9,
+		LogicNotEqual = 10,
+
+		MultiplyAssign = 11,
+		DivideAssign = 12,
+		ModulusAssign = 13,
+		AdditionAssign = 14,
+		SubtractAssign = 15,
+		Increment = 16,
+		Decrement = 17,
+
+		BinaryAndAssign = 18,
+		BinaryOrAssign = 19,
+		BinaryXORAssign = 20,
+		RightShift = 21,
+		LeftShift = 22,
+
+		PointerReference = 23,
+
+		CPP1 = 24,
+		CPP2 = 25,
+		Multiply = 26,
+		Divide = 27,
+		Modulus = 28,
+		Addition = 29,
+		Subtract = 30,
+		Assign = 31,
+
+		BinaryAnd = 32,
+		BinaryOr = 33,
+		BinaryXOR = 34,
+		BinaryNot = 35,
+
+		LogicNot = 36,
+		LogicGreater = 37,
+		LogicLess = 38,
+
+		Reference = 39,
+		Comma = 40,
+		Semicolon = 41,
+		Colon = 42,
+		QuestionMark = 43,
+
+		ParenthesesOpen = 44,
+		ParenthesesClose = 45,
+		BraceOpen = 46,
+		BraceClose = 47,
+		SquareBracketOpen = 48,
+		SquareBracketClose = 49,
+		Backslash = 50,
+
+		Precompile = 51,
+		Dollar = 52
+	}
+
+	public struct LexerPunctuation
+	{
+		public string P; // punctuation character(s).
+		public LexerPunctuationID N; // punctuation id.
+
+		public LexerPunctuation(string p, LexerPunctuationID n)
+		{
+			P = p;
+			N = n;
+		}
 	}
 }

@@ -39,6 +39,21 @@ namespace idTech4
 		#region Properties
 		#region Public
 		/// <summary>
+		/// Gets the index in the per-type list.
+		/// </summary>
+		public int Index
+		{
+			get
+			{
+				return _index;
+			}
+			internal set
+			{
+				_index = value;
+			}
+		}
+
+		/// <summary>
 		/// Gets the name of this decl.
 		/// </summary>
 		public string Name
@@ -222,6 +237,7 @@ namespace idTech4
 		#endregion
 
 		#region Members
+		private int _index;						// index in per-type list.
 		private string _name;					// name of the decl.
 		private string _textSource;				// decl text definition.
 		private int _compressedLength;			// compressed length.

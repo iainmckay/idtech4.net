@@ -34,6 +34,7 @@ namespace idTech4.Text
 {
 	public enum TokenType
 	{
+		Unknown = 0,
 		String= 1,
 		Literal = 2,
 		Number = 3,
@@ -43,6 +44,8 @@ namespace idTech4.Text
 
 	public enum TokenSubType
 	{
+		Unknown = 0,
+
 		/// <summary>Integer.</summary>
 		Integer = 0x00001,
 		/// <summary>Decimal number.</summary>
@@ -82,7 +85,7 @@ namespace idTech4.Text
 	/// <summary>
 	/// idToken is a token read from a file or memory with idLexer or idParser.
 	/// </summary>
-	public class idToken
+	public sealed class idToken
 	{
 		#region Properties
 		#region Public
@@ -223,11 +226,11 @@ namespace idTech4.Text
 		/// <summary>
 		/// Gets or sets the float value.
 		/// </summary>
-		internal double FloatValue
+		internal float FloatValue
 		{
 			get
 			{
-				return _floatValue;
+				return (float) _floatValue;
 			}
 			set
 			{

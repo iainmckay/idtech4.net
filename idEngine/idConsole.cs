@@ -354,15 +354,6 @@ namespace idTech4
 
 		private static void AddToScreenBuffer(string msg)
 		{
-#if ID_ALLOW_TOOLS
-			// TODO
-			/*RadiantPrint( txt );
-
-			if( com_editors & EDITOR_MATERIAL ) {
-				MaterialEditorPrintConsole(txt);
-			}*/
-#endif
-
 			int color = idHelper.ColorIndex(idColor.Cyan);
 			int y = 0, c = 0, l = 0;
 

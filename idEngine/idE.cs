@@ -49,10 +49,12 @@ namespace idTech4
 
 	public sealed class idE
 	{
+		#region Public
 		public static readonly idPlatform Platform = new idPlatform();
 
 		public const string GameName = "DOOM 3";
 		public const string EngineVersion = "DOOM 1.3.1";
+		public const string BaseGameDirectory = "base";
 
 		public static readonly string Version = string.Format("{0}.{1}{2} {3} {4} {5}", 
 			EngineVersion, 
@@ -64,10 +66,7 @@ namespace idTech4
 		public const int MaxPrintMessageSize = 4096;
 		public const int MaxCommandArgs = 64;
 		public const int MaxCommandStringLength = 2048;
-		public const int MaxWarningList = 256;
-
-		public const string BaseGameDirectory = "base";
-
+		public const int MaxWarningList = 256;				
 		public const int MaxUserCommandRelay = 10;
 
 		public const string MasterServerAddress = "dnet.ua-corp.com";
@@ -84,9 +83,12 @@ namespace idTech4
 		public static readonly idCmdSystem CmdSystem = new idCmdSystem();
 
 		public static readonly idDeclManager DeclManager = new idDeclManager();
+		#endregion
 
+		#region Internal
 		internal static Main Game;
 		internal static SystemConsole SystemConsole = new SystemConsole();
 		internal static idAsyncNetwork AsyncNetwork = new idAsyncNetwork();
+		#endregion
 	}
 }

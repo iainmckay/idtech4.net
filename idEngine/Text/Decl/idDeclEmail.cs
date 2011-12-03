@@ -32,7 +32,7 @@ using System.Text;
 
 namespace idTech4.Text.Decl
 {
-	public class idDeclEmail : idDecl
+	public sealed class idDeclEmail : idDecl
 	{
 		#region Properties
 		public string Text

@@ -66,7 +66,7 @@ namespace idTech4
 		DenormalsAreZero = 0x08000
 	}
 
-	public class idPlatform
+	public sealed class idPlatform
 	{
 		#region Properties
 		public bool Is64Bit

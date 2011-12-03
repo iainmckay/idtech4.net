@@ -32,7 +32,7 @@ using System.Text;
 
 namespace idTech4
 {
-	public class idSession
+	public sealed class idSession
 	{
 		#region Properties
 		public bool IsMultiplayer

@@ -32,7 +32,7 @@ using System.Text;
 
 namespace idTech4.Text
 {
-	internal class idDeclFile
+	internal sealed class idDeclFile
 	{
 		#region Constants
 		public const LexerOptions LexerOptions = Text.LexerOptions.NoStringConcatination | Text.LexerOptions.NoStringEscapeCharacters
@@ -155,6 +155,8 @@ namespace idTech4.Text
 					break;
 				}
 
+				idConsole.WriteLine("TOKEN: {0} [{1}:{2}]", token.Value, startMarker, sourceLine);
+
 				// get the decl type from the type name
 				identifiedType = idE.DeclManager.GetDeclTypeFromName(token.Value);
 				idConsole.WriteLine("IDE1: {0} -> {1}", identifiedType, token.Value);
@@ -168,21 +170,20 @@ namespace idTech4.Text
 
 						continue;
 					}
-				}
-				else
-				{
-					if(this.DefaultType == DeclType.Unknown)
+					else
 					{
-						lexer.Warning("No type");
-						continue;
+						if(this.DefaultType == DeclType.Unknown)
+						{
+							lexer.Warning("No type");
+							continue;
+						}
+
+						lexer.UnreadToken = token;
+
+						// use the default type
+						identifiedType = this.DefaultType;
 					}
-
-					lexer.UnreadToken = token;
-
-					// use the default type
-					identifiedType = this.DefaultType;
 				}
-
 
 				// now parse the name
 				if((token = lexer.ReadToken()) == null)
@@ -190,6 +191,8 @@ namespace idTech4.Text
 					lexer.Warning("Type without definition at the end of file");
 					break;
 				}
+
+				idConsole.WriteLine("TOKEN2: {0}", token.Value);
 
 				if(token.Value == "{")
 				{
@@ -215,7 +218,7 @@ namespace idTech4.Text
 					lexer.Warning("Type without definition at end of file");
 					break;
 				}
-
+				idConsole.WriteLine("TOKEN3: {0}", token.Value);
 				if(token.Value != "{")
 				{
 					lexer.Warning("Expecting '{{' but found '{0}'", token.Value);
@@ -237,7 +240,7 @@ namespace idTech4.Text
 					// update the existing copy
 					if((newDecl.SourceFile != this) || (newDecl.RedefinedInReload == true))
 					{
-						lexer.Warning("{0} '{1}' previously defined at {2}:{3}", identifiedType.ToString(), name, newDecl.FileName, newDecl.LineNumber);
+						lexer.Warning("{0} '{1}' previously defined at {2}:{3}", identifiedType.ToString().ToLower(), name, newDecl.FileName, newDecl.LineNumber);
 						continue;
 					}
 
@@ -250,6 +253,12 @@ namespace idTech4.Text
 				{
 					// allow it to be created as a default, then add it to the per-file list
 					newDecl = idE.DeclManager.FindTypeWithoutParsing(identifiedType, name, true);
+
+					if(newDecl == null)
+					{
+						lexer.Warning("could not instanciate decl '{0}' with name '{1}'", identifiedType.ToString().ToLower(), name);
+						continue;
+					}
 
 					_decls.Add(newDecl);
 				}

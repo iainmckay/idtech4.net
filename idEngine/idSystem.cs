@@ -179,9 +179,11 @@ namespace idTech4
 				_commandLineArguments = null;
 				_fullyInitialized = true;
 			}
-			catch(Exception)
+			catch(Exception x)
 			{
 				Error("Error during initialization");
+
+				idConsole.WriteLine(x.ToString());
 			}
 		}
 
@@ -419,7 +421,7 @@ namespace idTech4
 
 				_errorEntered = ErrorType.None;
 
-				throw new Exception(errorMessage);
+				//throw new Exception(errorMessage);
 			}
 			else
 			{

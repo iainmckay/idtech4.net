@@ -30,7 +30,7 @@ using System;
 namespace idTech4
 {
 #if WINDOWS || XBOX
-    public static class Program
+    public static sealed class Program
     {
         /// <summary>
         /// The main entry point for the application.
