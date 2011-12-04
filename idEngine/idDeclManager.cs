@@ -259,12 +259,16 @@ namespace idTech4
 
 		public DeclType GetDeclTypeFromName(string name)
 		{
-			if(Enum.IsDefined(typeof(DeclType), name) == false)
+			try
 			{
-				return DeclType.Unknown;
+				return (DeclType) Enum.Parse(typeof(DeclType), name, true);
+			}
+			catch
+			{
+
 			}
 
-			return (DeclType) Enum.Parse(typeof(DeclType), name, true);
+			return DeclType.Unknown;
 		}
 
 		/// <summary>

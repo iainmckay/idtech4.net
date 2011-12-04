@@ -309,6 +309,8 @@ namespace idTech4.Text
 		/// <returns></returns>
 		public idToken ReadToken()
 		{
+			idToken token = new idToken();
+			
 			if(this.IsLoaded == false)
 			{
 				idConsole.Error("idLexer.ReadToken: no file loaded");
@@ -322,18 +324,15 @@ namespace idTech4.Text
 				return _token;
 			}
 
-			// save script pointer
+			// save script position
 			_lastScriptPosition = _scriptPosition;
 
 			// save line counter
 			_lastLine = _line;
 
-			// clear the token stuff
-			_token = new idToken();
-
 			// start of the white space
 			_whiteSpaceStartPosition = _scriptPosition;
-			_token.WhiteSpaceStartPosition = _scriptPosition;
+			token.WhiteSpaceStartPosition = _scriptPosition;
 
 			// read white space before token
 			if(ReadWhiteSpace() == false)
@@ -341,17 +340,16 @@ namespace idTech4.Text
 				return null;
 			}
 
-
 			// end of the white space
 			_whiteSpaceEndPosition = _scriptPosition;
-			_token.WhiteSpaceEndPosition = _scriptPosition;
+			token.WhiteSpaceEndPosition = _scriptPosition;
 
 			// line the token is on
-			_token.Line = _line;
+			token.Line = _line;
 
 			// number of lines crossed before token
-			_token.LinesCrossed = _line - _lastLine;
-			_token.Options = 0;
+			token.LinesCrossed = _line - _lastLine;
+			token.Options = 0;
 
 			char c = GetBufferCharacter(_scriptPosition);
 
@@ -361,12 +359,12 @@ namespace idTech4.Text
 				// if there is a leading quote
 				if((c == '"') || (c == '\''))
 				{
-					if(ReadString(_token, c) == false)
+					if(ReadString(token, c) == false)
 					{
 						return null;
 					}
 				}
-				else if(ReadName(_token) == false)
+				else if(ReadName(token) == false)
 				{
 					return null;
 				}
@@ -374,30 +372,29 @@ namespace idTech4.Text
 			// if there is a number
 			else if(((c >= '0') && (c <= '9')) || ((c == '.') && ((GetBufferCharacter(_scriptPosition + 1) >= '0') && (GetBufferCharacter(_scriptPosition + 1) <= '9'))))
 			{
-				if(ReadNumber(_token) == false)
+				if(ReadNumber(token) == false)
 				{
 					return null;
 				}
 
 				// if names are allowed to start with a number
-				if((_options & LexerOptions.AllowNumberNames) != 0)
+				if((_options & LexerOptions.AllowNumberNames) == LexerOptions.AllowNumberNames)
 				{
 					c = GetBufferCharacter(_scriptPosition);
 
 					if(((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_'))
 					{
-						if(ReadName(_token) == false)
+						if(ReadName(token) == false)
 						{
 							return null;
 						}
 					}
 				}
 			}
-
 			// if there is a leading quote
 			else if((c == '"') || (c == '\''))
 			{
-				if(ReadString(_token, c) == false)
+				if(ReadString(token, c) == false)
 				{
 					return null;
 				}
@@ -405,28 +402,28 @@ namespace idTech4.Text
 			// if there is a name
 			else if(((c >= 'a') && (c <= 'z')) || ((c >= 'A') && (c <= 'Z')) || (c == '_'))
 			{
-				if(ReadName(_token) == false)
+				if(ReadName(token) == false)
 				{
 					return null;
 				}
 			}
 			// names may also start with a slash when pathnames are allowed
-			else if(((_options & LexerOptions.AllowPathNames) != 0) && ((c == '/') || (c == '\\') || (c == '.')))
+			else if(((_options & LexerOptions.AllowPathNames) == LexerOptions.AllowPathNames) && ((c == '/') || (c == '\\') || (c == '.')))
 			{
-				if(ReadName(_token) == false)
+				if(ReadName(token) == false)
 				{
 					return null;
 				}
 			}
 			// check for punctuations
-			else if(ReadPunctuation(_token) == false)
+			else if(ReadPunctuation(token) == false)
 			{
 				Error("unknown punctuation {0}", c);
 				return null;
 			}
 
 			// succesfully read a token
-			return _token;
+			return token;
 		}
 
 		/// <summary>
@@ -447,9 +444,6 @@ namespace idTech4.Text
 			_line = _lastLine;
 
 			return null;
-
-
-			idToken tok;
 		}
 
 		/// <summary>
@@ -856,7 +850,7 @@ namespace idTech4.Text
 			while(true)
 			{
 				// if there is an escape character and escape characters are allowed.
-				if((GetBufferCharacter(_scriptPosition) == '\\') && ((_options & LexerOptions.NoStringEscapeCharacters) == 0))
+				if((GetBufferCharacter(_scriptPosition) == '\\') && ((_options & LexerOptions.NoStringEscapeCharacters) != LexerOptions.NoStringEscapeCharacters))
 				{
 					if(ReadEscapeCharacter(out ch) == false)
 					{
@@ -872,7 +866,7 @@ namespace idTech4.Text
 					_scriptPosition++;
 
 					// if consecutive strings should not be concatenated
-					if(((_options & LexerOptions.NoStringConcatination) != 0) && (((_options & LexerOptions.AllowBackslashStringConcatination) == 0) || (quote != '"')))
+					if(((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringEscapeCharacters) && (((_options & LexerOptions.AllowBackslashStringConcatination) != LexerOptions.AllowBackslashStringConcatination) || (quote != '"')))
 					{
 						break;
 					}
@@ -885,6 +879,7 @@ namespace idTech4.Text
 					{
 						_scriptPosition = tmpScriptPosition;
 						_line = tmpLine;
+
 						break;
 					}
 
@@ -894,6 +889,7 @@ namespace idTech4.Text
 						{
 							_scriptPosition = tmpScriptPosition;
 							_line = tmpLine;
+
 							break;
 						}
 
@@ -912,6 +908,7 @@ namespace idTech4.Text
 					{
 						_scriptPosition = tmpScriptPosition;
 						_line = tmpLine;
+
 						break;
 					}
 
@@ -938,7 +935,7 @@ namespace idTech4.Text
 
 			if(token.Type == TokenType.Literal)
 			{
-				if((_options & LexerOptions.AllowMultiCharacterLiterals) == 0)
+				if((_options & LexerOptions.AllowMultiCharacterLiterals) != LexerOptions.AllowMultiCharacterLiterals)
 				{
 					if(token.Value.Length != 1)
 					{
@@ -972,9 +969,9 @@ namespace idTech4.Text
 			|| ((c >= '0') && (c <= '9'))
 			|| (c == '_')
 				// if treating all tokens as strings, don't parse '-' as a seperate token
-			|| (((_options & LexerOptions.OnlyStrings) != 0) && (c == '-'))
+			|| (((_options & LexerOptions.OnlyStrings) == LexerOptions.OnlyStrings) && (c == '-'))
 				// if special path name characters are allowed
-			|| (((_options & LexerOptions.AllowPathNames) != 0) && ((c == '/') || (c == '\\') || (c == ':') || (c == '.'))));
+			|| (((_options & LexerOptions.AllowPathNames) == LexerOptions.AllowPathNames) && ((c == '/') || (c == '\\') || (c == ':') || (c == '.'))));
 
 			//the sub type is the length of the name
 			token.SubType = (TokenSubType) token.Value.Length;

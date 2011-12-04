@@ -254,7 +254,7 @@ namespace idTech4
 			{
 				CommandDefinition cmd = _commands[args.Get(0)];
 
-				if(((cmd.Flags & (CommandFlags.Cheat | CommandFlags.Tool)) != 0) && (idE.Session.IsMultiplayer == true) && (idE.CvarSystem.GetBool("net_allowCheats") == false))
+				if(((cmd.Flags & (CommandFlags.Cheat | CommandFlags.Tool)) == (CommandFlags.Cheat | CommandFlags.Tool)) && (idE.Session.IsMultiplayer == true) && (idE.CvarSystem.GetBool("net_allowCheats") == false))
 				{
 					idConsole.WriteLine("Command '{0}' not valid in multiplayer mode.", cmd.Name);
 					return;

@@ -155,11 +155,9 @@ namespace idTech4.Text
 					break;
 				}
 
-				idConsole.WriteLine("TOKEN: {0} [{1}:{2}]", token.Value, startMarker, sourceLine);
-
 				// get the decl type from the type name
 				identifiedType = idE.DeclManager.GetDeclTypeFromName(token.Value);
-				idConsole.WriteLine("IDE1: {0} -> {1}", identifiedType, token.Value);
+
 				if(identifiedType == DeclType.Unknown)
 				{
 					if(token.Value == "{")
@@ -184,15 +182,13 @@ namespace idTech4.Text
 						identifiedType = this.DefaultType;
 					}
 				}
-
+				
 				// now parse the name
 				if((token = lexer.ReadToken()) == null)
 				{
 					lexer.Warning("Type without definition at the end of file");
 					break;
 				}
-
-				idConsole.WriteLine("TOKEN2: {0}", token.Value);
 
 				if(token.Value == "{")
 				{
@@ -218,7 +214,7 @@ namespace idTech4.Text
 					lexer.Warning("Type without definition at end of file");
 					break;
 				}
-				idConsole.WriteLine("TOKEN3: {0}", token.Value);
+				
 				if(token.Value != "{")
 				{
 					lexer.Warning("Expecting '{{' but found '{0}'", token.Value);
@@ -264,7 +260,7 @@ namespace idTech4.Text
 				}
 
 				newDecl.RedefinedInReload = true;
-				newDecl.Text = content.Substring(startMarker, startMarker + size);
+				newDecl.Text = content.Substring(startMarker, size);
 				newDecl.SourceFile = this;
 				newDecl.SourceTextOffset = startMarker;
 				newDecl.SourceTextLength = size;

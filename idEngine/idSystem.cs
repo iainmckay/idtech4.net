@@ -114,7 +114,7 @@ namespace idTech4
 
 				idE.CmdSystem.Init();
 				idE.CvarSystem.Init();
-
+				
 				// start file logging right away, before early console or whatever
 				StartupVariable("win_outputDebugString", false);
 

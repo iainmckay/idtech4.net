@@ -123,7 +123,7 @@ namespace idTech4
 		{
 			get
 			{
-				return ((_flags & CvarFlags.Modified) != 0);
+				return ((_flags & CvarFlags.Modified) == CvarFlags.Modified);
 			}
 			set
 			{
@@ -373,9 +373,9 @@ namespace idTech4
 		public void Update(idCvar var)
 		{
 			// if this is a statically declared variable
-			if((var.Flags & CvarFlags.Static) != 0)
+			if((var.Flags & CvarFlags.Static) == CvarFlags.Static)
 			{
-				if((_flags & CvarFlags.Static) != 0)
+				if((_flags & CvarFlags.Static) == CvarFlags.Static)
 				{
 					// the code has more than one static declaration of the same variable, make sure they have the same properties
 					if(_resetString.ToLower() == var.ToString().ToLower())
@@ -437,7 +437,7 @@ namespace idTech4
 		{
 			bool clamped = false;
 
-			if((_flags & CvarFlags.Bool) != 0)
+			if((_flags & CvarFlags.Bool) == CvarFlags.Bool)
 			{
 				bool tmpValue;
 				int tmpValue2;
@@ -460,7 +460,7 @@ namespace idTech4
 					_value = _valueString;
 				}
 			}
-			else if((_flags & CvarFlags.Integer) != 0)
+			else if((_flags & CvarFlags.Integer) == CvarFlags.Integer)
 			{
 				int.TryParse(_value, out _intValue);
 
@@ -488,7 +488,7 @@ namespace idTech4
 
 				_floatValue = _intValue;
 			}
-			else if((_flags & CvarFlags.Float) != 0)
+			else if((_flags & CvarFlags.Float) == CvarFlags.Float)
 			{
 				float.TryParse(_value, out _floatValue);
 

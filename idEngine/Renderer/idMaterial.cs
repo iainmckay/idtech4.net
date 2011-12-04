@@ -665,11 +665,11 @@ namespace idTech4.Renderer
 				return;
 			}
 
-			if(Enum.IsDefined(typeof(MaterialSort), token.Value) == true)
+			try
 			{
 				_sort = (float) Enum.Parse(typeof(MaterialSort), token.Value, true);
 			}
-			else
+			catch
 			{
 				float.TryParse(token.Value, out _sort);
 			}
@@ -990,12 +990,16 @@ namespace idTech4.Renderer
 				return a;
 			}
 
-			if(Enum.IsDefined(typeof(ExpressionRegister), token.Value) == true)
+			try
 			{
 				ExpressionRegister reg = (ExpressionRegister) Enum.Parse(typeof(ExpressionRegister), token.Value);
 				_parsingData.RegistersAreConstant = false;
 
 				return (int) reg;
+			}
+			catch
+			{
+
 			}
 
 			if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "fragmentPrograms") == 0)
