@@ -206,37 +206,7 @@ namespace idTech4.Text
 			{
 				_whiteSpaceEndPosition = value;
 			}
-		}
-
-		/// <summary>
-		/// Gets or sets the integer value.
-		/// </summary>
-		internal ulong IntValue
-		{
-			get
-			{
-				return _intValue;
-			}
-			set
-			{
-				_intValue = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets or sets the float value.
-		/// </summary>
-		internal float FloatValue
-		{
-			get
-			{
-				return (float) _floatValue;
-			}
-			set
-			{
-				_floatValue = value;
-			}
-		}
+		}		
 		#endregion
 		#endregion
 
@@ -261,6 +231,52 @@ namespace idTech4.Text
 		{
 
 		}
+		#endregion
+
+		#region Methods
+		#region Public
+		public int ToInt32()
+		{
+			return (int) _intValue;
+		}
+
+		public long ToInt64()
+		{
+			return (long) _intValue;
+		}
+
+		public ulong ToUInt64()
+		{
+			return _intValue;
+		}
+
+		public float ToFloat()
+		{
+			return (float) _floatValue;
+		}
+
+		public double ToDouble()
+		{
+			return _floatValue;
+		}
+
+		public override string ToString()
+		{
+			return _value;
+		}
+		#endregion
+
+		#region Internal
+		internal void SetInteger(ulong value)
+		{
+			_intValue = value;
+		}
+
+		internal void SetFloat(double value)
+		{
+			_floatValue = value;
+		}
+		#endregion
 		#endregion
 	}
 }

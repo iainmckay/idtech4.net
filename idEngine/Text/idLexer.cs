@@ -589,6 +589,51 @@ namespace idTech4.Text
 		}
 		
 		/// <summary>
+		/// Parses an int.
+		/// </summary>
+		/// <returns></returns>
+		public int ParseInt()
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				Error("couldn't read expected integer");
+				return 0;
+			}
+
+			if((token.Type == TokenType.Punctuation) && (token.Value == "-"))
+			{
+				token = ExpectTokenType(TokenType.Number, TokenSubType.Integer);
+
+				return -token.ToInt32();
+			}
+			else if((token.Type != TokenType.Number) || (token.SubType == TokenSubType.Float))
+			{
+				Error("expected integer value, found '{0}'", token.Value);
+			}
+
+			return token.ToInt32();
+		}
+
+		/// <summary>
+		/// Parses a bool.
+		/// </summary>
+		/// <returns></returns>
+		public bool ParseBool()
+		{
+			idToken token;
+
+			if((token = ExpectTokenType(TokenType.Number, 0)) == null)
+			{
+				Error("couldn't read expected boolean");
+				return false;
+			}
+
+			return (token.ToInt32() != 0);
+		}
+
+		/// <summary>
 		/// Parses a floating point number.
 		/// </summary>
 		/// <returns></returns>
@@ -630,7 +675,7 @@ namespace idTech4.Text
 				return null;
 			}
 
-			return true;
+			return ret;
 		}
 
 		public string ParseRestOfLine()
@@ -766,7 +811,7 @@ namespace idTech4.Text
 			{
 				token = ExpectTokenType(TokenType.Number, 0);
 
-				return (float) -token.FloatValue;
+				return -token.ToFloat();
 			}
 			else if(token.Type != TokenType.Number)
 			{
@@ -781,7 +826,7 @@ namespace idTech4.Text
 				}
 			}
 
-			return (float) token.FloatValue;
+			return (float) token.ToFloat();
 		}		
 
 		/// <summary>
@@ -1048,8 +1093,8 @@ namespace idTech4.Text
 		{
 			token.Type = TokenType.Number;
 			token.SubType = 0;
-			token.IntValue = 0;
-			token.FloatValue = 0;
+			token.SetInteger(0);
+			token.SetFloat(0);
 
 			char c = GetBufferCharacter(_scriptPosition);
 			char c2 = GetBufferCharacter(_scriptPosition + 1);

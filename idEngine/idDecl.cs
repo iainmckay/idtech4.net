@@ -142,6 +142,36 @@ namespace idTech4
 				_parsedOutsideLevelLoad = value;
 			}
 		}
+
+		/// <summary>
+		/// Gets if this decl was ever used.
+		/// </summary>
+		public bool EverReferenced
+		{
+			get
+			{
+				return _everReferenced;
+			}
+			internal set
+			{
+				_everReferenced = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets if this decl was used for the current level.
+		/// </summary>
+		public bool ReferencedThisLevel
+		{
+			get
+			{
+				return _referencedThisLevel;
+			}
+			internal set
+			{
+				_referencedThisLevel = value;
+			}
+		}
 		#endregion
 
 		#region Internal

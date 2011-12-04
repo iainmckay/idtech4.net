@@ -98,9 +98,11 @@ namespace idTech4.Renderer
 		private int[] _deformRegisters;			// numeric parameter for deforms.
 
 		private DecalInfo _decalInfo;
+		private int[] _texGenRegisters;
 
 		private MaterialCoverage _coverage;
 		private float _sort;					// lower numbered shaders draw before higher numbered.
+		private bool _shouldCreateBackSides;
 
 		// we defer loading of the editor image until it is asked for, so the game doesn't load up all the invisible and uncompressed images.
 		// If editorImage is NULL, it will atempt to load editorImageName, and set editorImage to that or defaultImage
@@ -152,8 +154,7 @@ namespace idTech4.Renderer
 			_surfaceFlags = SurfaceFlags.None;
 			_materialFlags = MaterialFlags.Defaulted;
 
-			// TODO
-			_sort = MaterialSort.Bad;
+			_sort = (float) MaterialSort.Bad;
 			_coverage = MaterialCoverage.Bad;
 			_cullType = CullType.Front;
 
@@ -191,16 +192,10 @@ namespace idTech4.Renderer
 			_suppressInSubview = false;
 			_portalSky = false;
 
-			/*decalInfo.stayTime = 10000;
-			decalInfo.fadeTime = 4000;
-			decalInfo.start[0] = 1;
-			decalInfo.start[1] = 1;
-			decalInfo.start[2] = 1;
-			decalInfo.start[3] = 1;
-			decalInfo.end[0] = 0;
-			decalInfo.end[1] = 0;
-			decalInfo.end[2] = 0;
-			decalInfo.end[3] = 0;*/
+			_decalInfo.StayTime = 10000;
+			_decalInfo.FadeTime = 4000;
+			_decalInfo.Start = new float[] { 1, 1, 1, 1 };
+			_decalInfo.End = new float[] { 0, 0, 0, 0 };
 		}
 
 		/// <summary>
@@ -259,7 +254,7 @@ namespace idTech4.Renderer
 					}
 					else
 					{
-						_polygonOffset = token.FloatValue;
+						_polygonOffset = token.ToFloat();
 					}
 				}
 				// noshadow
@@ -503,36 +498,156 @@ namespace idTech4.Renderer
 
 			// we can't just call ReceivesLighting(), because the stages are still
 			// in temporary form
-			if(cullType == CT_TWO_SIDED)
+			if(_cullType == CullType.TwoSided)
 			{
-				for(i = 0; i < numStages; i++)
+				for(int i = 0; i < _parsingData.ShaderStages.Count; i++)
 				{
-					if(pd->parseStages[i].lighting != SL_AMBIENT || pd->parseStages[i].texture.texgen != TG_EXPLICIT)
+					if((_parsingData.ShaderStages[i].Lighting != StageLighting.Ambient) || (_parsingData.ShaderStages[i].Texture.TextureCoordinates != TextureCoordinateGeneration.Explicit))
 					{
-						if(cullType == CT_TWO_SIDED)
+						if(_cullType == CullType.TwoSided)
 						{
-							cullType = CT_FRONT_SIDED;
-							shouldCreateBackSides = true;
+							_cullType = CullType.Front;
+							_shouldCreateBackSides = true;
 						}
+
 						break;
 					}
 				}
 			}
 
 			// currently a surface can only have one unique texgen for all the stages on old hardware
-			texgen_t firstGen = TG_EXPLICIT;
-			for(i = 0; i < numStages; i++)
+			TextureCoordinateGeneration firstGen = TextureCoordinateGeneration.Explicit;
+
+			for(int i = 0; i < _parsingData.ShaderStages.Count; i++)
 			{
-				if(pd->parseStages[i].texture.texgen != TG_EXPLICIT)
+				if(_parsingData.ShaderStages[i].Texture.TextureCoordinates != TextureCoordinateGeneration.Explicit)
 				{
-					if(firstGen == TG_EXPLICIT)
+					if(firstGen == TextureCoordinateGeneration.Explicit)
 					{
-						firstGen = pd->parseStages[i].texture.texgen;
+						firstGen = _parsingData.ShaderStages[i].Texture.TextureCoordinates;
 					}
-					else if(firstGen != pd->parseStages[i].texture.texgen)
+					else if(firstGen != _parsingData.ShaderStages[i].Texture.TextureCoordinates)
 					{
-						common->Warning("material '%s' has multiple stages with a texgen", GetName());
+						idConsole.Warning("material '{0}' has multiple stages with a texgen", this.Name);
 						break;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Adds implicit stages to the material.
+		/// </summary>
+		/// <remarks>
+		/// If a material has diffuse or specular stages without any
+		/// bump stage, add an implicit _flat bumpmap stage.
+		/// <p/>
+		/// It is valid to have either a diffuse or specular without the other.
+		/// <p/>
+		/// It is valid to have a reflection map and a bump map for bumpy reflection.
+		/// </remarks>
+		/// <param name="textureRepeatDefault"></param>
+		private void AddImplicitStages(TextureRepeat textureRepeatDefault = TextureRepeat.Repeat)
+		{
+			bool hasDiffuse = false;
+			bool hasSpecular = false;
+			bool hasBump = false;
+			bool hasReflection = false;
+
+			for(int i = 0; i < _parsingData.ShaderStages.Count; i++)
+			{
+				switch(_parsingData.ShaderStages[i].Lighting)
+				{
+					case StageLighting.Bump:
+						hasBump = true;
+						break;
+
+					case StageLighting.Diffuse:
+						hasDiffuse = true;
+					break;
+
+					case StageLighting.Specular:
+						hasSpecular = true;
+						break;
+				}
+
+				if(_parsingData.ShaderStages[i].Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
+				{
+					hasReflection = true;
+				}
+			}
+
+			// if it doesn't have an interaction at all, don't add anything
+			if((hasBump == false) && (hasDiffuse == false) && (hasSpecular == false))
+			{
+				return;
+			}
+
+			idLexer lexer = new idLexer(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowPathNames);
+			
+			if(hasBump == false)
+			{
+				string bump = "blend bumpmap\nmap _flat\n}\n";
+
+				lexer.LoadMemory(bump, "bumpmap");
+				ParseStage(lexer, textureRepeatDefault);
+			}
+
+			if((hasDiffuse == false) && (hasSpecular == false) && (hasReflection == false))
+			{
+				string bump = "blend bumpmap\nmap _white\n}\n";
+
+				lexer.LoadMemory(bump, "diffusemap");
+				ParseStage(lexer, textureRepeatDefault);
+			}
+		}
+
+		/// <summary>
+		/// Sorts the shader stages.
+		/// </summary>
+		/// <remarks>
+		/// The renderer expects bump, then diffuse, then specular
+		/// There can be multiple bump maps, followed by additional
+		/// diffuse and specular stages, which allows cross-faded bump mapping.
+		/// <para/>
+		/// Ambient stages can be interspersed anywhere, but they are
+		/// ignored during interactions, and all the interaction
+		/// stages are ignored during ambient drawing.
+		/// </remarks>
+		private void SortInteractionStages()
+		{
+			int i = 0, j = 0;
+
+			for(i = 0; i < _parsingData.ShaderStages.Count; i = j)
+			{
+				// find the next bump map
+				for(j = i + 1; j < _parsingData.ShaderStages.Count; j++)
+				{
+					if(_parsingData.ShaderStages[j].Lighting == StageLighting.Bump)
+					{
+						// if the very first stage wasn't a bumpmap,
+						// this bumpmap is part of the first group
+						if(_parsingData.ShaderStages[i].Lighting != StageLighting.Bump)
+						{
+							continue;
+						}
+
+						break;
+					}
+				}
+			}
+
+			// bubble sort everything bump / diffuse / specular
+			for(int l = 1; l < j - i; l++)
+			{
+				for(int k = i; k < k - l; k++)
+				{
+					if(_parsingData.ShaderStages[k].Lighting > _parsingData.ShaderStages[k+1].Lighting)
+					{
+						ShaderStage temp = _parsingData.ShaderStages[k];
+
+						_parsingData.ShaderStages[k] = _parsingData.ShaderStages[k + 1];
+						_parsingData.ShaderStages[k + 1] = temp;
 					}
 				}
 			}
@@ -689,7 +804,7 @@ namespace idTech4.Renderer
 				return ParseTerm(lexer);
 			}
 
-			int a = ParseExpressionPriority(src, priority - 1);
+			int a = ParseExpressionPriority(lexer, priority - 1);
 
 			if(TestMaterialFlag(MaterialFlags.Defaulted) == true)
 			{
@@ -900,7 +1015,7 @@ namespace idTech4.Renderer
 
 				if((token.Type == TokenType.Number) || (token.Value == "."))
 				{
-					return GetExpressionConstant(-token.FloatValue);
+					return GetExpressionConstant(-token.ToFloat());
 				}
 
 				lexer.Warning("Bad negative number '{0}'", token.Value);
@@ -910,7 +1025,7 @@ namespace idTech4.Renderer
 			}
 			else if((token.Type == TokenType.Number) || (token.Value == ".") || (token.Value == "-"))
 			{
-				return GetExpressionConstant(token.FloatValue);
+				return GetExpressionConstant(token.ToFloat());
 			}
 
 			// see if it is a table name
@@ -932,6 +1047,765 @@ namespace idTech4.Renderer
 			MatchToken(lexer, "]");
 
 			return EmitOp(table.Index, b, ExpressionOperationType.Table);
+		}
+
+		private void ParseStage(idLexer lexer, TextureRepeat textureRepeatDefault)
+		{
+			TextureFilter textureFilter = TextureFilter.Default;
+			TextureRepeat textureRepeat = textureRepeatDefault;
+			TextureDepth textureDepth = TextureDepth.Default;
+			CubeFiles cubeMap = CubeFiles.TwoD;
+
+			bool allowPicmip = true;
+			string imageName = string.Empty;
+
+			NewShaderStage newStage = new NewShaderStage();
+			newStage.VertexParameters = new int[4, 4];
+
+			ShaderStage shaderStage = new ShaderStage();
+			shaderStage.Color.Registers = new int[4];
+
+			int[,] matrix = new int[2, 3];
+
+			idToken token;
+			int a, b;
+
+			while(true)
+			{
+				if(TestMaterialFlag(MaterialFlags.Defaulted) == true)
+				{
+					// we have a parse error.
+					return;
+				}
+				else if((token = lexer.ExpectAnyToken()) == null)
+				{
+					this.MaterialFlag = MaterialFlags.Defaulted;
+					return;
+				}
+				// the close brace for the entire material ends the draw block
+				else if(token.Value == "}")
+				{
+					break;
+				}
+				// BSM Nerve: Added for stage naming in the material editor
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "name") == 0)
+				{
+					lexer.SkipRestOfLine();
+				}
+				// image options
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "blend") == 0)
+				{
+					ParseBlend(lexer, ref shaderStage);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "map") == 0)
+				{
+					idConsole.WriteLine("TODO: material map keyword");
+					/*str = R_ParsePastImageProgram( src );
+					idStr::Copynz( imageName, str, sizeof( imageName ) );*/
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "remoteRenderMap") == 0)
+				{
+					shaderStage.Texture.Dynamic = DynamicImageType.RemoteRender;
+					shaderStage.Texture.Width = lexer.ParseInt();
+					shaderStage.Texture.Height = lexer.ParseInt();
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "mirrorRenderMap") == 0)
+				{
+					shaderStage.Texture.Dynamic = DynamicImageType.MirrorRender;
+					shaderStage.Texture.Width = lexer.ParseInt();
+					shaderStage.Texture.Height = lexer.ParseInt();
+					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "xrayRenderMap") == 0)
+				{
+					shaderStage.Texture.Dynamic = DynamicImageType.XRayRender;
+					shaderStage.Texture.Width = lexer.ParseInt();
+					shaderStage.Texture.Height = lexer.ParseInt();
+					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "screen") == 0)
+				{
+					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "screen2") == 0)
+				{
+					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "glassWarp") == 0)
+				{
+					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.GlassWarp;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "videoMap") == 0)
+				{
+					// note that videomaps will always be in clamp mode, so texture
+					// coordinates had better be in the 0 to 1 range
+					if((token = lexer.ReadToken()) == null)
+					{
+						idConsole.Warning("missing parameter for 'videoMap' keyword in material '{0}'", this.Name);
+					}
+					else
+					{
+						bool loop = false;
+
+						if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "loop") == 0)
+						{
+							loop = true;
+
+							if((token = lexer.ReadToken()) == null)
+							{
+								idConsole.Warning("missing parameter for 'videoMap' keyword in material '{0}'", this.Name);
+								continue;
+							}
+						}
+
+						idConsole.Warning("TODO: material videoMap keyword");
+
+						// TODO
+						/*ts->cinematic = idCinematic::Alloc();
+						ts->cinematic->InitFromFile( token.c_str(), loop );*/
+					}
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "soundMap") == 0)
+				{
+					if((token = lexer.ReadToken()) == null)
+					{
+						idConsole.Warning("missing parameter for 'soundMap' keyword in material '{0}'", this.Name);
+					}
+					else
+					{
+						idConsole.Warning("TODO: material soundMap keyword");
+
+						// TODO
+						/*ts->cinematic = new idSndWindow();
+						ts->cinematic->InitFromFile( token.c_str(), true );*/
+					}
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "cubeMap") == 0)
+				{
+					idConsole.Warning("TODO: material cubeMap keyword");
+
+					// TODO
+					/*str = R_ParsePastImageProgram( src );
+					idStr::Copynz( imageName, str, sizeof( imageName ) );
+					cubeMap = CF_NATIVE;*/
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "cameraCubeMap") == 0)
+				{
+					idConsole.Warning("TODO: material cameraCubeMap keyword");
+
+					/*str = R_ParsePastImageProgram( src );
+					idStr::Copynz( imageName, str, sizeof( imageName ) );
+					cubeMap = CF_CAMERA;*/
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "ignoreAlphaTest") == 0)
+				{
+					shaderStage.IgnoreAlphaTest = true;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "nearest") == 0)
+				{
+					textureFilter = TextureFilter.Nearest;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "linear") == 0)
+				{
+					textureFilter = TextureFilter.Linear;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "clamp") == 0)
+				{
+					textureRepeat = TextureRepeat.Clamp;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "noclamp") == 0)
+				{
+					textureRepeat = TextureRepeat.Repeat;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "zeroClamp") == 0)
+				{
+					textureRepeat = TextureRepeat.ClampToZero;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "alphaZeroClamp") == 0)
+				{
+					textureRepeat = TextureRepeat.ClampToZeroAlpha;
+				}
+				else if((StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "uncompressed") == 0)
+					|| (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "highQuality") == 0))
+				{
+					if(idE.CvarSystem.GetInt("image_ignoreHighQuality") == 0)
+					{
+						textureDepth = TextureDepth.HighQuality;
+					}
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "forceHighQuality") == 0)
+				{
+					textureDepth = TextureDepth.HighQuality;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "nopicmip") == 0)
+				{
+					allowPicmip = false;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "vertexColor") == 0)
+				{
+					shaderStage.VertexColor = StageVertexColor.Modulate;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "inverseVertexColor") == 0)
+				{
+					shaderStage.VertexColor = StageVertexColor.InverseModulate;
+				}
+				// privatePolygonOffset.
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "privatePolygonOffset") == 0)
+				{
+					if((token = lexer.ReadTokenOnLine()) == null)
+					{
+						shaderStage.PrivatePolygonOffset = 1;
+					}
+					else
+					{
+						// explict larger (or negative) offset.
+						lexer.UnreadToken = token;
+						shaderStage.PrivatePolygonOffset = lexer.ParseFloat();
+					}
+				}
+				// texture coordinate generation
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "texGen") == 0)
+				{
+					token = lexer.ExpectAnyToken();
+
+					if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "normal") == 0)
+					{
+						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.DiffuseCube;
+					}
+					else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "reflect") == 0)
+					{
+						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.ReflectCube;
+					}
+					else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "skybox") == 0)
+					{
+						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.SkyboxCube;
+					}
+					else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "wobbleSky") == 0)
+					{
+						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.WobbleSkyCube;
+
+						_texGenRegisters = new int[4];
+						_texGenRegisters[0] = ParseExpression(lexer);
+						_texGenRegisters[1] = ParseExpression(lexer);
+						_texGenRegisters[2] = ParseExpression(lexer);
+					}
+					else
+					{
+						idConsole.Warning("bad texGen '{0}' in material {1}", token.Value, this.Name);
+						this.MaterialFlag = MaterialFlags.Defaulted;
+					}
+				}
+				else if((StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "scroll") == 0)
+					|| (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "translate") == 0))
+				{
+					a = ParseExpression(lexer);
+					MatchToken(lexer, ",");
+					b = ParseExpression(lexer);
+
+					matrix[0, 0] = GetExpressionConstant(1);
+					matrix[0, 1] = GetExpressionConstant(0);
+					matrix[0, 2] = a;
+
+					matrix[1, 0] = GetExpressionConstant(0);
+					matrix[1, 1] = GetExpressionConstant(1);
+					matrix[1, 2] = b;
+
+					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "scale") == 0)
+				{
+					a = ParseExpression(lexer);
+					MatchToken(lexer, ",");
+					b = ParseExpression(lexer);
+
+					// this just scales without a centering.
+					matrix[0, 0] = a;
+					matrix[0, 1] = GetExpressionConstant(0);
+					matrix[0, 2] = GetExpressionConstant(0);
+
+					matrix[1, 0] = GetExpressionConstant(0);
+					matrix[1, 1] = b;
+					matrix[1, 2] = GetExpressionConstant(0);
+
+					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "centerScale") == 0)
+				{
+					a = ParseExpression(lexer);
+					MatchToken(lexer, ",");
+					b = ParseExpression(lexer);
+
+					// this subtracts 0.5, then scales, then adds 0.5.
+					matrix[0, 0] = a;
+					matrix[0, 1] = GetExpressionConstant(0);
+					matrix[0, 2] = EmitOp(GetExpressionConstant(0.5f), EmitOp(GetExpressionConstant(0.5f), a, ExpressionOperationType.Multiply), ExpressionOperationType.Subtract);
+
+					matrix[1, 0] = GetExpressionConstant(0);
+					matrix[1, 1] = b;
+					matrix[1, 2] = EmitOp(GetExpressionConstant(0.5f), EmitOp(GetExpressionConstant(0.5f), b, ExpressionOperationType.Multiply), ExpressionOperationType.Subtract);
+
+					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "shear") == 0)
+				{
+					a = ParseExpression(lexer);
+					MatchToken(lexer, ",");
+					b = ParseExpression(lexer);
+
+					// this subtracts 0.5, then shears, then adds 0.5.
+					matrix[0, 0] = GetExpressionConstant(1);
+					matrix[0, 1] = a;
+					matrix[0, 2] = EmitOp(GetExpressionConstant(-0.5f), a, ExpressionOperationType.Multiply);
+
+					matrix[1, 0] = b;
+					matrix[1, 1] = GetExpressionConstant(1);
+					matrix[1, 2] = EmitOp(GetExpressionConstant(-0.5f), b, ExpressionOperationType.Multiply);
+
+					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "rotate") == 0)
+				{
+					int sinReg, cosReg;
+
+					// in cycles
+					a = ParseExpression(lexer);
+
+					idDeclTable table = (idDeclTable) idE.DeclManager.FindType(DeclType.Table, "sinTable", false);
+
+					if(table == null)
+					{
+						idConsole.Warning("no sinTable for rotate defined");
+						this.MaterialFlag = MaterialFlags.Defaulted;
+
+						return;
+					}
+
+					sinReg = EmitOp(table.Index, a, ExpressionOperationType.Table);
+
+					table = (idDeclTable) idE.DeclManager.FindType(DeclType.Table, "cosTable", false);
+
+					if(table == null)
+					{
+						idConsole.Warning("no cosTable for rotate defined");
+						this.MaterialFlag = MaterialFlags.Defaulted;
+
+						return;
+					}
+
+					cosReg = EmitOp(table.Index, a, ExpressionOperationType.Table);
+
+					// this subtracts 0.5, then rotates, then adds 0.5.
+					matrix[0, 0] = cosReg;
+					matrix[0, 1] = EmitOp(GetExpressionConstant(0), sinReg, ExpressionOperationType.Subtract);
+					matrix[0, 2] = EmitOp(EmitOp(EmitOp(GetExpressionConstant(-0.5f), cosReg, ExpressionOperationType.Multiply),
+									EmitOp(GetExpressionConstant(0.5f), sinReg, ExpressionOperationType.Multiply), ExpressionOperationType.Add),
+										GetExpressionConstant(0.5f), ExpressionOperationType.Add);
+
+					matrix[1, 0] = sinReg;
+					matrix[1, 1] = cosReg;
+					matrix[1, 2] = EmitOp(EmitOp(EmitOp(GetExpressionConstant(-0.5f), sinReg, ExpressionOperationType.Multiply),
+									EmitOp(GetExpressionConstant(-0.5f), cosReg, ExpressionOperationType.Multiply), ExpressionOperationType.Add),
+										GetExpressionConstant(0.5f), ExpressionOperationType.Add);
+
+					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+				}
+				// color mask options
+				// TODO: not sure what i'm doing with renderer yet
+				/*if ( !token.Icmp( "maskRed" ) ) {
+					ss->drawStateBits |= GLS_REDMASK;
+					continue;
+				}		
+				if ( !token.Icmp( "maskGreen" ) ) {
+					ss->drawStateBits |= GLS_GREENMASK;
+					continue;
+				}		
+				if ( !token.Icmp( "maskBlue" ) ) {
+					ss->drawStateBits |= GLS_BLUEMASK;
+					continue;
+				}		
+				if ( !token.Icmp( "maskAlpha" ) ) {
+					ss->drawStateBits |= GLS_ALPHAMASK;
+					continue;
+				}		
+				if ( !token.Icmp( "maskColor" ) ) {
+					ss->drawStateBits |= GLS_COLORMASK;
+					continue;
+				}		
+				if ( !token.Icmp( "maskDepth" ) ) {
+					ss->drawStateBits |= GLS_DEPTHMASK;
+					continue;
+				}		*/
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "alphaTest") == 0)
+				{
+					shaderStage.HasAlphaTest = true;
+					shaderStage.AlphaTestRegister = ParseExpression(lexer);
+
+					_coverage = MaterialCoverage.Perforated;
+				}
+				// shorthand for 2D modulated
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "colored") == 0)
+				{
+					shaderStage.Color.Registers[0] = (int) ExpressionRegister.Parm0;
+					shaderStage.Color.Registers[1] = (int) ExpressionRegister.Parm1;
+					shaderStage.Color.Registers[2] = (int) ExpressionRegister.Parm2;
+					shaderStage.Color.Registers[3] = (int) ExpressionRegister.Parm3;
+
+					_parsingData.RegistersAreConstant = false;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "color") == 0)
+				{
+					shaderStage.Color.Registers[0] = ParseExpression(lexer);
+					MatchToken(lexer, ",");
+
+					shaderStage.Color.Registers[1] = ParseExpression(lexer);
+					MatchToken(lexer, ",");
+
+					shaderStage.Color.Registers[2] = ParseExpression(lexer);
+					MatchToken(lexer, ",");
+
+					shaderStage.Color.Registers[3] = ParseExpression(lexer);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "red") == 0)
+				{
+					shaderStage.Color.Registers[0] = ParseExpression(lexer);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "green") == 0)
+				{
+					shaderStage.Color.Registers[1] = ParseExpression(lexer);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "blue") == 0)
+				{
+					shaderStage.Color.Registers[2] = ParseExpression(lexer);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "alpha") == 0)
+				{
+					shaderStage.Color.Registers[3] = ParseExpression(lexer);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "rgb") == 0)
+				{
+					shaderStage.Color.Registers[0] = shaderStage.Color.Registers[1] = shaderStage.Color.Registers[2] = ParseExpression(lexer);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "rgba") == 0)
+				{
+					shaderStage.Color.Registers[0] = shaderStage.Color.Registers[1] = shaderStage.Color.Registers[2] = shaderStage.Color.Registers[3] = ParseExpression(lexer);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "if") == 0)
+				{
+					shaderStage.ConditionRegister = ParseExpression(lexer);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "program") == 0)
+				{
+					if((token = lexer.ReadTokenOnLine()) != null)
+					{
+						idConsole.Warning("TODO: material program keyword");
+						// TODO
+						/*newStage.vertexProgram = R_FindARBProgram( GL_VERTEX_PROGRAM_ARB, token.c_str() );
+						newStage.fragmentProgram = R_FindARBProgram( GL_FRAGMENT_PROGRAM_ARB, token.c_str() );*/
+					}
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "fragmentProgram") == 0)
+				{
+					if((token = lexer.ReadTokenOnLine()) != null)
+					{
+						idConsole.Warning("TODO: material fragmentProgram keyword");
+						// TODO
+						//newStage.fragmentProgram = R_FindARBProgram( GL_FRAGMENT_PROGRAM_ARB, token.c_str() );
+					}
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "vertexProgram") == 0)
+				{
+					if((token = lexer.ReadTokenOnLine()) != null)
+					{
+						idConsole.Warning("TODO: material vertexProgram keyword");
+						// TODO
+						//newStage.vertexProgram = R_FindARBProgram( GL_VERTEX_PROGRAM_ARB, token.c_str() );
+					}
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "megaTexture") == 0)
+				{
+					if((token = lexer.ReadTokenOnLine()) != null)
+					{
+						idConsole.Warning("TODO: material megaTexture keyword");
+						// TODO
+						/*newStage.megaTexture = new idMegaTexture;
+						if ( !newStage.megaTexture->InitFromMegaFile( token.c_str() ) ) {
+							delete newStage.megaTexture;
+							SetMaterialFlag( MF_DEFAULTED );
+							continue;
+						}
+						newStage.vertexProgram = R_FindARBProgram( GL_VERTEX_PROGRAM_ARB, "megaTexture.vfp" );
+						newStage.fragmentProgram = R_FindARBProgram( GL_FRAGMENT_PROGRAM_ARB, "megaTexture.vfp" );*/
+					}
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "vertexParm") == 0)
+				{
+					ParseVertexParameter(lexer, ref newStage);
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "fragmentMap") == 0)
+				{
+					ParseFragmentMap(lexer, ref newStage);
+				}
+
+				idConsole.Warning("unknown token '{0}' in material '{1}'", token.Value, this.Name);
+
+				this.MaterialFlag = MaterialFlags.Defaulted;
+
+				return;
+			}
+
+			// if we are using newStage, allocate a copy of it
+			// TODO
+			/*if ( newStage.fragmentProgram || newStage.vertexProgram ) {
+				ss->newStage = (newShaderStage_t *)Mem_Alloc( sizeof( newStage ) );
+				*(ss->newStage) = newStage;
+			}*/
+
+			// successfully parsed a stage
+			_parsingData.ShaderStages.Add(shaderStage);
+
+			// select a compressed depth based on what the stage is
+			if(textureDepth == TextureDepth.Default)
+			{
+				switch(shaderStage.Lighting)
+				{
+					case StageLighting.Bump:
+						textureDepth = TextureDepth.Bump;
+						break;
+
+					case StageLighting.Diffuse:
+						textureDepth = TextureDepth.Diffuse;
+						break;
+
+					case StageLighting.Specular:
+						textureDepth = TextureDepth.Specular;
+						break;
+				}
+			}
+
+			// now load the image with all the parms we parsed
+			// TODO: image loading
+			/*if ( imageName[0] ) {
+				ts->image = globalImages->ImageFromFile( imageName, tf, allowPicmip, trp, td, cubeMap );
+				if ( !ts->image ) {
+					ts->image = globalImages->defaultImage;
+				}
+			} else if ( !ts->cinematic && !ts->dynamic && !ss->newStage ) {
+				common->Warning( "material '%s' had stage with no image", GetName() );
+				ts->image = globalImages->defaultImage;
+			}*/
+		}
+
+		private void ParseBlend(idLexer lexer, ref ShaderStage stage)
+		{
+			idToken token;
+
+			if((token = lexer.ReadToken()) == null)
+			{
+				return;
+			}
+
+			// blending combinations
+			// TODO: don't know what i'm doing with renderer yet
+			/*if ( !token.Icmp( "blend" ) ) {
+				stage->drawStateBits = GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA;
+				return;
+			}
+			if ( !token.Icmp( "add" ) ) {
+				stage->drawStateBits = GLS_SRCBLEND_ONE | GLS_DSTBLEND_ONE;
+				return;
+			}
+			if ( !token.Icmp( "filter" ) || !token.Icmp( "modulate" ) ) {
+				stage->drawStateBits = GLS_SRCBLEND_DST_COLOR | GLS_DSTBLEND_ZERO;
+				return;
+			}
+			if (  !token.Icmp( "none" ) ) {
+				// none is used when defining an alpha mask that doesn't draw
+				stage->drawStateBits = GLS_SRCBLEND_ZERO | GLS_DSTBLEND_ONE;
+				return;
+			}*/
+			if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "bumpMap") == 0)
+			{
+				stage.Lighting = StageLighting.Bump;
+			}
+			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "diffuseMap") == 0)
+			{
+				stage.Lighting = StageLighting.Diffuse;
+			}
+			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "specularMap") == 0)
+			{
+				stage.Lighting = StageLighting.Specular;
+			}
+			else
+			{
+				// TODO
+				//srcBlend = NameToSrcBlendMode(token);
+
+				MatchToken(lexer, ",");
+
+				if((token = lexer.ReadToken()) == null)
+				{
+					return;
+				}
+
+				/*dstBlend = NameToDstBlendMode(token);
+
+				stage->drawStateBits = srcBlend | dstBlend;*/
+			}
+		}
+
+		/// <summary>
+		/// Parses a vertex parameter.
+		/// </summary>
+		/// <remarks>
+		/// If there is a single value, it will be repeated across all elements.
+		/// If there are two values, 3 = 0.0, 4 = 1.0.
+		/// if there are three values, 4 = 1.0.
+		/// </remarks>
+		/// <param name="lexer"></param>
+		/// <param name="newStage"></param>
+		private void ParseVertexParameter(idLexer lexer, ref NewShaderStage newStage)
+		{
+			idToken token = lexer.ReadTokenOnLine();
+			int parm = token.ToInt32();
+			int tmp = 0;
+
+			if((int.TryParse(token.Value, out tmp) == false) || (parm < 0))
+			{
+				idConsole.Warning("bad vertexParm number");
+				this.MaterialFlag = MaterialFlags.Defaulted;
+
+				return;
+			}
+
+			newStage.VertexParameters[parm, 0] = ParseExpression(lexer);
+			token = lexer.ReadTokenOnLine();
+
+			if((token.Value == string.Empty) || (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, ",") != 0))
+			{
+				newStage.VertexParameters[parm, 1] = newStage.VertexParameters[parm, 2] = newStage.VertexParameters[parm, 3] = newStage.VertexParameters[parm, 0];
+			}
+			else
+			{
+				newStage.VertexParameters[parm, 1] = ParseExpression(lexer);
+				token = lexer.ReadTokenOnLine();
+
+				if((token.Value == string.Empty) || (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, ",") != 0))
+				{
+					newStage.VertexParameters[parm, 2] = GetExpressionConstant(0);
+					newStage.VertexParameters[parm, 3] = GetExpressionConstant(1);
+				}
+				else
+				{
+					newStage.VertexParameters[parm, 2] = ParseExpression(lexer);
+					token = lexer.ReadTokenOnLine();
+
+					if((token.Value == string.Empty) || (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, ",") != 0))
+					{
+						newStage.VertexParameters[parm, 3] = GetExpressionConstant(1);
+					}
+					else
+					{
+						newStage.VertexParameters[parm, 3] = ParseExpression(lexer);
+					}
+				}
+			}
+		}
+
+		private void ParseFragmentMap(idLexer lexer, ref NewShaderStage newStage)
+		{
+			TextureFilter textureFilter = TextureFilter.Default;
+			TextureRepeat textureRepeat = TextureRepeat.Repeat;
+			TextureDepth textureDepth = TextureDepth.Default;
+			CubeFiles cubeMap = CubeFiles.TwoD;
+
+			bool allowPicmip = true;
+
+			idToken token = lexer.ReadTokenOnLine();
+			int unit = token.ToInt32();
+			int tmp;
+
+			if((int.TryParse(token.Value, out tmp) == false) || (unit < 0))
+			{
+				idConsole.Warning("bad fragmentMap number");
+				this.MaterialFlag = MaterialFlags.Defaulted;
+
+				return;
+			}
+
+			// unit 1 is the normal map.. make sure it gets flagged as the proper depth
+			if(unit == 1)
+			{
+				textureDepth = TextureDepth.Bump;
+			}
+
+			while(true)
+			{
+				token = lexer.ReadTokenOnLine();
+
+				if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "cubeMap") == 0)
+				{
+					cubeMap = CubeFiles.Native;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "cameraCubeMap") == 0)
+				{
+					cubeMap = CubeFiles.Camera;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "nearest") == 0)
+				{
+					textureFilter = TextureFilter.Nearest;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "linear") == 0)
+				{
+					textureFilter = TextureFilter.Linear;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "clamp") == 0)
+				{
+					textureRepeat = TextureRepeat.Clamp;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "noclamp") == 0)
+				{
+					textureRepeat = TextureRepeat.Repeat;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "zeroclamp") == 0)
+				{
+					textureRepeat = TextureRepeat.ClampToZero;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "alphazeroclamp") == 0)
+				{
+					textureRepeat = TextureRepeat.ClampToZeroAlpha;
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "forceHighQuality") == 0)
+				{
+					textureDepth = TextureDepth.HighQuality;
+				}
+				else if((StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "uncompressed") == 0)
+					|| (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "highQuality") == 0))
+				{
+					if(idE.CvarSystem.GetInt("image_ignoreHighQuality") == 0)
+					{
+						textureDepth = TextureDepth.HighQuality;
+					}
+				}
+				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "nopicmip") == 0)
+				{
+					allowPicmip = false;
+				}
+				else
+				{
+					// assume anything else is the image name
+					lexer.UnreadToken = token;
+					break;
+				}
+			}
+
+			// TODO
+			/*str = R_ParsePastImageProgram( src );
+
+			newStage->fragmentProgramImages[unit] = 
+				globalImages->ImageFromFile( str, tf, allowPicmip, trp, td, cubeMap );
+			if ( !newStage->fragmentProgramImages[unit] ) {
+				newStage->fragmentProgramImages[unit] = globalImages->defaultImage;
+			}*/
 		}
 
 		/// <summary>
@@ -978,11 +1852,51 @@ namespace idTech4.Renderer
 			return op;
 		}
 
-		public int GetExpressionTemporary()
+		private int GetExpressionTemporary()
 		{
 			_parsingData.RegisterIsTemporary.Add(true);
 
 			return (_parsingData.RegisterIsTemporary.Count - 1);
+		}
+
+		private void MultiplyTextureMatrix(ref TextureStage textureStage, int[,] registers)
+		{
+			if(textureStage.Matrix == null)
+			{
+				textureStage.Matrix = registers;
+				return;
+			}
+
+			int[,] old = textureStage.Matrix;
+
+			// multiply the two matricies
+			textureStage.Matrix[0, 0] = EmitOp(
+											EmitOp(old[0, 0], registers[0, 0], ExpressionOperationType.Multiply),
+											EmitOp(old[0, 1], registers[1, 0], ExpressionOperationType.Multiply), ExpressionOperationType.Add);
+
+			textureStage.Matrix[0, 1] = EmitOp(
+											EmitOp(old[0, 0], registers[0, 1], ExpressionOperationType.Multiply),
+											EmitOp(old[0, 1], registers[1, 1], ExpressionOperationType.Multiply), ExpressionOperationType.Add);
+
+			textureStage.Matrix[0, 2] = EmitOp(
+											EmitOp(
+												EmitOp(old[0, 0], registers[0, 2], ExpressionOperationType.Multiply),
+												EmitOp(old[0, 1], registers[1, 2], ExpressionOperationType.Multiply), ExpressionOperationType.Add),
+													old[0, 2], ExpressionOperationType.Add);
+
+			textureStage.Matrix[1, 0] = EmitOp(
+											EmitOp(old[1, 0], registers[0, 0], ExpressionOperationType.Multiply),
+											EmitOp(old[1, 1], registers[1, 0], ExpressionOperationType.Multiply), ExpressionOperationType.Add);
+
+			textureStage.Matrix[1, 1] = EmitOp(
+											EmitOp(old[1, 0], registers[0, 1], ExpressionOperationType.Multiply),
+											EmitOp(old[1, 1], registers[1, 1], ExpressionOperationType.Multiply), ExpressionOperationType.Add);
+
+			textureStage.Matrix[1, 2] = EmitOp(
+											EmitOp(
+												EmitOp(old[1, 0], registers[0, 1], ExpressionOperationType.Multiply),
+												EmitOp(old[1, 1], registers[1, 1], ExpressionOperationType.Multiply), ExpressionOperationType.Add),
+													old[1, 2], ExpressionOperationType.Add);
 		}
 		#endregion
 		#endregion
@@ -1340,33 +2254,63 @@ namespace idTech4.Renderer
 		/// <summary>
 		/// Vertex color at spawn (possibly out of 0.0 - 1.0 range, will clamp after calc).
 		/// </summary>
-		public float[] Start = new float[4];
+		public float[] Start;
 
 		/// <summary>
 		/// Vertex color at fade-out (possibly out of 0.0 - 1.0 range, will clamp after calc).
 		/// </summary>
-		public float[] End = new float[4];
+		public float[] End;
 	}
 
 	internal struct ShaderStage
 	{
-		// TODO
-		/*int					conditionRegister;	// if registers[conditionRegister] == 0, skip stage
-		stageLighting_t		lighting;			// determines which passes interact with lights
-		int					drawStateBits;
-		colorStage_t		color;
-		bool				hasAlphaTest;
-		int					alphaTestRegister;
-		textureStage_t		texture;
-		stageVertexColor_t	vertexColor;
-		bool				ignoreAlphaTest;	// this stage should act as translucent, even
-												// if the surface is alpha tested
-		float				privatePolygonOffset;	// a per-stage polygon offset
+		public int ConditionRegister;			// if registers[conditionRegister] == 0, skip stage.
+		public StageLighting Lighting;			// determines which passes interact with lights.
 
-		newShaderStage_t	*newStage;			// vertex / fragment program based stage*/
+		/*int					drawStateBits;*/
+		public ColorStage Color;
+		public bool HasAlphaTest;
+		public int AlphaTestRegister;
+
+		public TextureStage Texture;
+		public StageVertexColor VertexColor;
+
+		public bool IgnoreAlphaTest;			// this stage should act as translucent, even if the surface is alpha tested.
+		public float PrivatePolygonOffset;		// a per-stage polygon offset.
+
+		NewShaderStage NewStage;				// vertex / fragment program based stage.
 	}
 
+	internal struct TextureStage
+	{
+		// TODO
+		/*idCinematic *		cinematic;
+		idImage *			image;*/
+		public TextureCoordinateGeneration TextureCoordinates;
+		public int[,] Matrix;	// we only allow a subset of the full projection matrix.
 
+		// dynamic image variables
+		public DynamicImageType Dynamic;
+		public int Width;
+		public int Height;
+		public int FrameCount;
+	}
+
+	internal struct ColorStage
+	{
+		public int[] Registers;
+	}
+
+	internal struct NewShaderStage
+	{
+		public int VertexProgram;
+		public int[,] VertexParameters; // evaluated register indexes.
+
+		public int FragmentProgram;
+		public idImage[] FragmentProgramImages;
+
+		// TODO: public idMegaTexture MegaTexture; // handles all the binding and parameter setting.
+	}
 
 	public enum SurfaceTypes
 	{
@@ -1463,26 +2407,6 @@ namespace idTech4.Renderer
 		Global5,
 		Global6,
 		Global7
-	}
-
-	public enum TextureFilter
-	{
-		Linear,
-		Nearest,
-		/// <summary>Use the user-specified r_textureFilter.</summary>
-		Default
-	}
-
-	public enum TextureRepeat
-	{
-		Repeat,
-		Clamp,
-		/// <summary>This should replace TR_CLAMP_TO_ZERO and TR_CLAMP_TO_ZERO_ALPHA but I don't want to risk changing it right now.</summary>
-		ClampToBorder,
-		/// <summary>Guarantee 0,0,0,255 edge for projected textures, set AFTER image format selection</summary>
-		ClampToZero,
-		/// <summary>Guarantee 0 alpha edge for projected textures, set AFTER image format selection</summary>
-		ClampToZeroAlpha
 	}
 
 	public enum MaterialCoverage

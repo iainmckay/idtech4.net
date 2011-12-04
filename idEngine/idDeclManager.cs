@@ -32,6 +32,7 @@ using System.Linq;
 using System.Text;
 
 using idTech4.IO;
+using idTech4.Renderer;
 using idTech4.Text;
 using idTech4.Text.Decl;
 
@@ -122,8 +123,8 @@ namespace idTech4
 
 			// decls used throughout the engine
 			RegisterDeclType("table", DeclType.Table, new idDeclAllocator<idDeclTable>());
-			/*RegisterDeclType("material", DeclType.Material, new idDeclAllocator<idMaterial>());
-			RegisterDeclType("skin", DeclType.Skin, new idDeclAllocator<idDeclSkin>());
+			RegisterDeclType("material", DeclType.Material, new idDeclAllocator<idMaterial>());
+			/*RegisterDeclType("skin", DeclType.Skin, new idDeclAllocator<idDeclSkin>());
 			RegisterDeclType("sound", DeclType.Sound, new idDeclAllocator<idSoundShader>());
 
 			RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntityDef>());
@@ -284,6 +285,56 @@ namespace idTech4
 			}
 
 			idConsole.WriteLine(format, args);
+		}
+
+		/// <summary>
+		/// Finds the decl with the given name and type; returning a default version if not found.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="name"></param>
+		/// <returns>Decl with the given name or a default decl of the requested type if not found.</returns>
+		public idDecl FindType(DeclType type, string name)
+		{
+			return FindType(type, name, true);
+		}
+
+		/// <summary>
+		/// Finds the decl with the given name and type; returning a default version if requested.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="name"></param>
+		/// <param name="makeDefault"> If true, a default decl of appropriate type will be created.</param>
+		/// <returns>Decl with the given name or a default decl of the requested type if not found or null if makeDefault is false.</returns>
+		public idDecl FindType(DeclType type, string name, bool makeDefault)
+		{
+			if((name == null) || (name == string.Empty))
+			{
+				name = "_emptyName";
+			}
+
+			idDecl decl = FindTypeWithoutParsing(type, name, makeDefault);
+
+			if(decl == null)
+			{
+				return null;
+			}
+
+			// if it hasn't been parsed yet, parse it now
+			if(decl.State == DeclState.Unparsed)
+			{
+				decl.ParseLocal();
+			}
+
+			// mark it as referenced
+			decl.ReferencedThisLevel = true;
+			decl.EverReferenced = true;
+
+			if(_insideLevelLoad == true)
+			{
+				decl.ParsedOutsideLevelLoad = false;
+			}
+
+			return decl;
 		}
 		#endregion
 
