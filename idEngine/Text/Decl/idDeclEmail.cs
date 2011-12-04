@@ -112,6 +112,9 @@ namespace idTech4.Text.Decl
 
 			_text = string.Empty;
 
+			string tokenLower;
+			string tokenValue;
+
 			// scan through, identifying each individual parameter
 			while(true)
 			{
@@ -120,57 +123,48 @@ namespace idTech4.Text.Decl
 					break;
 				}
 
-				if(token.Value == "}")
+				tokenValue = token.ToString();
+				tokenLower = tokenValue.ToLower();
+
+				if(tokenValue == "}")
 				{
 					break;
 				}
-
-				if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "subject") == 0)
+				else if(tokenLower == "subject")
 				{
-					token = lexer.ReadToken();
-					_subject = token.Value;
+					_subject = lexer.ReadToken().ToString();
 				}
-
-				if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "to") == 0)
+				else if(tokenLower == "to")
 				{
-					token = lexer.ReadToken();
-					_to = token.Value;
+					_to = lexer.ReadToken().ToString();
 				}
-
-				if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "from") == 0)
+				else if(tokenLower == "from")
 				{
-					token = lexer.ReadToken();
-					_from = token.Value;
+					_from = lexer.ReadToken().ToString();
 				}
-
-				if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "date") == 0)
+				else if(tokenLower == "date")
 				{
-					token = lexer.ReadToken();
-					_date = token.Value;
+					 _date = lexer.ReadToken().ToString();
 				}
-
-				if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "text") == 0)
+				else if(tokenLower == "text")
 				{
 					token = lexer.ReadToken();
+					tokenValue = token.ToString();
 
-					if(token.Value != "{")
+					if(tokenValue != "{")
 					{
 						lexer.Warning("Email dec '{0}' had a parse error", this.Name);
 						return false;
 					}
 
-					while(((token = lexer.ReadToken()) != null) && (token.Value != "}"))
+					while(((token = lexer.ReadToken()) != null) && (token.ToString() != "}"))
 					{
-						_text += token;
+						_text += token.ToString();
 					}
-
-					continue;
 				}
-
-				if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "image") == 0)
+				else if(tokenLower == "image")
 				{
-					token = lexer.ReadToken();
-					_image = token.Value;
+					_image = lexer.ReadToken().ToString();
 				}
 			}
 

@@ -73,28 +73,32 @@ namespace idTech4.Text.Decl
 			idToken token;
 			List<float> values = new List<float>();
 
+			string tokenLower;
+			string tokenValue;
+
 			while(true)
 			{
 				if((token = lexer.ReadToken()) == null)
 				{
 					break;
 				}
-				idConsole.WriteLine("TOK: {0}", token.Value);
 
-				if(token.Value == "}")
+				tokenValue = token.ToString();
+				tokenLower = tokenValue.ToLower();
+
+				if(tokenLower == "}")
 				{
 					break;
 				}
-
-				if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "snap") == 0)
+				else if(tokenLower == "snap")
 				{
 					_snap = true;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "clamp") == 0)
+				else if(tokenLower == "clamp")
 				{
 					_clamp = true;
 				}
-				else if(token.Value == "{")
+				else if(tokenLower == "{")
 				{
 					while(true)
 					{
@@ -111,13 +115,13 @@ namespace idTech4.Text.Decl
 						values.Add(v);
 
 						token = lexer.ReadToken();
+						tokenValue = token.ToString();
 
-						if(token.Value == "}")
+						if(tokenValue == "}")
 						{
 							break;
 						}
-
-						if(token.Value == ",")
+						else if(tokenValue == ",")
 						{
 							continue;
 						}
@@ -130,7 +134,7 @@ namespace idTech4.Text.Decl
 				}
 				else
 				{
-					lexer.Warning("unknown token '{0}'", token.Value);
+					lexer.Warning("unknown token '{0}'", tokenValue);
 					MakeDefault();
 
 					return false;

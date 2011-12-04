@@ -186,6 +186,8 @@ namespace idTech4
 			List<string> newArgs = new List<string>();
 			int len = 0, totalLength = 0;
 
+			string tokenValue;
+
 			while(true)
 			{
 				if(newArgs.Count == idE.MaxCommandArgs)
@@ -198,17 +200,19 @@ namespace idTech4
 					break;
 				}
 
-				if((keepAsStrings == false) && (token.Value == "-"))
+				tokenValue = token.ToString();
+
+				if((keepAsStrings == false) && (tokenValue == "-"))
 				{
 					// check for negative numbers.
 					if((number = lexer.CheckTokenType(TokenType.Number, 0)) != null)
 					{
-						token.Value = "-" + number;
+						token.Set("-" + number);
 					}
 				}
 
 				// check for cvar expansion
-				if(token.Value == "$")
+				if(tokenValue == "$")
 				{
 					if((token = lexer.ReadToken()) == null)
 					{
@@ -217,19 +221,21 @@ namespace idTech4
 
 					if(idE.CvarSystem.IsInitialized == true)
 					{
-						token.Value = idE.CvarSystem.GetString(token.ToString());
+						token.Set(idE.CvarSystem.GetString(token.ToString()));
 					}
 					else
 					{
-						token.Value = "<unknown>";
+						token.Set("<unknown>");
 					}
 				}
 
-				len = token.Value.Length;
+				tokenValue = token.ToString();
+
+				len = tokenValue.Length;
 				totalLength += len + 1;
 
 				// regular token
-				newArgs.Add(token.Value);
+				newArgs.Add(tokenValue);
 			}
 
 			_args = newArgs.ToArray();

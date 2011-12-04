@@ -209,6 +209,9 @@ namespace idTech4.Renderer
 			TextureRepeat textureRepeatDefault = TextureRepeat.Repeat; // allow a global setting for repeat.
 			idToken token = null;
 
+			string tokenValue;
+			string tokenLower;
+
 			while(true)
 			{
 				if(TestMaterialFlag(Renderer.MaterialFlags.Defaulted) == true)
@@ -223,28 +226,29 @@ namespace idTech4.Renderer
 					return;
 				}
 
+				tokenValue = token.ToString();
+				tokenLower = tokenValue.ToLower();
+
 				// end of material definition
-				if(token.Value == "}")
+				if(tokenLower == "}")
 				{
 					break;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "qer_editorImage") == 0)
+				else if(tokenLower == "qer_editorImage")
 				{
-					token = lexer.ReadTokenOnLine();
-					_editorImageName = token.Value;
+					_editorImageName = lexer.ReadTokenOnLine().ToString();
 					lexer.SkipRestOfLine();
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "description") == 0)
+				else if(tokenLower == "description")
 				{
-					token = lexer.ReadTokenOnLine();
-					_description = token.Value;
+					_description = lexer.ReadTokenOnLine().ToString();
 				}
 				// check for the surface / content bit flags
 				else if(CheckSurfaceParameter(token) == true)
 				{
 
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "polygonOffset") == 0)
+				else if(tokenLower == "polygonoffset")
 				{
 					this.MaterialFlag = Renderer.MaterialFlags.PolygonOffset;
 
@@ -258,66 +262,66 @@ namespace idTech4.Renderer
 					}
 				}
 				// noshadow
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "noShadows") == 0)
+				else if(tokenLower == "noshadows")
 				{
 					this.MaterialFlag = MaterialFlags.NoShadows;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "suppressInSubview") == 0)
+				else if(tokenLower == "suppressinsubview")
 				{
 					_suppressInSubview = true;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "portalSky") == 0)
+				else if(tokenLower == "portalsky")
 				{
 					_portalSky = true;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "noSelfShadow") == 0)
+				else if(tokenLower == "noselfshadow")
 				{
 					this.MaterialFlag = Renderer.MaterialFlags.NoSelfShadow;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "noPortalFog") == 0)
+				else if(tokenLower == "noportalfog")
 				{
 					this.MaterialFlag = Renderer.MaterialFlags.NoPortalFog;
 				}
 				// forceShadows allows nodraw surfaces to cast shadows.
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "forceShadows") == 0)
+				else if(tokenLower == "forceshadows")
 				{
 					this.MaterialFlag = Renderer.MaterialFlags.ForceShadows;
 				}
 				// overlay / decal suppression
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "noOverlays") == 0)
+				else if(tokenLower == "nooverlays")
 				{
 					_allowOverlays = false;
 				}
 				// moster blood overlay forcing for alpha tested or translucent surfaces
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "forceOverlays") == 0)
+				else if(tokenLower == "forceoverlays")
 				{
 					_parsingData.ForceOverlays = true;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "translucent") == 0)
+				else if(tokenLower == "translucent")
 				{
 					_coverage = MaterialCoverage.Translucent;
 				}
 				// global zero clamp
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "zeroClamp") == 0)
+				else if(tokenLower == "zeroclamp")
 				{
 					textureRepeatDefault = TextureRepeat.ClampToZero;
 				}
 				// global clamp
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "clamp") == 0)
+				else if(tokenLower == "clamp")
 				{
 					textureRepeatDefault = TextureRepeat.Clamp;
 				}
 				// global clamp
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "alphaZeroClamp") == 0)
+				else if(tokenLower == "alphazeroclamp")
 				{
 					textureRepeatDefault = TextureRepeat.ClampToZero;
 				}
 				// forceOpaque is used for skies-behind-windows
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "forceOpaque") == 0)
+				else if(tokenLower == "forceopaque")
 				{
 					_coverage = MaterialCoverage.Opaque;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "twoSided") == 0)
+				else if(tokenLower == "twosided")
 				{
 					_cullType = CullType.TwoSided;
 
@@ -327,7 +331,7 @@ namespace idTech4.Renderer
 					// to receive shadows from no-self-shadow monsters
 					this.MaterialFlag = Renderer.MaterialFlags.NoShadows;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "backSided") == 0)
+				else if(tokenLower == "backsided")
 				{
 					_cullType = CullType.Back;
 
@@ -335,35 +339,35 @@ namespace idTech4.Renderer
 					// We could fix this in the future if there was a need.
 					this.MaterialFlag = Renderer.MaterialFlags.NoShadows;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "fogLight") == 0)
+				else if(tokenLower == "foglight")
 				{
 					_fogLight = true;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "blendLight") == 0)
+				else if(tokenLower == "blendlight")
 				{
 					_blendLight = true;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "ambientLight") == 0)
+				else if(tokenLower == "ambientlight")
 				{
 					_ambientLight = true;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "mirror") == 0)
+				else if(tokenLower == "mirror")
 				{
 					_sort = (float) MaterialSort.Subview;
 					_coverage = MaterialCoverage.Opaque;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "noFog") == 0)
+				else if(tokenLower == "nofog")
 				{
 					_noFog = true;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "unsmoothedTangents") == 0)
+				else if(tokenLower == "unsmoothedtngents")
 				{
 					_unsmoothedTangents = true;
 				}
 				// lightFallofImage <imageprogram>
 				// specifies the image to use for the third axis of projected
 				// light volumes
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "lightFallOffImage") == 0)
+				else if(tokenLower == "lightFallOffImage")
 				{
 					idConsole.Warning("TODO: idMaterial keyword lightFallOffImage");
 					/* TODO: lightFallOffImage
@@ -377,7 +381,7 @@ namespace idTech4.Renderer
 				// guisurf <guifile> | guisurf entity
 				// an entity guisurf must have an idUserInterface
 				// specified in the renderEntity
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "guiSurf") == 0)
+				else if(tokenLower == "guisurf")
 				{
 					idConsole.Warning("TODO: idMaterial keyword guiSurf");
 					token = lexer.ReadTokenOnLine();
@@ -394,34 +398,32 @@ namespace idTech4.Renderer
 					}*/
 				}
 				// sort
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "sort") == 0)
+				else if(tokenLower == "sort")
 				{
 					ParseSort(lexer);
 				}
 				// spectrum <integer>
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "spectrum") == 0)
+				else if(tokenLower == "spectrum")
 				{
-					token = lexer.ReadTokenOnLine();
-
-					int.TryParse(token.Value, out _spectrum);
+					int.TryParse(lexer.ReadTokenOnLine().ToString(), out _spectrum);
 				}
 				// deform < sprite | tube | flare >
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "deform") == 0)
+				else if(tokenLower == "deform")
 				{
 					ParseDeform(lexer);
 				}
 				// decalInfo <staySeconds> <fadeSeconds> ( <start rgb> ) ( <end rgb> )
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "decalInfo") == 0)
+				else if(tokenLower == "decalinfo")
 				{
 					ParseDecalInfo(lexer);
 				}
 				// renderbump <args...>
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "renderBump") == 0)
+				else if(tokenLower == "renderbump")
 				{
 					_renderBump = lexer.ParseRestOfLine();
 				}
 				// diffusemap for stage shortcut
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "diffuseMap") == 0)
+				else if(tokenLower == "diffusemap")
 				{
 					// TODO: diffuseMap
 					idConsole.Warning("TODO: idMaterial keyword diffuseMap");
@@ -433,7 +435,7 @@ namespace idTech4.Renderer
 					newSrc.FreeSource();*/
 				}
 				// specularmap for stage shortcut
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "specularMap") == 0)
+				else if(tokenLower == "specularmap")
 				{
 					// TODO: specularMap
 					idConsole.Warning("TODO: idMaterial keyword specularMap");
@@ -445,7 +447,7 @@ namespace idTech4.Renderer
 					newSrc.FreeSource();*/
 				}
 				// normalmap for stage shortcut
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "bumpMap") == 0)
+				else if(tokenLower == "bumpmap")
 				{
 					// TODO: bumpMap
 					idConsole.Warning("TODO: idMaterial keyword bumpMap");
@@ -457,7 +459,7 @@ namespace idTech4.Renderer
 					newSrc.FreeSource();*/
 				}
 				// DECAL_MACRO for backwards compatibility with the preprocessor macros
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "DECAL_MACRO") == 0)
+				else if(tokenLower == "decal_macro")
 				{
 					// polygonOffset
 					this.MaterialFlag = Renderer.MaterialFlags.PolygonOffset;
@@ -473,14 +475,14 @@ namespace idTech4.Renderer
 					// noShadows
 					this.MaterialFlag = Renderer.MaterialFlags.NoShadows;
 				}
-				else if(token.Value == "{")
+				else if(tokenValue == "{")
 				{
 					// create the new stage
 					ParseStage(lexer, textureRepeatDefault);
 				}
 				else
 				{
-					idConsole.WriteLine("unknown general material parameter '{0}' in '{1}'", token.Value, this.Name);
+					idConsole.WriteLine("unknown general material parameter '{0}' in '{1}'", tokenValue, this.Name);
 					return;
 				}
 			}
@@ -667,11 +669,11 @@ namespace idTech4.Renderer
 
 			try
 			{
-				_sort = (float) Enum.Parse(typeof(MaterialSort), token.Value, true);
+				_sort = (float) Enum.Parse(typeof(MaterialSort), token.ToString(), true);
 			}
 			catch
 			{
-				float.TryParse(token.Value, out _sort);
+				float.TryParse(token.ToString(), out _sort);
 			}
 		}
 
@@ -684,21 +686,24 @@ namespace idTech4.Renderer
 				return;
 			}
 
-			if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "sprite") == 0)
+			string tokenValue = token.ToString();
+			string tokenLower = tokenValue.ToLower();
+
+			if(tokenLower == "sprite")
 			{
 				_deformType = DeformType.Sprite;
 				_cullType = CullType.TwoSided;
 
 				this.MaterialFlag = MaterialFlags.NoShadows;
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "tube") == 0)
+			else if(tokenLower == "tube")
 			{
 				_deformType = DeformType.Tube;
 				_cullType = CullType.TwoSided;
 
 				this.MaterialFlag = MaterialFlags.NoShadows;
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "flare") == 0)
+			else if(tokenLower == "flare")
 			{
 				_deformType = DeformType.Flare;
 				_cullType = CullType.TwoSided;
@@ -706,17 +711,17 @@ namespace idTech4.Renderer
 
 				this.MaterialFlag = MaterialFlags.NoShadows;
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "expand") == 0)
+			else if(tokenLower == "expand")
 			{
 				_deformType = DeformType.Expand;
 				_deformRegisters[0] = ParseExpression(lexer);
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "move") == 0)
+			else if(tokenLower == "move")
 			{
 				_deformType = DeformType.Move;
 				_deformRegisters[0] = ParseExpression(lexer);
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "turbulent") == 0)
+			else if(tokenLower == "turbulent")
 			{
 				_deformType = DeformType.Turbulent;
 
@@ -727,18 +732,18 @@ namespace idTech4.Renderer
 				}
 				else
 				{
-					_deformDecl = idE.DeclManager.FindType(DeclType.Table, token.Value, true);
+					_deformDecl = idE.DeclManager.FindType(DeclType.Table, token.ToString(), true);
 
 					_deformRegisters[0] = ParseExpression(lexer);
 					_deformRegisters[1] = ParseExpression(lexer);
 					_deformRegisters[2] = ParseExpression(lexer);
 				}
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "eyeBall") == 0)
+			else if(tokenLower == "eyeball")
 			{
 				_deformType = DeformType.Eyeball;
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "particle") == 0)
+			else if(tokenLower == "particle")
 			{
 				_deformType = DeformType.Particle;
 
@@ -749,10 +754,10 @@ namespace idTech4.Renderer
 				}
 				else
 				{
-					_deformDecl = idE.DeclManager.FindType(DeclType.Particle, token.Value, true);
+					_deformDecl = idE.DeclManager.FindType(DeclType.Particle, token.ToString(), true);
 				}
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "particle2") == 0)
+			else if(tokenLower == "particle2")
 			{
 				_deformType = DeformType.Particle2;
 
@@ -763,7 +768,7 @@ namespace idTech4.Renderer
 				}
 				else
 				{
-					_deformDecl = idE.DeclManager.FindType(DeclType.Table, token.Value, true);
+					_deformDecl = idE.DeclManager.FindType(DeclType.Table, token.ToString(), true);
 
 					_deformRegisters[0] = ParseExpression(lexer);
 					_deformRegisters[1] = ParseExpression(lexer);
@@ -772,7 +777,7 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				lexer.Warning("Bad deform type '{0}'", token.Value);
+				lexer.Warning("Bad deform type '{0}'", tokenValue);
 				this.MaterialFlag = MaterialFlags.Defaulted;
 			}
 		}
@@ -819,64 +824,66 @@ namespace idTech4.Renderer
 				return a;
 			}
 
-			if((priority == 1) && (token.Value == "*"))
+			string tokenValue = token.ToString();
+
+			if((priority == 1) && (tokenValue == "*"))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.Multiply, priority);
 			}
-			else if((priority == 1) && (token.Value == "/"))
+			else if((priority == 1) && (tokenValue == "/"))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.Divide, priority);
 			}
-			else if((priority == 1) && (token.Value == "%"))
+			else if((priority == 1) && (tokenValue == "%"))
 			{
 				// implied truncate both to integer
 				return ParseEmitOp(lexer, a, ExpressionOperationType.Modulo, priority);
 			}
-			else if((priority == 2) && (token.Value == "+"))
+			else if((priority == 2) && (tokenValue == "+"))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.Add, priority);
 			}
-			else if((priority == 2) && (token.Value == "-"))
+			else if((priority == 2) && (tokenValue == "-"))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.Subtract, priority);
 			}
-			else if((priority == 3) && (token.Value == ">"))
+			else if((priority == 3) && (tokenValue == ">"))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.GreaterThan, priority);
 			}
-			else if((priority == 3) && (token.Value == ">="))
+			else if((priority == 3) && (tokenValue == ">="))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.GreaterThanOrEquals, priority);
 			}
-			else if((priority == 3) && (token.Value == ">"))
+			else if((priority == 3) && (tokenValue == ">"))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.GreaterThan, priority);
 			}
-			else if((priority == 3) && (token.Value == ">="))
+			else if((priority == 3) && (tokenValue == ">="))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.GreaterThanOrEquals, priority);
 			}
-			else if((priority == 3) && (token.Value == "<"))
+			else if((priority == 3) && (tokenValue == "<"))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.LessThan, priority);
 			}
-			else if((priority == 3) && (token.Value == "<="))
+			else if((priority == 3) && (tokenValue == "<="))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.LessThanOrEquals, priority);
 			}
-			else if((priority == 3) && (token.Value == "=="))
+			else if((priority == 3) && (tokenValue == "=="))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.Equals, priority);
 			}
-			else if((priority == 3) && (token.Value == "!="))
+			else if((priority == 3) && (tokenValue == "!="))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.NotEquals, priority);
 			}
-			else if((priority == 4) && (token.Value == "&&"))
+			else if((priority == 4) && (tokenValue == "&&"))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.And, priority);
 			}
-			else if((priority == 4) && (token.Value == "||"))
+			else if((priority == 4) && (tokenValue == "||"))
 			{
 				return ParseEmitOp(lexer, a, ExpressionOperationType.Or, priority);
 			}
@@ -982,7 +989,10 @@ namespace idTech4.Renderer
 		{
 			idToken token = lexer.ReadToken();
 
-			if(token.Value == "(")
+			string tokenValue = token.ToString();
+			string tokenLower = tokenValue.ToLower();
+
+			if(tokenValue == "(")
 			{
 				int a = ParseExpression(lexer);
 				MatchToken(lexer, ")");
@@ -992,7 +1002,7 @@ namespace idTech4.Renderer
 
 			try
 			{
-				ExpressionRegister reg = (ExpressionRegister) Enum.Parse(typeof(ExpressionRegister), token.Value);
+				ExpressionRegister reg = (ExpressionRegister) Enum.Parse(typeof(ExpressionRegister), tokenValue);
 				_parsingData.RegistersAreConstant = false;
 
 				return (int) reg;
@@ -1002,42 +1012,42 @@ namespace idTech4.Renderer
 
 			}
 
-			if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "fragmentPrograms") == 0)
+			if(tokenLower == "fragmentPrograms")
 			{
 				// TODO: return GetExpressionConstant((float) glConfig.ARBFragmentProgramAvailable);
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "sound") == 0)
+			else if(tokenLower == "sound")
 			{
 				_parsingData.RegistersAreConstant = false;
 
 				return EmitOp(0, 0, ExpressionOperationType.Sound);
 			}
 			// parse negative numbers
-			else if(token.Value == "-")
+			else if(tokenLower == "-")
 			{
 				token = lexer.ReadToken();
 
-				if((token.Type == TokenType.Number) || (token.Value == "."))
+				if((token.Type == TokenType.Number) || (token.ToString() == "."))
 				{
 					return GetExpressionConstant(-token.ToFloat());
 				}
 
-				lexer.Warning("Bad negative number '{0}'", token.Value);
+				lexer.Warning("Bad negative number '{0}'", token.ToString());
 				this.MaterialFlag = MaterialFlags.Defaulted;
 
 				return 0;
 			}
-			else if((token.Type == TokenType.Number) || (token.Value == ".") || (token.Value == "-"))
+			else if((token.Type == TokenType.Number) || (tokenValue == ".") || (tokenValue == "-"))
 			{
 				return GetExpressionConstant(token.ToFloat());
 			}
 
 			// see if it is a table name
-			idDeclTable table = (idDeclTable) idE.DeclManager.FindType(DeclType.Table, token.Value, false);
+			idDeclTable table = (idDeclTable) idE.DeclManager.FindType(DeclType.Table, tokenValue, false);
 
 			if(table == null)
 			{
-				lexer.Warning("Bad term '{0}'", token.Value);
+				lexer.Warning("Bad term '{0}'", tokenValue);
 				this.MaterialFlag = MaterialFlags.Defaulted;
 
 				return 0;
@@ -1074,6 +1084,9 @@ namespace idTech4.Renderer
 			idToken token;
 			int a, b;
 
+			string tokenValue;
+			string tokenLower;
+
 			while(true)
 			{
 				if(TestMaterialFlag(MaterialFlags.Defaulted) == true)
@@ -1086,60 +1099,64 @@ namespace idTech4.Renderer
 					this.MaterialFlag = MaterialFlags.Defaulted;
 					return;
 				}
+
+				tokenValue = token.ToString();
+				tokenLower = tokenValue.ToLower();
+
 				// the close brace for the entire material ends the draw block
-				else if(token.Value == "}")
+				if(tokenLower == "}")
 				{
 					break;
 				}
 				// BSM Nerve: Added for stage naming in the material editor
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "name") == 0)
+				else if(tokenLower == "name")
 				{
 					lexer.SkipRestOfLine();
 				}
 				// image options
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "blend") == 0)
+				else if(tokenLower == "blend")
 				{
 					ParseBlend(lexer, ref shaderStage);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "map") == 0)
+				else if(tokenLower == "map")
 				{
 					idConsole.WriteLine("TODO: material map keyword");
 					/*str = R_ParsePastImageProgram( src );
 					idStr::Copynz( imageName, str, sizeof( imageName ) );*/
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "remoteRenderMap") == 0)
+				else if(tokenLower == "remoterendermap")
 				{
 					shaderStage.Texture.Dynamic = DynamicImageType.RemoteRender;
 					shaderStage.Texture.Width = lexer.ParseInt();
 					shaderStage.Texture.Height = lexer.ParseInt();
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "mirrorRenderMap") == 0)
+				else if(tokenLower == "mirrorrendermap")
 				{
 					shaderStage.Texture.Dynamic = DynamicImageType.MirrorRender;
 					shaderStage.Texture.Width = lexer.ParseInt();
 					shaderStage.Texture.Height = lexer.ParseInt();
 					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "xrayRenderMap") == 0)
+				else if(tokenLower == "xrayrendermap")
 				{
 					shaderStage.Texture.Dynamic = DynamicImageType.XRayRender;
 					shaderStage.Texture.Width = lexer.ParseInt();
 					shaderStage.Texture.Height = lexer.ParseInt();
 					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "screen") == 0)
+				else if(tokenLower == "screen")
 				{
 					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "screen2") == 0)
+				else if(tokenLower == "screen2")
 				{
 					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "glassWarp") == 0)
+				else if(tokenLower == "glasswarp")
 				{
 					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.GlassWarp;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "videoMap") == 0)
+				else if(tokenLower == "videomap")
 				{
 					// note that videomaps will always be in clamp mode, so texture
 					// coordinates had better be in the 0 to 1 range
@@ -1151,7 +1168,7 @@ namespace idTech4.Renderer
 					{
 						bool loop = false;
 
-						if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "loop") == 0)
+						if(token.ToString().Equals("loop", StringComparison.OrdinalIgnoreCase) == true)
 						{
 							loop = true;
 
@@ -1169,7 +1186,7 @@ namespace idTech4.Renderer
 						ts->cinematic->InitFromFile( token.c_str(), loop );*/
 					}
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "soundMap") == 0)
+				else if(tokenLower == "soundmap")
 				{
 					if((token = lexer.ReadToken()) == null)
 					{
@@ -1184,7 +1201,7 @@ namespace idTech4.Renderer
 						ts->cinematic->InitFromFile( token.c_str(), true );*/
 					}
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "cubeMap") == 0)
+				else if(tokenLower == "cubemap")
 				{
 					idConsole.Warning("TODO: material cubeMap keyword");
 
@@ -1193,7 +1210,7 @@ namespace idTech4.Renderer
 					idStr::Copynz( imageName, str, sizeof( imageName ) );
 					cubeMap = CF_NATIVE;*/
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "cameraCubeMap") == 0)
+				else if(tokenLower == "cameracubemap")
 				{
 					idConsole.Warning("TODO: material cameraCubeMap keyword");
 
@@ -1201,60 +1218,60 @@ namespace idTech4.Renderer
 					idStr::Copynz( imageName, str, sizeof( imageName ) );
 					cubeMap = CF_CAMERA;*/
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "ignoreAlphaTest") == 0)
+				else if(tokenLower == "ignorealphatest")
 				{
 					shaderStage.IgnoreAlphaTest = true;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "nearest") == 0)
+				else if(tokenLower == "nearest")
 				{
 					textureFilter = TextureFilter.Nearest;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "linear") == 0)
+				else if(tokenLower == "linear")
 				{
 					textureFilter = TextureFilter.Linear;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "clamp") == 0)
+				else if(tokenLower == "clamp")
 				{
 					textureRepeat = TextureRepeat.Clamp;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "noclamp") == 0)
+				else if(tokenLower == "noclamp")
 				{
 					textureRepeat = TextureRepeat.Repeat;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "zeroClamp") == 0)
+				else if(tokenLower == "zeroclamp")
 				{
 					textureRepeat = TextureRepeat.ClampToZero;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "alphaZeroClamp") == 0)
+				else if(tokenLower == "alphazeroclamp")
 				{
 					textureRepeat = TextureRepeat.ClampToZeroAlpha;
 				}
-				else if((StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "uncompressed") == 0)
-					|| (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "highQuality") == 0))
+				else if((tokenLower == "uncompressed")
+					|| (tokenLower == "highquality"))
 				{
 					if(idE.CvarSystem.GetInt("image_ignoreHighQuality") == 0)
 					{
 						textureDepth = TextureDepth.HighQuality;
 					}
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "forceHighQuality") == 0)
+				else if(tokenLower == "forcehighquality")
 				{
 					textureDepth = TextureDepth.HighQuality;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "nopicmip") == 0)
+				else if(tokenLower == "nopicmip")
 				{
 					allowPicmip = false;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "vertexColor") == 0)
+				else if(tokenLower == "vertexcolor")
 				{
 					shaderStage.VertexColor = StageVertexColor.Modulate;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "inverseVertexColor") == 0)
+				else if(tokenLower == "inversevertexcolor")
 				{
 					shaderStage.VertexColor = StageVertexColor.InverseModulate;
 				}
 				// privatePolygonOffset.
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "privatePolygonOffset") == 0)
+				else if(tokenLower == "privatepolygonoffset")
 				{
 					if((token = lexer.ReadTokenOnLine()) == null)
 					{
@@ -1268,23 +1285,25 @@ namespace idTech4.Renderer
 					}
 				}
 				// texture coordinate generation
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "texGen") == 0)
+				else if(tokenLower == "texgen")
 				{
 					token = lexer.ExpectAnyToken();
+					tokenValue = token.ToString();
+					tokenLower = tokenValue.ToLower();
 
-					if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "normal") == 0)
+					if(tokenLower == "normal")
 					{
 						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.DiffuseCube;
 					}
-					else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "reflect") == 0)
+					else if(tokenLower == "reflect")
 					{
 						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.ReflectCube;
 					}
-					else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "skybox") == 0)
+					else if(tokenLower == "skybox")
 					{
 						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.SkyboxCube;
 					}
-					else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "wobbleSky") == 0)
+					else if(tokenLower == "wobblesky")
 					{
 						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.WobbleSkyCube;
 
@@ -1295,12 +1314,12 @@ namespace idTech4.Renderer
 					}
 					else
 					{
-						idConsole.Warning("bad texGen '{0}' in material {1}", token.Value, this.Name);
+						idConsole.Warning("bad texGen '{0}' in material {1}", tokenValue, this.Name);
 						this.MaterialFlag = MaterialFlags.Defaulted;
 					}
 				}
-				else if((StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "scroll") == 0)
-					|| (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "translate") == 0))
+				else if((tokenLower == "scroll")
+					|| (tokenLower == "translate"))
 				{
 					a = ParseExpression(lexer);
 					MatchToken(lexer, ",");
@@ -1316,7 +1335,7 @@ namespace idTech4.Renderer
 
 					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "scale") == 0)
+				else if(tokenLower == "scale")
 				{
 					a = ParseExpression(lexer);
 					MatchToken(lexer, ",");
@@ -1333,7 +1352,7 @@ namespace idTech4.Renderer
 
 					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "centerScale") == 0)
+				else if(tokenLower == "centerscale")
 				{
 					a = ParseExpression(lexer);
 					MatchToken(lexer, ",");
@@ -1350,7 +1369,7 @@ namespace idTech4.Renderer
 
 					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "shear") == 0)
+				else if(tokenLower == "shear")
 				{
 					a = ParseExpression(lexer);
 					MatchToken(lexer, ",");
@@ -1367,7 +1386,7 @@ namespace idTech4.Renderer
 
 					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "rotate") == 0)
+				else if(tokenLower == "rotate")
 				{
 					int sinReg, cosReg;
 
@@ -1439,7 +1458,7 @@ namespace idTech4.Renderer
 					ss->drawStateBits |= GLS_DEPTHMASK;
 					continue;
 				}		*/
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "alphaTest") == 0)
+				else if(tokenLower == "alphatest")
 				{
 					shaderStage.HasAlphaTest = true;
 					shaderStage.AlphaTestRegister = ParseExpression(lexer);
@@ -1447,7 +1466,7 @@ namespace idTech4.Renderer
 					_coverage = MaterialCoverage.Perforated;
 				}
 				// shorthand for 2D modulated
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "colored") == 0)
+				else if(tokenLower == "colored")
 				{
 					shaderStage.Color.Registers[0] = (int) ExpressionRegister.Parm0;
 					shaderStage.Color.Registers[1] = (int) ExpressionRegister.Parm1;
@@ -1456,7 +1475,7 @@ namespace idTech4.Renderer
 
 					_parsingData.RegistersAreConstant = false;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "color") == 0)
+				else if(tokenLower == "color")
 				{
 					shaderStage.Color.Registers[0] = ParseExpression(lexer);
 					MatchToken(lexer, ",");
@@ -1469,35 +1488,35 @@ namespace idTech4.Renderer
 
 					shaderStage.Color.Registers[3] = ParseExpression(lexer);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "red") == 0)
+				else if(tokenLower == "red")
 				{
 					shaderStage.Color.Registers[0] = ParseExpression(lexer);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "green") == 0)
+				else if(tokenLower == "green")
 				{
 					shaderStage.Color.Registers[1] = ParseExpression(lexer);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "blue") == 0)
+				else if(tokenLower == "blue")
 				{
 					shaderStage.Color.Registers[2] = ParseExpression(lexer);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "alpha") == 0)
+				else if(tokenLower == "alpha")
 				{
 					shaderStage.Color.Registers[3] = ParseExpression(lexer);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "rgb") == 0)
+				else if(tokenLower == "rgb")
 				{
 					shaderStage.Color.Registers[0] = shaderStage.Color.Registers[1] = shaderStage.Color.Registers[2] = ParseExpression(lexer);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "rgba") == 0)
+				else if(tokenLower == "rgba")
 				{
 					shaderStage.Color.Registers[0] = shaderStage.Color.Registers[1] = shaderStage.Color.Registers[2] = shaderStage.Color.Registers[3] = ParseExpression(lexer);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "if") == 0)
+				else if(tokenLower == "if")
 				{
 					shaderStage.ConditionRegister = ParseExpression(lexer);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "program") == 0)
+				else if(tokenLower == "program")
 				{
 					if((token = lexer.ReadTokenOnLine()) != null)
 					{
@@ -1507,7 +1526,7 @@ namespace idTech4.Renderer
 						newStage.fragmentProgram = R_FindARBProgram( GL_FRAGMENT_PROGRAM_ARB, token.c_str() );*/
 					}
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "fragmentProgram") == 0)
+				else if(tokenLower == "fragmentprogram")
 				{
 					if((token = lexer.ReadTokenOnLine()) != null)
 					{
@@ -1516,7 +1535,7 @@ namespace idTech4.Renderer
 						//newStage.fragmentProgram = R_FindARBProgram( GL_FRAGMENT_PROGRAM_ARB, token.c_str() );
 					}
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "vertexProgram") == 0)
+				else if(tokenLower == "vertexprogram")
 				{
 					if((token = lexer.ReadTokenOnLine()) != null)
 					{
@@ -1525,7 +1544,7 @@ namespace idTech4.Renderer
 						//newStage.vertexProgram = R_FindARBProgram( GL_VERTEX_PROGRAM_ARB, token.c_str() );
 					}
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "megaTexture") == 0)
+				else if(tokenLower == "megatexture")
 				{
 					if((token = lexer.ReadTokenOnLine()) != null)
 					{
@@ -1541,20 +1560,22 @@ namespace idTech4.Renderer
 						newStage.fragmentProgram = R_FindARBProgram( GL_FRAGMENT_PROGRAM_ARB, "megaTexture.vfp" );*/
 					}
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "vertexParm") == 0)
+				else if(tokenLower == "vertexparm")
 				{
 					ParseVertexParameter(lexer, ref newStage);
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "fragmentMap") == 0)
+				else if(tokenLower == "fragmentmap")
 				{
 					ParseFragmentMap(lexer, ref newStage);
 				}
+				else
+				{
+					idConsole.Warning("unknown token '{0}' in material '{1}'", tokenValue, this.Name);
 
-				idConsole.Warning("unknown token '{0}' in material '{1}'", token.Value, this.Name);
+					this.MaterialFlag = MaterialFlags.Defaulted;
 
-				this.MaterialFlag = MaterialFlags.Defaulted;
-
-				return;
+					return;
+				}
 			}
 
 			// if we are using newStage, allocate a copy of it
@@ -1608,6 +1629,9 @@ namespace idTech4.Renderer
 				return;
 			}
 
+			string tokenValue = token.ToString();
+			string tokenLower = tokenValue.ToLower();
+
 			// blending combinations
 			// TODO: don't know what i'm doing with renderer yet
 			/*if ( !token.Icmp( "blend" ) ) {
@@ -1627,15 +1651,15 @@ namespace idTech4.Renderer
 				stage->drawStateBits = GLS_SRCBLEND_ZERO | GLS_DSTBLEND_ONE;
 				return;
 			}*/
-			if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "bumpMap") == 0)
+			if(tokenLower == "bumpmap")
 			{
 				stage.Lighting = StageLighting.Bump;
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "diffuseMap") == 0)
+			else if(tokenLower == "diffusemap")
 			{
 				stage.Lighting = StageLighting.Diffuse;
 			}
-			else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "specularMap") == 0)
+			else if(tokenLower == "specularmap")
 			{
 				stage.Lighting = StageLighting.Specular;
 			}
@@ -1673,7 +1697,9 @@ namespace idTech4.Renderer
 			int parm = token.ToInt32();
 			int tmp = 0;
 
-			if((int.TryParse(token.Value, out tmp) == false) || (parm < 0))
+			string tokenValue = token.ToString();
+
+			if((int.TryParse(tokenValue, out tmp) == false) || (parm < 0))
 			{
 				idConsole.Warning("bad vertexParm number");
 				this.MaterialFlag = MaterialFlags.Defaulted;
@@ -1683,8 +1709,9 @@ namespace idTech4.Renderer
 
 			newStage.VertexParameters[parm, 0] = ParseExpression(lexer);
 			token = lexer.ReadTokenOnLine();
+			tokenValue = token.ToString();
 
-			if((token.Value == string.Empty) || (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, ",") != 0))
+			if((tokenValue == string.Empty) || (tokenValue != ","))
 			{
 				newStage.VertexParameters[parm, 1] = newStage.VertexParameters[parm, 2] = newStage.VertexParameters[parm, 3] = newStage.VertexParameters[parm, 0];
 			}
@@ -1692,8 +1719,9 @@ namespace idTech4.Renderer
 			{
 				newStage.VertexParameters[parm, 1] = ParseExpression(lexer);
 				token = lexer.ReadTokenOnLine();
+				tokenValue = token.ToString();
 
-				if((token.Value == string.Empty) || (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, ",") != 0))
+				if((tokenValue == string.Empty) || (tokenValue != ","))
 				{
 					newStage.VertexParameters[parm, 2] = GetExpressionConstant(0);
 					newStage.VertexParameters[parm, 3] = GetExpressionConstant(1);
@@ -1702,8 +1730,9 @@ namespace idTech4.Renderer
 				{
 					newStage.VertexParameters[parm, 2] = ParseExpression(lexer);
 					token = lexer.ReadTokenOnLine();
+					tokenValue = token.ToString();
 
-					if((token.Value == string.Empty) || (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, ",") != 0))
+					if((tokenValue == string.Empty) || (tokenValue != ","))
 					{
 						newStage.VertexParameters[parm, 3] = GetExpressionConstant(1);
 					}
@@ -1728,7 +1757,7 @@ namespace idTech4.Renderer
 			int unit = token.ToInt32();
 			int tmp;
 
-			if((int.TryParse(token.Value, out tmp) == false) || (unit < 0))
+			if((int.TryParse(token.ToString(), out tmp) == false) || (unit < 0))
 			{
 				idConsole.Warning("bad fragmentMap number");
 				this.MaterialFlag = MaterialFlags.Defaulted;
@@ -1742,55 +1771,60 @@ namespace idTech4.Renderer
 				textureDepth = TextureDepth.Bump;
 			}
 
+			string tokenValue;
+			string tokenLower;
+
 			while(true)
 			{
 				token = lexer.ReadTokenOnLine();
+				tokenValue = token.ToString();
+				tokenLower = tokenValue.ToLower();
 
-				if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "cubeMap") == 0)
+				if(tokenLower == "cubemap")
 				{
 					cubeMap = CubeFiles.Native;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "cameraCubeMap") == 0)
+				else if(tokenLower == "cameracubemap")
 				{
 					cubeMap = CubeFiles.Camera;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "nearest") == 0)
+				else if(tokenLower == "nearest")
 				{
 					textureFilter = TextureFilter.Nearest;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "linear") == 0)
+				else if(tokenLower == "linear")
 				{
 					textureFilter = TextureFilter.Linear;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "clamp") == 0)
+				else if(tokenLower == "clamp")
 				{
 					textureRepeat = TextureRepeat.Clamp;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "noclamp") == 0)
+				else if(tokenLower == "noclamp")
 				{
 					textureRepeat = TextureRepeat.Repeat;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "zeroclamp") == 0)
+				else if(tokenLower == "zeroclamp")
 				{
 					textureRepeat = TextureRepeat.ClampToZero;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "alphazeroclamp") == 0)
+				else if(tokenLower == "alphazeroclamp")
 				{
 					textureRepeat = TextureRepeat.ClampToZeroAlpha;
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "forceHighQuality") == 0)
+				else if(tokenLower == "forcehighquality")
 				{
 					textureDepth = TextureDepth.HighQuality;
 				}
-				else if((StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "uncompressed") == 0)
-					|| (StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "highQuality") == 0))
+				else if((tokenLower == "uncompressed")
+					|| (tokenLower == "highquality"))
 				{
 					if(idE.CvarSystem.GetInt("image_ignoreHighQuality") == 0)
 					{
 						textureDepth = TextureDepth.HighQuality;
 					}
 				}
-				else if(StringComparer.InvariantCultureIgnoreCase.Compare(token.Value, "nopicmip") == 0)
+				else if(tokenLower == "nopicmip")
 				{
 					allowPicmip = false;
 				}
@@ -2119,7 +2153,7 @@ namespace idTech4.Renderer
 			// if there exists an image with the same name
 			if(true) //fileSystem->ReadFile( GetName(), NULL ) != -1 ) {
 			{
-				this.Text = string.Format("material {0} // IMPLICITLY GENERATED\n"
+				this.SourceText = string.Format("material {0} // IMPLICITLY GENERATED\n"
 					+ "{\n{\nblend blend\n"
 					+ "colored\n map \"{1}\"\nclamp\n}\n}\n", this.Name, this.Name);
 

@@ -395,7 +395,7 @@ namespace idTech4.Text
 			else if((c == '"') || (c == '\''))
 			{
 				if(ReadString(token, c) == false)
-				{
+				{					
 					return null;
 				}
 			}
@@ -522,6 +522,8 @@ namespace idTech4.Text
 			int depth = (parseFirstBrace == true) ? 0 : 1;
 			idToken token;
 
+			string tokenValue;
+
 			do
 			{
 				if((token = ReadToken()) == null)
@@ -529,13 +531,15 @@ namespace idTech4.Text
 					return false;
 				}
 
+				tokenValue = token.ToString();
+
 				if(token.Type == TokenType.Punctuation)
 				{
-					if(token.Value == "{")
+					if(tokenValue == "{")
 					{
 						depth++;
 					}
-					else if(token.Value == "}")
+					else if(tokenValue == "}")
 					{
 						depth--;
 					}
@@ -552,7 +556,7 @@ namespace idTech4.Text
 
 			while((token = ReadToken()) != null)
 			{
-				if(token.Value == str)
+				if(token.ToString() == str)
 				{
 					return true;
 				}
@@ -596,7 +600,9 @@ namespace idTech4.Text
 				return 0;
 			}
 
-			if((token.Type == TokenType.Punctuation) && (token.Value == "-"))
+			string tokenValue = token.ToString();
+
+			if((token.Type == TokenType.Punctuation) && (tokenValue == "-"))
 			{
 				token = ExpectTokenType(TokenType.Number, TokenSubType.Integer);
 
@@ -604,7 +610,7 @@ namespace idTech4.Text
 			}
 			else if((token.Type != TokenType.Number) || (token.SubType == TokenSubType.Float))
 			{
-				Error("expected integer value, found '{0}'", token.Value);
+				Error("expected integer value, found '{0}'", tokenValue);
 			}
 
 			return token.ToInt32();
@@ -692,7 +698,7 @@ namespace idTech4.Text
 					b.Append(" ");
 				}
 
-				b.Append(token.Value);
+				b.Append(token.ToString());
 			}
 
 			return b.ToString();
@@ -721,17 +727,18 @@ namespace idTech4.Text
 				return null;
 			}
 
+			string tokenValue = token.ToString();
+
 			if(token.Type != type)
 			{
-				Error("expected a {0} but found '{1}'", type.ToString().ToLower(), token.Value);
+				Error("expected a {0} but found '{1}'", type.ToString().ToLower(), tokenValue);
 				return null;
 			}
-
-			if(token.Type == TokenType.Number)
+			else if(token.Type == TokenType.Number)
 			{
 				if((token.SubType & subType) != subType)
 				{
-					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), token.Value);
+					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), tokenValue);
 					return null;
 				}
 			}
@@ -739,7 +746,7 @@ namespace idTech4.Text
 			{
 				if(token.SubType != subType)
 				{
-					Error("expected '{0}' but found '{1}'", GetPunctuationFromID(subType), token.Value);
+					Error("expected '{0}' but found '{1}'", GetPunctuationFromID(subType), tokenValue);
 					return null;
 				}
 			}
@@ -756,9 +763,9 @@ namespace idTech4.Text
 				Error("couldn't find expected '{0}'", str);
 				return false;
 			}
-			else if(token.Value != str)
+			else if(token.ToString() != str)
 			{
-				Error("expected '{0}' but found '{1}'", str, token.Value);
+				Error("expected '{0}' but found '{1}'", str, token.ToString());
 				return false;
 			}
 
@@ -801,7 +808,9 @@ namespace idTech4.Text
 				return 0;
 			}
 
-			if((token.Type == TokenType.Punctuation) && (token.Value == "-"))
+			string tokenValue = token.ToString();
+
+			if((token.Type == TokenType.Punctuation) && (tokenValue == "-"))
 			{
 				token = ExpectTokenType(TokenType.Number, 0);
 
@@ -811,12 +820,12 @@ namespace idTech4.Text
 			{
 				if(useErrorFlag == true)
 				{
-					Warning("expected float value, found '{0}'", token.Value);
+					Warning("expected float value, found '{0}'", tokenValue);
 					errorFlag = true;
 				}
 				else
 				{
-					Error("expected float value, found '{0}'", token.Value);
+					Error("expected float value, found '{0}'", tokenValue);
 				}
 			}
 
@@ -857,7 +866,7 @@ namespace idTech4.Text
 						return false;
 					}
 
-					token.Value += ch;
+					token.Append(ch);
 				}
 				// if a trailing quote
 				else if(GetBufferCharacter(_scriptPosition) == quote)
@@ -885,7 +894,7 @@ namespace idTech4.Text
 
 					if((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringConcatination)
 					{
-						if(GetBufferCharacter(_scriptPosition) == '\\')
+						if(GetBufferCharacter(_scriptPosition) != '\\')
 						{
 							_scriptPosition = tmpScriptPosition;
 							_line = tmpLine;
@@ -898,7 +907,7 @@ namespace idTech4.Text
 
 						if((ReadWhiteSpace() == false) || (GetBufferCharacter(_scriptPosition) != quote))
 						{
-							Error("expecting string after '\' terminated line");
+							Error("expecting string after '\\' terminated line");
 							return false;
 						}
 					}
@@ -929,7 +938,7 @@ namespace idTech4.Text
 						return false;
 					}
 
-					token.Value += GetBufferCharacter(_scriptPosition++);
+					token.Append(GetBufferCharacter(_scriptPosition++));
 				}
 			}
 
@@ -937,18 +946,18 @@ namespace idTech4.Text
 			{
 				if((_options & LexerOptions.AllowMultiCharacterLiterals) != LexerOptions.AllowMultiCharacterLiterals)
 				{
-					if(token.Value.Length != 1)
+					if(token.Length != 1)
 					{
 						Warning("literal is not one character long");
 					}
 				}
 
-				token.SubType = (TokenSubType) token.Value[0];
+				token.SubType = (TokenSubType) token.ToString()[0];
 			}
 			else
 			{
 				// the sub type is the length of the string
-				token.SubType = (TokenSubType) token.Value.Length;
+				token.SubType = (TokenSubType) token.ToString().Length;
 			}
 
 			return true;
@@ -961,7 +970,7 @@ namespace idTech4.Text
 
 			do
 			{
-				token.Value += GetBufferCharacter(_scriptPosition++);
+				token.Append(GetBufferCharacter(_scriptPosition++));
 				c = GetBufferCharacter(_scriptPosition);
 			}
 			while(((c >= 'a') && (c <= 'z'))
@@ -974,7 +983,7 @@ namespace idTech4.Text
 			|| (((_options & LexerOptions.AllowPathNames) == LexerOptions.AllowPathNames) && ((c == '/') || (c == '\\') || (c == ':') || (c == '.'))));
 
 			//the sub type is the length of the name
-			token.SubType = (TokenSubType) token.Value.Length;
+			token.SubType = (TokenSubType) token.ToString().Length;
 
 			return true;
 		}
@@ -1100,14 +1109,14 @@ namespace idTech4.Text
 			{
 				if((c2 == 'x') || (c2 == 'X'))
 				{
-					token.Value += GetBufferCharacter(_scriptPosition++);
-					token.Value += GetBufferCharacter(_scriptPosition++);
+					token.Append(GetBufferCharacter(_scriptPosition++));
+					token.Append(GetBufferCharacter(_scriptPosition++));
 
 					c = GetBufferCharacter(_scriptPosition);
 
 					while(((c >= 0) && (c <= '9')) || ((c >= 'a') && (c <= 'f')) || ((c >= 'A') && (c <= 'F')))
 					{
-						token.Value += c;
+						token.Append(c);
 						c = GetBufferCharacter(++_scriptPosition);
 					}
 
@@ -1116,14 +1125,14 @@ namespace idTech4.Text
 				// check for a binary number
 				else if((c2 == 'b') || (c2 == 'B'))
 				{
-					token.Value += GetBufferCharacter(_scriptPosition++);
-					token.Value += GetBufferCharacter(_scriptPosition++);
+					token.Append(GetBufferCharacter(_scriptPosition++));
+					token.Append(GetBufferCharacter(_scriptPosition++));
 
 					c = GetBufferCharacter(_scriptPosition);
 
 					while((c == '0') || (c == '1'))
 					{
-						token.Value += c;
+						token.Append(c);
 						c = GetBufferCharacter(++_scriptPosition);
 					}
 
@@ -1132,12 +1141,12 @@ namespace idTech4.Text
 				// its an octal number
 				else
 				{
-					token.Value += GetBufferCharacter(_scriptPosition++);
+					token.Append(GetBufferCharacter(_scriptPosition++));
 					c = GetBufferCharacter(_scriptPosition);
 
 					while((c >= '0') && (c <= '7'))
 					{
-						token.Value += c;
+						token.Append(c);
 						c = GetBufferCharacter(++_scriptPosition);
 					}
 
@@ -1164,7 +1173,7 @@ namespace idTech4.Text
 						break;
 					}
 
-					token.Value += c;
+					token.Append(c);
 					c = GetBufferCharacter(++_scriptPosition);
 				}
 
@@ -1183,18 +1192,18 @@ namespace idTech4.Text
 					if(c == 'e')
 					{
 						//Append the e so that GetFloatValue code works
-						token.Value += c;
+						token.Append(c);
 						c = GetBufferCharacter(++_scriptPosition);
 
 						if((c == '-') || (c == '+'))
 						{
-							token.Value += c;
+							token.Append(c);
 							c = GetBufferCharacter(++_scriptPosition);
 						}
 
 						while((c >= '0') || (c <= '9'))
 						{
-							token.Value += c;
+							token.Append(c);
 							c = GetBufferCharacter(++_scriptPosition);
 						}
 					}
@@ -1223,13 +1232,13 @@ namespace idTech4.Text
 
 						for(int i = 0; i < c2; i++)
 						{
-							token.Value += c;
+							token.Append(c);
 							c = GetBufferCharacter(++_scriptPosition);
 						}
 
 						while((c >= '0') && (c <= '9'))
 						{
-							token.Value += c;
+							token.Append(c);
 							c = GetBufferCharacter(++_scriptPosition);
 						}
 
@@ -1319,12 +1328,12 @@ namespace idTech4.Text
 			{
 				if(c == ':')
 				{
-					token.Value += c;
+					token.Append(c);
 					c = GetBufferCharacter(++_scriptPosition);
 
 					while((c >= '0') && (c <= '9'))
 					{
-						token.Value += c;
+						token.Append(c);
 						c = GetBufferCharacter(++_scriptPosition);
 					}
 
@@ -1368,14 +1377,10 @@ namespace idTech4.Text
 
 				if(l >= p.Length)
 				{
-					StringBuilder sb = new StringBuilder(token.Value);
-
 					for(i = 0; i < l; i++)
 					{
-						sb.Append(p[i]);
+						token.Append(p[i]);
 					}
-
-					token.Value = sb.ToString();
 
 					_scriptPosition += l;
 

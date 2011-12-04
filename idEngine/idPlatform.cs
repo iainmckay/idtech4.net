@@ -192,6 +192,7 @@ namespace idTech4
 
 				_isIntel = desc.Contains("Intel");
 
+				mosObj.Dispose();
 				break;
 			}
 
@@ -200,6 +201,7 @@ namespace idTech4
 			foreach(ManagementObject mosObj in mosInfo.Get())
 			{
 				_totalPhysicalMemory = (ulong) mosObj["TotalPhysicalMemory"] / 1024 / 1024;
+				mosObj.Dispose();
 			}
 
 			mosInfo = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController");

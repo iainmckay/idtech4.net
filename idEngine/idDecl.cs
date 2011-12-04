@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Runtime.InteropServices;
 
 using idTech4.Text;
 
@@ -50,6 +51,17 @@ namespace idTech4
 			internal set
 			{
 				_index = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets the size in bytes that this type consumes.
+		/// </summary>
+		public int Size
+		{
+			get
+			{
+				return Marshal.SizeOf(this);
 			}
 		}
 
@@ -252,7 +264,7 @@ namespace idTech4
 			}
 		}
 
-		internal string Text
+		internal string SourceText
 		{
 			get
 			{

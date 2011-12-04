@@ -164,15 +164,14 @@ namespace idTech4.Text
 			}
 		}
 
-		public string Value
+		/// <summary>
+		/// Gets the length of the token value.
+		/// </summary>
+		public int Length
 		{
 			get
 			{
-				return _value;
-			}
-			set
-			{
-				_value = value;
+				return _value.Length;
 			}
 		}
 		#endregion
@@ -218,7 +217,9 @@ namespace idTech4.Text
 		private int _line; // line in script the token was on.
 		private int _linesCrossed; // number of lines crossed in white space before token.		
 
-		private string _value = string.Empty;
+		private StringBuilder _value = new StringBuilder();
+		private string _valueCache;
+		private bool _valueCacheFilled;
 
 		private  ulong	_intValue; // integer value.
 		private double _floatValue; // floating point value.
@@ -262,7 +263,13 @@ namespace idTech4.Text
 
 		public override string ToString()
 		{
-			return _value;
+			if(_valueCacheFilled == false)
+			{
+				_valueCache = _value.ToString();
+				_valueCacheFilled = true;
+			}
+
+			return _valueCache;
 		}
 		#endregion
 
@@ -275,6 +282,25 @@ namespace idTech4.Text
 		internal void SetFloat(double value)
 		{
 			_floatValue = value;
+		}
+
+		internal void Append(string str)
+		{
+			_value.Append(str);
+			_valueCacheFilled = false;
+		}
+
+		internal void Append(char chr)
+		{
+			_value.Append(chr);
+			_valueCacheFilled = false;
+		}
+
+		internal void Set(string str)
+		{
+			_value.Clear();
+			_value.Append(str);
+			_valueCacheFilled = false;
 		}
 		#endregion
 		#endregion

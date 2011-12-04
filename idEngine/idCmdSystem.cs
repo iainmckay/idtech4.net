@@ -63,7 +63,7 @@ namespace idTech4
 		#region Members
 		private bool _initialized;
 		private int _wait;
-		private string _cmdBuffer = string.Empty;
+		private StringBuilder _cmdBuffer = new StringBuilder();
 
 		private Dictionary<string, CommandDefinition> _commands = new Dictionary<string, CommandDefinition>(StringComparer.CurrentCultureIgnoreCase);
 
@@ -216,7 +216,7 @@ namespace idTech4
 				}
 				
 
-				string cmd = _cmdBuffer.Substring(0, i + 1);
+				string cmd = _cmdBuffer.ToString().Substring(0, i + 1);
 				_cmdBuffer = _cmdBuffer.Remove(0, i + 1);
 
 				if(cmd == "_execTokenized")
@@ -286,7 +286,7 @@ namespace idTech4
 
 		private void AppendCommandText(string text)
 		{
-			_cmdBuffer += text;
+			_cmdBuffer.Append(text);
 		}
 
 		private void ListByFlags(idCmdArgs args, CommandFlags flags)

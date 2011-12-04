@@ -115,7 +115,7 @@ namespace idTech4.Text
 				idConsole.FatalError("couldn't load {0}", this.FileName);
 				return 0;
 			}
-
+			
 			idLexer lexer = new idLexer();
 			lexer.Options = LexerOptions;
 
@@ -124,7 +124,7 @@ namespace idTech4.Text
 				idConsole.Error("Couldn't parse {0}", this.FileName);
 				return 0;
 			}
-
+			
 			// mark all the defs that were from the last reload of this file
 			foreach(idDecl decl in _decls)
 			{
@@ -143,6 +143,8 @@ namespace idTech4.Text
 			idDecl newDecl;
 			DeclType identifiedType;
 
+			string tokenValue;
+		
 			// scan through, identifying each individual declaration
 			while(true)
 			{
@@ -155,12 +157,14 @@ namespace idTech4.Text
 					break;
 				}
 
-				// get the decl type from the type name
-				identifiedType = idE.DeclManager.GetDeclTypeFromName(token.Value);
+				tokenValue = token.ToString();
 
+				// get the decl type from the type name
+				identifiedType = idE.DeclManager.GetDeclTypeFromName(tokenValue);
+				
 				if(identifiedType == DeclType.Unknown)
 				{
-					if(token.Value == "{")
+					if(tokenValue == "{")
 					{
 						// if we ever see an open brace, we somehow missed the [type] <name> prefix
 						lexer.Warning("Missing decl name");
@@ -190,7 +194,9 @@ namespace idTech4.Text
 					break;
 				}
 
-				if(token.Value == "{")
+				tokenValue = token.ToString();
+
+				if(tokenValue == "{")
 				{
 					// if we ever see an open brace, we somehow missed the [type] <name> prefix
 					lexer.Warning("Missing decl name");
@@ -206,7 +212,7 @@ namespace idTech4.Text
 					continue;
 				}
 
-				name = token.Value;
+				name = tokenValue;
 
 				// make sure there's a '{'
 				if((token = lexer.ReadToken()) == null)
@@ -214,10 +220,12 @@ namespace idTech4.Text
 					lexer.Warning("Type without definition at end of file");
 					break;
 				}
+
+				tokenValue = token.ToString();
 				
-				if(token.Value != "{")
+				if(tokenValue != "{")
 				{
-					lexer.Warning("Expecting '{{' but found '{0}'", token.Value);
+					lexer.Warning("Expecting '{{' but found '{0}'", tokenValue);
 					continue;
 				}
 
@@ -260,7 +268,7 @@ namespace idTech4.Text
 				}
 
 				newDecl.RedefinedInReload = true;
-				newDecl.Text = content.Substring(startMarker, size);
+				newDecl.SourceText = content.Substring(startMarker, size);
 				newDecl.SourceFile = this;
 				newDecl.SourceTextOffset = startMarker;
 				newDecl.SourceTextLength = size;
@@ -273,7 +281,6 @@ namespace idTech4.Text
 					newDecl.ParseLocal();
 				}
 			}
-
 
 			_lineCount = lexer.LineNumber;
 

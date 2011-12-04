@@ -138,14 +138,14 @@ namespace idTech4
 			RegisterDeclType("audio", DeclType.Audio, new idDeclAllocator<idDeclAudio>());*/
 
 			RegisterDeclFolder("materials", ".mtr", DeclType.Material);
-			RegisterDeclFolder("skins", ".skin", DeclType.Skin);
-			RegisterDeclFolder("sound", ".sndshd", DeclType.Sound);
+			//RegisterDeclFolder("skins", ".skin", DeclType.Skin);
+			//RegisterDeclFolder("sound", ".sndshd", DeclType.Sound);
 
 			// add console commands
-			// TODO
-			/*cmdSystem->AddCommand( "listDecls", ListDecls_f, CMD_FL_SYSTEM, "lists all decls" );
+			idE.CmdSystem.AddCommand("listDecls", "list all decls", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListDecls));
 
-			cmdSystem->AddCommand( "reloadDecls", ReloadDecls_f, CMD_FL_SYSTEM, "reloads decls" );
+			// TODO
+			/*cmdSystem->AddCommand( "reloadDecls", ReloadDecls_f, CMD_FL_SYSTEM, "reloads decls" );
 			cmdSystem->AddCommand( "touch", TouchDecl_f, CMD_FL_SYSTEM, "touches a decl" );
 
 			cmdSystem->AddCommand( "listTables", idListDecls_f<DECL_TABLE>, CMD_FL_SYSTEM, "lists tables", idCmdSystem::ArgCompletion_String<listDeclStrings> );
@@ -366,41 +366,42 @@ namespace idTech4
 			if(_declTypes.ContainsKey(type) == false)
 			{
 				idConsole.FatalError("find type without parsing: bad type {0}", type.ToString().ToLower());
-				return null;
 			}
-
-			string canonicalName = name;
-
-			foreach(idDecl decl in _declsByType[type])
+			else
 			{
-				if(StringComparer.InvariantCultureIgnoreCase.Compare(decl.Name, canonicalName) == 0)
-				{
-					// only print these when decl_show is set to 2, because it can be a lot of clutter
-					if(idE.CvarSystem.GetInt("decl_show") > 1)
-					{
-						MediaPrint("referencing {0} {1}", type.ToString().ToLower(), name);
-					}
+				string canonicalName = name;
 
-					return decl;
+				foreach(idDecl decl in _declsByType[type])
+				{
+					if(decl.Name.Equals(canonicalName, StringComparison.OrdinalIgnoreCase) == true)
+					{
+						// only print these when decl_show is set to 2, because it can be a lot of clutter
+						if(idE.CvarSystem.GetInt("decl_show") > 1)
+						{
+							MediaPrint("referencing {0} {1}", type.ToString().ToLower(), name);
+						}
+
+						return decl;
+					}
+				}
+
+				if(makeDefault == true)
+				{
+					idDecl newDecl = _declTypes[type].Allocator.Create();
+					newDecl.Name = canonicalName;
+					newDecl.Type = type;
+					newDecl.State = DeclState.Unparsed;
+					newDecl.SourceFile = _implicitDecls;
+					newDecl.ParsedOutsideLevelLoad = !_insideLevelLoad;
+					newDecl.Index = _declsByType[type].Count;
+
+					_declsByType[type].Add(newDecl);
+
+					return newDecl;
 				}
 			}
 
-			if(makeDefault == false)
-			{
-				return null;
-			}
-
-			idDecl newDecl = _declTypes[type].Allocator.Create();
-			newDecl.Name = canonicalName;
-			newDecl.Type = type;
-			newDecl.State = DeclState.Unparsed;
-			newDecl.SourceFile = _implicitDecls;
-			newDecl.ParsedOutsideLevelLoad = !_insideLevelLoad;
-			newDecl.Index = _declsByType[type].Count;
-
-			_declsByType[type].Add(newDecl);
-
-			return newDecl;
+			return null;
 		}
 		#endregion
 
@@ -416,6 +417,41 @@ namespace idTech4
 			}
 
 			return str;
+		}
+		#endregion
+
+		#region Command handlers
+		private void Cmd_ListDecls(object sender, CommandEventArgs e)
+		{
+			int totalDecls = 0;
+			int totalText = 0;
+			int totalStructures = 0;
+
+			int num, size;
+
+			foreach(KeyValuePair<DeclType, List<idDecl>> kvp in _declsByType)
+			{
+				num = kvp.Value.Count;
+				totalDecls += num;
+				size = 0;
+
+				for(int j = 0; j < num; j++)
+				{
+					size += kvp.Value[j].Size;
+				}
+
+				totalStructures += size;
+
+				idConsole.WriteLine("{0}k {1} {2}", size >> 10, num, kvp.Key.ToString().ToLower());
+			}
+
+			foreach(KeyValuePair<string, idDeclFile> kvp in _loadedFiles)
+			{
+				totalText += kvp.Value.FileSize;
+			}
+
+			idConsole.WriteLine("{0} total decls is {1} decl files", totalDecls, _loadedFiles.Count);
+			idConsole.WriteLine("{0}KB in text, {1}KB in structures", totalText >> 10, totalStructures >> 10);
 		}
 		#endregion
 		#endregion
