@@ -137,7 +137,7 @@ namespace idTech4
 			/*RegisterDeclType("video", DeclType.Video, new idDeclAllocator<idDeclVideo>());
 			RegisterDeclType("audio", DeclType.Audio, new idDeclAllocator<idDeclAudio>());*/
 
-			RegisterDeclFolder("materials", ".mtr", DeclType.Material);
+			//RegisterDeclFolder("materials", ".mtr", DeclType.Material);
 			//RegisterDeclFolder("skins", ".skin", DeclType.Skin);
 			//RegisterDeclFolder("sound", ".sndshd", DeclType.Sound);
 
@@ -442,7 +442,7 @@ namespace idTech4
 
 				totalStructures += size;
 
-				idConsole.WriteLine("{0}k {1} {2}", size >> 10, num, kvp.Key.ToString().ToLower());
+				idConsole.WriteLine("{0}k {1} {2}", (size >> 10).ToString().PadLeft(4), num.ToString().PadLeft(4), kvp.Key.ToString().ToLower());
 			}
 
 			foreach(KeyValuePair<string, idDeclFile> kvp in _loadedFiles)

@@ -515,20 +515,22 @@ namespace idTech4
 
 		private void InitCommands()
 		{
-			idE.CmdSystem.AddCommand("error", "causes an error", CommandFlags.System | CommandFlags.Cheat, new EventHandler<CommandEventArgs>(Com_Error));
+			idE.CmdSystem.AddCommand("error", "causes an error", CommandFlags.System | CommandFlags.Cheat, new EventHandler<CommandEventArgs>(Cmd_Error));
 
 			/*
 			cmdSystem->AddCommand( "crash", Com_Crash_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "causes a crash" );
 			cmdSystem->AddCommand( "freeze", Com_Freeze_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "freezes the game for a number of seconds" );*/
 
-			idE.CmdSystem.AddCommand("quit", "quits the game", CommandFlags.System, new EventHandler<CommandEventArgs>(Com_Quit));
-			idE.CmdSystem.AddCommand("exit", "exits the game", CommandFlags.System, new EventHandler<CommandEventArgs>(Com_Quit));
+			idE.CmdSystem.AddCommand("quit", "quits the game", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Quit));
+			idE.CmdSystem.AddCommand("exit", "exits the game", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Quit));
 
 			/*cmdSystem->AddCommand( "writeConfig", Com_WriteConfig_f, CMD_FL_SYSTEM, "writes a config file" );
 			cmdSystem->AddCommand( "reloadEngine", Com_ReloadEngine_f, CMD_FL_SYSTEM, "reloads the engine down to including the file system" );
-			cmdSystem->AddCommand( "setMachineSpec", Com_SetMachineSpec_f, CMD_FL_SYSTEM, "detects system capabilities and sets com_machineSpec to appropriate value" );
-			cmdSystem->AddCommand( "execMachineSpec", Com_ExecMachineSpec_f, CMD_FL_SYSTEM, "execs the appropriate config files and sets cvars based on com_machineSpec" );
+			cmdSystem->AddCommand( "setMachineSpec", Com_SetMachineSpec_f, CMD_FL_SYSTEM, "detects system capabilities and sets com_machineSpec to appropriate value" );*/
+			
+			idE.CmdSystem.AddCommand("execMachineSpec", "execs the appropriate config files and sets cvars based on com_machineSpec", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ExecMachineSpec));
 
+			/*
 		#if	!defined( ID_DEMO_BUILD ) && !defined( ID_DEDICATED )
 			// compilers
 			cmdSystem->AddCommand( "dmap", Dmap_f, CMD_FL_TOOL, "compiles a map", idCmdSystem::ArgCompletion_MapName );
@@ -578,24 +580,27 @@ namespace idTech4
 			idE.DeclManager.Init();
 
 			/*
+			// TODO
+			*/
 
-			idFile *file = fileSystem->OpenExplicitFileRead( fileSystem->RelativePathToOSPath( CONFIG_SPEC, "fs_savepath" ) );
+			bool sysDetect = true;
+			/*idFile *file = fileSystem->OpenExplicitFileRead( fileSystem->RelativePathToOSPath( CONFIG_SPEC, "fs_savepath" ) );
 			bool sysDetect = ( file == NULL );
 			if ( file ) {
 				fileSystem->CloseFile( file );
 			} else {
 				file = fileSystem->OpenFileWrite( CONFIG_SPEC );
 				fileSystem->CloseFile( file );
-			}
+			}*/
 	
-			idCmdArgs args;
-			if ( sysDetect ) {
+			if(sysDetect == true)
+			{
 				SetMachineSpec();
-				Com_ExecMachineSpec_f( args );
+				Cmd_ExecMachineSpec(this, new CommandEventArgs(new idCmdArgs()));
 			}
 
 			// initialize the renderSystem data structures, but don't start OpenGL yet
-			renderSystem->Init();
+			/*renderSystem->Init();
 
 			// initialize string database right off so we can use it for loading messages
 			InitLanguageDict();
@@ -686,7 +691,7 @@ namespace idTech4
 			if ( sysDetect ) {
 				SetMachineSpec();
 				Com_ExecMachineSpec_f( args );
-				cvarSystem->SetCVarInteger( "s_numberOfSpeakers", 6 );
+				idE.CvarSystem.SetInteger( "s_numberOfSpeakers", 6 );
 				cmdSystem->BufferCommandText( CMD_EXEC_NOW, "s_restart\n" );
 				cmdSystem->ExecuteCommandBuffer();
 			}*/
@@ -748,6 +753,138 @@ namespace idTech4
 			}
 
 			return added;
+		}
+
+		private void SetMachineSpec()
+		{
+			bool oldCard = false;
+			bool nv10or20 = false;
+
+			uint physicalMemory = idE.Platform.TotalPhysicalMemory;
+			uint videoMemory = idE.Platform.TotalVideoMemory;
+			float clockSpeed = idE.Platform.ClockSpeed / 1000.0f;
+
+			// TODO: renderSystem->GetCardCaps( oldCard, nv10or20 );
+
+			idConsole.WriteLine("Detected");
+			idConsole.WriteLine("\t{0:2} GHz CPU", clockSpeed);
+			idConsole.WriteLine("\t{0}MB of System memory", physicalMemory);
+			idConsole.WriteLine("\t{0}MB of Video memory on {1}", videoMemory,  (oldCard == true) ? "a less than optimal video architecture" : "an optimal video architecture");
+
+			if((clockSpeed >= 2.0f) && (videoMemory >= 512) && (physicalMemory >= 1024) && (oldCard == false))
+			{
+				idConsole.WriteLine("This system qualifies for Ultra quality!");
+				idE.CvarSystem.SetInteger("com_machineSpec", 3);
+			}
+			else if((clockSpeed >= 1.6f) && (videoMemory >= 256) && (physicalMemory >= 512) && (oldCard == false))
+			{
+				idConsole.WriteLine("This system qualifies for High quality!");
+				idE.CvarSystem.SetInteger("com_machineSpec", 2);
+			}
+			else if((clockSpeed >= 1.1f) && (videoMemory >= 128) && (physicalMemory >= 384))
+			{
+				idConsole.WriteLine("This system qualifies for Medium quality.");
+				idE.CvarSystem.SetInteger("com_machineSpec", 1);
+			}
+			else
+			{
+				idConsole.WriteLine("This system qualifies for Low quality.");
+				idE.CvarSystem.SetInteger("com_machineSpec", 0);
+			}
+
+			idE.CvarSystem.SetInteger("com_videoRam", (int) videoMemory);
+		}
+
+		private void SetUltraHighQuality()
+		{
+			idE.CvarSystem.SetString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CvarFlags.Archive); // TODO: GL_LINEAR_MIPMAP_LINEAR
+			idE.CvarSystem.SetInteger("image_anisotropy", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_lodbias", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_forceDownSize", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_roundDown", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_preload", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useAllFormats", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeSpecular", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeBump", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeSpecularLimit", 64, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeBumpLimit", 256, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_usePrecompressedTextures", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downsize", 0, CvarFlags.Archive);			
+			idE.CvarSystem.SetInteger("image_anisotropy", 8, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useCompression", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_ignoreHighQuality", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("s_maxSoundsPerShader", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("r_mode", 5, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useNormalCompression", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("r_multiSamples", 0, CvarFlags.Archive);
+		}
+
+		private void SetHighQuality()
+		{
+			idE.CvarSystem.SetString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_anisotropy", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_lodbias", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_forceDownSize", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_roundDown", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_preload", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useAllFormats", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeSpecular", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeBump", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeSpecularLimit", 64, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeBumpLimit", 256, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_usePrecompressedTextures", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downsize", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_anisotropy", 8, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useCompression", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_ignoreHighQuality", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("s_maxSoundsPerShader", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useNormalCompression", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("r_mode", 4, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("r_multiSamples", 0, CvarFlags.Archive);
+		}
+
+		private void SetMediumQuality()
+		{
+			idE.CvarSystem.SetString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_anisotropy", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_lodbias", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSize", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_forceDownSize", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_roundDown", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_preload", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useCompression", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useAllFormats", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_usePrecompressedTextures", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeSpecular", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeBump", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeSpecularLimit", 64, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeBumpLimit", 256, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useNormalCompression", 2, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("r_mode", 3, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("r_multiSamples", 0, CvarFlags.Archive);
+		}
+
+		private void SetLowQuality()
+		{
+			idE.CvarSystem.SetString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_anisotropy", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_lodbias", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_roundDown", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_preload", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useAllFormats", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_usePrecompressedTextures", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSize", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_anisotropy", 0, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useCompression", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_ignoreHighQuality", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("s_maxSoundsPerShader", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeSpecular", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeBump", 1, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeSpecularLimit", 64, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_downSizeBumpLimit", 256, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("r_mode", 3, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("image_useNormalCompression", 2, CvarFlags.Archive);
+			idE.CvarSystem.SetInteger("r_multiSamples", 0, CvarFlags.Archive);
 		}
 
 		/// <summary>
@@ -900,7 +1037,7 @@ namespace idTech4
 		/// </summary>
 		/// <param name="sender"></param>
 		/// <param name="e"></param>
-		private void Com_Error(object sender, CommandEventArgs e)
+		private void Cmd_Error(object sender, CommandEventArgs e)
 		{
 			if(idE.CvarSystem.GetBool("developer") == false)
 			{
@@ -916,9 +1053,93 @@ namespace idTech4
 			}
 		}
 
-		private void Com_Quit(object sender, CommandEventArgs e)
+		private void Cmd_Quit(object sender, CommandEventArgs e)
 		{
 			Quit();
+		}
+
+		private void Cmd_ExecMachineSpec(object sender, CommandEventArgs e)
+		{
+			switch(idE.CvarSystem.GetInt("com_machineSpec"))
+			{
+				case 3:
+					SetUltraHighQuality();
+					break;
+
+				case 2:
+					SetHighQuality();
+					break;
+
+				case 1:
+					SetMediumQuality();
+					break;
+
+				default:
+					SetLowQuality();
+					break;
+			}
+
+			if(idE.Platform.TotalVideoMemory < 128)
+			{
+				idE.CvarSystem.SetBool("image_ignoreHighQuality", true, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSize", 1, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSizeLimit", 256, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSizeSpecular", 1, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSizeSpecularLimit", 64, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSizeBump", 1, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSizeBumpLimit", 256, CvarFlags.Archive);
+			}
+
+			if(idE.Platform.TotalVideoMemory < 512)
+			{
+				idE.CvarSystem.SetBool("image_ignoreHighQuality", true, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("s_maxSoundsPerShader", 1, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSize", 1, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSizeLimit", 256, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSizeSpecular", 1, CvarFlags.Archive);
+				idE.CvarSystem.SetInteger("image_downSizeSpecularLimit", 64, CvarFlags.Archive);
+				idE.CvarSystem.SetBool("com_purgeAll", true, CvarFlags.Archive);
+				idE.CvarSystem.SetBool("r_forceLoadImages", true, CvarFlags.Archive);
+			} 
+			else 
+			{
+				idE.CvarSystem.SetBool("com_purgeAll", false, CvarFlags.Archive);
+				idE.CvarSystem.SetBool("r_forceLoadImages", false, CvarFlags.Archive);
+			}
+
+			// TODO
+			/*bool oldCard = false;
+			bool nv10or20 = false;
+			renderSystem->GetCardCaps( oldCard, nv10or20 );
+			if ( oldCard ) {
+				cvarSystem->SetCVarBool( "g_decals", false, CVAR_ARCHIVE );
+				cvarSystem->SetCVarBool( "g_projectileLights", false, CVAR_ARCHIVE );
+				cvarSystem->SetCVarBool( "g_doubleVision", false, CVAR_ARCHIVE );
+				cvarSystem->SetCVarBool( "g_muzzleFlash", false, CVAR_ARCHIVE );
+			} else {
+				cvarSystem->SetCVarBool( "g_decals", true, CVAR_ARCHIVE );
+				cvarSystem->SetCVarBool( "g_projectileLights", true, CVAR_ARCHIVE );
+				cvarSystem->SetCVarBool( "g_doubleVision", true, CVAR_ARCHIVE );
+				cvarSystem->SetCVarBool( "g_muzzleFlash", true, CVAR_ARCHIVE );
+			}
+			if ( nv10or20 ) {
+				idE.CvarSystem.SetInteger( "image_useNormalCompression", 1, CVAR_ARCHIVE );
+			}*/
+
+#if MACOS_X
+			// TODO MACOS
+			// On low settings, G4 systems & 64MB FX5200/NV34 Systems should default shadows off
+			bool oldArch;
+			int vendorId, deviceId, cpuId;
+			OSX_GetVideoCard( vendorId, deviceId );
+			OSX_GetCPUIdentification( cpuId, oldArch );
+			bool isFX5200 = vendorId == 0x10DE && ( deviceId & 0x0FF0 ) == 0x0320;
+			if ( ( oldArch || ( isFX5200 && Sys_GetVideoRam() < 128 ) ) && com_machineSpec.GetInteger() == 0 ) {
+				cvarSystem->SetCVarBool( "r_shadows", false, CVAR_ARCHIVE );
+			} else {
+				cvarSystem->SetCVarBool( "r_shadows", true, CVAR_ARCHIVE );
+			}
+#endif
 		}
 		#endregion
 		#endregion

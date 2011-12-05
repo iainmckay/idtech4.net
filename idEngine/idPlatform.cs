@@ -137,7 +137,7 @@ namespace idTech4
 			}
 		}
 
-		public ulong TotalPhysicalMemory
+		public uint TotalPhysicalMemory
 		{
 			get
 			{
@@ -145,7 +145,7 @@ namespace idTech4
 			}
 		}
 
-		public ulong TotalVideoMemory
+		public uint TotalVideoMemory
 		{
 			get
 			{
@@ -159,8 +159,8 @@ namespace idTech4
 		private uint _coreCount;
 		private uint _threadCount;
 
-		private ulong _totalPhysicalMemory;
-		private ulong _totalVideoMemory;
+		private uint _totalPhysicalMemory;
+		private uint _totalVideoMemory;
 
 		private bool _isIntel;
 		#endregion
@@ -200,7 +200,7 @@ namespace idTech4
 
 			foreach(ManagementObject mosObj in mosInfo.Get())
 			{
-				_totalPhysicalMemory = (ulong) mosObj["TotalPhysicalMemory"] / 1024 / 1024;
+				_totalPhysicalMemory = (uint) ((ulong) mosObj["TotalPhysicalMemory"] / 1024 / 1024);
 				mosObj.Dispose();
 			}
 

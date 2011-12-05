@@ -34,6 +34,8 @@ using System.Linq;
 using System.Text;
 using System.Windows.Forms;
 
+using idTech4.UI;
+
 namespace idTech4
 {
 	internal partial class SystemConsole : Form
@@ -43,6 +45,7 @@ namespace idTech4
 
 		private int _historyLine = 0;
 		private List<string> _historyLines = new List<string>();
+		private idInputField _consoleField = new idInputField();
 		#endregion
 
 		#region Constructor
@@ -96,43 +99,48 @@ namespace idTech4
 
 		private void OnInputKeyDown(object sender, KeyEventArgs e)
 		{
+			e.Handled = true;
+
+			_consoleField.ProcessKeyDown(e);
+
+			_input.Text = _consoleField.Buffer;
+			_input.Select(_consoleField.SelectionStart, _consoleField.SelectionLength);
+			
 			// command history
-			if((e.KeyCode == Keys.Up) || (e.KeyCode == Keys.Down))
+			/*if((e.KeyCode == Keys.Up) || (e.KeyCode == Keys.Down))
 			{
 				if(e.KeyCode == Keys.Up)
 				{
 					if(((_historyLine - 1) >= 0) && (_historyLines.Count > 0))
 					{		
-						_input.Text = _historyLines[--_historyLine];
+						_consoleField.Buffer = _historyLines[--_historyLine];
 					}
 				}
 				else if(e.KeyCode == Keys.Down)
 				{
 					if((_historyLine + 1) < _historyLines.Count)
 					{
-						_input.Text = _historyLines[++_historyLine];						
+						_consoleField.Buffer = _historyLines[++_historyLine];						
 					}
 					else if(_historyLine == (_historyLines.Count - 1))
 					{
 						_historyLine++;
-						_input.Text = string.Empty;
+						_consoleField.Buffer = string.Empty;
 					}
 				}
 
-				e.Handled = true;
-
-				_input.SelectionStart = _input.Text.Length;
-				_input.SelectionLength = 1;
-			}
+				e.Handled = true;				
+			}*/
 		}
 
 		private void OnInputKeyPressed(object sender, KeyPressEventArgs e)
 		{
-			if((e.KeyChar == (char) Keys.Enter) || (e.KeyChar == (char) Keys.Return))
+			e.Handled = true;
+			/*if((e.KeyChar == (char) Keys.Enter) || (e.KeyChar == (char) Keys.Return))
 			{
 				e.Handled = true;
 
-				if(_input.Text.Length == 0)
+				if(_consoleField.Length == 0)
 				{
 					return;
 				}
@@ -143,11 +151,11 @@ namespace idTech4
 				_historyLine = _historyLines.Count;
 
 				idE.CmdSystem.BufferCommandText(_input.Text);
-				// TODO: REMOVE
+				// TODO: REMOVE, is only here because we don't have the game loop written yet
 				idE.CmdSystem.ExecuteCommandBuffer();
 
-				_input.Text = string.Empty;
-			}
+				_consoleField.Buffer = string.Empty;
+			}*/
 		}
 
 		private void OnClearClicked(object sender, EventArgs e)

@@ -61,7 +61,10 @@ namespace idTech4
 		{
 			get
 			{
-				return Marshal.SizeOf(this);
+				return 0;
+
+				// TODO: how to do this in .net?
+				//return Marshal.SizeOf(this);
 			}
 		}
 

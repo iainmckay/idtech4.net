@@ -65,7 +65,7 @@ namespace idTech4
 		private int _wait;
 		private StringBuilder _cmdBuffer = new StringBuilder();
 
-		private Dictionary<string, CommandDefinition> _commands = new Dictionary<string, CommandDefinition>(StringComparer.CurrentCultureIgnoreCase);
+		private Dictionary<string, CommandDefinition> _commands = new Dictionary<string, CommandDefinition>(StringComparer.OrdinalIgnoreCase);
 
 		// piggybacks on the text buffer, avoids tokenize again and screwing it up.
 		private List<idCmdArgs> _tokenizedCommands = new List<idCmdArgs>();
@@ -93,10 +93,7 @@ namespace idTech4
 			AddCommand("listSoundCmds", "lists sound commands", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListSoundCommands));
 			AddCommand("listGameCmds", "lists game commands", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListGameCommands));
 			AddCommand("listToolCmds", "lists tool commands", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListToolCommands));
-
-			// TODO
-			/*AddCommand("exec", Exec_f, "executes a config file", CommandFlags.System, ArgCompletion_ConfigName);*/
-
+			// TODO: AddCommand("exec", "executes a config file", CommandFlags.System, new EventHandler<CommandCompletionEventArgs>(ArgCompletion_ConfigName));
 			AddCommand("vstr", "inserts the current value of a cvar as command text", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_VStr));
 			AddCommand("echo", "prints text", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Echo));
 			AddCommand("parse", "prints tokenized string", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Parse));
@@ -144,7 +141,7 @@ namespace idTech4
 				_commands.Add(name, cmd);
 			}
 		}
-	
+
 		/// <summary>
 		/// Adds command text to the command buffer.
 		/// </summary>
@@ -185,7 +182,7 @@ namespace idTech4
 		public void ExecuteCommandBuffer()
 		{
 			idCmdArgs args = null;
-			
+
 			while(_cmdBuffer.Length > 0)
 			{
 				if(_wait > 0)
@@ -196,7 +193,7 @@ namespace idTech4
 				}
 
 				int quotes = 0, i;
-				
+
 				for(i = 0; i < _cmdBuffer.Length; i++)
 				{
 					if(_cmdBuffer[i] == '"')
@@ -214,7 +211,7 @@ namespace idTech4
 						break;
 					}
 				}
-				
+
 
 				string cmd = _cmdBuffer.ToString().Substring(0, i + 1);
 				_cmdBuffer = _cmdBuffer.Remove(0, i + 1);
@@ -259,7 +256,7 @@ namespace idTech4
 					idConsole.WriteLine("Command '{0}' not valid in multiplayer mode.", cmd.Name);
 					return;
 				}
-					
+
 				// perform the action.
 				if(cmd.Handler != null)
 				{
@@ -268,7 +265,7 @@ namespace idTech4
 
 				return;
 			}
-	
+
 			// check cvars.
 			// TODO
 			if(idE.CvarSystem.Command(args) == true)
@@ -418,6 +415,14 @@ namespace idTech4
 			}
 		}
 		#endregion
+
+		#region Argument completion
+		public static void ArgCompletion_ConfigName(object sender, CommandCompletionEventArgs e)
+		{
+			// TODO
+			idConsole.WriteLine("ArgCompletion_ConfigName: TODO!");
+		}
+		#endregion
 		#endregion
 
 		#region CommandDefinition
@@ -490,6 +495,33 @@ namespace idTech4
 			: base()
 		{
 			_args = args;
+		}
+		#endregion
+	}
+
+	public delegate void CommandCompletionHandler(string str);
+
+	public class CommandCompletionEventArgs : EventArgs
+	{
+		#region Properties
+		public CommandCompletionHandler Handler
+		{
+			get
+			{
+				return _handler;
+			}
+		}
+		#endregion
+
+		#region Members
+		private CommandCompletionHandler _handler;
+		#endregion
+
+		#region Constructor
+		public CommandCompletionEventArgs(CommandCompletionHandler handler)
+			: base()
+		{
+			_handler = handler;
 		}
 		#endregion
 	}

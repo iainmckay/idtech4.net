@@ -33,6 +33,7 @@ using System.Reflection;
 
 using idTech4.IO;
 using idTech4.Net;
+using idTech4.Renderer;
 
 namespace idTech4
 {
@@ -81,8 +82,9 @@ namespace idTech4
 		public static readonly idFileSystem FileSystem = new idFileSystem();
 		public static readonly idCvarSystem CvarSystem = new idCvarSystem();
 		public static readonly idCmdSystem CmdSystem = new idCmdSystem();
-
 		public static readonly idDeclManager DeclManager = new idDeclManager();
+		public static readonly idRenderSystem RenderSystem = new idRenderSystem();
+		public static readonly idImageManager ImageManager = new idImageManager();
 		#endregion
 
 		#region Internal
