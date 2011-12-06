@@ -33,6 +33,10 @@ using System.Windows.Forms;
 
 namespace idTech4.UI
 {
+	/// <summary>
+	/// Provides a mechanism for entering text.  Handles most of the modern
+	/// expectations of a text box (c+p, select-all, etc.).
+	/// </summary>
 	public sealed class idInputField
 	{
 		#region Properties
@@ -131,15 +135,21 @@ namespace idTech4.UI
 		}
 		#endregion
 
+		#region Events
+		public event EventHandler<EventArgs> InputAvailable;
+		#endregion
+
 		#region Members
-		private int _scrollPosition;
 		private int _widthInCharacters;
 
 		private int _selectionStart;
 		private int _selectionDirection;
 
 		private StringBuilder _buffer = new StringBuilder();
-		private CommandCompletionHandler _autoComplete;
+		private AutoComplete _autoComplete = new AutoComplete();
+		
+		private int _historyLine = 0;
+		private List<string> _historyLines = new List<string>();
 		#endregion
 
 		#region Constructor
@@ -150,30 +160,70 @@ namespace idTech4.UI
 		#endregion
 
 		#region Methods
+		#region public
 		public void Clear()
 		{
 			_buffer.Clear();
 			_selectionStart = 0;
 			_selectionDirection = 0;
-			_scrollPosition = 0;
 			_autoComplete = null;
-		}
-
-		public void ProcessKeyPress(KeyEventArgs e)
-		{
-		
 		}
 
 		public void ProcessKeyDown(KeyEventArgs e)
 		{
 			if((e.Alt == true) || (e.Control == true))
 			{
+				if((e.Control == true) && (e.KeyCode == Keys.A))
+				{
+					this.SelectionStart = 0;
+					this.SelectionDirection = _buffer.Length;
+				}
+			}
+			else if((e.KeyCode == Keys.Return) || (e.KeyCode == Keys.Enter))
+			{
+				if(_buffer.Length > 0)
+				{
+					if(InputAvailable != null)
+					{
+						InputAvailable(this, new EventArgs());
+					}
+
+					_historyLines.Add(_buffer.ToString());
+					_historyLine = _historyLines.Count;
+
+					_buffer.Clear();
+
+					_selectionStart = 0;
+					_selectionDirection = 0;
+				}
+			}
+			else if(e.KeyCode == Keys.Tab)
+			{
+				AutoComplete();
 				return;
 			}
 			else if((e.KeyCode == Keys.Home) || (e.KeyCode == Keys.End))
 			{
-				this.SelectionStart = (e.KeyCode == Keys.Home) ? 0 : _buffer.Length;
-				this.SelectionDirection = 0;
+				if(e.Shift == true)
+				{
+					// we're shift selecting while pressing home or end, figure out where to select from.
+					int start = this.SelectionStart;
+					this.SelectionStart = (e.KeyCode == Keys.Home) ? 0 : (this.SelectionDirection != 0) ? -this.SelectionDirection : start;
+
+					if(e.KeyCode == Keys.End)
+					{
+						this.SelectionDirection = _buffer.Length - start;
+					}
+					else
+					{
+						this.SelectionDirection = -(start + 1);
+					}
+				}
+				else
+				{
+					this.SelectionDirection = 0;
+					this.SelectionStart = (e.KeyCode == Keys.Home) ? 0 : _buffer.Length;
+				}
 			}
 			else if((e.KeyCode == Keys.Left) || (e.KeyCode == Keys.Right))
 			{
@@ -185,9 +235,9 @@ namespace idTech4.UI
 				{
 					if(this.SelectionDirection != 0)
 					{
-						if(this.SelectionDirection > 0)
+						if((this.SelectionDirection != 0) && (e.KeyCode == Keys.Right))
 						{
-							this.SelectionStart = this.SelectionStart + this.SelectionDirection;
+							this.SelectionStart = this.SelectionStart + this.SelectionLength;
 						}
 						else
 						{
@@ -202,11 +252,35 @@ namespace idTech4.UI
 					}
 				}
 			}
+			else if((e.KeyCode == Keys.Up) || (e.KeyCode == Keys.Down))
+			{
+				// command history
+				_historyLine += (e.KeyCode == Keys.Up) ? -1 : 1;
+
+				if(_historyLine < 0)
+				{
+					_historyLine = 0;
+				}
+				else if(_historyLine >= _historyLines.Count)
+				{
+					_historyLine = _historyLines.Count;
+				}
+
+				_buffer.Clear();
+
+				if(_historyLine < _historyLines.Count)
+				{
+					_buffer.Append(_historyLines[_historyLine]);
+				}
+
+				this.SelectionStart = this.Length;
+				this.SelectionDirection = 0;
+			}
 			else if((e.KeyCode == Keys.Back) || (e.KeyCode == Keys.Delete))
 			{
 				if((e.KeyCode == Keys.Delete) && (this.SelectionStart == _buffer.Length))
 				{
-					// don't want delete, deleting past the end of the buffer.
+					// don't want to delete past the end of the buffer.
 					return;
 				}
 				else if((e.KeyCode == Keys.Back) && (this.SelectionStart == 0))
@@ -234,9 +308,9 @@ namespace idTech4.UI
 
 				this.SelectionDirection = 0;
 			}
-			else if((e.KeyValue >= 48) && (e.KeyValue < 90) || (e.KeyValue >= 186) && (e.KeyValue <= 226))
+			else if(Char.IsLetterOrDigit((char) e.KeyValue) == true)
 			{
-				string key = ((char) e.KeyValue).ToString().ToLower();
+				string key = Convert.ToChar(e.KeyValue).ToString().ToLower();
 
 				if((e.Modifiers & Keys.Shift) == Keys.Shift)
 				{
@@ -248,7 +322,83 @@ namespace idTech4.UI
 				this.SelectionStart++;
 				this.SelectionDirection = 0;
 			}
+
+			// pressing tab exits the method above, so if we got here
+			// the user pressed another key and broke out of autocomplete.
+			_autoComplete = null;
+		}
+
+		public void AutoComplete()
+		{
+			if(_buffer.Length == 0)
+			{
+				return;
+			}
+
+			string argCompletionStr = string.Empty;
+
+			if(_autoComplete == null)
+			{
+				_autoComplete = new UI.AutoComplete();
+
+				idCmdArgs args = new idCmdArgs(_buffer.ToString(), true);
+
+				argCompletionStr = args.ToString();
+
+				_autoComplete.CompletionString = args.Get(0);
+				_autoComplete.MatchCount = 0;
+				_autoComplete.MatchIndex = 0;
+				
+				string[] matches = idE.CmdSystem.CommandCompletion(new Predicate<string>(FindMatch));
+
+				if(matches.Length > 1)
+				{
+					foreach(string s in matches)
+					{
+						idConsole.WriteLine("    {0}", s);
+					}
+				}
+
+				matches = idE.CvarSystem.CommandCompletion(new Predicate<string>(FindMatch));
+
+				if(matches.Length > 1)
+				{
+					foreach(string s in matches)
+					{
+						idConsole.WriteLine("    {0} {1}= \"{2}\"", s, idColorString.White, idE.CvarSystem.GetString(s));
+					}
+				}
+				else if(matches.Length == 1)
+				{
+					this.Buffer = string.Format("{0} ", matches[0]);
+
+					string[] argMatches = idE.CvarSystem.ArgCompletion(matches[0], argCompletionStr);
+
+					foreach(string s in argMatches)
+					{
+						idConsole.WriteLine("    {0}", s);
+					}
+				}
+			}
 		}
 		#endregion
+
+		#region Private
+		private bool FindMatch(string str)
+		{
+			return (str.ToLower().StartsWith(_autoComplete.CompletionString.ToLower()) == true);
+		}
+		#endregion
+		#endregion
+	}
+
+	public class AutoComplete
+	{
+		public int Length;
+		public string CompletionString;
+		public string CurrentMatch;
+		public int MatchCount;
+		public int MatchIndex;
+		public int FindMatchIndex;
 	}
 }

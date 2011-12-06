@@ -101,7 +101,7 @@ namespace idTech4
 		#region Constructor
 		public idDeclManager()
 		{
-			new idCvar("decl_show", "0", "set to 1 to print parses, 2 to also print references", 0, 2, CvarFlags.System /* TODO: , idCmdSystem::ArgCompletion_Integer<0,2>*/);
+			new idCvar("decl_show", "0", "set to 1 to print parses, 2 to also print references", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.System);
 		}
 		#endregion
 

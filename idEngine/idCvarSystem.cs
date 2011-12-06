@@ -297,6 +297,25 @@ namespace idTech4
 		{
 			SetInternal(name, value.ToString(), flags);
 		}
+
+		public string[] CommandCompletion(Predicate<string> filter)
+		{
+			return Array.FindAll(_cvarList.Keys.ToArray(), filter);
+		}
+
+		public string[] ArgCompletion(string name, string argText)
+		{
+			idCmdArgs args = new idCmdArgs(argText, true);
+			idInternalCvar intern = FindInternal(name);
+			List<string> matches = new List<string>();
+			
+			if((intern != null) && (intern.ValueCompletion != null))
+			{
+				matches.AddRange(intern.ValueCompletion.Complete(args));
+			}
+
+			return matches.ToArray();
+		}
 		#endregion
 
 		#region Private

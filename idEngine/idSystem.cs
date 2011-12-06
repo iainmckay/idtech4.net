@@ -502,9 +502,9 @@ namespace idTech4
 			new idCvar("com_showMemoryUsage", "0", "show total and per frame memory usage", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("com_showAsyncStats", "0", "show async network stats", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("com_showSoundDecoders", "0", "show sound decoders", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
-			new idCvar("com_timestampPrints", "0", "print time with each console print, 1 = msec, 2 = sec", 0, 2, /* TODO: idCmdSystem::ArgCompletion_Integer<0,2>, */CvarFlags.System);
+			new idCvar("com_timestampPrints", "0", "print time with each console print, 1 = msec, 2 = sec", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.System);
 			new idCvar("timescale", "1", "scales the time", 0.1f, 10.0f, CvarFlags.System | CvarFlags.Float);
-			new idCvar("logFile", "0", "1 = buffer log, 2 = flush after each print", 0, 2, /* TODO: idCmdSystem::ArgCompletion_Integer<0,2>,*/ CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("logFile", "0", "1 = buffer log, 2 = flush after each print", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("logFileName", "qconsole.log", "name of log file, if empty, qconsole.log will be used", CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("com_makingBuild", "0", "1 when making a build", CvarFlags.Bool | CvarFlags.System);
 			new idCvar("com_updateLoadSize", "0", "update the load size after loading a map", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);

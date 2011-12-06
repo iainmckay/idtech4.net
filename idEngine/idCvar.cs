@@ -108,7 +108,7 @@ namespace idTech4
 		/// <summary>
 		/// Gets the completion handler.
 		/// </summary>
-		public EventHandler<EventArgs> ValueCompletionHandler
+		public ArgCompletion ValueCompletion
 		{
 			get
 			{
@@ -159,7 +159,7 @@ namespace idTech4
 		protected float _valueMin; // minimum value.
 		protected float _valueMax; // maximum value.
 		protected string[] _valueStrings; // valid value strings.
-		protected EventHandler<EventArgs> _valueCompletion; // auto-completion handler.
+		protected ArgCompletion _valueCompletion; // auto-completion handler.
 
 		protected int _intValue;
 		protected float _floatValue;
@@ -174,34 +174,33 @@ namespace idTech4
 		}
 
 		public idCvar(string name, string value, string description, CvarFlags flags)
-			: this(name, value, description, flags, null)
 		{
-
+			Init(name, value, description, 0, 0, null, flags, null);
 		}
 
-		public idCvar(string name, string value, string description, CvarFlags flags, EventHandler<EventArgs> valueCompletion)
+		public idCvar(string name, string value, string description, ArgCompletion valueCompletion, CvarFlags flags)
 		{
 			Init(name, value, description, 1, -1, null, flags, valueCompletion);
 		}
 
 		public idCvar(string name, string value, string description, float valueMin, float valueMax, CvarFlags flags)
-			: this(name, value, description, valueMin, valueMax, flags, null)
+			: this(name, value, description, valueMin, valueMax, null, flags)
 		{
 
 		}
 
-		public idCvar(string name, string value, string description, float valueMin, float valueMax, CvarFlags flags, EventHandler<EventArgs> valueCompletion)
+		public idCvar(string name, string value, string description, float valueMin, float valueMax, ArgCompletion valueCompletion, CvarFlags flags)
 		{
 			Init(name, value, description, valueMin, valueMax, null, flags, valueCompletion);
 		}
 
 		public idCvar(string name, string value, string description, string[] valueStrings, CvarFlags flags)
-			: this(name, value, description, valueStrings, flags, null)
+			: this(name, value, description, valueStrings, null, flags)
 		{
 
 		}
 
-		public idCvar(string name, string value, string description, string[] valueStrings, CvarFlags flags, EventHandler<EventArgs> valueCompletion)
+		public idCvar(string name, string value, string description, string[] valueStrings, ArgCompletion valueCompletion, CvarFlags flags)
 		{
 			Init(name, value, description, 1, -1, valueStrings, flags, valueCompletion);
 		}
@@ -251,7 +250,7 @@ namespace idTech4
 		#endregion
 
 		#region Private
-		private void Init(string name, string value, string description, float valueMin, float valueMax, string[] valueStrings, CvarFlags flags, EventHandler<EventArgs> valueCompletion)
+		private void Init(string name, string value, string description, float valueMin, float valueMax, string[] valueStrings, CvarFlags flags, ArgCompletion valueCompletion)
 		{
 			_name = name;
 			_value = value;
@@ -359,7 +358,7 @@ namespace idTech4
 			_valueMin = var.MinValue;
 			_valueMax = var.MaxValue;
 			_valueStrings = var.ValueStrings;
-			_valueCompletion = var.ValueCompletionHandler;
+			_valueCompletion = var.ValueCompletion;
 
 			UpdateValue();
 			UpdateCheat();
@@ -401,7 +400,7 @@ namespace idTech4
 				_valueMin = var.MinValue;
 				_valueMax = var.MaxValue;
 				_valueStrings = var.ValueStrings;
-				_valueCompletion = var.ValueCompletionHandler;
+				_valueCompletion = var.ValueCompletion;
 
 				UpdateValue();
 

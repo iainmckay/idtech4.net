@@ -38,8 +38,11 @@
 			// 
 			// _input
 			// 
+			this._input.AcceptsReturn = true;
+			this._input.AcceptsTab = true;
 			this._input.BorderStyle = System.Windows.Forms.BorderStyle.FixedSingle;
 			this._input.Location = new System.Drawing.Point(12, 380);
+			this._input.Multiline = true;
 			this._input.Name = "_input";
 			this._input.Size = new System.Drawing.Size(520, 20);
 			this._input.TabIndex = 0;

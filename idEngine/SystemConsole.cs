@@ -42,9 +42,6 @@ namespace idTech4
 	{
 		#region Members
 		private bool _quitOnClose = true;
-
-		private int _historyLine = 0;
-		private List<string> _historyLines = new List<string>();
 		private idInputField _consoleField = new idInputField();
 		#endregion
 
@@ -52,6 +49,8 @@ namespace idTech4
 		public SystemConsole()
 		{
 			InitializeComponent();
+
+			_consoleField.InputAvailable += new EventHandler<EventArgs>(OnInputAvailable);
 		}
 		#endregion
 
@@ -105,63 +104,21 @@ namespace idTech4
 
 			_input.Text = _consoleField.Buffer;
 			_input.Select(_consoleField.SelectionStart, _consoleField.SelectionLength);
-			
-			// command history
-			/*if((e.KeyCode == Keys.Up) || (e.KeyCode == Keys.Down))
-			{
-				if(e.KeyCode == Keys.Up)
-				{
-					if(((_historyLine - 1) >= 0) && (_historyLines.Count > 0))
-					{		
-						_consoleField.Buffer = _historyLines[--_historyLine];
-					}
-				}
-				else if(e.KeyCode == Keys.Down)
-				{
-					if((_historyLine + 1) < _historyLines.Count)
-					{
-						_consoleField.Buffer = _historyLines[++_historyLine];						
-					}
-					else if(_historyLine == (_historyLines.Count - 1))
-					{
-						_historyLine++;
-						_consoleField.Buffer = string.Empty;
-					}
-				}
-
-				e.Handled = true;				
-			}*/
 		}
-
-		private void OnInputKeyPressed(object sender, KeyPressEventArgs e)
-		{
-			e.Handled = true;
-			/*if((e.KeyChar == (char) Keys.Enter) || (e.KeyChar == (char) Keys.Return))
-			{
-				e.Handled = true;
-
-				if(_consoleField.Length == 0)
-				{
-					return;
-				}
-
-				idConsole.WriteLine("] {0}", _input.Text);
-
-				_historyLines.Add(_input.Text);
-				_historyLine = _historyLines.Count;
-
-				idE.CmdSystem.BufferCommandText(_input.Text);
-				// TODO: REMOVE, is only here because we don't have the game loop written yet
-				idE.CmdSystem.ExecuteCommandBuffer();
-
-				_consoleField.Buffer = string.Empty;
-			}*/
-		}
-
+		
 		private void OnClearClicked(object sender, EventArgs e)
 		{
 			_log.Clear();
 			_input.Focus();
+		}
+
+		private void OnInputAvailable(object sender, EventArgs e)
+		{
+			idConsole.WriteLine("] {0}", _input.Text);
+						
+			idE.CmdSystem.BufferCommandText(_input.Text);
+			// TODO: REMOVE, is only here because we don't have the game loop written yet
+			idE.CmdSystem.ExecuteCommandBuffer();
 		}
 		#endregion
 		#endregion
@@ -174,5 +131,10 @@ namespace idTech4
 			idE.System.Quit();
 		}
 		#endregion	
+
+		private void OnInputKeyPressed(object sender, KeyPressEventArgs e)
+		{
+			e.Handled = true;
+		}
 	}
 }

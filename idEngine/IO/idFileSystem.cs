@@ -179,8 +179,8 @@ namespace idTech4.IO
 		public idFileSystem()
 		{
 			new idCvar("fs_restrict", "", "", CvarFlags.System | CvarFlags.Init | CvarFlags.Bool);
-			new idCvar("fs_debug", "0", "", 0, 2, CvarFlags.System | CvarFlags.Integer /* TODO: , idCmdSystem::ArgCompletion_Integer<0,2>*/);
-			new idCvar("fs_copyfiles", "0", "", 0, 4, CvarFlags.System | CvarFlags.Init | CvarFlags.Integer /* TODO: , idCmdSystem::ArgCompletion_Integer<0,3>*/);
+			new idCvar("fs_debug", "0", "", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.System | CvarFlags.Integer);
+			new idCvar("fs_copyfiles", "0", "", 0, 4, new ArgCompletion_Integer(0, 3), CvarFlags.System | CvarFlags.Init | CvarFlags.Integer);
 			new idCvar("fs_basepath", "", "", CvarFlags.System | CvarFlags.Init);
 			new idCvar("fs_savepath", "", "", CvarFlags.System | CvarFlags.Init);
 			new idCvar("fs_cdpath", "", "", CvarFlags.System | CvarFlags.Init);

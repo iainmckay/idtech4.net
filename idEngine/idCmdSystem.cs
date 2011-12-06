@@ -230,6 +230,11 @@ namespace idTech4
 				ExecuteTokenizedString(args);
 			}
 		}
+
+		public string[] CommandCompletion(Predicate<string> filter)
+		{
+			return Array.FindAll(_commands.Keys.ToArray(), filter);
+		}
 		#endregion
 
 		#region Private
@@ -522,6 +527,51 @@ namespace idTech4
 			: base()
 		{
 			_handler = handler;
+		}
+		#endregion
+	}
+
+	public abstract class ArgCompletion
+	{
+		#region Constructor
+		public ArgCompletion()
+		{
+
+		}
+		#endregion
+
+		#region Methods
+		public abstract string[] Complete(idCmdArgs args);
+		#endregion
+	}
+
+	public sealed class ArgCompletion_Integer : ArgCompletion
+	{
+		#region Members
+		private int _min;
+		private int _max;
+		#endregion
+
+		#region Constructor
+		public ArgCompletion_Integer(int min, int max)
+			: base()
+		{
+			_min = min;
+			_max = max;
+		}
+		#endregion
+
+		#region ArgCompletion implementation
+		public override string[] Complete(idCmdArgs args)
+		{
+			List<string> values = new List<string>();
+
+			for(int i = _min; i < _max; i++)
+			{
+				values.Add(i.ToString());
+			}
+
+			return values.ToArray();
 		}
 		#endregion
 	}
