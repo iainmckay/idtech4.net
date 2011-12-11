@@ -39,6 +39,16 @@ namespace idTech4.Renderer
 	/// </summary>
 	public sealed class idRenderSystem
 	{
+		#region Properties
+		public Vector4 AmbientLightVector
+		{
+			get
+			{
+				return _ambientLightVector;
+			}
+		}
+		#endregion
+
 		#region Members
 		private bool _registered;				// cleared at shutdown, set at InitOpenGL.
 
@@ -66,7 +76,6 @@ namespace idTech4.Renderer
 		#region Public
 		public void Init()
 		{
-			return;
 			idConsole.WriteLine("------- Initializing renderSystem --------");
 
 			// clear all our internal state
@@ -82,30 +91,30 @@ namespace idTech4.Renderer
 			_demoGuiModel = new idGuiModel();
 
 			// TODO: R_InitTriSurfData();
-			
+
 			idE.ImageManager.Init();
-	
+
 			// TODO: idCinematic::InitCinematic( );
 
 			// build brightness translation tables
-		/*	R_SetColorMappings();
+			/*	R_SetColorMappings();
 
-	R_InitMaterials();
+		R_InitMaterials();
 
-	renderModelManager->Init();
+		renderModelManager->Init();
 
-	// set the identity space
-	identitySpace.modelMatrix[0*4+0] = 1.0f;
-	identitySpace.modelMatrix[1*4+1] = 1.0f;
-	identitySpace.modelMatrix[2*4+2] = 1.0f;
+		// set the identity space
+		identitySpace.modelMatrix[0*4+0] = 1.0f;
+		identitySpace.modelMatrix[1*4+1] = 1.0f;
+		identitySpace.modelMatrix[2*4+2] = 1.0f;
 
-	// determine which back end we will use
-	// ??? this is invalid here as there is not enough information to set it up correctly
-	SetBackEndRenderer();*/
+		// determine which back end we will use
+		// ??? this is invalid here as there is not enough information to set it up correctly
+		SetBackEndRenderer();*/
 
 			idConsole.WriteLine("renderSystem initialized.");
 			idConsole.WriteLine("--------------------------------------");
-	}
+		}
 		#endregion
 
 		#region Private
@@ -184,33 +193,125 @@ namespace idTech4.Renderer
 	/// <summary>
 	/// All state modified by the back end is separated from the front end state.
 	/// </summary>
-	internal struct BackendState
+	internal class BackendState
 	{
-		/*int					frameCount;		// used to track all images used in a frame
-	const viewDef_t	*	viewDef;
-	backEndCounters_t	pc;
+		public int FrameCount; // used to track all images used in a frame.
 
-	const viewEntity_t *currentSpace;		// for detecting when a matrix must change
-	idScreenRect		currentScissor;
-	// for scissor clipping, local inside renderView viewport
+		/*const viewDef_t	*	viewDef;
+		backEndCounters_t	pc;*/
 
-	viewLight_t *		vLight;
-	int					depthFunc;			// GLS_DEPTHFUNC_EQUAL, or GLS_DEPTHFUNC_LESS for translucent
-	float				lightTextureMatrix[16];	// only if lightStage->texture.hasMatrix
-	float				lightColor[4];		// evaluation of current light's color stage
+		/*const viewEntity_t *currentSpace;		// for detecting when a matrix must change
+		idScreenRect		currentScissor;*/
+		// for scissor clipping, local inside renderView viewport
 
-	float				lightScale;			// Every light color calaculation will be multiplied by this,
-											// which will guarantee that the result is < tr.backEndRendererMaxLight
-											// A card with high dynamic range will have this set to 1.0
-	float				overBright;			// The amount that all light interactions must be multiplied by
-											// with post processing to get the desired total light level.
-											// A high dynamic range card will have this set to 1.0.
+		/*viewLight_t *		vLight;
+		int					depthFunc;			// GLS_DEPTHFUNC_EQUAL, or GLS_DEPTHFUNC_LESS for translucent
+		float				lightTextureMatrix[16];	// only if lightStage->texture.hasMatrix
+		float				lightColor[4];		// evaluation of current light's color stage
 
-	bool				currentRenderCopied;	// true if any material has already referenced _currentRender
+		float				lightScale;			// Every light color calaculation will be multiplied by this,
+												// which will guarantee that the result is < tr.backEndRendererMaxLight
+												// A card with high dynamic range will have this set to 1.0
+		float				overBright;			// The amount that all light interactions must be multiplied by
+												// with post processing to get the desired total light level.
+												// A high dynamic range card will have this set to 1.0.
 
-	// our OpenGL state deltas
-	glstate_t			glState;
+		bool				currentRenderCopied;	// true if any material has already referenced _currentRender*/
 
-	int					c_copyFrameBuffer;*/
+		// our OpenGL state deltas.
+		public GLState GLState = new GLState();
+
+		//int					c_copyFrameBuffer;*/
+	}
+
+	internal class GLState
+	{
+		public TextureUnit[] TextureUnits = new TextureUnit[8];
+		public int CurrentTextureUnit;
+
+		public int FaceCulling;
+		public int StateBits;
+		public bool ForceState; // the next GL_State will ignore glStateBits and set everything.
+
+		public GLState()
+		{
+			for(int i = 0; i < TextureUnits.Length; i++)
+			{
+				TextureUnits[i] = new TextureUnit();
+			}
+		}
+	}
+
+	/// <summary>
+	/// Contains variables specific to the OpenGL configuration being run right now.
+	/// </summary>
+	internal class GLConfig
+	{
+		public readonly string Renderer;
+		public readonly string Vendor;
+		public readonly string Version;
+		public readonly string Extensions;
+		public readonly string WGLExtensions;
+
+		public readonly float VersionNumber;
+
+		public readonly int MaxTextureSize;
+		public readonly int MaxTextureUnits;
+		public readonly int MaxTextureCoordinates;
+		public readonly int MaxTextureImageUnits;
+		public readonly int MaxTextureAnisotropy;
+
+		public readonly int ColorBits;
+		public readonly int DepthBits;
+		public readonly int StencilBits;
+
+		public readonly bool MultitextureAvailable;
+		public readonly bool TextureCompressionAvailable;
+		public readonly bool AnisotropicAvailable;
+		public readonly bool TextureLodBiasAvailable;
+		public readonly bool TextureEnvAddAvailable;
+		public readonly bool TextureEnvCombinedAvailable;
+		public readonly bool RegisterCombinersAvailable;
+		public readonly bool CubeMapAvailable;
+		public readonly bool EnvDot3Available;
+		public readonly bool Texture3DAvailable;
+		public readonly bool SharedTexturePaletteAvailable;
+		public readonly bool ArbVertexBufferObjectAvailable;
+		public readonly bool ArbVertexProgramAvailable;
+		public readonly bool ArbFragmentProgramAvailable;
+		public readonly bool TwoSidedStencilAvailable;
+		public readonly bool TextureNonPowerOfTwoAvailable;
+		public readonly bool DepthBoundsTestAvailable;
+
+		// ati r200 extensions
+		public readonly bool AtiFragmentShaderAvailable;
+
+		// ati r300
+		public readonly bool AtiTwoSidedStencilAvailable;
+
+		public readonly int VideoWidth;
+		public readonly int VideoHeight;
+
+		public readonly int DisplayFrequency;
+
+		public readonly bool IsFullscreen;
+
+		public readonly bool AllowNV30Path;
+		public readonly bool AllowNV20Path;
+		public readonly bool AllowNV10Path;
+		public readonly bool AllowR200Path;
+		public readonly bool AllowArb2Path;
+
+		public readonly bool IsInitialized;
+	}
+
+	internal class TextureUnit
+	{
+		public int Current2DMap;
+		public int Current3DMap;
+		public int CurrentCubeMap;
+		public int TexEnv;
+
+		public TextureType Type;
 	}
 }

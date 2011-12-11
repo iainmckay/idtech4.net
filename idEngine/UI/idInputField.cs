@@ -308,19 +308,17 @@ namespace idTech4.UI
 
 				this.SelectionDirection = 0;
 			}
-			else if(Char.IsLetterOrDigit((char) e.KeyValue) == true)
+			else 
 			{
-				string key = Convert.ToChar(e.KeyValue).ToString().ToLower();
+				char c = idHelper.CharacterFromKeyCode(e.KeyCode, e.Modifiers);
 
-				if((e.Modifiers & Keys.Shift) == Keys.Shift)
+				if(c != '\0')
 				{
-					key = key.ToUpper();
+					_buffer.Insert(_selectionStart, c);
+
+					this.SelectionStart++;
+					this.SelectionDirection = 0;
 				}
-
-				_buffer.Insert(_selectionStart, key);
-
-				this.SelectionStart++;
-				this.SelectionDirection = 0;
 			}
 
 			// pressing tab exits the method above, so if we got here

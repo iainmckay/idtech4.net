@@ -43,7 +43,9 @@ namespace idTech4
 		{
 			get
 			{
-				return idE.Game.Time.ElapsedGameTime.Milliseconds;
+				// TODO
+				//return idE.Game.Time.ElapsedGameTime.Milliseconds;
+				return 0;
 			}
 		}
 		#endregion
@@ -600,10 +602,10 @@ namespace idTech4
 			}
 
 			// initialize the renderSystem data structures, but don't start OpenGL yet
-			/*renderSystem->Init();
+			idE.RenderSystem.Init();
 
 			// initialize string database right off so we can use it for loading messages
-			InitLanguageDict();
+			/*InitLanguageDict();
 
 			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04344" ) );
 
@@ -766,12 +768,12 @@ namespace idTech4
 
 			// TODO: renderSystem->GetCardCaps( oldCard, nv10or20 );
 
-			idConsole.WriteLine("Detected");
+			idConsole.WriteLine("Detected:");
 			idConsole.WriteLine("\t{0:2} GHz CPU", clockSpeed);
-			idConsole.WriteLine("\t{0}MB of System memory", physicalMemory);
-			idConsole.WriteLine("\t{0}MB of Video memory on {1}", videoMemory,  (oldCard == true) ? "a less than optimal video architecture" : "an optimal video architecture");
+			idConsole.WriteLine("\t{0}MB of system memory", physicalMemory);
+			idConsole.WriteLine("\t{0}MB of video memory on {1}", videoMemory,  (oldCard == true) ? "a less than optimal video architecture" : "an optimal video architecture");
 
-			if((clockSpeed >= 2.0f) && (videoMemory >= 512) && (physicalMemory >= 1024) && (oldCard == false))
+			if((clockSpeed >= 1.9f) && (videoMemory >= 512) && (physicalMemory >= 1024) && (oldCard == false))
 			{
 				idConsole.WriteLine("This system qualifies for Ultra quality!");
 				idE.CvarSystem.SetInteger("com_machineSpec", 3);
@@ -797,7 +799,7 @@ namespace idTech4
 
 		private void SetUltraHighQuality()
 		{
-			idE.CvarSystem.SetString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CvarFlags.Archive); // TODO: GL_LINEAR_MIPMAP_LINEAR
+			idE.CvarSystem.SetString("image_filter", "GL_LINEAR_MIPMAP_LINEAR", CvarFlags.Archive);
 			idE.CvarSystem.SetInteger("image_anisotropy", 1, CvarFlags.Archive);
 			idE.CvarSystem.SetInteger("image_lodbias", 0, CvarFlags.Archive);
 			idE.CvarSystem.SetInteger("image_forceDownSize", 0, CvarFlags.Archive);
@@ -1026,8 +1028,8 @@ namespace idTech4
 			idE.CvarSystem.SetString("sys_cpustring", capabilities);
 
 			idConsole.WriteLine(capabilities);
-			idConsole.WriteLine("{0} MB System Memory", idE.Platform.TotalPhysicalMemory);
-			idConsole.WriteLine("{0} MB Video Memory", idE.Platform.TotalVideoMemory);
+			idConsole.WriteLine("{0} MB system memory", idE.Platform.TotalPhysicalMemory);
+			idConsole.WriteLine("{0} MB video memory", idE.Platform.TotalVideoMemory);
 		}
 		#endregion
 

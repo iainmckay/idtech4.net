@@ -575,4 +575,26 @@ namespace idTech4
 		}
 		#endregion
 	}
+
+	public sealed class ArgCompletion_String : ArgCompletion
+	{
+		#region Members
+		private string[] _values;
+		#endregion
+
+		#region Constructor
+		public ArgCompletion_String(string[] values)
+			: base()
+		{
+			_values = values;
+		}
+		#endregion
+
+		#region ArgCompletion implementation
+		public override string[] Complete(idCmdArgs args)
+		{
+			return _values;
+		}
+		#endregion
+	}
 }

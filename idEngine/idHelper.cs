@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 
 namespace idTech4
@@ -123,6 +124,196 @@ namespace idTech4
 			}
 
 			return str;
+		}
+
+		public static char CharacterFromKeyCode(Keys key, Keys modifiers)
+		{
+			char c = '\0';
+
+			if((key >= Keys.D0) && (key <= Keys.Z))
+			{
+				c = (char) key;
+
+				if((modifiers & Keys.Shift) == 0)
+				{
+					c = Char.ToLower(c);
+				}
+				else
+				{
+					switch(key)
+					{
+						case Keys.D0:
+							return ')';
+						case Keys.D1:
+							return '!';
+						case Keys.D2:
+							return '"';
+						case Keys.D3:
+							return '£';
+						case Keys.D4:
+							return '$';
+						case Keys.D5:
+							return '%';
+						case Keys.D6:
+							return '^';
+						case Keys.D7:
+							return '&';
+						case Keys.D8:
+							return '*';
+						case Keys.D9:
+							return '(';
+					}
+				}
+			}
+			else if((modifiers & Keys.Shift) == 0)
+			{
+				switch(key)
+				{
+					case Keys.OemOpenBrackets:
+						return '[';
+					case Keys.OemCloseBrackets:
+						return ']';
+					case Keys.OemSemicolon:
+						return ';';
+					case Keys.OemQuotes:
+						return '#';
+					case Keys.Oemtilde:
+						return '\'';
+					case Keys.OemPeriod:
+						return '.';
+					case Keys.Oemcomma:
+						return ',';
+					case Keys.OemQuestion:
+						return '/';
+					case Keys.OemMinus:
+						return '-';
+					case Keys.Oemplus:
+						return '=';
+					case Keys.Oem5:
+						return '\\';
+					case Keys.Oem8:
+						return '`';
+
+					case Keys.NumPad0:
+						return '0';
+					case Keys.NumPad1:
+						return '1';
+					case Keys.NumPad2:
+						return '2';
+					case Keys.NumPad3:
+						return '3';
+					case Keys.NumPad4:
+						return '4';
+					case Keys.NumPad5:
+						return '5';
+					case Keys.NumPad6:
+						return '6';
+					case Keys.NumPad7:
+						return '7';
+					case Keys.NumPad8:
+						return '8';
+					case Keys.NumPad9:
+						return '9';
+				}
+			}
+			else
+			{
+				switch(key)
+				{
+					case Keys.OemOpenBrackets:
+						return '{';
+					case Keys.OemCloseBrackets:
+						return '}';
+					case Keys.OemSemicolon:
+						return ':';
+					case Keys.OemQuotes:
+						return '~';
+					case Keys.Oemtilde:
+						return '@';
+					case Keys.OemPeriod:
+						return '>';
+					case Keys.Oemcomma:
+						return '<';
+					case Keys.OemQuestion:
+						return '?';
+					case Keys.OemMinus:
+						return '_';
+					case Keys.Oemplus:
+						return '+';
+					case Keys.Oem5:
+						return '|';
+					case Keys.Oem8:
+						return '¬';
+				}
+			}
+
+			switch(key)
+			{
+				case Keys.Multiply:
+					return '*';
+				case Keys.Divide:
+					return '/';
+				case Keys.Add:
+					return '+';
+				case Keys.Subtract:
+					return '-';
+				case Keys.Decimal:
+					return '.';
+			}
+
+			return c;
+		}
+
+		public static int MakePowerOfTwo(int num)
+		{
+			int pot = 0;
+
+			for(pot = 1; pot < num; pot <<= 1)
+			{
+
+			}
+
+			return pot;
+		}
+
+		public static T[] Flatten<T>(T[,] source)
+		{
+			int d1 = source.GetUpperBound(0) + 1;
+			int d2 = source.GetUpperBound(1) + 1;
+
+			T[] flat = new T[d1 * d2];
+			
+			for(int y = 0; y < d1; y++)
+			{
+				for(int x = 0; x < d2; x++)
+				{
+					flat[(y * d2) + x] = source[y, x];
+				}
+			}
+
+			return flat;
+		}
+
+		public static T[] Flatten<T>(T[,,] source)
+		{
+			int d1 = source.GetUpperBound(0);
+			int d2 = source.GetUpperBound(1);
+			int d3 = source.GetUpperBound(2);
+
+			T[] flat = new T[d1 * d2 * d3];
+
+			for(int y = 0; y < d1; y++)
+			{
+				for(int x = 0; x < d2; x++)
+				{
+					for(int z = 0; z < d3; z++)
+					{
+						flat[((y * d1) * d3) + z] = source[y, x, z];
+					}
+				}
+			}
+
+			return flat;
 		}
 	}
 }

@@ -38,10 +38,7 @@ namespace idTech4
 		[STAThread]
         public static void Main(string[] args)
         {
-            using (Main game = new Main(args))
-            {
-                game.Run();
-            }
+			new Main().Run(args);
         }
     }
 #endif

@@ -1014,7 +1014,7 @@ namespace idTech4.Renderer
 
 			if(tokenLower == "fragmentPrograms")
 			{
-				// TODO: return GetExpressionConstant((float) glConfig.ARBFragmentProgramAvailable);
+				return GetExpressionConstant((idE.GLConfig.ArbFragmentProgramAvailable == true) ? 1.0f : 0.0f);
 			}
 			else if(tokenLower == "sound")
 			{

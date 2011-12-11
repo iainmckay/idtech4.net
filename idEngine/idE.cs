@@ -88,9 +88,13 @@ namespace idTech4
 		#endregion
 
 		#region Internal
-		internal static Main Game;
 		internal static SystemConsole SystemConsole = new SystemConsole();
 		internal static idAsyncNetwork AsyncNetwork = new idAsyncNetwork();
+
+		internal static BackendState Backend = new BackendState(); // TODO: refactor in to render library so we can support XNA more easily.
+		internal static GLConfig GLConfig = new GLConfig();
+
+		internal static bool Quit = false; // cheap flag to quit the main loop.
 		#endregion
 	}
 }

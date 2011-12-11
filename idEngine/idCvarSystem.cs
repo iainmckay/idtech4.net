@@ -183,6 +183,18 @@ namespace idTech4
 			return 0;
 		}
 
+		public float GetFloat(string name)
+		{
+			idInternalCvar intern = FindInternal(name);
+
+			if(intern != null)
+			{
+				return intern.ToFloat();
+			}
+
+			return 0;
+		}
+
 		public bool IsModified(string name)
 		{
 			idInternalCvar intern = FindInternal(name);

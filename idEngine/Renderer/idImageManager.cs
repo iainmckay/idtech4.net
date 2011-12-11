@@ -31,18 +31,64 @@ using System.Linq;
 using System.Text;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
+
+using Tao.OpenGl;
 
 namespace idTech4.Renderer
 {
 	public class idImageManager
 	{
 		#region Constants
+		public const int DefaultImageSize = 16;
+
+		public const int QuadraticWidth = 32;
+		public const int QuadraticHeight = 4;
+
+		public const int FalloffTextureSize = 64;
+
+		public const int FogSize = 128;
+		public const int FogEnterSize = 64;
+		public const float FogEnter = (FogEnterSize + 1.0f) / (FogEnterSize * 2);
+
 		public static Dictionary<string, ImageFilter> ImageFilters = new Dictionary<string, ImageFilter>();
 		#endregion
 
+		#region Properties
+		public int MaxTextureFilter
+		{
+			get
+			{
+				return _textureMaxFilter;
+			}
+		}
+
+		public int MinTextureFilter
+		{
+			get
+			{
+				return _textureMinFilter;
+			}
+		}
+
+		public float TextureAnisotropy
+		{
+			get
+			{
+				return _textureAnisotropy;
+			}
+		}
+
+		public float TextureLodBias
+		{
+			get
+			{
+				return _textureLODBias;
+			}
+		}
+		#endregion
+
 		#region Members
-		private List<idImage> _images = new List<idImage>();
+		private Dictionary<string, idImage> _images = new Dictionary<string, idImage>(StringComparer.OrdinalIgnoreCase);
 
 		private idImage _defaultImage;
 		private idImage _flatNormalMap;					// 128 128 255 in all pixels.
@@ -65,6 +111,12 @@ namespace idTech4.Renderer
 		private idImage _specularTableImage;			// 1D intensity texture with our specular function.
 		private idImage _specular2DTableImage;			// 2D intensity texture with our specular function with variable specularity.
 		private idImage _borderClampImage;				// white inside, black outside.
+
+		// default filter modes for images
+		private int _textureMinFilter;
+		private int _textureMaxFilter;
+		private float _textureAnisotropy;
+		private float _textureLODBias;
 		#endregion
 
 		#region Constructor
@@ -83,33 +135,34 @@ namespace idTech4.Renderer
 			ChangeTextureFilter();
 
 			// create built in images
-			/*defaultImage = ImageFromFunction("_default", R_DefaultImage);
-			whiteImage = ImageFromFunction("_white", R_WhiteImage);
-			blackImage = ImageFromFunction("_black", R_BlackImage);
-			borderClampImage = ImageFromFunction("_borderClamp", R_BorderClampImage);
-			flatNormalMap = ImageFromFunction("_flat", R_FlatNormalImage);
-			ambientNormalMap = ImageFromFunction("_ambient", R_AmbientNormalImage);
-			specularTableImage = ImageFromFunction("_specularTable", R_SpecularTableImage);
-			specular2DTableImage = ImageFromFunction("_specular2DTable", R_Specular2DTableImage);
-			rampImage = ImageFromFunction("_ramp", R_RampImage);
-			alphaRampImage = ImageFromFunction("_alphaRamp", R_RampImage);
-			alphaNotchImage = ImageFromFunction("_alphaNotch", R_AlphaNotchImage);
-			fogImage = ImageFromFunction("_fog", R_FogImage);
-			fogEnterImage = ImageFromFunction("_fogEnter", R_FogEnterImage);
-			normalCubeMapImage = ImageFromFunction("_normalCubeMap", makeNormalizeVectorCubeMap);
-			noFalloffImage = ImageFromFunction("_noFalloff", R_CreateNoFalloffImage);
-			ImageFromFunction("_quadratic", R_QuadraticImage);
+			_defaultImage = LoadFromCallback("_default", GenerateDefaultImage);
+			_whiteImage = LoadFromCallback("_white", GenerateWhiteImage);
+			_blackImage = LoadFromCallback("_black", GenerateBlackImage);
+			_borderClampImage = LoadFromCallback("_borderClamp", GenerateBorderClampImage);
+			_flatNormalMap = LoadFromCallback("_flat", GenerateFlatNormalImage);
+			_ambientNormalMap = LoadFromCallback("_ambient", GenerateAmbientNormalImage);
+			_specularTableImage = LoadFromCallback("_specularTable", GenerateSpecularTableImage);
+			_specular2DTableImage = LoadFromCallback("_specular2DTable", GenerateSpecular2DTableImage);
+			_rampImage = LoadFromCallback("_ramp", GenerateRampImage);
+			_alphaRampImage = LoadFromCallback("_alphaRamp", GenerateRampImage);
+			_alphaNotchImage = LoadFromCallback("_alphaNotch", GenerateAlphaNotchImage);
+			_fogImage = LoadFromCallback("_fog", GenerateFogImage);
+			_fogEnterImage = LoadFromCallback("_fogEnter", GenerateFogEnterImage);
+			// TODO: _normalCubeMapImage = LoadFromCallback("_normalCubeMap", makeNormalizeVectorCubeMap);
+			_noFalloffImage = LoadFromCallback("_noFalloff", GenerateNoFalloffImage);
+
+			LoadFromCallback("_quadratic", GenerateQuadraticImage);
 
 			// cinematicImage is used for cinematic drawing
 			// scratchImage is used for screen wipes/doublevision etc..
-			cinematicImage = ImageFromFunction("_cinematic", R_RGBA8Image);
-			scratchImage = ImageFromFunction("_scratch", R_RGBA8Image);
-			scratchImage2 = ImageFromFunction("_scratch2", R_RGBA8Image);
-			accumImage = ImageFromFunction("_accum", R_RGBA8Image);
-			scratchCubeMapImage = ImageFromFunction("_scratchCubeMap", makeNormalizeVectorCubeMap);
-			currentRenderImage = ImageFromFunction("_currentRender", R_RGBA8Image);
+			_cinematicImage = LoadFromCallback("_cinematic", GenerateRGBA8Image);
+			_scratchImage = LoadFromCallback("_scratch", GenerateRGBA8Image);
+			_scratchImage2 = LoadFromCallback("_scratch2", GenerateRGBA8Image);
+			_accumImage = LoadFromCallback("_accum", GenerateRGBA8Image);
+			// TODO: _scratchCubeMapImage = LoadFromCallback("_scratchCubeMap", makeNormalizeVectorCubeMap);
+			_currentRenderImage = LoadFromCallback("_currentRender", GenerateRGBA8Image);
 
-			cmdSystem->AddCommand("reloadImages", R_ReloadImages_f, CMD_FL_RENDERER, "reloads images");
+			/*cmdSystem->AddCommand("reloadImages", R_ReloadImages_f, CMD_FL_RENDERER, "reloads images");
 			cmdSystem->AddCommand("listImages", R_ListImages_f, CMD_FL_RENDERER, "lists images");
 			cmdSystem->AddCommand("combineCubeImages", R_CombineCubeImages_f, CMD_FL_RENDERER, "combines six images for roq compression");*/
 
@@ -132,74 +185,569 @@ namespace idTech4.Renderer
 			{
 				idConsole.Warning("bad r_textureFilter: '{0}'", str);
 			}
-			/*
+
+			// set the values for future images
+			_textureMinFilter = ImageFilters[str].Minimize;
+			_textureMaxFilter = ImageFilters[str].Maximize;
+			_textureAnisotropy = idE.CvarSystem.GetFloat("image_anisotropy");
+
+			if(_textureAnisotropy < 1)
+			{
+				_textureAnisotropy = 1;
+			}
+			else if(_textureAnisotropy > idE.GLConfig.MaxTextureAnisotropy)
+			{
+				_textureAnisotropy = idE.GLConfig.MaxTextureAnisotropy;
+			}
+
+			_textureLODBias = idE.CvarSystem.GetFloat("image_lodbias");
+		}
+
+		/// <summary>
+		/// Images that are procedurally generated are allways specified
+		/// with a callback which must work at any time, allowing the render
+		/// system to be completely regenerated if needed.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public idImage LoadFromCallback(string name, ImageLoadCallback generator)
+		{
+			if(name == null)
+			{
+				throw new ArgumentNullException("name");
+			}
+
+			// strip any .tga file extensions from anywhere in the _name
+			name = name.Replace(".tga", "");
+			name = name.Replace("\\", "/");
+
+			// see if the image already exists
+			if(_images.ContainsKey(name) == true)
+			{
+				return _images[name];
+			}
+
+			// create the image and issue the callback
+			idImage image = CreateImage(name);
+			image.Generator = generator;
+
+			if(idE.CvarSystem.GetBool("image_preload") == true)
+			{
+				// check for precompressed, load is from the front end
+				image.ReferencedOutsideLevelLoad = true;
+				image.ActuallyLoadImage(true, false);
+			}
+
+			return image;
+		}
+		#endregion
+
+		#region Static
+		public static void GenerateDefaultImage(idImage image)
+		{
+			image.MakeDefault();
+		}
+
+		public static void GenerateWhiteImage(idImage image)
+		{
+			// solid white texture.
+			byte[] data = new byte[DefaultImageSize * DefaultImageSize * 4];
+
+			for(int i = 0; i < data.Length; i++)
+			{
+				data[i] = 255;
+			}
+
+			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
+		}
+
+		public static void GenerateBlackImage(idImage image)
+		{
+			// solid black texture.
+			byte[] data = new byte[DefaultImageSize * DefaultImageSize * 4];
+			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
+		}
+
+		public static void GenerateBorderClampImage(idImage image)
+		{
+			// the size determines how far away from the edge the blocks start fading
+			int borderClampSize = 32;
+
+			byte[, ,] data = new byte[borderClampSize, borderClampSize, 4];
+
+			// solid white texture with a single pixel black border
+			for(int y = 0; y < borderClampSize; y++)
+			{
+				for(int x = 0; x < borderClampSize; x++)
+				{
+					data[y, x, 0] = 255;
+					data[y, x, 1] = 255;
+					data[y, x, 2] = 255;
+					data[y, x, 3] = 255;
+				}
+			}
+
+			for(int i = 0; i < borderClampSize; i++)
+			{
+				data[i, 0, 0] =
+					data[i, 0, 1] =
+					data[i, 0, 2] =
+					data[i, 0, 3] =
+
+				data[i, borderClampSize - 1, 0] =
+					data[i, borderClampSize - 1, 1] =
+					data[i, borderClampSize - 1, 2] =
+					data[i, borderClampSize - 1, 3] =
+
+				data[0, i, 0] =
+					data[0, i, 1] =
+					data[0, i, 2] =
+					data[0, i, 3] =
+
+				data[borderClampSize - 1, i, 0] =
+					data[borderClampSize - 1, i, 1] =
+					data[borderClampSize - 1, i, 2] =
+					data[borderClampSize - 1, i, 3] = 0;
+			}
+
+			image.Generate(idHelper.Flatten<byte>(data), borderClampSize, borderClampSize, TextureFilter.Linear, false, TextureRepeat.ClampToBorder, TextureDepth.Default);
+
+			if(idE.GLConfig.IsInitialized == false)
+			{
+				// can't call qglTexParameterfv yet
+				return;
+			}
+
+			// explicit zero border
+			float[] color = new float[4];
+
+			Gl.glTexParameterfv(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_BORDER_COLOR, color);
+		}
 
 
-				if ( i == 6 ) {
-					common->Warning( "bad r_textureFilter: '%s'", string);
-					// default to LINEAR_MIPMAP_NEAREST
-					i = 0;
+		public static void GenerateFlatNormalImage(idImage image)
+		{
+			byte[, ,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
+
+			int red = (idE.CvarSystem.GetInt("image_useNormalCompression") == 1) ? 0 : 3;
+			int alpha = (red == 0) ? 3 : 0;
+
+			// flat normal map for default bunp mapping.
+			for(int i = 0; i < 4; i++)
+			{
+				data[0, i, red] = 128;
+				data[0, i, 1] = 128;
+				data[0, i, 2] = 255;
+				data[0, i, alpha] = 255;
+			}
+
+			image.Generate(idHelper.Flatten<byte>(data), 2, 2, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.HighQuality);
+		}
+
+		public static void GenerateAmbientNormalImage(idImage image) 
+		{
+			byte[,,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
+
+			int red = (idE.CvarSystem.GetInt("image_useNormalCompression") == 1) ? 0 : 3;
+			int alpha = (red == 0) ? 3 : 0;
+
+			Vector4 ambientLightVector = idE.RenderSystem.AmbientLightVector;
+
+			// flat normal map for default bunp mapping
+			for(int i = 0; i < 4; i++)
+			{
+				data[0, i, red] = (byte) (255 * ambientLightVector.X);
+				data[0, i, 1] = (byte) (255 * ambientLightVector.Y);
+				data[0, i, 2] = (byte) (255 * ambientLightVector.Z);
+				data[0, i, alpha] = 255;
+			}
+
+			byte[,] pics = new byte[6, 4];
+
+			for(int i = 0; i < 6; i++)
+			{
+				//pics[i] = data[0, 0];
+			}
+
+			// this must be a cube map for fragment programs to simply substitute for the normalization cube map
+			idConsole.WriteLine("TODO: image->GenerateCubeImage( pics, 2, TF_DEFAULT, true, TD_HIGH_QUALITY );");
+		}
+
+		public static void GenerateRGBA8Image(idImage image) 
+		{
+			byte[,,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
+
+			data[0, 0, 0] = 16;
+			data[0, 0, 1] = 32;
+			data[0, 0, 2] = 48;
+			data[0, 0, 3] = 96;
+
+			image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
+		}
+
+		public static void GenerateRGB8Image(idImage image) 
+		{
+			byte[,,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
+
+			data[0, 0, 0] = 16;
+			data[0, 0, 1] = 32;
+			data[0, 0, 2] = 48;
+			data[0, 0, 3] = 255;
+
+			image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
+		}
+
+		public static void GenerateAlphaNotchImage(idImage image) 
+		{
+			byte[,] data = new byte[2, 4];
+
+			// this is used for alpha test clip planes
+			data[0, 0] = data[0, 1] = data[0, 2] = 255;
+			data[0, 3] = 0;
+			data[1, 0] = data[1, 1] = data[1, 2] = 255;
+			data[1, 3] = 255;
+
+			image.Generate(idHelper.Flatten<byte>(data), 2, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+		}
+
+		/// <summary>
+		/// Creates a 0-255 ramp image.
+		/// </summary>
+		/// <param name="image"></param>
+		public static void GenerateRampImage(idImage image)
+		{
+			byte[,] data = new byte[256, 4];
+
+			for(int x = 0; x < 256; x++)
+			{
+				data[x, 0] = 
+					data[x, 1] =
+					data[x, 2] = 
+					data[x, 3] = (byte) x;
+			}
+
+			image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+		}
+
+		/// <summary>
+		/// Creates a ramp that matches our fudged specular calculation.
+		/// </summary>
+		/// <param name="image"></param>
+		public static void GenerateSpecularTableImage(idImage image)
+		{
+			byte[,] data = new byte[256, 4];
+
+			for(int x = 0; x < 256; x++)
+			{
+				float f = x / 255.0f;
+
+				// this is the behavior of the hacked up fragment programs that
+				// can't really do a power function.
+				f = (f - 0.75f) * 4;
+
+				if(f < 0)
+				{
+					f = 0;
 				}
 
-				// set the values for future images
-				textureMinFilter = textureFilters[i].minimize;
-				textureMaxFilter = textureFilters[i].maximize;
-				textureAnisotropy = image_anisotropy.GetFloat();
-				if ( textureAnisotropy < 1 ) {
-					textureAnisotropy = 1;
-				} else if ( textureAnisotropy > glConfig.maxTextureAnisotropy ) {
-					textureAnisotropy = glConfig.maxTextureAnisotropy;
+				f = f * f;
+
+				int b = (int) (f * 255);
+
+				data[x, 0] =
+					data[x, 1] =
+					data[x, 2] =
+					data[x, 3] = (byte) b;
+			}
+
+			image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+		}
+
+		/// <summary>
+		/// Create a 2D table that calculates (reflection dot , specularity).
+		/// </summary>
+		/// <param name="image"></param>
+		public static void GenerateSpecular2DTableImage(idImage image)
+		{
+			byte[,,] data = new byte[256, 256, 4];
+
+			for(int x = 0; x < 256; x++)
+			{
+				float f = x / 255.0f;
+
+				for(int y = 0; y < 256; y++)
+				{
+					int b = (int) (Math.Pow(f, y) * 255.0f);
+
+					if(b == 0)
+					{
+						// as soon as b equals zero all remaining values in this column are going to be zero
+						// we early out to avoid pow() underflows
+						break;
+					}
+
+					data[y, x, 0] = 
+					data[y, x, 1] = 
+					data[y, x, 2] = 
+					data[y, x, 3] = (byte) b;
 				}
-				textureLODBias = image_lodbias.GetFloat();
+			}
 
-				// change all the existing mipmap texture objects with default filtering
+			image.Generate(idHelper.Flatten<byte>(data), 256, 256, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+		}
 
-				for ( i = 0 ; i < images.Num() ; i++ ) {
-					unsigned int	texEnum = GL_TEXTURE_2D;
+		/// <summary>
+		/// Creates a 0-255 ramp image.
+		/// </summary>
+		/// <param name="image"></param>
+		public static void GenerateAlphaRampImage(idImage image)
+		{
+			byte[,] data = new byte[256, 4];
 
-					glt = images[ i ];
+			for(int x = 0; x < 256; x++)
+			{
+				data[x, 0] =
+					data[x, 1] =
+					data[x, 2] = 255;
+				data[x, 3] = (byte) x;
+			}
 
-					switch( glt->type ) {
-					case TT_2D:
-						texEnum = GL_TEXTURE_2D;
-						break;
-					case TT_3D:
-						texEnum = GL_TEXTURE_3D;
-						break;
-					case TT_CUBIC:
-						texEnum = GL_TEXTURE_CUBE_MAP_EXT;
-						break;
+			image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+		}
+
+		private static float FogFraction(float viewHeight, float targetHeight)
+		{
+			float total = Math.Abs(targetHeight - viewHeight);
+			float rampRange = 8;
+			float deepRange = -30;
+
+			// only ranges that cross the ramp range are special.
+			if((targetHeight > 0) && (viewHeight > 0))
+			{
+				return 0.0f;
+			}
+			else if((targetHeight < -rampRange) && (viewHeight < -rampRange))
+			{
+				return 1.0f;
+			}
+
+			float above = 0;
+
+			if(targetHeight > 0)
+			{
+				above = targetHeight;
+			}
+			else if(viewHeight > 0)
+			{
+				above = viewHeight;
+			}
+
+			float rampTop, rampBottom;
+
+			if(viewHeight > targetHeight)
+			{
+				rampTop = viewHeight;
+				rampBottom = targetHeight;
+			}
+			else
+			{
+				rampTop = targetHeight;
+				rampBottom = viewHeight;
+			}
+
+			if(rampTop > 0)
+			{
+				rampTop = 0;
+			}
+
+			if(rampBottom < -rampRange)
+			{
+				rampBottom = -rampRange;
+			}
+
+			float rampSlope = 1.0f / rampRange;
+
+			if(total == 0)
+			{
+				return -viewHeight * rampSlope;
+			}
+
+			float ramp = (1.0f - (rampTop * rampSlope + rampBottom * rampSlope) * -0.5f) * (rampTop - rampBottom);
+			float frac = (total - above - ramp) / total;
+
+			// after it gets moderately deep, always use full value.
+			float deepest = (viewHeight < targetHeight) ? viewHeight : targetHeight;
+			float deepFrac = deepest / deepRange;
+
+			if(deepFrac >= 1.0f)
+			{
+				return 1.0f;
+			}
+
+			return (frac * (1.0f - deepFrac) + deepFrac);
+		}
+
+		/// <summary>
+		/// Modulate the fog alpha density based on the distance of the start and end points to the terminator plane.
+		/// </summary>
+		/// <param name="image"></param>
+		public static void GenerateFogEnterImage(idImage image)
+		{
+			byte[,,] data = new byte[FogEnterSize, FogEnterSize, 4];
+
+			for(int x = 0; x < FogEnterSize; x++)
+			{
+				for(int y = 0; y < FogEnterSize; y++)
+				{
+					float d = FogFraction(x - (FogEnterSize / 2), y - (FogEnterSize / 2));
+					int b = (byte) (d * 255);
+
+					if(b <= 0)
+					{
+						b = 0;
+					}
+					else if(b > 255)
+					{
+						b = 255;
 					}
 
-					// make sure we don't start a background load
-					if ( glt->texnum == idImage::TEXTURE_NOT_LOADED ) {
-						continue;
-					}
-					glt->Bind();
-					if ( glt->filter == TF_DEFAULT ) {
-						qglTexParameterf(texEnum, GL_TEXTURE_MIN_FILTER, globalImages->textureMinFilter );
-						qglTexParameterf(texEnum, GL_TEXTURE_MAG_FILTER, globalImages->textureMaxFilter );
-					}
-					if ( glConfig.anisotropicAvailable ) {
-						qglTexParameterf(texEnum, GL_TEXTURE_MAX_ANISOTROPY_EXT, globalImages->textureAnisotropy );
-					}	
-					if ( glConfig.textureLODBiasAvailable ) {
-						qglTexParameterf(texEnum, GL_TEXTURE_LOD_BIAS_EXT, globalImages->textureLODBias );
-					}
+					data[y, x, 0] =
+						data[y, x, 1] =
+						data[y, x, 2] = 255;
+					data[y, x, 3] = (byte) b;
 				}
-			}*/
+			}
+
+			// if mipmapped, acutely viewed surfaces fade wrong.
+			image.Generate(idHelper.Flatten<byte>(data), FogEnterSize, FogEnterSize, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+		}
+
+		/// <summary>
+		/// We calculate distance correctly in two planes, but the third will still be projection based.
+		/// </summary>
+		/// <param name="image"></param>
+		public static void GenerateFogImage(idImage image)
+		{
+			byte[,,] data = new byte[FogSize, FogSize, 4];
+			float[] step = new float[256];
+			float remaining = 1.0f;
+
+			for(int i = 0; i < 256; i++)
+			{
+				step[i] = remaining;
+				remaining *= 0.982f;
+			}
+
+			for(int x = 0; x < FogSize; x++)
+			{
+				for(int y = 0; y < FogSize; y++)
+				{
+					float d = (float) Math.Sqrt((x - (FogSize / 2)) * (x - (FogSize / 2))
+						+ (y - (FogSize / 2)) * (y - (FogSize / 2)));
+					d /= FogSize / 2 - 1;
+				
+					int b = (byte) (d * 255);
+
+					if(b <= 0)
+					{
+						b = 0;
+					}
+					else if(b > 255)
+					{
+						b = 255;
+					}
+
+					b = (byte) (255 * (1.0f - step[b]));
+
+					if((x == 0) || (x == (FogSize - 1)) || (y == 0) || (y == (FogSize - 1)))
+					{
+						b = 255; // avoid clamping issues
+					}
+
+					data[y, x, 0] =
+						data[y, x, 1] =
+						data[y, x, 2] = 255;
+					data[y, x, 3] = (byte) b;
+				}
+			}
+
+			image.Generate(idHelper.Flatten<byte>(data), FogSize, FogSize, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+		}
+
+		public static void GenerateQuadraticImage(idImage image)
+		{
+			byte[,,] data = new byte[QuadraticHeight, QuadraticWidth, 4];
+
+			for(int x = 0; x < QuadraticWidth; x++)
+			{
+				for(int y = 0; y < QuadraticHeight; y++)
+				{
+					float d = x - ((QuadraticWidth / 2) - 0.5f);
+					d = Math.Abs(d);
+					d -= 0.5f;
+					d /= QuadraticWidth / 2;
+
+					d = 1.0f - d;
+					d = d * d;
+
+					int b = (byte) (d * 255);
+
+					if(b <= 0)
+					{
+						b = 0;
+					}
+					else if(b > 255)
+					{
+						b = 255;
+					}
+
+					data[y, x, 0] =
+						data[y, x, 1] =
+						data[y, x, 2] = (byte) b;
+					data[y, x, 3] = 255;
+				}
+			}
+
+			image.Generate(idHelper.Flatten<byte>(data), QuadraticWidth, QuadraticHeight, TextureFilter.Default, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+		}
+
+		/// <summary>
+		/// This is a solid white texture that is zero clamped.
+		/// </summary>
+		/// <param name="image"></param>
+		public static void GenerateNoFalloffImage(idImage image)
+		{
+			byte[,,] data = new byte[16, FalloffTextureSize, 4];
+
+			for(int x = 1; x < (FalloffTextureSize - 1); x++)
+			{
+				for(int y = 1; y < 15; y++)
+				{
+					data[y, x, 0] = 255;
+					data[y, x, 1] = 255;
+					data[y, x, 2] = 255;
+					data[y, x, 3] = 255;
+				}
+			}
+
+			image.Generate(idHelper.Flatten<byte>(data), FalloffTextureSize, 16, TextureFilter.Default, false, TextureRepeat.ClampToZero, TextureDepth.HighQuality);
 		}
 		#endregion
 
 		#region Private
 		private void InitFilters()
 		{
-
+			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", Gl.GL_LINEAR_MIPMAP_NEAREST, Gl.GL_LINEAR));
+			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", Gl.GL_LINEAR_MIPMAP_LINEAR, Gl.GL_LINEAR));
+			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", Gl.GL_NEAREST, Gl.GL_NEAREST));
+			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", Gl.GL_LINEAR, Gl.GL_LINEAR));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", Gl.GL_NEAREST_MIPMAP_NEAREST, Gl.GL_NEAREST));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", Gl.GL_NEAREST_MIPMAP_LINEAR, Gl.GL_NEAREST));
 		}
 
 		private void InitCvars()
 		{
-			// TODO: new idCvar("image_filter", ImageFilters[1], "changes texture filtering on mipmapped images", ImageFilters.Keys.ToArray(), CvarFlags.Renderer | CvarFlags.Archive /* TODO: ,idCmdSystem::ArgCompletion_String<imageFilter> */);
+			new idCvar("image_filter", "GL_LINEAR_MIPMAP_LINEAR", "changes texture filtering on mipmapped images", ImageFilters.Keys.ToArray(), new ArgCompletion_String(ImageFilters.Keys.ToArray()), CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_anisotropy", "1", "set the maximum texture anisotropy if available", CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_lodbias", "0", "change lod bias on mipmapped images", CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_downSize", "0", "controls texture downsampling", CvarFlags.Renderer | CvarFlags.Archive);
@@ -227,17 +775,29 @@ namespace idTech4.Renderer
 			new idCvar("image_ignoreHighQuality", "0", "ignore high quality setting on materials", CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_downSizeLimit", "256", "controls diffuse map downsample limit", CvarFlags.Renderer | CvarFlags.Archive);
 		}
+
+		private idImage CreateImage(string name)
+		{
+			idImage image = new idImage(name);
+			_images.Add(name, image);
+
+			return image;
+		}
 		#endregion
 		#endregion
 	}
 
+	public delegate void ImageLoadCallback(idImage image);
+
 	public struct ImageFilter
 	{
-		public TextureFilter Minimize;
-		public TextureFilter Maximize;
+		public string Label;
+		public int Minimize;
+		public int Maximize;
 
-		public ImageFilter(TextureFilter min, TextureFilter max)
+		public ImageFilter(string label, int min, int max)
 		{
+			this.Label = label;
 			this.Minimize = min;
 			this.Maximize = max;
 		}
