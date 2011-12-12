@@ -99,8 +99,9 @@
     <Compile Include="idCmdArgs.cs" />
     <Compile Include="idCvar.cs" />
     <Compile Include="idCvarSystem.cs" />
-    <Compile Include="idDecl.cs" />
-    <Compile Include="idDeclManager.cs" />
+    <Compile Include="Sound\idSoundEmitter.cs" />
+    <Compile Include="Text\idDecl.cs" />
+    <Compile Include="Text\idDeclManager.cs" />
     <Compile Include="idHelper.cs" />
     <Compile Include="idCmdSystem.cs" />
     <Compile Include="idConsole.cs" />

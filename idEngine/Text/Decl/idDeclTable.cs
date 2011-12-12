@@ -52,6 +52,59 @@ namespace idTech4.Text.Decl
 		}
 		#endregion
 
+		#region Methods
+		public float Lookup(float index)
+		{
+			int iIndex;
+			float iFrac;
+			int domain = _values.Length - 1;
+
+			if(domain <= 1)
+			{
+				return 1.0f;
+			}
+
+			if(_clamp == true)
+			{
+				index *= (domain - 1);
+
+				if(index >= (domain - 1))
+				{
+					return _values[domain - 1];
+				}
+				else if(index <= 0)
+				{
+					return _values[0];
+				}
+
+				iIndex = (int) index;
+				iFrac = index - iIndex;
+			}
+			else
+			{
+				index *= domain;
+
+				if(index < 0)
+				{
+					index += (domain * (float) Math.Ceiling(-index / domain));
+				}
+
+				iIndex = (int) Math.Floor(index);
+				iFrac = index - iIndex;
+				iIndex = iIndex % domain;
+			}
+
+			if(_snap == false)
+			{
+				// we duplicated the 0 index at the end at creation time, so we
+				// don't need to worry about wrapping the filter.
+				return (_values[iIndex] * (1.0f - iFrac) + _values[iIndex + 1] * iFrac);
+			}
+
+			return _values[iIndex];
+		}
+		#endregion
+
 		#region idDecl implementation
 		protected override void ClearData()
 		{

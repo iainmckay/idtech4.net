@@ -34,6 +34,7 @@ using System.Reflection;
 using idTech4.IO;
 using idTech4.Net;
 using idTech4.Renderer;
+using idTech4.Text;
 
 namespace idTech4
 {
@@ -69,6 +70,9 @@ namespace idTech4
 		public const int MaxCommandStringLength = 2048;
 		public const int MaxWarningList = 256;				
 		public const int MaxUserCommandRelay = 10;
+		public const int MaxEntityShaderParameters = 12;
+		public const int MaxExpressionRegisters = 4096;
+		public const int MaxGlobalShaderParameters = 12;
 
 		public const string MasterServerAddress = "dnet.ua-corp.com";
 		public const int MasterServerPort = 27650;

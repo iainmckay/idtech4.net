@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -73,9 +74,7 @@ namespace idTech4
 
 		private static string _warningCaption;
 		private static List<string> _warningList = new List<string>();
-
-		private static bool _logFileFailed;
-
+		
 		private static StringBuilder _redirectBuffer = null;
 		private static EventHandler<RedirectBufferEventArgs> _redirectFlushHandler;
 
@@ -84,6 +83,10 @@ namespace idTech4
 		private static int _screenConsoleDisplay; // bottom of console displays this line.
 
 		private static StringBuilder _screenConsoleBuffer = new StringBuilder(0, TextSize);
+
+		private static StreamWriter _logFile;
+		private static bool _logFileFailed;
+		private static bool _recursingLogFileOpen;
 		#endregion
 
 		#region Methods
@@ -227,42 +230,47 @@ namespace idTech4
 			// print to script debugger server
 			// DebuggerServerPrint( msg );
 
-			// TODO
 			// logFile
-			/*if ( com_logFile.GetInteger() && !logFileFailed && fileSystem->IsInitialized() ) {
-				static bool recursing;
+			if((idE.CvarSystem.GetInt("com_logfile") != 0) && (_logFileFailed == false) && (idE.FileSystem.IsInitialized == true))
+			{
+				if((_logFile == null) && (_recursingLogFileOpen == false))
+				{
+					string fileName = "qconsole.log";
 
-				if ( !logFile && !recursing ) {
-					struct tm *newtime;
-					ID_TIME_T aclock;
-					const char *fileName = com_logFileName.GetString()[0] ? com_logFileName.GetString() : "qconsole.log";
-
-					// fileSystem->OpenFileWrite can cause recursive prints into here
-					recursing = true;
-
-					logFile = fileSystem->OpenFileWrite( fileName );
-					if ( !logFile ) {
-						logFileFailed = true;
-						FatalError( "failed to open log file '%s'\n", fileName );
+					if(idE.CvarSystem.GetString("com_logFileName") != string.Empty)
+					{
+						fileName = idE.CvarSystem.GetString("com_logFileName");
 					}
 
-					recursing = false;
+					// fileSystem->OpenFileWrite can cause recursive prints into here.
+					_recursingLogFileOpen = true;
 
-					if ( com_logFile.GetInteger() > 1 ) {
+					Stream s = idE.FileSystem.OpenFileWrite(fileName);
+
+					if(s == null)
+					{
+						_logFileFailed = true;
+						FatalError("failed to open log file '{0}'", fileName);
+					}
+
+					_recursingLogFileOpen = false;
+					_logFile = new StreamWriter(s);
+
+					if(idE.CvarSystem.GetInt("com_logFile") > 1)
+					{
 						// force it to not buffer so we get valid
 						// data even if we are crashing
-						logFile->ForceFlush();
+						_logFile.AutoFlush = true;
 					}
 
-					time( &aclock );
-					newtime = localtime( &aclock );
-					Printf( "log file '%s' opened on %s\n", fileName, asctime( newtime ) );
+					WriteLine("log file '{0}' opened on {1}", fileName, DateTime.Now.ToString());
 				}
-				if ( logFile ) {
-					logFile->Write( msg, strlen( msg ) );
-					logFile->Flush();	// ForceFlush doesn't help a whole lot
+
+				if(_logFile != null)
+				{
+					_logFile.Write(msg);
 				}
-			}*/
+			}
 
 			// TODO
 			// don't trigger any updates if we are in the process of doing a fatal error
@@ -275,27 +283,6 @@ namespace idTech4
 				// let session redraw the animated loading screen if necessary
 				session->PacifierUpdate();
 			}*/
-
-
-			// TODO
-			/*#ifdef _WIN32
-
-				if ( com_outputMsg ) {
-					if ( com_msgID == -1 ) {
-						com_msgID = ::RegisterWindowMessage( DMAP_MSGID );
-						if ( !FindEditor() ) {
-							com_outputMsg = false;
-						} else {
-							Sys_ShowWindow( false );
-						}
-					}
-					if ( com_hwndMsg ) {
-						ATOM atom = ::GlobalAddAtom( msg );
-						::PostMessage( com_hwndMsg, com_msgID, 0, static_cast<LPARAM>(atom) );
-					}
-				}
-
-			#endif*/
 		}
 
 		public static void PrintWarnings()

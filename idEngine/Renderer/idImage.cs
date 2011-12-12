@@ -392,7 +392,7 @@ namespace idTech4.Renderer
 			else
 			{
 				idConsole.WriteLine("TODO: DONT SUPPORT MIMAP RIGHT NOW");
-				// TODO:
+				// TODO: resample
 				// resample down as needed (FIXME: this doesn't seem like it resamples anymore!)
 				// scaledBuffer = R_ResampleTexture( pic, width, height, width >>= 1, height >>= 1 );
 				/*scaledBuffer = R_MipMap( pic, width, height, preserveBorder );

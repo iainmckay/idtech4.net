@@ -85,6 +85,14 @@ namespace idTech4.Renderer
 				return _textureLODBias;
 			}
 		}
+
+		public idImage CurrentRenderImage
+		{
+			get
+			{
+				return _currentRenderImage;
+			}
+		}
 		#endregion
 
 		#region Members

@@ -33,7 +33,7 @@ using System.Runtime.InteropServices;
 
 using idTech4.Text;
 
-namespace idTech4
+namespace idTech4.Text
 {
 	public abstract class idDecl
 	{
@@ -332,19 +332,20 @@ namespace idTech4
 
 		public void MakeDefault()
 		{
-			idE.DeclManager.MediaPrint("DEFAULTED");
-
 			_state = DeclState.Defaulted;
+
+			idE.DeclManager.MediaPrint("DEFAULTED");
 
 			string defaultText = GetDefaultDefinition();
 
 			// a parse error inside a DefaultDefinition() string could
 			// cause an infinite loop, but normal default definitions could
 			// still reference other default definitions, so we can't
-			// just dump out on the first recursion
+			// just dump out on the first recursion.
 			if(++_recursionLevel > 100)
 			{
 				idConsole.FatalError("make default: bad defaultDefinition(): {0}", defaultText);
+				return;
 			}
 
 			// always free data before parsing

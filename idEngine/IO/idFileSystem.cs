@@ -161,6 +161,16 @@ namespace idTech4.IO
 	/// </remarks>
 	public sealed class idFileSystem
 	{
+		#region Properties
+		public bool IsInitialized
+		{
+			get
+			{
+				return (_searchPaths.Count > 0);
+			}
+		}
+		#endregion
+
 		#region Members
 		private List<SearchPath> _searchPaths = new List<SearchPath>();
 		private string _gameFolder; // this will be a single name without separators.
@@ -613,6 +623,53 @@ namespace idTech4.IO
 			return null;
 		}
 
+		public Stream OpenFileWrite(string relativePath)
+		{
+			return OpenFileWrite(relativePath, "fs_savepath");
+		}
+
+		public Stream OpenFileWrite(string relativePath, string basePath)
+		{
+			if(this.IsInitialized == false)
+			{
+				idConsole.FatalError("Filesystem call made without initialization");
+			}
+
+			string path = idE.CvarSystem.GetString(basePath);
+
+			if(path == string.Empty)
+			{
+				path = idE.CvarSystem.GetString("fs_savepath");
+			}
+
+			string osPath = CreatePath(path, _gameFolder, relativePath);
+
+			if(idE.CvarSystem.GetInt("fs_debug") > 0)
+			{
+				idConsole.WriteLine("idFileSystem::OpenFileWrite: {0}", osPath);
+			}
+
+			idConsole.DeveloperWriteLine("writing to: {0}", osPath);
+
+			try
+			{
+				Stream s = OpenOSFile(osPath, FileMode.Create, FileAccess.Write);
+
+				if(s == null)
+				{
+					return null;
+				}
+
+				return s;
+			}
+			catch(IOException x)
+			{
+				idConsole.WriteLine("Could not open '{0}' because: {1}", osPath, x.Message);
+			}
+
+			return null;
+		}
+
 		public string ReadFile(string relativePath)
 		{
 			DateTime tmp;
@@ -704,7 +761,7 @@ namespace idTech4.IO
 			{
 				content = reader.ReadToEnd();
 			}
-						
+
 			// TODO
 			// if we are journalling and it is a config file, write it to the journal file
 			/*if(isConfig && eventLoop && eventLoop->JournalLevel() == 1)
@@ -1318,6 +1375,66 @@ namespace idTech4.IO
 			}*/
 		}
 
+
+		private Stream OpenOSFile(string name, FileMode mode, FileAccess access)
+		{
+			string caseSensitiveName;
+			return OpenOSFile(name, mode, access, out caseSensitiveName);
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="mode"></param>
+		/// <param name="caseSensitiveName">Set to case sensitive file name as found on disc (fs_caseSensitiveOS only).</param>
+		/// <returns></returns>
+		private Stream OpenOSFile(string name, FileMode mode, FileAccess access, out string caseSensitiveName)
+		{
+			Stream s = File.Open(name, mode, access, FileShare.Read);
+			caseSensitiveName = string.Empty;
+			
+			if((s == null) && (idE.CvarSystem.GetBool("fs_caseSensitiveOS") == true))
+			{
+				idConsole.WriteLine("UH OH, should really handle fs_caseSensitiveOS");
+
+				return null;
+
+				/*fpath = fileName;
+				fpath.StripFilename();
+				fpath.StripTrailing( PATHSEPERATOR_CHAR );
+				if ( ListOSFiles( fpath, NULL, list ) == -1 ) {
+					return NULL;
+				}
+		
+				for ( i = 0; i < list.Num(); i++ ) {
+					entry = fpath + PATHSEPERATOR_CHAR + list[i];
+					if ( !entry.Icmp( fileName ) ) {
+						fp = fopen( entry, mode );
+						if ( fp ) {
+							if ( caseSensitiveName ) {
+								*caseSensitiveName = entry;
+								caseSensitiveName->StripPath();
+							}
+							if ( fs_debug.GetInteger() ) {
+								common->Printf( "idFileSystemLocal::OpenFileRead: changed %s to %s\n", fileName, entry.c_str() );
+							}
+							break;
+						} else {
+							// not supposed to happen if ListOSFiles is doing it's job correctly
+							common->Warning( "idFileSystemLocal::OpenFileRead: fs_caseSensitiveOS 1 could not open %s", entry.c_str() );
+						}
+					}
+				}*/
+			}
+
+			caseSensitiveName = Path.GetFileName(name);
+
+			return s;
+		}
+		#endregion
+
+		#region Command handlers
 		private void Cmd_Dir(object sender, CommandEventArgs e)
 		{
 			if((e.Args.Length < 2) || (e.Args.Length > 3))

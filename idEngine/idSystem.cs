@@ -913,7 +913,7 @@ namespace idTech4
 			// TODO: timeEndPeriod( 1 );
 			// TODO: Sys_ShutdownInput();
 
-			//idE.Game.Exit();
+			idE.Quit = true;
 		}
 
 		private void SysInit()

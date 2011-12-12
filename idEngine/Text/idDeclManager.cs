@@ -36,7 +36,7 @@ using idTech4.Renderer;
 using idTech4.Text;
 using idTech4.Text.Decl;
 
-namespace idTech4
+namespace idTech4.Text
 {
 	/// <summary>
 	/// All "small text" data types, like materials, sound shaders, fx files,
@@ -271,6 +271,33 @@ namespace idTech4
 			return DeclType.Unknown;
 		}
 
+		public idDecl DeclByIndex(DeclType type, int index)
+		{
+			return DeclByIndex(type, index, true);
+		}
+
+		public idDecl DeclByIndex(DeclType type, int index, bool forceParse)
+		{
+			if(_declTypes.ContainsKey(type) == false)
+			{
+				idConsole.FatalError("idDeclManager.DeclByIndex: bad type: {0}", type.ToString().ToLower());
+			}
+
+			if((index <= 0) || (index >= _declsByType[type].Count))
+			{
+				idConsole.Error("idDeclManager.DeclByIndex: out of range");
+			}
+
+			idDecl decl = _declsByType[type][index];
+
+			if((forceParse == true) && (decl.State == DeclState.Unparsed))
+			{
+				decl.ParseLocal();
+			}
+
+			return decl;
+		}
+
 		/// <summary>
 		/// This is just used to nicely indent media caching prints.
 		/// </summary>
@@ -339,6 +366,16 @@ namespace idTech4
 			}
 
 			return decl;
+		}
+
+		public idMaterial FindMaterial(string name)
+		{
+			return FindMaterial(name, true);
+		}
+
+		public idMaterial FindMaterial(string name, bool makeDefault)
+		{
+			return (FindType(DeclType.Material, name, makeDefault) as idMaterial);
 		}
 		#endregion
 
