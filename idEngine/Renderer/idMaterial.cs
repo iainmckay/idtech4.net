@@ -201,7 +201,7 @@ namespace idTech4.Renderer
 
 			_contentFlags = ContentFlags.Solid;
 			_surfaceFlags = SurfaceFlags.None;
-			_materialFlags = MaterialFlags.Defaulted;
+			_materialFlags = 0;
 
 			_sort = (float) MaterialSort.Bad;
 			_coverage = MaterialCoverage.Bad;
@@ -214,11 +214,11 @@ namespace idTech4.Renderer
 			_expressionRegisters = null;
 			_constantRegisters = null;
 			_stages = null;
-			
+
 			_stageCount = 0;
 			_ambientStageCount = 0;
 			_registerCount = 0;
-			
+
 			/*editorImage = NULL;
 			lightFalloffImage = NULL;
 			shouldCreateBackSides = false;
@@ -257,7 +257,7 @@ namespace idTech4.Renderer
 			int s = 0;
 
 			_registerCount = PredefinedRegisterCount; // leave space for the parms to be copied in.
-			
+
 			for(int i = 0; i < _registerCount; i++)
 			{
 				_parsingData.RegisterIsTemporary[i] = true; // they aren't constants that can be folded.
@@ -424,7 +424,7 @@ namespace idTech4.Renderer
 				// lightFallofImage <imageprogram>
 				// specifies the image to use for the third axis of projected
 				// light volumes.
-				else if(tokenLower == "lightFallOffImage")
+				else if(tokenLower == "lightfalloffimage")
 				{
 					idConsole.Warning("TODO: idMaterial keyword lightFallOffImage");
 					/* TODO: lightFallOffImage
@@ -1177,9 +1177,7 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "map")
 				{
-					idConsole.WriteLine("TODO: material map keyword");
-					/*str = R_ParsePastImageProgram( src );
-					idStr::Copynz( imageName, str, sizeof( imageName ) );*/
+					imageName = ParsePastImageProgram(lexer);
 				}
 				else if(tokenLower == "remoterendermap")
 				{
@@ -1260,20 +1258,13 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "cubemap")
 				{
-					idConsole.Warning("TODO: material cubeMap keyword");
-
-					// TODO
-					/*str = R_ParsePastImageProgram( src );
-					idStr::Copynz( imageName, str, sizeof( imageName ) );
-					cubeMap = CF_NATIVE;*/
+					imageName = ParsePastImageProgram(lexer);
+					cubeMap = CubeFiles.Native;
 				}
 				else if(tokenLower == "cameracubemap")
 				{
-					idConsole.Warning("TODO: material cameraCubeMap keyword");
-
-					/*str = R_ParsePastImageProgram( src );
-					idStr::Copynz( imageName, str, sizeof( imageName ) );
-					cubeMap = CF_CAMERA;*/
+					imageName = ParsePastImageProgram(lexer);
+					cubeMap = CubeFiles.Camera;
 				}
 				else if(tokenLower == "ignorealphatest")
 				{
@@ -1890,13 +1881,296 @@ namespace idTech4.Renderer
 			}
 
 			// TODO
-			/*str = R_ParsePastImageProgram( src );
+			string image = ParsePastImageProgram(lexer);
 
+			// TODO:: fragment program images.
+			/*
 			newStage->fragmentProgramImages[unit] = 
 				globalImages->ImageFromFile( str, tf, allowPicmip, trp, td, cubeMap );
 			if ( !newStage->fragmentProgramImages[unit] ) {
 				newStage->fragmentProgramImages[unit] = globalImages->defaultImage;
 			}*/
+		}
+
+		private string ParsePastImageProgram(idLexer lexer)
+		{
+			StringBuilder b = new StringBuilder();
+			int width = 0, height = 0;
+			TextureDepth depth = TextureDepth.Default;
+			byte[] data = new byte[] {};
+
+			ParseImageProgram(b, lexer, ref data, ref width, ref height, null, ref depth, true);
+			
+			return b.ToString();
+		}
+
+		private bool ParseImageProgram(StringBuilder programName, idLexer lexer, ref byte[] data, ref int width, ref int height, Nullable<DateTime> timeStamp, ref TextureDepth depth, bool parseOnly)
+		{
+			idToken token = lexer.ReadToken();
+			AppendToken(programName, token);
+
+			string tokenLower = token.ToString().ToLower();
+			float scale;
+
+			if(tokenLower == "heightmap")
+			{
+				MatchAndAppendToken(programName, lexer, "(");
+
+				if(ParseImageProgram(programName, lexer, ref data, ref width, ref height, timeStamp, ref depth, parseOnly) == false)
+				{
+					return false;
+				}
+
+				MatchAndAppendToken(programName, lexer, ",");
+
+				token = lexer.ReadToken();
+				scale = token.ToFloat();
+
+				AppendToken(programName, token);
+
+				// process it
+				idConsole.WriteLine("TODO: ParseImageProgram - heightmap");
+				/*if ( pic ) {
+					R_HeightmapToNormalMap( *pic, *width, *height, scale );
+					if ( depth ) {
+						*depth = TD_BUMP;
+					}
+				}*/
+
+				MatchAndAppendToken(programName, lexer, ")");
+				return true;
+			}
+			else if(tokenLower == "addnormals")
+			{
+				idConsole.WriteLine("TODO: ParseImageProgram - addnormals");
+				return false;
+				byte[] data2 = null;
+				int width2 = 0, height2 = 0;
+
+				MatchAndAppendToken(programName, lexer, "(");
+
+				if(ParseImageProgram(programName, lexer, ref data, ref width, ref height, timeStamp, ref depth, parseOnly) == false)
+				{
+					return false;
+				}
+
+				MatchAndAppendToken(programName, lexer, ",");
+
+				/*if(ParseImageProgram(programName, lexer, (data != null) ? ref data2 : null, ref width2, ref height2, timeStamp, ref depth, parseOnly) == false)
+				{
+					/*if ( pic ) {
+						R_StaticFree( *pic );
+						*pic = NULL;
+					}*/
+				/*
+					return false;
+				}*/
+
+				// process it
+				idConsole.WriteLine("TODO: ParseImageProgram - addnormals");
+
+				/*if ( pic ) {
+					R_AddNormalMaps( *pic, *width, *height, pic2, width2, height2 );
+					R_StaticFree( pic2 );
+					if ( depth ) {
+						*depth = TD_BUMP;
+					}
+				}*/
+
+				MatchAndAppendToken(programName, lexer, ")");
+				return true;
+			}
+
+			/*if ( !token.Icmp( "smoothnormals" ) ) {
+				MatchAndAppendToken( src, "(" );
+
+				if ( !R_ParseImageProgram_r( src, pic, width, height, timestamps, depth ) ) {
+					return false;
+				}
+
+				if ( pic ) {
+					R_SmoothNormalMap( *pic, *width, *height );
+					if ( depth ) {
+						*depth = TD_BUMP;
+					}
+				}
+
+				MatchAndAppendToken( src, ")" );
+				return true;
+			}
+
+			if ( !token.Icmp( "add" ) ) {
+				byte	*pic2;
+				int		width2, height2;
+
+				MatchAndAppendToken( src, "(" );
+
+				if ( !R_ParseImageProgram_r( src, pic, width, height, timestamps, depth ) ) {
+					return false;
+				}
+
+				MatchAndAppendToken( src, "," );
+
+				if ( !R_ParseImageProgram_r( src, pic ? &pic2 : NULL, &width2, &height2, timestamps, depth ) ) {
+					if ( pic ) {
+						R_StaticFree( *pic );
+						*pic = NULL;
+					}
+					return false;
+				}
+		
+				// process it
+				if ( pic ) {
+					R_ImageAdd( *pic, *width, *height, pic2, width2, height2 );
+					R_StaticFree( pic2 );
+				}
+
+				MatchAndAppendToken( src, ")" );
+				return true;
+			}
+
+			if ( !token.Icmp( "scale" ) ) {
+				float	scale[4];
+				int		i;
+
+				MatchAndAppendToken( src, "(" );
+
+				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
+
+				for ( i = 0 ; i < 4 ; i++ ) {
+					MatchAndAppendToken( src, "," );
+					src.ReadToken( &token );
+					AppendToken( token );
+					scale[i] = token.GetFloatValue();
+				}
+
+				// process it
+				if ( pic ) {
+					R_ImageScale( *pic, *width, *height, scale );
+				}
+
+				MatchAndAppendToken( src, ")" );
+				return true;
+			}
+
+			if ( !token.Icmp( "invertAlpha" ) ) {
+				MatchAndAppendToken( src, "(" );
+
+				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
+
+				// process it
+				if ( pic ) {
+					R_InvertAlpha( *pic, *width, *height );
+				}
+
+				MatchAndAppendToken( src, ")" );
+				return true;
+			}
+
+			if ( !token.Icmp( "invertColor" ) ) {
+				MatchAndAppendToken( src, "(" );
+
+				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
+
+				// process it
+				if ( pic ) {
+					R_InvertColor( *pic, *width, *height );
+				}
+
+				MatchAndAppendToken( src, ")" );
+				return true;
+			}
+
+			if ( !token.Icmp( "makeIntensity" ) ) {
+				int		i;
+
+				MatchAndAppendToken( src, "(" );
+
+				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
+
+				// copy red to green, blue, and alpha
+				if ( pic ) {
+					int		c;
+					c = *width * *height * 4;
+					for ( i = 0 ; i < c ; i+=4 ) {
+						(*pic)[i+1] = 
+						(*pic)[i+2] = 
+						(*pic)[i+3] = (*pic)[i];
+					}
+				}
+
+				MatchAndAppendToken( src, ")" );
+				return true;
+			}
+
+			if ( !token.Icmp( "makeAlpha" ) ) {
+				int		i;
+
+				MatchAndAppendToken( src, "(" );
+
+				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
+
+				// average RGB into alpha, then set RGB to white
+				if ( pic ) {
+					int		c;
+					c = *width * *height * 4;
+					for ( i = 0 ; i < c ; i+=4 ) {
+						(*pic)[i+3] = ( (*pic)[i+0] + (*pic)[i+1] + (*pic)[i+2] ) / 3;
+						(*pic)[i+0] = 
+						(*pic)[i+1] = 
+						(*pic)[i+2] = 255;
+					}
+				}
+
+				MatchAndAppendToken( src, ")" );
+				return true;
+			}*/
+
+			// if we are just parsing instead of loading or checking, don't do the R_LoadImage.
+			if(parseOnly == true)
+			{
+				return true;
+			}
+
+			// load it as an image
+			idConsole.WriteLine("ParseImageProgram - load image");
+
+			return false;
+			/*R_LoadImage( token.c_str(), pic, width, height, &timestamp, true );
+
+			if ( timestamp == -1 ) {
+				return false;
+			}
+
+			// add this to the timestamp
+			if ( timestamps ) {
+				if ( timestamp > *timestamps ) {
+					*timestamps = timestamp;
+				}
+			}*/
+
+			return true;
+		}
+
+		private void AppendToken(StringBuilder b, idToken token)
+		{
+			if(b.Length > 0)
+			{
+				b.Append(' ');
+			}
+
+			b.Append(token.ToFloat());
+		}
+
+		private void MatchAndAppendToken(StringBuilder b, idLexer lexer, string match)
+		{
+			if(lexer.ExpectTokenString(match) == false)
+			{
+				return;
+			}
+
+			// a matched token won't need a leading space.
+			b.Append(match);
 		}
 
 		/// <summary>
@@ -2115,7 +2389,7 @@ namespace idTech4.Renderer
 			_constantRegisters = new float[_registerCount];
 			float[] shaderParms = new float[idE.MaxEntityShaderParameters];
 			View viewDef = new View();
-			viewDef.RenderView.ShaderParameters = new float[idE.MaxGlobalShaderParameters]; 
+			viewDef.RenderView.ShaderParameters = new float[idE.MaxGlobalShaderParameters];
 
 			EvaluateRegisters(ref _constantRegisters, shaderParms, viewDef, null);
 		}
@@ -2134,19 +2408,19 @@ namespace idTech4.Renderer
 			}
 
 			// copy the local and global parameters.
-			registers[(int)  ExpressionRegister.Time] = view.FloatTime;
-			registers[(int)  ExpressionRegister.Parm0] = shaderParms[0];
-			registers[(int)  ExpressionRegister.Parm1] = shaderParms[1];
-			registers[(int)  ExpressionRegister.Parm2] = shaderParms[2];
-			registers[(int)  ExpressionRegister.Parm3] = shaderParms[3];
-			registers[(int)  ExpressionRegister.Parm4] = shaderParms[4];
-			registers[(int)  ExpressionRegister.Parm5] = shaderParms[5];
-			registers[(int)  ExpressionRegister.Parm6] = shaderParms[6];
-			registers[(int)  ExpressionRegister.Parm7] = shaderParms[7];
-			registers[(int)  ExpressionRegister.Parm8] = shaderParms[8];
-			registers[(int)  ExpressionRegister.Parm9] = shaderParms[9];
-			registers[(int)  ExpressionRegister.Parm10] = shaderParms[10];
-			registers[(int)  ExpressionRegister.Parm11] = shaderParms[11];
+			registers[(int) ExpressionRegister.Time] = view.FloatTime;
+			registers[(int) ExpressionRegister.Parm0] = shaderParms[0];
+			registers[(int) ExpressionRegister.Parm1] = shaderParms[1];
+			registers[(int) ExpressionRegister.Parm2] = shaderParms[2];
+			registers[(int) ExpressionRegister.Parm3] = shaderParms[3];
+			registers[(int) ExpressionRegister.Parm4] = shaderParms[4];
+			registers[(int) ExpressionRegister.Parm5] = shaderParms[5];
+			registers[(int) ExpressionRegister.Parm6] = shaderParms[6];
+			registers[(int) ExpressionRegister.Parm7] = shaderParms[7];
+			registers[(int) ExpressionRegister.Parm8] = shaderParms[8];
+			registers[(int) ExpressionRegister.Parm9] = shaderParms[9];
+			registers[(int) ExpressionRegister.Parm10] = shaderParms[10];
+			registers[(int) ExpressionRegister.Parm11] = shaderParms[11];
 
 			registers[(int) ExpressionRegister.Global0] = view.RenderView.ShaderParameters[0];
 			registers[(int) ExpressionRegister.Global1] = view.RenderView.ShaderParameters[1];
@@ -2261,7 +2535,7 @@ namespace idTech4.Renderer
 			/*if ( cvarSystem->GetCVarInteger( "fs_copyFiles" ) ) {
 				GetEditorImage();
 			}*/
-			
+
 			// count non-lit stages.
 			_ambientStageCount = 0;
 			_stageCount = _parsingData.ShaderStages.Count;
@@ -2306,8 +2580,8 @@ namespace idTech4.Renderer
 				{
 					// we have an interaction draw.
 					_coverage = MaterialCoverage.Opaque;
-				} 
-				else 
+				}
+				else
 				{
 					ShaderStates drawStateBits = _parsingData.ShaderStages[0].DrawStateBits;
 
@@ -2337,7 +2611,7 @@ namespace idTech4.Renderer
 				// mark the contents as opaque.
 				_contentFlags |= ContentFlags.Opaque;
 			}
-			
+
 			// the sorts can make reasonable defaults.
 			if(_sort == (float) MaterialSort.Bad)
 			{
@@ -2408,8 +2682,8 @@ namespace idTech4.Renderer
 				{
 					// translucent surfaces can extend past the exactly marked depth buffer.
 					stage.DrawStateBits |= ShaderStates.DepthFunctionLess | ShaderStates.Depth;
-				} 
-				else 
+				}
+				else
 				{
 					// opaque and perforated surfaces must exactly match the depth buffer,
 					// which gets alpha test correct.
@@ -2424,8 +2698,8 @@ namespace idTech4.Renderer
 			{
 				// explicitly flaged in material definition
 				_allowOverlays = true;
-			} 
-			else 
+			}
+			else
 			{
 				if(this.IsDrawn == false)
 				{
@@ -2661,7 +2935,7 @@ namespace idTech4.Renderer
 
 		public bool IgnoreAlphaTest;				// this stage should act as translucent, even if the surface is alpha tested.
 		public float PrivatePolygonOffset;			// a per-stage polygon offset.
-			
+
 		public Nullable<NewShaderStage> NewStage;	// vertex / fragment program based stage.
 	}
 

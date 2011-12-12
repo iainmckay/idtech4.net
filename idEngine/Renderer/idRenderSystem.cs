@@ -102,16 +102,16 @@ namespace idTech4.Renderer
 			InitMaterials();
 
 
-		/*renderModelManager->Init();
+			/*renderModelManager->Init();
 
-		// set the identity space
-		identitySpace.modelMatrix[0*4+0] = 1.0f;
-		identitySpace.modelMatrix[1*4+1] = 1.0f;
-		identitySpace.modelMatrix[2*4+2] = 1.0f;
+			// set the identity space
+			identitySpace.modelMatrix[0*4+0] = 1.0f;
+			identitySpace.modelMatrix[1*4+1] = 1.0f;
+			identitySpace.modelMatrix[2*4+2] = 1.0f;
 
-		// determine which back end we will use
-		// ??? this is invalid here as there is not enough information to set it up correctly
-		SetBackEndRenderer();*/
+			// determine which back end we will use
+			// ??? this is invalid here as there is not enough information to set it up correctly
+			SetBackEndRenderer();*/
 
 			idConsole.WriteLine("renderSystem initialized.");
 			idConsole.WriteLine("--------------------------------------");

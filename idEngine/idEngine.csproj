@@ -100,6 +100,7 @@
     <Compile Include="idCvar.cs" />
     <Compile Include="idCvarSystem.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />
+    <Compile Include="Text\Decl\idDeclSkin.cs" />
     <Compile Include="Text\idDecl.cs" />
     <Compile Include="Text\idDeclManager.cs" />
     <Compile Include="idHelper.cs" />

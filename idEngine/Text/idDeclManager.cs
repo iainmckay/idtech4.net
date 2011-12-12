@@ -124,8 +124,8 @@ namespace idTech4.Text
 			// decls used throughout the engine
 			RegisterDeclType("table", DeclType.Table, new idDeclAllocator<idDeclTable>());
 			RegisterDeclType("material", DeclType.Material, new idDeclAllocator<idMaterial>());
-			/*RegisterDeclType("skin", DeclType.Skin, new idDeclAllocator<idDeclSkin>());
-			RegisterDeclType("sound", DeclType.Sound, new idDeclAllocator<idSoundShader>());
+			RegisterDeclType("skin", DeclType.Skin, new idDeclAllocator<idDeclSkin>());
+			/*RegisterDeclType("sound", DeclType.Sound, new idDeclAllocator<idSoundShader>());
 
 			RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntityDef>());
 			RegisterDeclType("mapDef", DeclType.MapDef, new idDeclAllocator<idDeclEntityDef>());
@@ -137,8 +137,8 @@ namespace idTech4.Text
 			/*RegisterDeclType("video", DeclType.Video, new idDeclAllocator<idDeclVideo>());
 			RegisterDeclType("audio", DeclType.Audio, new idDeclAllocator<idDeclAudio>());*/
 
-			//RegisterDeclFolder("materials", ".mtr", DeclType.Material);
-			//RegisterDeclFolder("skins", ".skin", DeclType.Skin);
+			RegisterDeclFolder("materials", ".mtr", DeclType.Material);
+			RegisterDeclFolder("skins", ".skin", DeclType.Skin);
 			//RegisterDeclFolder("sound", ".sndshd", DeclType.Sound);
 
 			// add console commands
