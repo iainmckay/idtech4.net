@@ -96,10 +96,14 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="idBounds.cs" />
     <Compile Include="idCmdArgs.cs" />
     <Compile Include="idCvar.cs" />
     <Compile Include="idCvarSystem.cs" />
+    <Compile Include="idMath.cs" />
+    <Compile Include="idRotation.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />
+    <Compile Include="Text\Decl\idDeclParticle.cs" />
     <Compile Include="Text\Decl\idDeclSkin.cs" />
     <Compile Include="Text\idDecl.cs" />
     <Compile Include="Text\idDeclManager.cs" />

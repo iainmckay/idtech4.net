@@ -60,7 +60,7 @@ namespace idTech4.Text.Decl
 		#endregion
 
 		#region Methods
-		public string GetassociatedModel(int index)
+		public string GetAssociatedModel(int index)
 		{
 			if((index >= 0) && (index < _associatedModels.Length))
 			{
@@ -104,6 +104,7 @@ namespace idTech4.Text.Decl
 		public override bool Parse(string text)
 		{
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
+			lexer.LoadMemory(text, this.FileName, this.LineNumber);
 			lexer.SkipUntilString("{");
 
 			List<SkinMapping> mappings = new List<SkinMapping>();

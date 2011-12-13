@@ -32,56 +32,6 @@ using System.Text;
 
 namespace idTech4.Text
 {
-	public enum TokenType
-	{
-		Unknown = 0,
-		String= 1,
-		Literal = 2,
-		Number = 3,
-		Name = 4,
-		Punctuation = 5
-	}
-
-	public enum TokenSubType
-	{
-		Unknown = 0,
-
-		/// <summary>Integer.</summary>
-		Integer = 0x00001,
-		/// <summary>Decimal number.</summary>
-		Decimal = 0x00002,
-		/// <summary>Hexadecimal number.</summary>
-		Hex = 0x00004,
-		/// <summary>Octal number.</summary>
-		Octal = 0x00008,
-		/// <summary>Binary number.</summary>
-		Binary = 0x00010,
-		/// <summary>Long int.</summary>
-		Long = 0x00020,
-		/// <summary>Unsigned int.</summary>
-		Unsigned = 0x00040,
-		/// <summary>Floating point number.</summary>
-		Float = 0x00080,
-		/// <summary>Float.</summary>
-		SinglePrecision = 0x00100,
-		/// <summary>Double.</summary>
-		DoublePrecision = 0x00200,
-		/// <summary>Long double.</summary>
-		ExtendedPrecision = 0x00400,
-		/// <summary>Infinite 1.#INF</summary>
-		Infinite = 0x00800,
-		/// <summary>Indefinite 1.#IND</summary>
-		Indefinite = 0x01000,
-		/// <summary>NaN.</summary>
-		NaN = 0x02000,
-		/// <summary>IP Address.</summary>
-		IPAddress = 0x04000,
-		/// <summary>IP Port.</summary>
-		IPPort = 0x08000,
-		/// <summary>Set if int value and float value are valid.</summary>
-		ValuesValid = 0x10000
-	}
-
 	/// <summary>
 	/// idToken is a token read from a file or memory with idLexer or idParser.
 	/// </summary>
@@ -174,6 +124,17 @@ namespace idTech4.Text
 				return _value.Length;
 			}
 		}
+
+		public bool IsNumeric
+		{
+			get
+			{
+				// FIXME: don't think this'll hand all cases of being numeric.
+				float tmp;
+
+				return float.TryParse(_value.ToString(), out tmp);
+			}
+		}
 		#endregion
 
 		#region Internal
@@ -236,6 +197,11 @@ namespace idTech4.Text
 
 		#region Methods
 		#region Public
+		public void StripQuotes()
+		{
+			_value = _value.Replace("\"", "");
+		}
+
 		public int ToInt32()
 		{
 			return (int) _intValue;
@@ -304,5 +270,55 @@ namespace idTech4.Text
 		}
 		#endregion
 		#endregion
+	}
+
+	public enum TokenType
+	{
+		Unknown = 0,
+		String = 1,
+		Literal = 2,
+		Number = 3,
+		Name = 4,
+		Punctuation = 5
+	}
+
+	public enum TokenSubType
+	{
+		Unknown = 0,
+
+		/// <summary>Integer.</summary>
+		Integer = 0x00001,
+		/// <summary>Decimal number.</summary>
+		Decimal = 0x00002,
+		/// <summary>Hexadecimal number.</summary>
+		Hex = 0x00004,
+		/// <summary>Octal number.</summary>
+		Octal = 0x00008,
+		/// <summary>Binary number.</summary>
+		Binary = 0x00010,
+		/// <summary>Long int.</summary>
+		Long = 0x00020,
+		/// <summary>Unsigned int.</summary>
+		Unsigned = 0x00040,
+		/// <summary>Floating point number.</summary>
+		Float = 0x00080,
+		/// <summary>Float.</summary>
+		SinglePrecision = 0x00100,
+		/// <summary>Double.</summary>
+		DoublePrecision = 0x00200,
+		/// <summary>Long double.</summary>
+		ExtendedPrecision = 0x00400,
+		/// <summary>Infinite 1.#INF</summary>
+		Infinite = 0x00800,
+		/// <summary>Indefinite 1.#IND</summary>
+		Indefinite = 0x01000,
+		/// <summary>NaN.</summary>
+		NaN = 0x02000,
+		/// <summary>IP Address.</summary>
+		IPAddress = 0x04000,
+		/// <summary>IP Port.</summary>
+		IPPort = 0x08000,
+		/// <summary>Set if int value and float value are valid.</summary>
+		ValuesValid = 0x10000
 	}
 }
