@@ -143,7 +143,7 @@ namespace idTech4
 					switch(key)
 					{
 						case Keys.D0:
-							return ')';
+							return ')';   
 						case Keys.D1:
 							return '!';
 						case Keys.D2:
@@ -259,6 +259,8 @@ namespace idTech4
 					return '-';
 				case Keys.Decimal:
 					return '.';
+				case Keys.Space:
+					return ' ';
 			}
 
 			return c;

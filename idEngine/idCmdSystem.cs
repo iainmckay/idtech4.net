@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -93,7 +94,7 @@ namespace idTech4
 			AddCommand("listSoundCmds", "lists sound commands", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListSoundCommands));
 			AddCommand("listGameCmds", "lists game commands", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListGameCommands));
 			AddCommand("listToolCmds", "lists tool commands", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListToolCommands));
-			// TODO: AddCommand("exec", "executes a config file", CommandFlags.System, new EventHandler<CommandCompletionEventArgs>(ArgCompletion_ConfigName));
+			AddCommand("exec", "executes a config file", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Exec)/* TODO: , new EventHandler<CommandCompletionEventArgs>(ArgCompletion_ConfigName)*/);
 			AddCommand("vstr", "inserts the current value of a cvar as command text", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_VStr));
 			AddCommand("echo", "prints text", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Echo));
 			AddCommand("parse", "prints tokenized string", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Parse));
@@ -356,6 +357,35 @@ namespace idTech4
 		private void Cmd_ListToolCommands(object sender, CommandEventArgs e)
 		{
 			ListByFlags(e.Args, CommandFlags.Tool);
+		}
+
+		private void Cmd_Exec(object sender, CommandEventArgs e)
+		{
+			if(e.Args.Length != 2)
+			{
+				idConsole.WriteLine("exec <filename> : execute a script file");
+			}
+			else
+			{
+				string fileName = e.Args.Get(1);
+
+				if(Path.HasExtension(fileName) == false)
+				{
+					fileName += ".cfg";
+				}
+
+				string content = idE.FileSystem.ReadFile(fileName);
+
+				if(content == null)
+				{
+					idConsole.WriteLine("couldn't exec {0}", e.Args.Get(1));
+				}
+				else
+				{
+					idConsole.WriteLine("execing {0}", e.Args.Get(1));
+					idE.CmdSystem.BufferCommandText(Execute.Insert, content);
+				}
+			}
 		}
 
 		/// <summary>
