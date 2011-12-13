@@ -92,6 +92,7 @@ namespace idTech4
 		#endregion
 
 		#region Internal
+		internal static idGameConsole Console = new idGameConsole();
 		internal static SystemConsole SystemConsole = new SystemConsole();
 		internal static idAsyncNetwork AsyncNetwork = new idAsyncNetwork();
 

@@ -60,15 +60,6 @@ namespace idTech4
 
 	public sealed class idConsole
 	{
-		#region Constants
-		private const int LineWidth = 78;
-		private const int TextSize = 0x30000;
-		private const int TotalLines = TextSize / LineWidth;
-
-		private const int Repeat = 100;
-		private const int FirstRepeat = 200;
-		#endregion
-
 		#region Members
 		private static Queue<string> _inputHistory = new Queue<string>();
 
@@ -77,12 +68,6 @@ namespace idTech4
 		
 		private static StringBuilder _redirectBuffer = null;
 		private static EventHandler<RedirectBufferEventArgs> _redirectFlushHandler;
-
-		private static int _screenConsoleCurrentLine; // line where next message will be printed.
-		private static int _screenConsoleCurrentPosition; // offset in current line for next print.
-		private static int _screenConsoleDisplay; // bottom of console displays this line.
-
-		private static StringBuilder _screenConsoleBuffer = new StringBuilder(0, TextSize);
 
 		private static StreamWriter _logFile;
 		private static bool _logFileFailed;
@@ -224,7 +209,7 @@ namespace idTech4
 			}
 
 			// echo to console buffer
-			// TODO: AddToScreenBuffer(msg);
+			AddToScreenBuffer(msg);
 			AddToDedicatedBuffer(idHelper.RemoveColors(msg));
 
 			// print to script debugger server
@@ -268,7 +253,7 @@ namespace idTech4
 
 				if(_logFile != null)
 				{
-					_logFile.Write(msg);
+					_logFile.Write(idHelper.RemoveColors(msg));
 				}
 			}
 
@@ -341,118 +326,8 @@ namespace idTech4
 
 		private static void AddToScreenBuffer(string msg)
 		{
-			int color = idHelper.ColorIndex(idColor.Cyan);
-			int y = 0, c = 0, l = 0;
-
-			for(int i = 0; i < msg.Length; i++)
-			{
-				c = msg[i];
-
-				if(idHelper.IsColor(msg, i) == true)
-				{
-					if(msg[i + 1] == (int) idColor.Default)
-					{
-						color = idHelper.ColorIndex(idColor.Cyan);
-					}
-					else
-					{
-						color = idHelper.ColorIndex((idColor) msg[i + 1]);
-					}
-
-					i += 1;
-					continue;
-				}
-
-				y = _screenConsoleCurrentLine % TotalLines;
-
-				// if we are about to print a new word, check to see
-				// if we should wrap to the new line
-				if((c > ' ') && (_screenConsoleCurrentPosition == 0) || (_screenConsoleBuffer[y * LineWidth + _screenConsoleCurrentPosition - 1] <= ' '))
-				{
-					// count word length
-					for(l = 0; l < LineWidth; l++)
-					{
-						if(msg[l] <= ' ')
-						{
-							break;
-						}
-					}
-
-					// word wrap
-					if((l != LineWidth) && ((_screenConsoleCurrentPosition + l) >= LineWidth))
-					{
-						ScreenLineFeed();
-					}
-				}
-
-				switch(c)
-				{
-					case '\n':
-						ScreenLineFeed();
-						break;
-
-					case '\t':
-						do
-						{
-							_screenConsoleBuffer[y * LineWidth + _screenConsoleCurrentPosition] = (char) ((color << 8) | ' ');
-							_screenConsoleCurrentPosition++;
-
-							if(_screenConsoleCurrentPosition >= LineWidth)
-							{
-								ScreenLineFeed();
-								_screenConsoleCurrentPosition = 0;
-							}
-						}
-						while((_screenConsoleCurrentPosition & 3) > 0);
-						break;
-
-					case '\r':
-						_screenConsoleCurrentPosition = 0;
-						break;
-
-					default:
-						// display character and advance
-						_screenConsoleBuffer[y * LineWidth + _screenConsoleCurrentPosition] = (char) ((color << 8) | c);
-						_screenConsoleCurrentPosition++;
-
-						if(_screenConsoleCurrentPosition >= LineWidth)
-						{
-							ScreenLineFeed();
-							_screenConsoleCurrentPosition = 0;
-						}
-						break;
-				}
-			}
-
-			// mark time for transparent overlay
-			// TODO
-			/*if ( current >= 0 ) {
-				times[current % NUM_CON_TIMES] = com_frameTime;
-			}*/
-		}
-
-		private static void ScreenLineFeed()
-		{
-			// TODO
-			// mark time for transparent overlay
-			/*if ( current >= 0 ) {
-				times[current % NUM_CON_TIMES] = com_frameTime;
-			}*/
-
-			_screenConsoleCurrentPosition = 0;
-
-			if(_screenConsoleDisplay == _screenConsoleCurrentLine)
-			{
-				_screenConsoleDisplay++;
-			}
-
-			_screenConsoleCurrentLine++;
-
-			for(int i = 0; i < LineWidth; i++)
-			{
-				_screenConsoleBuffer[(_screenConsoleCurrentLine % TotalLines) * LineWidth + i] = (char) ((idHelper.ColorIndex(idColor.Cyan) << 8) | ' ');
-			}
-		}
+			idE.Console.Print(msg);
+		}		
 		#endregion
 		#endregion
 	}

@@ -258,14 +258,14 @@ namespace idTech4.IO
 			// spawn a thread to handle background file reads
 			// TODO: not interested in this right now. StartBackgroundDownloadThread();
 
-			// TODO: default.cfg
 			// if we can't find default.cfg, assume that the paths are
 			// busted and error out now, rather than getting an unreadable
 			// graphics screen when the font fails to load
 			// Dedicated servers can run with no outside files at all
-			/*if ( ReadFile( "default.cfg", NULL, NULL ) <= 0 ) {
-			common->FatalError( "Couldn't load default.cfg" );
-			}*/
+			if(FileExists("default.cfg") == false)
+			{
+				idConsole.FatalError("Couldn't load default.cfg");
+			}
 		}
 
 		public string CreatePath(string baseDirectory, string gameDirectory, string relativePath)
@@ -339,6 +339,16 @@ namespace idTech4.IO
 			return list.ToArray();
 		}
 
+		public bool FileExists(string relativePath)
+		{
+			bool found;
+			Pack pack;
+
+			OpenFileRead(relativePath, true, out pack, null, FileSearch.SearchDirectories | FileSearch.SearchPaks, true, out found);
+
+			return found;
+		}
+
 		public Stream OpenFileRead(string relativePath)
 		{
 			return OpenFileRead(relativePath, true, null);
@@ -363,6 +373,12 @@ namespace idTech4.IO
 
 		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, out Pack foundInPack, string gameDirectory, FileSearch searchFlags)
 		{
+			bool found;
+			return OpenFileRead(relativePath, allowCopyFiles, out foundInPack, null, searchFlags, false, out found);
+		}
+
+		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, out Pack foundInPack, string gameDirectory, FileSearch searchFlags, bool checkOnly, out bool found)
+		{
 			if(_searchPaths.Count == 0)
 			{
 				idConsole.FatalError("Filesystem call made without initialization");
@@ -373,14 +389,15 @@ namespace idTech4.IO
 				idConsole.FatalError("open file read: null 'relativePath' parameter passed");
 			}
 
+			found = false;
 			foundInPack = null;
 
-			// qpaths are not supposed to have a leading slash
+			// qpaths are not supposed to have a leading slash.
 			relativePath = relativePath.TrimEnd('/');
 
 			// make absolutely sure that it can't back up the path.
-			// The searchpaths do guarantee that something will always
-			// be prepended, so we don't need to worry about "c:" or "//limbo" 
+			// the searchpaths do guarantee that something will always
+			// be prepended, so we don't need to worry about "c:" or "//limbo". 
 			if((relativePath.Contains("..") == true) || (relativePath.Contains("::") == true))
 			{
 				return null;
@@ -393,10 +410,9 @@ namespace idTech4.IO
 			{
 				if((searchPath.Directory != null) && ((searchFlags & FileSearch.SearchDirectories) != 0))
 				{
-					// check a file in the directory tree
-
+					// check a file in the directory tree.
 					// if we are running restricted, the only files we
-					// will allow to come from the directory are .cfg files
+					// will allow to come from the directory are .cfg files.
 					if((idE.CvarSystem.GetBool("fs_restrict") == true) /* TODO: serverPaks.Num()*/)
 					{
 						if(FileAllowedFromDirectory(relativePath) == false)
@@ -513,6 +529,11 @@ namespace idTech4.IO
 								break;
 						}
 					}*/
+
+					if(file != null)
+					{
+						found = true;
+					}
 
 					return file;
 				}
@@ -771,7 +792,7 @@ namespace idTech4.IO
 				eventLoop->com_journalDataFile->Write(buf, len);
 				eventLoop->com_journalDataFile->Flush();
 			}*/
-
+			
 			return content;
 		}
 		#endregion

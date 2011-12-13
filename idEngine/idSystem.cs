@@ -127,7 +127,7 @@ namespace idTech4
 				/*idKeyInput::Init();*/
 
 				// init the console so we can take prints
-				// TODO: console->Init();
+				idE.Console.Init();
 
 				// get architecture info
 				SysInit();

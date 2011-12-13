@@ -100,6 +100,7 @@
     <Compile Include="idCmdArgs.cs" />
     <Compile Include="idCvar.cs" />
     <Compile Include="idCvarSystem.cs" />
+    <Compile Include="idGameConsole.cs" />
     <Compile Include="idMath.cs" />
     <Compile Include="idRotation.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />
