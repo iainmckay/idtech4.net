@@ -35,3 +35,8 @@ idLib
 -------------------
 
 Contains shared code, this was primarily used with the proxy.  Unsure whether or not this will stay.
+
+sdk
+-------------------
+
+This is the proxy layer that was used before the engine source was out.  This could be cleaned up, finished and used to write a mod in c# but use the original release or one of the open source engines.
