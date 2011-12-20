@@ -30,64 +30,31 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Microsoft.Xna.Framework;
-
-namespace idTech4
+namespace idTech4.Renderer
 {
-	public class idMath
+	public sealed class idRenderWorld
 	{
-		public const float Radian = MathHelper.Pi / 180.0f;
-		public const float Infinity = 1e30f;
-
-		public static float ToRadians(float v)
+		#region Constructor
+		public idRenderWorld()
 		{
-			return MathHelper.ToRadians(v);
+			/*mapName.Clear();
+			mapTimeStamp = FILE_NOT_FOUND_TIMESTAMP;
+
+			generateAllInteractionsCalled = false;
+
+			areaNodes = NULL;
+			numAreaNodes = 0;
+
+			portalAreas = NULL;
+			numPortalAreas = 0;
+
+			doublePortals = NULL;
+			numInterAreaPortals = 0;
+
+			interactionTable = 0;
+			interactionTableWidth = 0;
+			interactionTableHeight = 0;*/
 		}
-
-		public static float Sqrt(float v)
-		{
-			return (float) Math.Sqrt(v);
-		}
-
-		public static float Sin(float s)
-		{
-			return (float) Math.Sin(s);
-		}
-
-		public static float Cos(float c)
-		{
-			return (float) Math.Cos(c);
-		}
-
-		public static float Abs(float a)
-		{
-			return Math.Abs(a);
-		}
-
-		public static float Min(float a, float b)
-		{
-			return Math.Min(a, b);
-		}
-
-		public static float Max(float a, float b)
-		{
-			return Math.Max(a, b);
-		}
-
-		public static float Pow(float a, float b)
-		{
-			return (float) Math.Pow(a, b);
-		}
-
-		public static int VectorHash(Vector3 v)
-		{
-			int hash = 0;
-
-			hash ^= (int) v.X;
-			hash ^= (int) v.Y;
-			hash ^= (int) v.Z;
-
-			return hash;
-		}
+		#endregion
 	}
 }

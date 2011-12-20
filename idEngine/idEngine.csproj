@@ -103,6 +103,7 @@
     <Compile Include="idGameConsole.cs" />
     <Compile Include="idMath.cs" />
     <Compile Include="idRotation.cs" />
+    <Compile Include="Renderer\idRenderWorld.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />
     <Compile Include="Text\Decl\idDeclParticle.cs" />
     <Compile Include="Text\Decl\idDeclSkin.cs" />
@@ -135,8 +136,12 @@
     <Compile Include="Text\Decl\idDeclTable.cs" />
     <Compile Include="Text\idDeclFile.cs" />
     <Compile Include="Text\idLexer.cs" />
+    <Compile Include="Text\idScriptParser.cs" />
     <Compile Include="Text\idToken.cs" />
+    <Compile Include="UI\idDeviceContext.cs" />
     <Compile Include="UI\idInputField.cs" />
+    <Compile Include="UI\idUserInterface.cs" />
+    <Compile Include="UI\idUserInterfaceManager.cs" />
     <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup>

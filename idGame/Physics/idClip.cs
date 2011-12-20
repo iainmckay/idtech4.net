@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 
 using idTech4;
 using idTech4.Geometry;
+using idTech4.Renderer;
 
 namespace idTech4.Game.Physics
 {

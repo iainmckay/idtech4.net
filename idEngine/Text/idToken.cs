@@ -139,6 +139,17 @@ namespace idTech4.Text
 
 		#region Internal
 		/// <summary>
+		/// Gets the length of whitespace before token.
+		/// </summary>
+		public int WhiteSpaceBeforeToken
+		{
+			get
+			{
+				return (_whiteSpaceEndPosition - _whiteSpaceStartPosition);
+			}
+		}
+
+		/// <summary>
 		/// Gets or sets the start of white space before token, only used by idLexer.
 		/// </summary>
 		internal int WhiteSpaceStartPosition
@@ -166,26 +177,43 @@ namespace idTech4.Text
 			{
 				_whiteSpaceEndPosition = value;
 			}
-		}		
+		}
+
+		/// <summary>
+		/// Gets or sets the flags for this token, primarily used for recursive defines.
+		/// </summary>
+		public TokenFlags Flags
+		{
+			get
+			{
+				return _flags;
+			}
+			set
+			{
+				_flags = value;
+			}
+		}
 		#endregion
 		#endregion
 
 		#region Members
-		private TokenType _type; // token type.
-		private TokenSubType _subType; // token sub type
-		private LexerOptions _options; // token flags, used for recursive defines
+		private TokenType _type;								// token type
+		private TokenSubType _subType;							// token sub type
+		private LexerOptions _options;							// token flags, used for recursive defines
 
-		private int _line; // line in script the token was on.
-		private int _linesCrossed; // number of lines crossed in white space before token.		
+		private int _line;										// line in script the token was on.
+		private int _linesCrossed;								// number of lines crossed in white space before token
 
 		private StringBuilder _value = new StringBuilder();
 		private string _valueCache;
 		private bool _valueCacheFilled;
 
-		private  ulong	_intValue; // integer value.
-		private double _floatValue; // floating point value.
-		private int _whiteSpaceStartPosition; // start of white space before token, only used by idLexer.
-		private int _whiteSpaceEndPosition; // end of white space before token, only used by idLexer.				
+		private ulong _intValue;								// integer value
+		private double _floatValue;								// floating point value
+		private int _whiteSpaceStartPosition;					// start of white space before token, only used by idLexer
+		private int _whiteSpaceEndPosition;						// end of white space before token, only used by idLexer	
+
+		private TokenFlags _flags;								// used for recursive defines
 		#endregion
 
 		#region Constructor
@@ -193,10 +221,25 @@ namespace idTech4.Text
 		{
 
 		}
+
+		public idToken(idToken token)
+		{
+			throw new Exception("blaaaaaaaaaah");
+		}
 		#endregion
 
 		#region Methods
 		#region Public
+		/// <summary>
+		/// Forget whitespace before token.
+		/// </summary>
+		public void ClearTokenWhiteSpace()
+		{
+			_whiteSpaceStartPosition = 0;
+			_whiteSpaceEndPosition = 0;
+			_linesCrossed = 0;
+		}
+
 		public void StripQuotes()
 		{
 			_value = _value.Replace("\"", "");

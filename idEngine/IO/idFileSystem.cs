@@ -189,8 +189,8 @@ namespace idTech4.IO
 		public idFileSystem()
 		{
 			new idCvar("fs_restrict", "", "", CvarFlags.System | CvarFlags.Init | CvarFlags.Bool);
-			new idCvar("fs_debug", "0", "", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.System | CvarFlags.Integer);
-			new idCvar("fs_copyfiles", "0", "", 0, 4, new ArgCompletion_Integer(0, 3), CvarFlags.System | CvarFlags.Init | CvarFlags.Integer);
+			new idCvar("fs_debug", "0", 0, 2, "", new ArgCompletion_Integer(0, 2), CvarFlags.System | CvarFlags.Integer);
+			new idCvar("fs_copyfiles", "0", 0, 4, "", new ArgCompletion_Integer(0, 3), CvarFlags.System | CvarFlags.Init | CvarFlags.Integer);
 			new idCvar("fs_basepath", "", "", CvarFlags.System | CvarFlags.Init);
 			new idCvar("fs_savepath", "", "", CvarFlags.System | CvarFlags.Init);
 			new idCvar("fs_cdpath", "", "", CvarFlags.System | CvarFlags.Init);
@@ -438,6 +438,10 @@ namespace idTech4.IO
 					{
 						file = File.OpenRead(netPath);
 					}
+					catch(FileNotFoundException x)
+					{
+						return null;
+					}
 					catch(Exception x)
 					{
 						idConsole.DeveloperWriteLine("OpenFileRead Exception: {0}", x.ToString());
@@ -445,7 +449,7 @@ namespace idTech4.IO
 						continue;
 					}
 
-					if(idE.CvarSystem.GetInt("fs_debug") > 0)
+					if(idE.CvarSystem.GetInteger("fs_debug") > 0)
 					{
 						idConsole.WriteLine("open file read: {0} (found in '{1}/{2}')", relativePath, dir.Path, dir.GameDirectory);
 					}
@@ -636,7 +640,7 @@ namespace idTech4.IO
 					}*/
 			}
 
-			if(idE.CvarSystem.GetInt("fs_debug") > 0)
+			if(idE.CvarSystem.GetInteger("fs_debug") > 0)
 			{
 				idConsole.WriteLine("Can't find {0}", relativePath);
 			}
@@ -665,7 +669,7 @@ namespace idTech4.IO
 
 			string osPath = CreatePath(path, _gameFolder, relativePath);
 
-			if(idE.CvarSystem.GetInt("fs_debug") > 0)
+			if(idE.CvarSystem.GetInteger("fs_debug") > 0)
 			{
 				idConsole.WriteLine("idFileSystem::OpenFileWrite: {0}", osPath);
 			}

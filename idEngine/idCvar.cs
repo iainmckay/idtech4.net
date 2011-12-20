@@ -183,24 +183,24 @@ namespace idTech4
 			Init(name, value, description, 1, -1, null, flags, valueCompletion);
 		}
 
-		public idCvar(string name, string value, string description, float valueMin, float valueMax, CvarFlags flags)
-			: this(name, value, description, valueMin, valueMax, null, flags)
+		public idCvar(string name, string value, float valueMin, float valueMax, string description, CvarFlags flags)
+			: this(name, value, valueMin, valueMax, description, null, flags)
 		{
 
 		}
 
-		public idCvar(string name, string value, string description, float valueMin, float valueMax, ArgCompletion valueCompletion, CvarFlags flags)
+		public idCvar(string name, string value, float valueMin, float valueMax, string description, ArgCompletion valueCompletion, CvarFlags flags)
 		{
 			Init(name, value, description, valueMin, valueMax, null, flags, valueCompletion);
 		}
 
 		public idCvar(string name, string value, string description, string[] valueStrings, CvarFlags flags)
-			: this(name, value, description, valueStrings, null, flags)
+			: this(name, value, valueStrings, description, null, flags)
 		{
 
 		}
 
-		public idCvar(string name, string value, string description, string[] valueStrings, ArgCompletion valueCompletion, CvarFlags flags)
+		public idCvar(string name, string value, string[] valueStrings, string description, ArgCompletion valueCompletion, CvarFlags flags)
 		{
 			Init(name, value, description, 1, -1, valueStrings, flags, valueCompletion);
 		}

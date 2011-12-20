@@ -33,7 +33,7 @@ using System.Text;
 namespace idTech4.Text
 {
 	/// <summary>
-	/// Lexicographical parser
+	/// Lexicographical parser.
 	/// </summary>
 	/// <remarks>
 	/// A number directly following the escape character '\' in a string is
@@ -120,6 +120,44 @@ namespace idTech4.Text
 		#endregion
 
 		#region Properties
+		public int FileOffset
+		{
+			get
+			{
+				return _scriptPosition;
+			}
+		}
+
+		/// <summary>
+		/// Gets the file name the script was loaded from.
+		/// </summary>
+		public string FileName
+		{
+			get
+			{
+				return _fileName;
+			}
+		}
+
+		/// <summary>
+		/// Gets whether or not there were errors.
+		/// </summary>
+		public bool HadError
+		{
+			get
+			{
+				return _hadError;
+			}
+		}
+
+		public bool IsEndOfFile
+		{
+			get
+			{
+				return (_scriptPosition >= _endPosition);
+			}
+		}
+
 		/// <summary>
 		/// Is a script is loaded?
 		/// </summary>
@@ -128,6 +166,14 @@ namespace idTech4.Text
 			get
 			{
 				return _loaded;
+			}
+		}
+
+		public int LineNumber
+		{
+			get
+			{
+				return _line;
 			}
 		}
 
@@ -145,7 +191,7 @@ namespace idTech4.Text
 				_options = value;
 			}
 		}
-
+				
 		/// <summary>
 		/// Punctuation to use for this script.
 		/// </summary>
@@ -177,22 +223,6 @@ namespace idTech4.Text
 			}
 		}
 
-		public int FileOffset
-		{
-			get
-			{
-				return _scriptPosition;
-			}
-		}
-
-		public int LineNumber
-		{
-			get
-			{
-				return _line;
-			}
-		}
-
 		public idToken UnreadToken
 		{
 			set
@@ -204,17 +234,6 @@ namespace idTech4.Text
 
 				_token = value;
 				_tokenAvailable = true;
-			}
-		}
-
-		/// <summary>
-		/// Gets whether or not there were errors.
-		/// </summary>
-		public bool HadError
-		{
-			get
-			{
-				return _hadError;
 			}
 		}
 		#endregion
@@ -259,6 +278,134 @@ namespace idTech4.Text
 		#region Methods
 		#region Public
 		/// <summary>
+		/// Reads the token when a token with the given type is available.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="subType"></param>
+		/// <returns></returns>
+		public idToken CheckTokenType(TokenType type, TokenSubType subType)
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				return null;
+			}
+
+			// if the type matches
+			if((token.Type == type) && ((token.SubType & subType) == subType))
+			{
+				return token;
+			}
+
+			// unread token
+			_scriptPosition = _lastScriptPosition;
+			_line = _lastLine;
+
+			return null;
+		}
+
+		public void Error(string format, params object[] args)
+		{
+			_hadError = true;
+
+			if((_options & LexerOptions.NoErrors) != 0)
+			{
+				return;
+			}
+
+			if((_options & LexerOptions.NoFatalErrors) != 0)
+			{
+				idConsole.Warning("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
+			}
+			else
+			{
+				idConsole.Error("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
+			}
+		}
+
+		public idToken ExpectAnyToken()
+		{
+			idToken token = ReadToken();
+
+			if(token == null)
+			{
+				Error("couldn't read expected token");
+				return null;
+			}
+
+			return token;
+		}
+
+		public bool ExpectTokenString(string str)
+		{
+			idToken token = ReadToken();
+
+			if(token == null)
+			{
+				Error("couldn't find expected '{0}'", str);
+				return false;
+			}
+			else if(token.ToString() != str)
+			{
+				Error("expected '{0}' but found '{1}'", str, token.ToString());
+				return false;
+			}
+
+			return true;
+		}
+
+		public idToken ExpectTokenType(TokenType type, TokenSubType subType)
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				Error("couldn't read expected token");
+				return null;
+			}
+
+			string tokenValue = token.ToString();
+
+			if(token.Type != type)
+			{
+				Error("expected a {0} but found '{1}'", type.ToString().ToLower(), tokenValue);
+				return null;
+			}
+			else if(token.Type == TokenType.Number)
+			{
+				if((token.SubType & subType) != subType)
+				{
+					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), tokenValue);
+					return null;
+				}
+			}
+			else if(token.Type == TokenType.Punctuation)
+			{
+				if(token.SubType != subType)
+				{
+					Error("expected '{0}' but found '{1}'", GetPunctuationFromID(subType), tokenValue);
+					return null;
+				}
+			}
+
+			return token;
+		}
+
+		public string GetPunctuationFromID(TokenSubType id)
+		{
+			foreach(LexerPunctuation p in _punctuation)
+			{
+				if((int) p.N == (int) id)
+				{
+					return p.P;
+				}
+			}
+
+			return "unknown punctuation";
+		}
+
+		/// <summary>
 		/// Load a script from the given memory.
 		/// </summary>
 		/// <param name="text"></param>
@@ -301,6 +448,208 @@ namespace idTech4.Text
 			_loaded = true;
 
 			return true;
+		}
+
+		/// <summary>
+		/// Parses a bool.
+		/// </summary>
+		/// <returns></returns>
+		public bool ParseBool()
+		{
+			idToken token;
+
+			if((token = ExpectTokenType(TokenType.Number, 0)) == null)
+			{
+				Error("couldn't read expected boolean");
+				return false;
+			}
+
+			return (token.ToInt32() != 0);
+		}
+
+		/// <summary>
+		/// Parses a floating point number.
+		/// </summary>
+		/// <returns></returns>
+		public float ParseFloat()
+		{
+			bool tmp = true;
+			return ParseFloat(out tmp, false);
+		}
+
+		/// <summary>
+		/// Parses a floating point number.
+		/// </summary>
+		/// <remarks>
+		/// If errorFlag is NULL, a non-numeric token will issue an Error().  If it isn't NULL, it will issue a Warning() and set *errorFlag = true.
+		/// </remarks>
+		/// <param name="tmp"></param>
+		/// <returns></returns>
+		public float ParseFloat(out bool errorFlag)
+		{
+			return ParseFloat(out errorFlag, true);
+		}
+
+		/// <summary>
+		/// Parses an int.
+		/// </summary>
+		/// <returns></returns>
+		public int ParseInt()
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				Error("couldn't read expected integer");
+				return 0;
+			}
+
+			string tokenValue = token.ToString();
+
+			if((token.Type == TokenType.Punctuation) && (tokenValue == "-"))
+			{
+				token = ExpectTokenType(TokenType.Number, TokenSubType.Integer);
+
+				return -token.ToInt32();
+			}
+			else if((token.Type != TokenType.Number) || (token.SubType == TokenSubType.Float))
+			{
+				Error("expected integer value, found '{0}'", tokenValue);
+			}
+
+			return token.ToInt32();
+		}
+
+		public string ParseRestOfLine()
+		{
+			idToken token;
+			StringBuilder b = new StringBuilder();
+
+			while((token = ReadToken()) != null)
+			{
+				if(token.LinesCrossed > 0)
+				{
+					_scriptPosition = _lastScriptPosition;
+					_line = _lastLine;
+
+					break;
+				}
+
+				if(b.Length > 0)
+				{
+					b.Append(" ");
+				}
+
+				b.Append(token.ToString());
+			}
+
+			return b.ToString();
+		}
+
+		public float[] Parse1DMatrix(int elementCount)
+		{
+			if(ExpectTokenString("(") == false)
+			{
+				return null;
+			}
+
+			float[] ret = new float[elementCount];
+
+			for(int i = 0; i < elementCount; i++)
+			{
+				ret[i] = ParseFloat();
+			}
+
+			if(ExpectTokenString(")") == false)
+			{
+				return null;
+			}
+
+			return ret;
+		}		
+
+		/// <summary>
+		/// Skips until a matching close brace is found.
+		/// </summary>
+		/// <returns></returns>
+		public bool SkipBracedSection()
+		{
+			return SkipBracedSection(true);
+		}
+
+		/// <summary>
+		/// Skips until a matching close brace is found.
+		/// </summary>
+		/// <param name="parseFirstBrace"></param>
+		/// <returns></returns>
+		public bool SkipBracedSection(bool parseFirstBrace)
+		{
+			int depth = (parseFirstBrace == true) ? 0 : 1;
+			idToken token;
+
+			string tokenValue;
+
+			do
+			{
+				if((token = ReadToken()) == null)
+				{
+					return false;
+				}
+
+				tokenValue = token.ToString();
+
+				if(token.Type == TokenType.Punctuation)
+				{
+					if(tokenValue == "{")
+					{
+						depth++;
+					}
+					else if(tokenValue == "}")
+					{
+						depth--;
+					}
+				}
+			}
+			while(depth > 0);
+
+			return true;
+		}
+
+		/// <summary>
+		/// Skip the rest of the current line.
+		/// </summary>
+		public bool SkipRestOfLine()
+		{
+			idToken token;
+
+			while((token = ReadToken()) != null)
+			{
+				if(token.LinesCrossed > 0)
+				{
+					_scriptPosition = _lastScriptPosition;
+					_line = _lastLine;
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+
+
+		public bool SkipUntilString(string str)
+		{
+			idToken token;
+
+			while((token = ReadToken()) != null)
+			{
+				if(token.ToString() == str)
+				{
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		/// <summary>
@@ -445,54 +794,7 @@ namespace idTech4.Text
 
 			return null;
 		}
-
-		/// <summary>
-		/// Reads the token when a token with the given type is available.
-		/// </summary>
-		/// <param name="type"></param>
-		/// <param name="subType"></param>
-		/// <returns></returns>
-		public idToken CheckTokenType(TokenType type, TokenSubType subType)
-		{
-			idToken token;
-
-			if((token = ReadToken()) == null)
-			{
-				return null;
-			}
-
-			// if the type matches
-			if((token.Type == type) && ((token.SubType & subType) == subType))
-			{
-				return token;
-			}
-
-			// unread token
-			_scriptPosition = _lastScriptPosition;
-			_line = _lastLine;
-
-			return null;
-		}
-
-		public void Error(string format, params object[] args)
-		{
-			_hadError = true;
-
-			if((_options & LexerOptions.NoErrors) != 0)
-			{
-				return;
-			}
-
-			if((_options & LexerOptions.NoFatalErrors) != 0)
-			{
-				idConsole.Warning("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
-			}
-			else
-			{
-				idConsole.Error("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
-			}
-		}
-
+				
 		public void Warning(string format, params object[] args)
 		{
 			if((_options & LexerOptions.NoWarnings) != 0)
@@ -501,292 +803,33 @@ namespace idTech4.Text
 			}
 
 			idConsole.Warning("file {0}, line {1}: {2}\n", _fileName, _line, string.Format(format, args));
-		}
-
-		/// <summary>
-		/// Skips until a matching close brace is found.
-		/// </summary>
-		/// <returns></returns>
-		public bool SkipBracedSection()
-		{
-			return SkipBracedSection(true);
-		}
-
-		/// <summary>
-		/// Skips until a matching close brace is found.
-		/// </summary>
-		/// <param name="parseFirstBrace"></param>
-		/// <returns></returns>
-		public bool SkipBracedSection(bool parseFirstBrace)
-		{
-			int depth = (parseFirstBrace == true) ? 0 : 1;
-			idToken token;
-
-			string tokenValue;
-
-			do
-			{
-				if((token = ReadToken()) == null)
-				{
-					return false;
-				}
-
-				tokenValue = token.ToString();
-
-				if(token.Type == TokenType.Punctuation)
-				{
-					if(tokenValue == "{")
-					{
-						depth++;
-					}
-					else if(tokenValue == "}")
-					{
-						depth--;
-					}
-				}
-			}
-			while(depth > 0);
-
-			return true;
-		}
-
-		public bool SkipUntilString(string str)
-		{
-			idToken token;
-
-			while((token = ReadToken()) != null)
-			{
-				if(token.ToString() == str)
-				{
-					return true;
-				}
-			}
-
-			return false;
-		}
-
-		/// <summary>
-		/// Skip the rest of the current line.
-		/// </summary>
-		public bool SkipRestOfLine()
-		{
-			idToken token;
-
-			while((token = ReadToken()) != null)
-			{
-				if(token.LinesCrossed > 0)
-				{
-					_scriptPosition = _lastScriptPosition;
-					_line = _lastLine;
-
-					return true;
-				}
-			}
-
-			return false;
-		}
-		
-		/// <summary>
-		/// Parses an int.
-		/// </summary>
-		/// <returns></returns>
-		public int ParseInt()
-		{
-			idToken token;
-
-			if((token = ReadToken()) == null)
-			{
-				Error("couldn't read expected integer");
-				return 0;
-			}
-
-			string tokenValue = token.ToString();
-
-			if((token.Type == TokenType.Punctuation) && (tokenValue == "-"))
-			{
-				token = ExpectTokenType(TokenType.Number, TokenSubType.Integer);
-
-				return -token.ToInt32();
-			}
-			else if((token.Type != TokenType.Number) || (token.SubType == TokenSubType.Float))
-			{
-				Error("expected integer value, found '{0}'", tokenValue);
-			}
-
-			return token.ToInt32();
-		}
-
-		/// <summary>
-		/// Parses a bool.
-		/// </summary>
-		/// <returns></returns>
-		public bool ParseBool()
-		{
-			idToken token;
-
-			if((token = ExpectTokenType(TokenType.Number, 0)) == null)
-			{
-				Error("couldn't read expected boolean");
-				return false;
-			}
-
-			return (token.ToInt32() != 0);
-		}
-
-		/// <summary>
-		/// Parses a floating point number.
-		/// </summary>
-		/// <returns></returns>
-		public float ParseFloat()
-		{
-			bool tmp = true;
-			return ParseFloat(out tmp, false);
-		}
-
-		/// <summary>
-		/// Parses a floating point number.
-		/// </summary>
-		/// <remarks>
-		/// If errorFlag is NULL, a non-numeric token will issue an Error().  If it isn't NULL, it will issue a Warning() and set *errorFlag = true.
-		/// </remarks>
-		/// <param name="tmp"></param>
-		/// <returns></returns>
-		public float ParseFloat(out bool errorFlag)
-		{
-			return ParseFloat(out errorFlag, true);
-		}
-
-		public float[] Parse1DMatrix(int elementCount)
-		{
-			if(ExpectTokenString("(") == false)
-			{
-				return null;
-			}
-
-			float[] ret = new float[elementCount];
-
-			for(int i = 0; i < elementCount; i++)
-			{
-				ret[i] = ParseFloat();
-			}
-
-			if(ExpectTokenString(")") == false)
-			{
-				return null;
-			}
-
-			return ret;
-		}
-
-		public string ParseRestOfLine()
-		{
-			idToken token;
-			StringBuilder b = new StringBuilder();
-
-			while((token = ReadToken()) != null)
-			{
-				if(token.LinesCrossed > 0)
-				{
-					_scriptPosition = _lastScriptPosition;
-					_line = _lastLine;
-
-					break;
-				}
-
-				if(b.Length > 0)
-				{
-					b.Append(" ");
-				}
-
-				b.Append(token.ToString());
-			}
-
-			return b.ToString();
-		}
-
-		public idToken ExpectAnyToken()
-		{
-			idToken token = ReadToken();
-
-			if(token == null)
-			{
-				Error("couldn't read expected token");
-				return null;
-			}
-
-			return token;
-		}
-
-		public idToken ExpectTokenType(TokenType type, TokenSubType subType)
-		{
-			idToken token;
-
-			if((token = ReadToken()) == null)
-			{
-				Error("couldn't read expected token");
-				return null;
-			}
-
-			string tokenValue = token.ToString();
-
-			if(token.Type != type)
-			{
-				Error("expected a {0} but found '{1}'", type.ToString().ToLower(), tokenValue);
-				return null;
-			}
-			else if(token.Type == TokenType.Number)
-			{
-				if((token.SubType & subType) != subType)
-				{
-					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), tokenValue);
-					return null;
-				}
-			}
-			else if(token.Type == TokenType.Punctuation)
-			{
-				if(token.SubType != subType)
-				{
-					Error("expected '{0}' but found '{1}'", GetPunctuationFromID(subType), tokenValue);
-					return null;
-				}
-			}
-
-			return token;
-		}
-
-		public bool ExpectTokenString(string str)
-		{
-			idToken token = ReadToken();
-
-			if(token == null)
-			{
-				Error("couldn't find expected '{0}'", str);
-				return false;
-			}
-			else if(token.ToString() != str)
-			{
-				Error("expected '{0}' but found '{1}'", str, token.ToString());
-				return false;
-			}
-
-			return true;
-		}
-
-		public string GetPunctuationFromID(TokenSubType id)
-		{
-			foreach(LexerPunctuation p in _punctuation)
-			{
-				if((int) p.N == (int) id)
-				{
-					return p.P;
-				}
-			}
-
-			return "unknown punctuation";
-		}
+		}		
 		#endregion
 
 		#region Private
+		private bool CheckString(string str)
+		{
+			for(int i = 0; i < str.Length; i++)
+			{
+				if(GetBufferCharacter(_scriptPosition + i) != str[i])
+				{
+					return false;
+				}
+			}
+
+			return true;
+		}
+
+		private char GetBufferCharacter(int position)
+		{
+			if((position < 0) || (position >= _buffer.Length))
+			{
+				return '\0';
+			}
+
+			return _buffer[position];
+		}
+
 		private float ParseFloat(out bool errorFlag, bool useErrorFlag)
 		{
 			idToken token;
@@ -838,130 +881,114 @@ namespace idTech4.Text
 		/// <param name="token"></param>
 		/// <param name="quote"></param>
 		/// <returns></returns>
-		private bool ReadString(idToken token, char quote)
+
+		private bool ReadEscapeCharacter(out char escapeCharacter)
 		{
-			char ch;
-			int tmpScriptPosition;
-			int tmpLine;
+			char c;
+			int i, val;
 
-			if(quote == '"')
-			{
-				token.Type = TokenType.String;
-			}
-			else
-			{
-				token.Type = TokenType.Literal;
-			}
-
-			// leading quote
+			// step over the leading '\\'
 			_scriptPosition++;
 
-			while(true)
+			// determine the escape character
+			switch(GetBufferCharacter(_scriptPosition))
 			{
-				// if there is an escape character and escape characters are allowed.
-				if((GetBufferCharacter(_scriptPosition) == '\\') && ((_options & LexerOptions.NoStringEscapeCharacters) != LexerOptions.NoStringEscapeCharacters))
-				{
-					if(ReadEscapeCharacter(out ch) == false)
+				case '\\': c = '\\'; break;
+				case 'n': c = '\n'; break;
+				case 'r': c = '\r'; break;
+				case 't': c = '\t'; break;
+				case 'v': c = '\v'; break;
+				case 'b': c = '\b'; break;
+				case 'f': c = '\f'; break;
+				case 'a': c = '\a'; break;
+				case '\'': c = '\''; break;
+				case '\"': c = '\"'; break;
+				//case '\?': c = '\?'; break;
+				case 'x':
 					{
-						return false;
-					}
-
-					token.Append(ch);
-				}
-				// if a trailing quote
-				else if(GetBufferCharacter(_scriptPosition) == quote)
-				{
-					// step over the quote
-					_scriptPosition++;
-
-					// if consecutive strings should not be concatenated
-					if(((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringEscapeCharacters) && (((_options & LexerOptions.AllowBackslashStringConcatination) != LexerOptions.AllowBackslashStringConcatination) || (quote != '"')))
-					{
-						break;
-					}
-
-					tmpScriptPosition = _scriptPosition;
-					tmpLine = _line;
-
-					// read white space between possible two consecutive strings
-					if(ReadWhiteSpace() == false)
-					{
-						_scriptPosition = tmpScriptPosition;
-						_line = tmpLine;
-
-						break;
-					}
-
-					if((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringConcatination)
-					{
-						if(GetBufferCharacter(_scriptPosition) != '\\')
-						{
-							_scriptPosition = tmpScriptPosition;
-							_line = tmpLine;
-
-							break;
-						}
-
-						// step over the '\\'
 						_scriptPosition++;
 
-						if((ReadWhiteSpace() == false) || (GetBufferCharacter(_scriptPosition) != quote))
+						for(i = 0, val = 0; ; i++, _scriptPosition++)
 						{
-							Error("expecting string after '\\' terminated line");
-							return false;
+							c = GetBufferCharacter(_scriptPosition);
+
+							if((c >= '0') && (c <= '9'))
+							{
+								c = (char) (c - '0');
+							}
+							else if((c >= 'A') && (c <= 'Z'))
+							{
+								c = (char) (c - 'A' + 10);
+							}
+							else if((c >= 'a') && (c <= 'z'))
+							{
+								c = (char) (c - 'a' + 10);
+							}
+							else
+							{
+								break;
+							}
+
+							val = (val << 4) + c;
 						}
-					}
 
-					// if there's no leading qoute
-					if(GetBufferCharacter(_scriptPosition) != quote)
-					{
-						_scriptPosition = tmpScriptPosition;
-						_line = tmpLine;
+						_scriptPosition--;
 
+						if(val > 0xFF)
+						{
+							Warning("too large value in escape character");
+							val = 0xFF;
+						}
+
+						c = (char) val;
 						break;
 					}
-
-					// step over the new leading quote
-					_scriptPosition++;
-				}
-				else
-				{
-					if(GetBufferCharacter(_scriptPosition) == '\0')
+				default: //NOTE: decimal ASCII code, NOT octal
 					{
-						Error("missing trailing quote");
-						return false;
-					}
+						if((GetBufferCharacter(_scriptPosition) < '0') || (GetBufferCharacter(_scriptPosition) > '9'))
+						{
+							Error("unknown escape char");
+						}
 
-					if(GetBufferCharacter(_scriptPosition) == '\n')
-					{
-						Error("newline inside string");
-						return false;
-					}
+						for(i = 0, val = 0; ; i++, _scriptPosition++)
+						{
+							c = GetBufferCharacter(_scriptPosition);
 
-					token.Append(GetBufferCharacter(_scriptPosition++));
-				}
+							if((c >= '0') && (c <= '9'))
+							{
+								c = (char) (c - '0');
+							}
+							else
+							{
+								break;
+							}
+
+							val = val * 10 + c;
+						}
+
+						_scriptPosition--;
+
+						if(val > 0xFF)
+						{
+							Warning("too large value in escape character");
+							val = 0xFF;
+						}
+
+						c = (char) val;
+						break;
+					}
 			}
 
-			if(token.Type == TokenType.Literal)
-			{
-				if((_options & LexerOptions.AllowMultiCharacterLiterals) != LexerOptions.AllowMultiCharacterLiterals)
-				{
-					if(token.Length != 1)
-					{
-						Warning("literal is not one character long");
-					}
-				}
+			// step over the escape character or the last digit of the number
+			_scriptPosition++;
 
-				token.SubType = (TokenSubType) token.ToString()[0];
-			}
-			else
-			{
-				// the sub type is the length of the string
-				token.SubType = (TokenSubType) token.ToString().Length;
-			}
+			// store the escape character
+			escapeCharacter = c;
 
+			// succesfully read escape character
 			return true;
 		}
+
 
 		private bool ReadName(idToken token)
 		{
@@ -984,113 +1011,6 @@ namespace idTech4.Text
 
 			//the sub type is the length of the name
 			token.SubType = (TokenSubType) token.ToString().Length;
-
-			return true;
-		}
-
-		/// <summary>
-		/// Reads spaces, tabs, C-like comments, etc.
-		/// </summary>
-		/// <remarks>
-		/// When a newline character is found the scripts line counter is increased.
-		/// </remarks>
-		/// <returns></returns>
-		private bool ReadWhiteSpace()
-		{
-			char c;
-
-			while(true)
-			{
-				// skip white space
-				while((c = GetBufferCharacter(_scriptPosition)) <= ' ')
-				{
-					if(c == '\0')
-					{
-						return false;
-					}
-
-					if(c == '\n')
-					{
-						_line++;
-					}
-
-					_scriptPosition++;
-				}
-
-				// skip comments
-				if(GetBufferCharacter(_scriptPosition) == '/')
-				{
-					// comments //
-					if(GetBufferCharacter(_scriptPosition + 1) == '/')
-					{
-						_scriptPosition++;
-
-						do
-						{
-							_scriptPosition++;
-
-							if(GetBufferCharacter(_scriptPosition) == '\0')
-							{
-								return false;
-							}
-						}
-						while(GetBufferCharacter(_scriptPosition) != '\n');
-
-						_line++;
-						_scriptPosition++;
-
-						if(GetBufferCharacter(_scriptPosition) == '\0')
-						{
-							return false;
-						}
-
-						continue;
-					}
-					// comments /* */
-					else if(GetBufferCharacter(_scriptPosition + 1) == '*')
-					{
-						_scriptPosition++;
-
-						while(true)
-						{
-							_scriptPosition++;
-
-							if(GetBufferCharacter(_scriptPosition) == '\0')
-							{
-								return false;
-							}
-
-							if(GetBufferCharacter(_scriptPosition) == '\n')
-							{
-								_line++;
-							}
-							else if(GetBufferCharacter(_scriptPosition) == '/')
-							{
-								if(GetBufferCharacter(_scriptPosition - 1) == '*')
-								{
-									break;
-								}
-
-								if(GetBufferCharacter(_scriptPosition + 1) == '*')
-								{
-									Warning("nested comment");
-								}
-							}
-						}
-
-						_scriptPosition += 2;
-
-						if(GetBufferCharacter(_scriptPosition) == '\0')
-						{
-							return false;
-						}
-
-						continue;
-					}
-				}
-
-				break;
-			}
 
 			return true;
 		}
@@ -1366,7 +1286,6 @@ namespace idTech4.Text
 				p = punc.P;
 
 				// check for this punctuation in the script
-				// TODO: && idLexer::script_p[l]
 				for(l = 0; ((l < p.Length) && ((_scriptPosition + l) < _buffer.Length)); l++)
 				{
 					if(GetBufferCharacter(_scriptPosition + l) != p[l])
@@ -1394,134 +1313,236 @@ namespace idTech4.Text
 			return false;
 		}
 
-		private bool ReadEscapeCharacter(out char escapeCharacter)
+		private bool ReadString(idToken token, char quote)
 		{
-			char c;
-			int i, val;
+			char ch;
+			int tmpScriptPosition;
+			int tmpLine;
 
-			// step over the leading '\\'
-			_scriptPosition++;
-
-			// determine the escape character
-			switch(GetBufferCharacter(_scriptPosition))
+			if(quote == '"')
 			{
-				case '\\': c = '\\'; break;
-				case 'n': c = '\n'; break;
-				case 'r': c = '\r'; break;
-				case 't': c = '\t'; break;
-				case 'v': c = '\v'; break;
-				case 'b': c = '\b'; break;
-				case 'f': c = '\f'; break;
-				case 'a': c = '\a'; break;
-				case '\'': c = '\''; break;
-				case '\"': c = '\"'; break;
-				//case '\?': c = '\?'; break;
-				case 'x':
-					{
-						_scriptPosition++;
-
-						for(i = 0, val = 0; ; i++, _scriptPosition++)
-						{
-							c = GetBufferCharacter(_scriptPosition);
-
-							if((c >= '0') && (c <= '9'))
-							{
-								c = (char) (c - '0');
-							}
-							else if((c >= 'A') && (c <= 'Z'))
-							{
-								c = (char) (c - 'A' + 10);
-							}
-							else if((c >= 'a') && (c <= 'z'))
-							{
-								c = (char) (c - 'a' + 10);
-							}
-							else
-							{
-								break;
-							}
-
-							val = (val << 4) + c;
-						}
-
-						_scriptPosition--;
-
-						if(val > 0xFF)
-						{
-							Warning("too large value in escape character");
-							val = 0xFF;
-						}
-
-						c = (char) val;
-						break;
-					}
-				default: //NOTE: decimal ASCII code, NOT octal
-					{
-						if((GetBufferCharacter(_scriptPosition) < '0') || (GetBufferCharacter(_scriptPosition) > '9'))
-						{
-							Error("unknown escape char");
-						}
-
-						for(i = 0, val = 0; ; i++, _scriptPosition++)
-						{
-							c = GetBufferCharacter(_scriptPosition);
-
-							if((c >= '0') && (c <= '9'))
-							{
-								c = (char) (c - '0');
-							}
-							else
-							{
-								break;
-							}
-
-							val = val * 10 + c;
-						}
-
-						_scriptPosition--;
-
-						if(val > 0xFF)
-						{
-							Warning("too large value in escape character");
-							val = 0xFF;
-						}
-
-						c = (char) val;
-						break;
-					}
+				token.Type = TokenType.String;
+			}
+			else
+			{
+				token.Type = TokenType.Literal;
 			}
 
-			// step over the escape character or the last digit of the number
+			// leading quote
 			_scriptPosition++;
 
-			// store the escape character
-			escapeCharacter = c;
-
-			// succesfully read escape character
-			return true;
-		}
-
-		private bool CheckString(string str)
-		{
-			for(int i = 0; i < str.Length; i++)
+			while(true)
 			{
-				if(GetBufferCharacter(_scriptPosition + i) != str[i])
+				// if there is an escape character and escape characters are allowed.
+				if((GetBufferCharacter(_scriptPosition) == '\\') && ((_options & LexerOptions.NoStringEscapeCharacters) != LexerOptions.NoStringEscapeCharacters))
 				{
-					return false;
+					if(ReadEscapeCharacter(out ch) == false)
+					{
+						return false;
+					}
+
+					token.Append(ch);
+				}
+				// if a trailing quote
+				else if(GetBufferCharacter(_scriptPosition) == quote)
+				{
+					// step over the quote
+					_scriptPosition++;
+
+					// if consecutive strings should not be concatenated
+					if(((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringEscapeCharacters) && (((_options & LexerOptions.AllowBackslashStringConcatination) != LexerOptions.AllowBackslashStringConcatination) || (quote != '"')))
+					{
+						break;
+					}
+
+					tmpScriptPosition = _scriptPosition;
+					tmpLine = _line;
+
+					// read white space between possible two consecutive strings
+					if(ReadWhiteSpace() == false)
+					{
+						_scriptPosition = tmpScriptPosition;
+						_line = tmpLine;
+
+						break;
+					}
+
+					if((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringConcatination)
+					{
+						if(GetBufferCharacter(_scriptPosition) != '\\')
+						{
+							_scriptPosition = tmpScriptPosition;
+							_line = tmpLine;
+
+							break;
+						}
+
+						// step over the '\\'
+						_scriptPosition++;
+
+						if((ReadWhiteSpace() == false) || (GetBufferCharacter(_scriptPosition) != quote))
+						{
+							Error("expecting string after '\\' terminated line");
+							return false;
+						}
+					}
+
+					// if there's no leading qoute
+					if(GetBufferCharacter(_scriptPosition) != quote)
+					{
+						_scriptPosition = tmpScriptPosition;
+						_line = tmpLine;
+
+						break;
+					}
+
+					// step over the new leading quote
+					_scriptPosition++;
+				}
+				else
+				{
+					if(GetBufferCharacter(_scriptPosition) == '\0')
+					{
+						Error("missing trailing quote");
+						return false;
+					}
+
+					if(GetBufferCharacter(_scriptPosition) == '\n')
+					{
+						Error("newline inside string");
+						return false;
+					}
+
+					token.Append(GetBufferCharacter(_scriptPosition++));
 				}
 			}
 
+			if(token.Type == TokenType.Literal)
+			{
+				if((_options & LexerOptions.AllowMultiCharacterLiterals) != LexerOptions.AllowMultiCharacterLiterals)
+				{
+					if(token.Length != 1)
+					{
+						Warning("literal is not one character long");
+					}
+				}
+
+				token.SubType = (TokenSubType) token.ToString()[0];
+			}
+			else
+			{
+				// the sub type is the length of the string
+				token.SubType = (TokenSubType) token.ToString().Length;
+			}
+
 			return true;
 		}
 
-		private char GetBufferCharacter(int position)
+		/// <summary>
+		/// Reads spaces, tabs, C-like comments, etc.
+		/// </summary>
+		/// <remarks>
+		/// When a newline character is found the scripts line counter is increased.
+		/// </remarks>
+		/// <returns></returns>
+		private bool ReadWhiteSpace()
 		{
-			if((position < 0) || (position >= _buffer.Length))
+			char c;
+
+			while(true)
 			{
-				return '\0';
+				// skip white space
+				while((c = GetBufferCharacter(_scriptPosition)) <= ' ')
+				{
+					if(c == '\0')
+					{
+						return false;
+					}
+
+					if(c == '\n')
+					{
+						_line++;
+					}
+
+					_scriptPosition++;
+				}
+
+				// skip comments
+				if(GetBufferCharacter(_scriptPosition) == '/')
+				{
+					// comments //
+					if(GetBufferCharacter(_scriptPosition + 1) == '/')
+					{
+						_scriptPosition++;
+
+						do
+						{
+							_scriptPosition++;
+
+							if(GetBufferCharacter(_scriptPosition) == '\0')
+							{
+								return false;
+							}
+						}
+						while(GetBufferCharacter(_scriptPosition) != '\n');
+
+						_line++;
+						_scriptPosition++;
+
+						if(GetBufferCharacter(_scriptPosition) == '\0')
+						{
+							return false;
+						}
+
+						continue;
+					}
+					// comments /* */
+					else if(GetBufferCharacter(_scriptPosition + 1) == '*')
+					{
+						_scriptPosition++;
+
+						while(true)
+						{
+							_scriptPosition++;
+
+							if(GetBufferCharacter(_scriptPosition) == '\0')
+							{
+								return false;
+							}
+
+							if(GetBufferCharacter(_scriptPosition) == '\n')
+							{
+								_line++;
+							}
+							else if(GetBufferCharacter(_scriptPosition) == '/')
+							{
+								if(GetBufferCharacter(_scriptPosition - 1) == '*')
+								{
+									break;
+								}
+
+								if(GetBufferCharacter(_scriptPosition + 1) == '*')
+								{
+									Warning("nested comment");
+								}
+							}
+						}
+
+						_scriptPosition += 2;
+
+						if(GetBufferCharacter(_scriptPosition) == '\0')
+						{
+							return false;
+						}
+
+						continue;
+					}
+				}
+
+				break;
 			}
 
-			return _buffer[position];
+			return true;
 		}
 		#endregion
 		#endregion

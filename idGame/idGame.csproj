@@ -67,9 +67,9 @@
     <Compile Include="Rules\Tourney.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\idLib\idLib.csproj">
-      <Project>{B4A377B8-A98D-4949-97FC-E4ADA341C651}</Project>
-      <Name>idLib</Name>
+    <ProjectReference Include="..\idEngine\idEngine.csproj">
+      <Project>{B6B84A1A-0BBC-4147-8689-7D43209CEED3}</Project>
+      <Name>idEngine</Name>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />

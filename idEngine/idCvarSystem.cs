@@ -171,7 +171,7 @@ namespace idTech4
 			return false;
 		}
 
-		public int GetInt(string name)
+		public int GetInteger(string name)
 		{
 			idInternalCvar intern = FindInternal(name);
 

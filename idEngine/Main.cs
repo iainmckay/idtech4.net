@@ -59,7 +59,7 @@ namespace idTech4
 			Sys_StartAsyncThread();*/
 
 			// hide or show the early console as necessary
-			if((idE.CvarSystem.GetInt("win_viewlog") > 0) || (idE.CvarSystem.GetBool("com_skipRenderer") == true) /* TODO: || idAsyncNetwork::serverDedicated.GetInteger()*/) 
+			if((idE.CvarSystem.GetInteger("win_viewlog") > 0) || (idE.CvarSystem.GetBool("com_skipRenderer") == true) /* TODO: || idAsyncNetwork::serverDedicated.GetInteger()*/) 
 			{
 				idE.SystemConsole.Show(1, true);
 			}
@@ -109,7 +109,7 @@ namespace idTech4
 				{
 					if((idE.CvarSystem.GetBool("com_skipRenderer") == false) /* TODO: && idAsyncNetwork::serverDedicated.GetInteger() != 1)*/)
 					{
-						idE.SystemConsole.Show(idE.CvarSystem.GetInt("win_viewlog"), false);
+						idE.SystemConsole.Show(idE.CvarSystem.GetInteger("win_viewlog"), false);
 					}
 
 					idE.CvarSystem.ClearModified("win_viewlog");

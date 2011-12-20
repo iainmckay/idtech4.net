@@ -479,7 +479,7 @@ namespace idTech4.Renderer
 			// one fragment program.
 			// if the image is precompressed (either in palletized mode or true rxgb mode)
 			// then it is loaded above and the swap never happens here.
-			if((depth == TextureDepth.Bump) && (idE.CvarSystem.GetInt("image_useNormalCompression") != 1))
+			if((depth == TextureDepth.Bump) && (idE.CvarSystem.GetInteger("image_useNormalCompression") != 1))
 			{
 				for(int i = 0; i < scaledWidth * scaledHeight * 4; i += 4)
 				{
@@ -606,12 +606,12 @@ namespace idTech4.Renderer
 			// catch normal maps first
 			if(minimumDepth == TextureDepth.Bump)
 			{
-				if((idE.CvarSystem.GetBool("image_useCompression") == true) && (idE.CvarSystem.GetInt("image_useNormalCompression") == 1) && idE.GLConfig.SharedTexturePaletteAvailable)
+				if((idE.CvarSystem.GetBool("image_useCompression") == true) && (idE.CvarSystem.GetInteger("image_useNormalCompression") == 1) && idE.GLConfig.SharedTexturePaletteAvailable)
 				{
 					// image_useNormalCompression should only be set to 1 on nv_10 and nv_20 paths.
 					return Gl.GL_COLOR_INDEX8_EXT;
 				}
-				else if((idE.CvarSystem.GetBool("image_useCompression") == true) && (idE.CvarSystem.GetInt("image_useNormalCompression") > 0) && idE.GLConfig.TextureCompressionAvailable)
+				else if((idE.CvarSystem.GetBool("image_useCompression") == true) && (idE.CvarSystem.GetInteger("image_useNormalCompression") > 0) && idE.GLConfig.TextureCompressionAvailable)
 				{
 					// image_useNormalCompression == 2 uses rxgb format which produces really good quality for medium settings.
 					return Gl.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;

@@ -116,7 +116,7 @@ namespace idTech4
 
 				idE.CmdSystem.Init();
 				idE.CvarSystem.Init();
-				
+
 				// start file logging right away, before early console or whatever
 				StartupVariable("win_outputDebugString", false);
 
@@ -148,10 +148,6 @@ namespace idTech4
 
 				// init commands
 				InitCommands();
-
-				// TODO #ifdef ID_WRITE_VERSION
-				/*config_compressor = idCompressor::AllocArithmetic();
-				#endif*/
 
 				// game specific initialization
 				InitGame();
@@ -352,17 +348,17 @@ namespace idTech4
 
 			// when we are running automated scripts, make sure we
 			// know if anything failed
-			if(idE.CvarSystem.GetInt("fs_copyfiles") > 0)
+			if(idE.CvarSystem.GetInteger("fs_copyfiles") > 0)
 			{
 				code = ErrorType.Fatal;
 			}
 
 			// if we don't have GL running, make it a fatal error
 			// TODO: MAJOR
-			/*if(idE.RenderSystem.IsRunning() == false)
+			if(idE.RenderSystem.IsRunning == false)
 			{
 				code = ErrorType.Fatal;
-			}*/
+			}
 
 			// if we got a recursive error, make it fatal
 			if(_errorEntered > 0)
@@ -495,7 +491,7 @@ namespace idTech4
 			new idCvar("com_memoryMarker", "-1", "used as a marker for memory stats", CvarFlags.Integer | CvarFlags.System | CvarFlags.Init);
 			new idCvar("com_preciseTic", "1", "run one game tick every async thread update", CvarFlags.Bool | CvarFlags.System);
 			new idCvar("com_asyncInput", "0", "sample input from the async thread", CvarFlags.Bool | CvarFlags.System);
-			new idCvar("com_asyncSound", "1", "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix", 0, 1, CvarFlags.Integer | CvarFlags.System);
+			new idCvar("com_asyncSound", "1", 0, 1, "0: mix sound inline, 1: memory mapped async mix, 2: callback mixing, 3: write async mix", CvarFlags.Integer | CvarFlags.System);
 			new idCvar("com_forceGenericSIMD", "0", "force generic platform independent SIMD", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("developer", "0", "developer mode", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("com_allowConsole", "0", "allow toggling console with the tilde key", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
@@ -504,9 +500,9 @@ namespace idTech4
 			new idCvar("com_showMemoryUsage", "0", "show total and per frame memory usage", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("com_showAsyncStats", "0", "show async network stats", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("com_showSoundDecoders", "0", "show sound decoders", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
-			new idCvar("com_timestampPrints", "0", "print time with each console print, 1 = msec, 2 = sec", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.System);
-			new idCvar("timescale", "1", "scales the time", 0.1f, 10.0f, CvarFlags.System | CvarFlags.Float);
-			new idCvar("logFile", "0", "1 = buffer log, 2 = flush after each print", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.System | CvarFlags.NoCheat);
+			new idCvar("com_timestampPrints", "0", 0, 2, "print time with each console print, 1 = msec, 2 = sec", new ArgCompletion_Integer(0, 2), CvarFlags.System);
+			new idCvar("timescale", "1", 0.1f, 10.0f, "scales the time", CvarFlags.System | CvarFlags.Float);
+			new idCvar("logFile", "0", 0, 2, "1 = buffer log, 2 = flush after each print", new ArgCompletion_Integer(0, 2), CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("logFileName", "qconsole.log", "name of log file, if empty, qconsole.log will be used", CvarFlags.System | CvarFlags.NoCheat);
 			new idCvar("com_makingBuild", "0", "1 when making a build", CvarFlags.Bool | CvarFlags.System);
 			new idCvar("com_updateLoadSize", "0", "update the load size after loading a map", CvarFlags.Bool | CvarFlags.System | CvarFlags.NoCheat);
@@ -526,10 +522,11 @@ namespace idTech4
 			idE.CmdSystem.AddCommand("quit", "quits the game", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Quit));
 			idE.CmdSystem.AddCommand("exit", "exits the game", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Quit));
 
+			// TODO: commands
 			/*cmdSystem->AddCommand( "writeConfig", Com_WriteConfig_f, CMD_FL_SYSTEM, "writes a config file" );
 			cmdSystem->AddCommand( "reloadEngine", Com_ReloadEngine_f, CMD_FL_SYSTEM, "reloads the engine down to including the file system" );
 			cmdSystem->AddCommand( "setMachineSpec", Com_SetMachineSpec_f, CMD_FL_SYSTEM, "detects system capabilities and sets com_machineSpec to appropriate value" );*/
-			
+
 			idE.CmdSystem.AddCommand("execMachineSpec", "execs the appropriate config files and sets cvars based on com_machineSpec", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ExecMachineSpec));
 
 			/*
@@ -594,7 +591,7 @@ namespace idTech4
 				file = fileSystem->OpenFileWrite( CONFIG_SPEC );
 				fileSystem->CloseFile( file );
 			}*/
-	
+
 			if(sysDetect == true)
 			{
 				SetMachineSpec();
@@ -605,50 +602,49 @@ namespace idTech4
 			idE.RenderSystem.Init();
 
 			// initialize string database right off so we can use it for loading messages
-			/*InitLanguageDict();
+			/* TODO: InitLanguageDict();
 
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04344" ) );
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04344" ) );*/
 
 			// load the font, etc
-			console->LoadGraphics();
+			idE.Console.LoadGraphics();
 
 			// init journalling, etc
-			eventLoop->Init();
+			/* TODO: eventLoop->Init();
 
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04345" ) );
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04345" ) );*/
 
 			// exec the startup scripts
-			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "exec editor.cfg\n" );
-			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "exec default.cfg\n" );
+			idE.CmdSystem.BufferCommandText(Execute.Append, "exec editor.cfg");
+			idE.CmdSystem.BufferCommandText(Execute.Append, "exec default.cfg");
 
 			// skip the config file if "safe" is on the command line
-			if ( !SafeMode() ) {
+			// TODO
+			/*if ( !SafeMode() ) {
 				cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "exec " CONFIG_FILE "\n" );
-			}
-			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "exec autoexec.cfg\n" );
+			}*/
+
+			idE.CmdSystem.BufferCommandText(Execute.Append, "exec autoexec.cfg");
 
 			// reload the language dictionary now that we've loaded config files
-			cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "reloadLanguage\n" );
+			idE.CmdSystem.BufferCommandText(Execute.Append, "reloadLanguage");
 
 			// run cfg execution
-			cmdSystem->ExecuteCommandBuffer();
+			idE.CmdSystem.ExecuteCommandBuffer();
 
 			// re-override anything from the config files with command line args
-			StartupVariable( NULL, false );
+			StartupVariable(null, false);
 
 			// if any archived cvars are modified after this, we will trigger a writing of the config file
-			cvarSystem->ClearModifiedFlags( CVAR_ARCHIVE );
-
-			// cvars are initialized, but not the rendering system. Allow preference startup dialog
-			Sys_DoPreferences();
+			idE.CvarSystem.ModifiedFlags = CvarFlags.Archive;
 
 			// init the user command input code
-			usercmdGen->Init();
+			/* TODO: usercmdGen->Init();
 
 			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04346" ) );
 
 			// start the sound system, but don't do any hardware operations yet
-			soundSystem->Init();
+			// TODO soundSystem->Init();
 
 			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04347" ) );
 
@@ -662,22 +658,22 @@ namespace idTech4
 			if ( idAsyncNetwork::serverDedicated.GetInteger() == 1 ) {
 				idAsyncNetwork::server.InitPort();
 				cvarSystem->SetCVarBool( "s_noSound", true );
-			} else {
-				// init OpenGL, which will open a window and connect sound and input hardware
-				PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04348" ) );
-				InitRenderSystem();
-			}
-		#endif
+			} else {*/
+			// init OpenGL, which will open a window and connect sound and input hardware
+			// TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04348" ) );
+			InitRenderSystem();
+			/*	}
+			#endif
 
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04349" ) );
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04349" ) );*/
 
 			// initialize the user interfaces
-			uiManager->Init();
+			idE.UIManager.Init();
 
 			// startup the script debugger
 			// DebuggerServerInit();
 
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04350" ) );
+			/*PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04350" ) );
 
 			// load the game dll
 			LoadGameDLL();
@@ -697,6 +693,18 @@ namespace idTech4
 				cmdSystem->BufferCommandText( CMD_EXEC_NOW, "s_restart\n" );
 				cmdSystem->ExecuteCommandBuffer();
 			}*/
+		}
+
+		private void InitRenderSystem()
+		{
+			if(idE.CvarSystem.GetBool("com_skipRenderer") == true)
+			{
+				return;
+			}
+
+			idE.RenderSystem.InitGraphics();
+
+			// TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04343" ) );
 		}
 
 		private void ParseCommandLine(string[] commandLineArgs)
@@ -771,7 +779,7 @@ namespace idTech4
 			idConsole.WriteLine("Detected:");
 			idConsole.WriteLine("\t{0:2} GHz CPU", clockSpeed);
 			idConsole.WriteLine("\t{0}MB of system memory", physicalMemory);
-			idConsole.WriteLine("\t{0}MB of video memory on {1}", videoMemory,  (oldCard == true) ? "a less than optimal video architecture" : "an optimal video architecture");
+			idConsole.WriteLine("\t{0}MB of video memory on {1}", videoMemory, (oldCard == true) ? "a less than optimal video architecture" : "an optimal video architecture");
 
 			if((clockSpeed >= 1.9f) && (videoMemory >= 512) && (physicalMemory >= 1024) && (oldCard == false))
 			{
@@ -811,7 +819,7 @@ namespace idTech4
 			idE.CvarSystem.SetInteger("image_downSizeSpecularLimit", 64, CvarFlags.Archive);
 			idE.CvarSystem.SetInteger("image_downSizeBumpLimit", 256, CvarFlags.Archive);
 			idE.CvarSystem.SetInteger("image_usePrecompressedTextures", 0, CvarFlags.Archive);
-			idE.CvarSystem.SetInteger("image_downsize", 0, CvarFlags.Archive);			
+			idE.CvarSystem.SetInteger("image_downsize", 0, CvarFlags.Archive);
 			idE.CvarSystem.SetInteger("image_anisotropy", 8, CvarFlags.Archive);
 			idE.CvarSystem.SetInteger("image_useCompression", 0, CvarFlags.Archive);
 			idE.CvarSystem.SetInteger("image_ignoreHighQuality", 0, CvarFlags.Archive);
@@ -1062,7 +1070,7 @@ namespace idTech4
 
 		private void Cmd_ExecMachineSpec(object sender, CommandEventArgs e)
 		{
-			switch(idE.CvarSystem.GetInt("com_machineSpec"))
+			switch(idE.CvarSystem.GetInteger("com_machineSpec"))
 			{
 				case 3:
 					SetUltraHighQuality();
@@ -1102,8 +1110,8 @@ namespace idTech4
 				idE.CvarSystem.SetInteger("image_downSizeSpecularLimit", 64, CvarFlags.Archive);
 				idE.CvarSystem.SetBool("com_purgeAll", true, CvarFlags.Archive);
 				idE.CvarSystem.SetBool("r_forceLoadImages", true, CvarFlags.Archive);
-			} 
-			else 
+			}
+			else
 			{
 				idE.CvarSystem.SetBool("com_purgeAll", false, CvarFlags.Archive);
 				idE.CvarSystem.SetBool("r_forceLoadImages", false, CvarFlags.Archive);

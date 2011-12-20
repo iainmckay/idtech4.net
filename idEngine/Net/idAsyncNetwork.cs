@@ -48,18 +48,18 @@ namespace idTech4.Net
 		#region Constructor
 		public idAsyncNetwork()
 		{
-			new idCvar("net_verbose", "0", "1 = verbose output, 2 = even more verbose output", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
+			new idCvar("net_verbose", "0", 0, 2, "1 = verbose output, 2 = even more verbose output", new ArgCompletion_Integer(0, 2), CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
 			new idCvar("net_allowCheats", "0", "Allow cheats in network game", CvarFlags.System | CvarFlags.Bool | CvarFlags.NetworkSync);
 #if ID_DEDICATED
 			// dedicated executable can only have a value of 1 for net_serverDedicated
 			new idCvar("net_serverDedicated", "1", "", CvarFlags.ServerInfo | CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat | CvarFlags.ReadOnly);
 #else
-			new idCvar("net_serverDedicated", "0", "1 = text console dedicated server, 2 = graphical dedicated server", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.ServerInfo | CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
+			new idCvar("net_serverDedicated", "0", 0, 2, "1 = text console dedicated server, 2 = graphical dedicated server", new ArgCompletion_Integer(0, 2), CvarFlags.ServerInfo | CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
 #endif
 			new idCvar("net_serverSnapshotDelay", "50", "delay between snapshots in milliseconds", CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
 			new idCvar("net_serverMaxClientRate", "16000", "maximum rate to a client in bytes/sec", CvarFlags.System | CvarFlags.Integer | CvarFlags.Archive | CvarFlags.NoCheat);
 			new idCvar("net_clientMaxRate", "16000", "maximum rate requested by client from server in bytes/sec", CvarFlags.System | CvarFlags.Integer | CvarFlags.Archive | CvarFlags.NoCheat);
-			new idCvar("net_serverMaxUsercmdRelay", "5", "maximum number of usercmds from other clients the server relays to a client", 1, idE.MaxUserCommandRelay, new ArgCompletion_Integer(0, idE.MaxUserCommandRelay), CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
+			new idCvar("net_serverMaxUsercmdRelay", "5", 1, idE.MaxUserCommandRelay, "maximum number of usercmds from other clients the server relays to a client", new ArgCompletion_Integer(0, idE.MaxUserCommandRelay), CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
 			new idCvar("net_serverZombieTimeout", "5", "disconnected client timeout in seconds", CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
 			new idCvar("net_serverClientTimeout", "40", "client time out in seconds", CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
 			new idCvar("net_clientServerTimeout", "40", "server time out in seconds", CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);

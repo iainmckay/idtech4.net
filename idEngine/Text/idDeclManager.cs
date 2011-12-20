@@ -101,7 +101,7 @@ namespace idTech4.Text
 		#region Constructor
 		public idDeclManager()
 		{
-			new idCvar("decl_show", "0", "set to 1 to print parses, 2 to also print references", 0, 2, new ArgCompletion_Integer(0, 2), CvarFlags.System);
+			new idCvar("decl_show", "0", 0, 2, "set to 1 to print parses, 2 to also print references", new ArgCompletion_Integer(0, 2), CvarFlags.System);
 		}
 		#endregion
 
@@ -144,7 +144,7 @@ namespace idTech4.Text
 			// add console commands
 			idE.CmdSystem.AddCommand("listDecls", "list all decls", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListDecls));
 
-			// TODO
+			// TODO: commands
 			/*cmdSystem->AddCommand( "reloadDecls", ReloadDecls_f, CMD_FL_SYSTEM, "reloads decls" );
 			cmdSystem->AddCommand( "touch", TouchDecl_f, CMD_FL_SYSTEM, "touches a decl" );
 
@@ -305,7 +305,7 @@ namespace idTech4.Text
 		/// <param name="args"></param>
 		public void MediaPrint(string format, params object[] args)
 		{
-			if(idE.CvarSystem.GetInt("decl_show") == 0)
+			if(idE.CvarSystem.GetInteger("decl_show") == 0)
 			{
 				return;
 			}
@@ -326,7 +326,18 @@ namespace idTech4.Text
 		/// <returns>Decl with the given name or a default decl of the requested type if not found.</returns>
 		public idDecl FindType(DeclType type, string name)
 		{
-			return FindType(type, name, true);
+			return FindType<idDecl>(type, name);
+		}
+
+		/// <summary>
+		/// Finds the decl with the given name and type; returning a default version if not found.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="name"></param>
+		/// <returns>Decl with the given name or a default decl of the requested type if not found.</returns>
+		public T FindType<T>(DeclType type, string name)  where T : idDecl
+		{
+			return FindType<T>(type, name);
 		}
 
 		/// <summary>
@@ -337,6 +348,18 @@ namespace idTech4.Text
 		/// <param name="makeDefault"> If true, a default decl of appropriate type will be created.</param>
 		/// <returns>Decl with the given name or a default decl of the requested type if not found or null if makeDefault is false.</returns>
 		public idDecl FindType(DeclType type, string name, bool makeDefault)
+		{
+			return FindType<idDecl>(type, name, makeDefault);
+		}
+
+		/// <summary>
+		/// Finds the decl with the given name and type; returning a default version if requested.
+		/// </summary>
+		/// <param name="type"></param>
+		/// <param name="name"></param>
+		/// <param name="makeDefault"> If true, a default decl of appropriate type will be created.</param>
+		/// <returns>Decl with the given name or a default decl of the requested type if not found or null if makeDefault is false.</returns>
+		public T FindType<T>(DeclType type, string name, bool makeDefault) where T : idDecl
 		{
 			if((name == null) || (name == string.Empty))
 			{
@@ -365,7 +388,7 @@ namespace idTech4.Text
 				decl.ParsedOutsideLevelLoad = false;
 			}
 
-			return decl;
+			return (decl as T);
 		}
 
 		public idMaterial FindMaterial(string name)
@@ -375,7 +398,17 @@ namespace idTech4.Text
 
 		public idMaterial FindMaterial(string name, bool makeDefault)
 		{
-			return (FindType(DeclType.Material, name, makeDefault) as idMaterial);
+			return FindType<idMaterial>(DeclType.Material, name, makeDefault);
+		}
+
+		public idDeclSkin FindSkin(string name)
+		{
+			return FindSkin(name, true);
+		}
+
+		public idDeclSkin FindSkin(string name, bool makeDefault)
+		{
+			return FindType<idDeclSkin>(DeclType.Skin, name, makeDefault);
 		}
 		#endregion
 
@@ -413,7 +446,7 @@ namespace idTech4.Text
 					if(decl.Name.Equals(canonicalName, StringComparison.OrdinalIgnoreCase) == true)
 					{
 						// only print these when decl_show is set to 2, because it can be a lot of clutter
-						if(idE.CvarSystem.GetInt("decl_show") > 1)
+						if(idE.CvarSystem.GetInteger("decl_show") > 1)
 						{
 							MediaPrint("referencing {0} {1}", type.ToString().ToLower(), name);
 						}

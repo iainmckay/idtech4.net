@@ -35,6 +35,7 @@ using idTech4.IO;
 using idTech4.Net;
 using idTech4.Renderer;
 using idTech4.Text;
+using idTech4.UI;
 
 namespace idTech4
 {
@@ -89,6 +90,7 @@ namespace idTech4
 		public static readonly idDeclManager DeclManager = new idDeclManager();
 		public static readonly idRenderSystem RenderSystem = new idRenderSystem();
 		public static readonly idImageManager ImageManager = new idImageManager();
+		public static readonly idUserInterfaceManager UIManager = new idUserInterfaceManager();
 		#endregion
 
 		#region Internal
@@ -96,7 +98,7 @@ namespace idTech4
 		internal static SystemConsole SystemConsole = new SystemConsole();
 		internal static idAsyncNetwork AsyncNetwork = new idAsyncNetwork();
 
-		internal static BackendState Backend = new BackendState(); // TODO: refactor in to render library so we can support XNA more easily.
+		internal static BackEndState Backend = new BackEndState(); // TODO: refactor in to render library so we can support XNA more easily.
 		internal static GLConfig GLConfig = new GLConfig();
 
 		internal static bool Quit = false; // cheap flag to quit the main loop.

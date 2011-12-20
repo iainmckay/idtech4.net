@@ -31,6 +31,7 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using idTech4.Renderer;
 using idTech4.UI;
 
 namespace idTech4
@@ -38,10 +39,6 @@ namespace idTech4
 	public sealed class idGameConsole
 	{
 		#region Constants
-		private const int LineWidth = 78;
-		private const int TextSize = 0x30000;
-		private const int TotalLines = TextSize / LineWidth;
-
 		private const int Repeat = 100;
 		private const int FirstRepeat = 200;
 		#endregion
@@ -49,6 +46,11 @@ namespace idTech4
 		#region Members
 		private idInputField _consoleField = new idInputField();
 		private List<string> _buffer = new List<string>();
+		private Queue<int> _notificationTimes = new Queue<int>();
+
+		private idMaterial _charSetShader;
+		private idMaterial _whiteShader;
+		private idMaterial _consoleShader;
 		#endregion
 
 		#region Constructor
@@ -68,6 +70,16 @@ namespace idTech4
 			idE.CmdSystem.AddCommand("conDump", "dumps the console tex to a file", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Dump));
 		}
 
+		/// <summary>
+		/// Can't be combined with init, because init happens before the renderSystem is initialized.		
+		/// </summary>
+		public void LoadGraphics()
+		{
+			_charSetShader = idE.DeclManager.FindMaterial("textures/bigchars");
+			_whiteShader = idE.DeclManager.FindMaterial("_white");
+			_consoleShader = idE.DeclManager.FindMaterial("console");
+		}
+
 		public void Print(string msg)
 		{
 			// TODO: colors
@@ -77,7 +89,6 @@ namespace idTech4
 			_buffer.AddRange(parts);
 
 			// mark time for transparent overlay
-			// TODO
 			/*if ( current >= 0 ) {
 				times[current % NUM_CON_TIMES] = com_frameTime;
 			}*/

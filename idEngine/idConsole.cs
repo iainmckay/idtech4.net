@@ -216,7 +216,7 @@ namespace idTech4
 			// DebuggerServerPrint( msg );
 
 			// logFile
-			if((idE.CvarSystem.GetInt("com_logfile") != 0) && (_logFileFailed == false) && (idE.FileSystem.IsInitialized == true))
+			if((idE.CvarSystem.GetInteger("com_logfile") != 0) && (_logFileFailed == false) && (idE.FileSystem.IsInitialized == true))
 			{
 				if((_logFile == null) && (_recursingLogFileOpen == false))
 				{
@@ -241,7 +241,7 @@ namespace idTech4
 					_recursingLogFileOpen = false;
 					_logFile = new StreamWriter(s);
 
-					if(idE.CvarSystem.GetInt("com_logFile") > 1)
+					if(idE.CvarSystem.GetInteger("com_logFile") > 1)
 					{
 						// force it to not buffer so we get valid
 						// data even if we are crashing

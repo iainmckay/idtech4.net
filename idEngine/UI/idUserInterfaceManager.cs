@@ -32,62 +32,92 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
-namespace idTech4
+namespace idTech4.UI
 {
-	public class idMath
+	public sealed class idUserInterfaceManager
 	{
-		public const float Radian = MathHelper.Pi / 180.0f;
-		public const float Infinity = 1e30f;
-
-		public static float ToRadians(float v)
+		#region Properties
+		public idDeviceContext Context
 		{
-			return MathHelper.ToRadians(v);
+			get
+			{
+				return _deviceContext;
+			}
+		}
+		#endregion
+
+		#region Members
+		private Rectangle _screenRect;
+		private idDeviceContext _deviceContext;
+
+		private List<idUserInterface> _guiList = new List<idUserInterface>();
+		#endregion
+
+		#region Constructor
+		public idUserInterfaceManager()
+		{
+
+		}
+		#endregion
+
+		#region Methods
+		#region Public
+		public void Init()
+		{
+			_screenRect = new Rectangle(0, 0, 640, 480);
+
+			_deviceContext = new idDeviceContext();
+			_deviceContext.Init();
 		}
 
-		public static float Sqrt(float v)
+		public idUserInterface FindInterface(string path)
 		{
-			return (float) Math.Sqrt(v);
+			return FindInterface(path, false, false, false);
 		}
 
-		public static float Sin(float s)
+		public idUserInterface FindInterface(string path, bool autoLoad, bool needUnique, bool forceNotUnique)
 		{
-			return (float) Math.Sin(s);
+			foreach(idUserInterface gui in _guiList)
+			{
+				if(gui.SourceFile.Equals(path, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					if((forceNotUnique == false) && ((needUnique == true) || (gui.IsInteractive == true)))
+					{
+						break;
+					}
+
+					gui.AddReference();
+
+					return gui;
+				}
+			}
+
+			if(autoLoad == true)
+			{
+				idUserInterface gui = new idUserInterface();
+
+				if(gui.InitFromFile(path) == true)
+				{
+					gui.IsUnique = (forceNotUnique == true) ? false : needUnique;
+					return gui;
+				}
+			}
+
+			return null;
+		}
+		#endregion
+
+		#region Internal
+		internal idUserInterface FindInternalInterface(idUserInterface gui)
+		{
+			return _guiList.Find(u => u == gui);
 		}
 
-		public static float Cos(float c)
+		internal void AddInternalInterface(idUserInterface gui)
 		{
-			return (float) Math.Cos(c);
+			_guiList.Add(gui);
 		}
-
-		public static float Abs(float a)
-		{
-			return Math.Abs(a);
-		}
-
-		public static float Min(float a, float b)
-		{
-			return Math.Min(a, b);
-		}
-
-		public static float Max(float a, float b)
-		{
-			return Math.Max(a, b);
-		}
-
-		public static float Pow(float a, float b)
-		{
-			return (float) Math.Pow(a, b);
-		}
-
-		public static int VectorHash(Vector3 v)
-		{
-			int hash = 0;
-
-			hash ^= (int) v.X;
-			hash ^= (int) v.Y;
-			hash ^= (int) v.Z;
-
-			return hash;
-		}
+		#endregion
+		#endregion
 	}
 }

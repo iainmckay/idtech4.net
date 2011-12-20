@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 
 using idTech4.Game;
 using idTech4.Game.Rules;
+using idTech4.Text.Decl;
 
 namespace idTech4.Game.Entities
 {
@@ -674,7 +675,7 @@ oldViewYaw = 0.0f;*/
 
 				while(kv != null)
 				{
-					idR.CvarSystem.Set(kv.Key, kv.Value);
+					idR.CvarSystem.SetString(kv.Key, kv.Value);
 					kv = this.SpawnArgs.MatchPrefix("pm_", kv);
 				}
 			}
@@ -819,7 +820,7 @@ oldViewYaw = 0.0f;*/
 				hud->HandleNamedEvent("aim_clear");
 			}*/
 
-			idR.CvarSystem.Set("ui_chat", false);
+			idR.CvarSystem.SetBool("ui_chat", false);
 		}
 		#endregion
 

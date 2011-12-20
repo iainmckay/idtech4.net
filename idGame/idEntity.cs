@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 
 using idTech4.Game.Physics;
+using idTech4.Text.Decl;
 
 namespace idTech4.Game
 {

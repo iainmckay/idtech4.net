@@ -5,11 +5,12 @@ using System.Text;
 using System.Reflection;
 
 using idTech4.Editor;
-using idTech4.Threading;
-
 using idTech4.Game.Entities;
 using idTech4.Game.Rules;
 using idTech4.Game.Physics;
+using idTech4.Renderer;
+using idTech4.Text;
+using idTech4.Threading;
 
 namespace idTech4.Game
 {
@@ -321,8 +322,8 @@ namespace idTech4.Game
 
 			// server info
 			new idCvar("si_name", "DOOM Server", "name of the server", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive);
-			new idCvar("si_gameType", idStrings.GameTypes[0], idStrings.GameTypes, new StringArgCompletion(idStrings.GameTypes), "game type - singleplayer, deathmatch, Tourney, Team DM or Last Man", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive);
-			new idCvar("si_map", "game/mp/d3dm1", new MapNameArgCompletion(), "map to be played next on server", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive);
+			new idCvar("si_gameType", idStrings.GameTypes[0], idStrings.GameTypes, "game type - singleplayer, deathmatch, Tourney, Team DM or Last Man", new ArgCompletion_String(idStrings.GameTypes), CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive);
+			new idCvar("si_map", "game/mp/d3dm1", "map to be played next on server", new MapNameArgCompletion(), CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive);
 			new idCvar("si_maxPlayers", "4", 1, 4, "max number of players allowed on the server", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive | CvarFlags.Integer);
 			new idCvar("si_fragLimit", "10", 1, MultiplayerMaxFrags, "frag limit", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive | CvarFlags.Integer);
 			new idCvar("si_timeLimit", "10", 0, 60, "time limit in minutes", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive | CvarFlags.Integer);
@@ -335,13 +336,13 @@ namespace idTech4.Game
 
 			// user info
 			new idCvar("ui_name", "Player", "player name", CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Archive);
-			new idCvar("ui_skin", idStrings.Skins[0], idStrings.Skins, new StringArgCompletion(idStrings.Skins), "player skin", CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Archive);
-			new idCvar("ui_team", idStrings.Teams[0], idStrings.Teams, new StringArgCompletion(idStrings.Teams), "player team", CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Archive);
+			new idCvar("ui_skin", idStrings.Skins[0], idStrings.Skins, "player skin", new ArgCompletion_String(idStrings.Skins), CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Archive);
+			new idCvar("ui_team", idStrings.Teams[0], idStrings.Teams, "player team", new ArgCompletion_String(idStrings.Teams), CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Archive);
 			new idCvar("ui_autoSwitch", "1", "auto switch weapon", CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Archive | CvarFlags.Bool);
 			new idCvar("ui_autoReload", "1", "auto reload weapon", CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Archive | CvarFlags.Bool);
 			new idCvar("ui_showgun", "1", "show gun", CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Archive | CvarFlags.Bool);
-			new idCvar("ui_ready", idStrings.Ready[0], idStrings.Ready, new StringArgCompletion(idStrings.Ready), "player is ready to start playing", CvarFlags.Game | CvarFlags.UserInfo);
-			new idCvar("ui_spectate", idStrings.Spectate[0], idStrings.Spectate, new StringArgCompletion(idStrings.Spectate), "play or spectate", CvarFlags.Game | CvarFlags.UserInfo);
+			new idCvar("ui_ready", idStrings.Ready[0], idStrings.Ready, "player is ready to start playing", new ArgCompletion_String(idStrings.Ready), CvarFlags.Game | CvarFlags.UserInfo);
+			new idCvar("ui_spectate", idStrings.Spectate[0], idStrings.Spectate, "play or spectate", new ArgCompletion_String(idStrings.Spectate), CvarFlags.Game | CvarFlags.UserInfo);
 			new idCvar("ui_chat", "0", "player is chatting", CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Bool | CvarFlags.ReadOnly | CvarFlags.Cheat);
 
 			// change anytime vars
@@ -407,7 +408,7 @@ namespace idTech4.Game
 			new idCvar("ai_testPredictPath", "0", "", CvarFlags.Game | CvarFlags.Bool);
 			new idCvar("ai_showCombatNodes", "0", "draws attack cones for monsters", CvarFlags.Game | CvarFlags.Bool);
 			new idCvar("ai_showPaths", "0", "draws path_* entities", CvarFlags.Game | CvarFlags.Bool);
-			new idCvar("ai_showObstacleAvoidance", "0", 0, 2, new IntegerArgCompletion(0, 2), "draws obstacle avoidance information for monsters.  if 2, draws obstacles for player, as well", CvarFlags.Game | CvarFlags.Integer);
+			new idCvar("ai_showObstacleAvoidance", "0", 0, 2, "draws obstacle avoidance information for monsters.  if 2, draws obstacles for player, as well", new ArgCompletion_Integer(0, 2), CvarFlags.Game | CvarFlags.Integer);
 			new idCvar("ai_blockedFailSafe", "1", "enable blocked fail safe handling", CvarFlags.Game | CvarFlags.Bool);
 
 			new idCvar("g_dvTime", "1", "", CvarFlags.Game | CvarFlags.Float);
@@ -420,7 +421,7 @@ namespace idTech4.Game
 			new idCvar("g_blobSize", "1", "", CvarFlags.Game | CvarFlags.Float);
 
 			new idCvar("g_testHealthVision", "0", "", CvarFlags.Game | CvarFlags.Float);
-			new idCvar("g_editEntityMode", "0", 0, 7, new IntegerArgCompletion(0, 7), "0 = off\n1 = lights\n2 = sounds\n3 = articulated figures\n4 = particle systems\n5 = monsters\n6 = entity names\n7 = entity models", CvarFlags.Game | CvarFlags.Integer);
+			new idCvar("g_editEntityMode", "0", 0, 7, "0 = off\n1 = lights\n2 = sounds\n3 = articulated figures\n4 = particle systems\n5 = monsters\n6 = entity names\n7 = entity models", new ArgCompletion_Integer(0, 7), CvarFlags.Game | CvarFlags.Integer);
 			new idCvar("g_dragEntity", "0", "allows dragging physics objects around by placing the crosshair over them and holding the fire button", CvarFlags.Game | CvarFlags.Bool);
 			new idCvar("g_dragDamping", "0.5", "", CvarFlags.Game | CvarFlags.Float);
 			new idCvar("g_dragShowSelection", "0", "", CvarFlags.Game | CvarFlags.Bool);
@@ -512,7 +513,7 @@ namespace idTech4.Game
 			new idCvar("pm_thirdPersonClip", "1", "clip third person view into world space", CvarFlags.Game | CvarFlags.NetworkSync | CvarFlags.Bool);
 			new idCvar("pm_thirdPerson", "0", "enables third person view", CvarFlags.Game | CvarFlags.NetworkSync | CvarFlags.Bool);
 			new idCvar("pm_thirdPersonDeath", "0", "enables third person view when player dies", CvarFlags.Game | CvarFlags.NetworkSync | CvarFlags.Bool);
-			new idCvar("pm_modelView", "0", 0, 2, new IntegerArgCompletion(0, 2), "draws camera from POV of player model (1 = always, 2 = when dead)", CvarFlags.Game | CvarFlags.NetworkSync | CvarFlags.Integer);
+			new idCvar("pm_modelView", "0", 0, 2, "draws camera from POV of player model (1 = always, 2 = when dead)", new ArgCompletion_Integer(0, 2), CvarFlags.Game | CvarFlags.NetworkSync | CvarFlags.Integer);
 			new idCvar("pm_air", "1800", "how long in milliseconds the player can go without air before he starts taking damage", CvarFlags.Game | CvarFlags.NetworkSync | CvarFlags.Integer);
 
 			new idCvar("g_showPlayerShadow", "0", "enables shadow of player model", CvarFlags.Game | CvarFlags.Archive | CvarFlags.Bool);
@@ -532,7 +533,7 @@ namespace idTech4.Game
 			new idCvar("g_testParticleName", "", "name of the particle being tested by the particle editor", CvarFlags.Game);
 			new idCvar("g_testModelRotate", "0", "test model rotation speed", CvarFlags.Game);
 			new idCvar("g_testPostProcess", "", "name of material to draw over screen", CvarFlags.Game);
-			new idCvar("g_testModelAnimate", "0", 0, 4, new IntegerArgCompletion(0, 4), "test model animation,\n0 = cycle anim with origin reset\n1 = cycle anim with fixed origin\n2 = cycle anim with continuous origin\n3 = frame by frame with continuous origin\n4 = play anim once", CvarFlags.Game | CvarFlags.Integer);
+			new idCvar("g_testModelAnimate", "0", 0, 4, "test model animation,\n0 = cycle anim with origin reset\n1 = cycle anim with fixed origin\n2 = cycle anim with continuous origin\n3 = frame by frame with continuous origin\n4 = play anim once", new ArgCompletion_Integer(0, 4), CvarFlags.Game | CvarFlags.Integer);
 			new idCvar("g_testModelBlend", "0", "number of frames to blend", CvarFlags.Game | CvarFlags.Integer);
 			new idCvar("g_testDeath", "0", "", CvarFlags.Game | CvarFlags.Bool);
 			new idCvar("g_exportMask", "", "", CvarFlags.Game);
@@ -654,7 +655,7 @@ namespace idTech4.Game
 			frameCommandThread = NULL;
 			testmodel = NULL;
 			testFx = NULL;*/
-			_clip.Shutdown();
+			// TODO: _clip.Shutdown();
 			/*pvs.Shutdown();*/
 			_sessionCommand = string.Empty;
 			/*locationEntities = NULL;
@@ -915,24 +916,24 @@ namespace idTech4.Game
 			{
 				idConsole.Error("...no entities");
 			}
-			
+
 			// the worldspawn is a special that performs any global setup
 			// needed by a level
 			idMapEntity mapEntity = _currentMapFile.GetEntity(0);
-			
-			idDict args = mapEntity.Dict;			
+
+			idDict args = mapEntity.Dict;
 			args.Set("spawn_entnum", idR.EntityIndexWorld);
-			
+
 			if((SpawnEntityDef(args) == null) || (_entities[idR.EntityIndexWorld] == null) || ((_entities[idR.EntityIndexWorld] is idWorldSpawn) == false))
 			{
 				idConsole.Error("Problem spawning world entity");
-			}					
+			}
 
 			int count = 1;
 			int inhibitCount = 0;
-			
+
 			for(int i = 1; i < entityCount; i++)
-			{				
+			{
 				mapEntity = _currentMapFile.GetEntity(i);
 				args = mapEntity.Dict;
 
@@ -951,7 +952,7 @@ namespace idTech4.Game
 					inhibitCount++;
 				}
 			}
-			
+
 			idConsole.WriteLine("...{0} entities spawned, {1} inhibited", count, inhibitCount);
 		}
 
@@ -1249,7 +1250,7 @@ namespace idTech4.Game
 					ent = node.Value;
 				}
 			}
-			
+
 			while(ent != null)
 			{
 				if(ent.DefName.ToLower() == match.ToLower())
@@ -1335,8 +1336,8 @@ namespace idTech4.Game
 					idConsole.Warning("Could not spawn '{0}'. Instance could not be created{1}.", className, error);
 					return null;
 				}
-				
-				idEntity ent = (idEntity) obj;		
+
+				idEntity ent = (idEntity) obj;
 				ent.Spawn();
 
 				idConsole.DWriteLine("Spawned {0} ({1})", ent.ClassName, ent.GetType().FullName);
@@ -1448,7 +1449,7 @@ namespace idTech4.Game
 			entity.SpawnArgs.TransferKeyValues(_spawnArgs);
 
 			entity.SpawnNode = _spawnedEntities.AddLast(entity);
-			
+
 
 			if(entitySpawnIndex >= _entityCount)
 			{

@@ -3,6 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using idTech4.IO;
+using idTech4.Text;
+using idTech4.UI;
+
 namespace idTech4.Game
 {
 	public class idR
@@ -34,7 +38,7 @@ namespace idTech4.Game
 		public static readonly idCollisionModelManager CollisionModelManager = idE.CollisionModelManager;
 		public static readonly idRenderModelManager RenderModelManager = idE.RenderModelManager;
 		public static readonly idFileSystem FileSystem = idE.FileSystem;
-		public static readonly idUIManager UIManager = idE.UIManager;
+		public static readonly idUserInterfaceManager UIManager = idE.UIManager;
 		public static readonly idLangDict Language = idE.Language;
 
 		public static idGameLocal Game;

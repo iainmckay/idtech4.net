@@ -170,6 +170,7 @@ namespace idTech4.Renderer
 			// TODO: _scratchCubeMapImage = LoadFromCallback("_scratchCubeMap", makeNormalizeVectorCubeMap);
 			_currentRenderImage = LoadFromCallback("_currentRender", GenerateRGBA8Image);
 
+			// TODO: cmds
 			/*cmdSystem->AddCommand("reloadImages", R_ReloadImages_f, CMD_FL_RENDERER, "reloads images");
 			cmdSystem->AddCommand("listImages", R_ListImages_f, CMD_FL_RENDERER, "lists images");
 			cmdSystem->AddCommand("combineCubeImages", R_CombineCubeImages_f, CMD_FL_RENDERER, "combines six images for roq compression");*/
@@ -337,7 +338,7 @@ namespace idTech4.Renderer
 		{
 			byte[, ,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
 
-			int red = (idE.CvarSystem.GetInt("image_useNormalCompression") == 1) ? 0 : 3;
+			int red = (idE.CvarSystem.GetInteger("image_useNormalCompression") == 1) ? 0 : 3;
 			int alpha = (red == 0) ? 3 : 0;
 
 			// flat normal map for default bunp mapping.
@@ -356,7 +357,7 @@ namespace idTech4.Renderer
 		{
 			byte[,,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
 
-			int red = (idE.CvarSystem.GetInt("image_useNormalCompression") == 1) ? 0 : 3;
+			int red = (idE.CvarSystem.GetInteger("image_useNormalCompression") == 1) ? 0 : 3;
 			int alpha = (red == 0) ? 3 : 0;
 
 			Vector4 ambientLightVector = idE.RenderSystem.AmbientLightVector;
@@ -755,7 +756,7 @@ namespace idTech4.Renderer
 
 		private void InitCvars()
 		{
-			new idCvar("image_filter", "GL_LINEAR_MIPMAP_LINEAR", "changes texture filtering on mipmapped images", ImageFilters.Keys.ToArray(), new ArgCompletion_String(ImageFilters.Keys.ToArray()), CvarFlags.Renderer | CvarFlags.Archive);
+			new idCvar("image_filter", "GL_LINEAR_MIPMAP_LINEAR", ImageFilters.Keys.ToArray(), "changes texture filtering on mipmapped images", new ArgCompletion_String(ImageFilters.Keys.ToArray()), CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_anisotropy", "1", "set the maximum texture anisotropy if available", CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_lodbias", "0", "change lod bias on mipmapped images", CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_downSize", "0", "controls texture downsampling", CvarFlags.Renderer | CvarFlags.Archive);

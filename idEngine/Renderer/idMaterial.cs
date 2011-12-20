@@ -1100,7 +1100,7 @@ namespace idTech4.Renderer
 			}
 
 			// see if it is a table name
-			idDeclTable table = (idDeclTable) idE.DeclManager.FindType(DeclType.Table, tokenValue, false);
+			idDeclTable table = idE.DeclManager.FindType<idDeclTable>(DeclType.Table, tokenValue, false);
 
 			if(table == null)
 			{
@@ -1297,7 +1297,7 @@ namespace idTech4.Renderer
 				else if((tokenLower == "uncompressed")
 					|| (tokenLower == "highquality"))
 				{
-					if(idE.CvarSystem.GetInt("image_ignoreHighQuality") == 0)
+					if(idE.CvarSystem.GetInteger("image_ignoreHighQuality") == 0)
 					{
 						textureDepth = TextureDepth.HighQuality;
 					}
@@ -1441,7 +1441,7 @@ namespace idTech4.Renderer
 					// in cycles.
 					a = ParseExpression(lexer);
 
-					idDeclTable table = (idDeclTable) idE.DeclManager.FindType(DeclType.Table, "sinTable", false);
+					idDeclTable table = idE.DeclManager.FindType<idDeclTable>(DeclType.Table, "sinTable", false);
 
 					if(table == null)
 					{
@@ -1453,7 +1453,7 @@ namespace idTech4.Renderer
 
 					sinReg = EmitOp(table.Index, a, ExpressionOperationType.Table);
 
-					table = (idDeclTable) idE.DeclManager.FindType(DeclType.Table, "cosTable", false);
+					table = idE.DeclManager.FindType<idDeclTable>(DeclType.Table, "cosTable", false);
 
 					if(table == null)
 					{
@@ -1863,7 +1863,7 @@ namespace idTech4.Renderer
 				else if((tokenLower == "uncompressed")
 					|| (tokenLower == "highquality"))
 				{
-					if(idE.CvarSystem.GetInt("image_ignoreHighQuality") == 0)
+					if(idE.CvarSystem.GetInteger("image_ignoreHighQuality") == 0)
 					{
 						textureDepth = TextureDepth.HighQuality;
 					}
@@ -1883,7 +1883,7 @@ namespace idTech4.Renderer
 			// TODO
 			string image = ParsePastImageProgram(lexer);
 
-			// TODO:: fragment program images.
+			// TODO: fragment program images.
 			/*
 			newStage->fragmentProgramImages[unit] = 
 				globalImages->ImageFromFile( str, tf, allowPicmip, trp, td, cubeMap );
