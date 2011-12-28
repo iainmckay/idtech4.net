@@ -96,6 +96,21 @@ namespace idTech4.Renderer
 				_referencedOutsideLevelLoad = value;
 			}
 		}
+
+		/// <summary>
+		/// Just for resource profiling.
+		/// </summary>
+		public int Classification
+		{
+			get
+			{
+				return _classification;
+			}
+			set
+			{
+				_classification = value;
+			}
+		}
 		#endregion
 
 		#region Members
@@ -125,6 +140,8 @@ namespace idTech4.Renderer
 		private int _uploadDepth;				// after power of two, downsample, and MAX_TEXTURE_SIZE.
 
 		private int _internalFormat;
+
+		private int _classification;
 
 		// background loading information.
 		private idImage _partialImage;			// shrunken, space-saving version.

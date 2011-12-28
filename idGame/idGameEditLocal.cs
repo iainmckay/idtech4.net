@@ -5,6 +5,8 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.UI;
+
 namespace idTech4.Game
 {
 	public class idGameEditLocal : idGameEdit
@@ -60,7 +62,7 @@ namespace idTech4.Game
 				renderEntity.CustomShader = idR.DeclManager.FindMaterial(temp);
 			}
 
-			renderEntity.Origin = args.GetVector("origin", "0 0 0");
+			renderEntity.Origin = args.GetVector3("origin", "0 0 0");
 
 			// get the rotation matrix in either full form, or single angle form
 			renderEntity.Axis = args.GetMatrix("rotation", "1 0 0 0 1 0 0 0 1");
@@ -83,7 +85,7 @@ namespace idTech4.Game
 			//renderEntity.ReferencedSound = null;
 
 			// get shader parms
-			Vector3 color = args.GetVector("_color", "1 1 1");
+			Vector3 color = args.GetVector3("_color", "1 1 1");
 
 			float[] shaderParms = renderEntity.ShaderParms;
 
@@ -128,7 +130,7 @@ namespace idTech4.Game
 		private idUserInterface AddRenderGui(string name, idDict args)
 		{
 			idKeyValue kv = args.MatchPrefix("gui_parm", null);
-			idUserInterface gui = idR.UIManager.FindGui(name, true, (kv != null));
+			idUserInterface gui = idR.UIManager.FindInterface(name, true, (kv != null));
 
 			UpdateGuiParams(gui, args);
 

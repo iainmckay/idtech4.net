@@ -122,6 +122,41 @@ namespace idTech4.Renderer
 				return _coverage;
 			}
 		}
+
+		/// <summary>
+		/// Just for image resource tracking.
+		/// </summary>
+		public int ImageClassification
+		{
+			set
+			{
+				idImage image;
+
+				foreach(ShaderStage stage in _stages)
+				{
+					image = stage.Texture.Image;
+
+					if(image != null)
+					{
+						image.Classification = value;
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// This is only used by the gui system to force sorting order
+		/// on images referenced from tga's instead of materials. 
+		/// this is done this way as there are 2000 tgas the guis use
+		/// </summary>
+		public MaterialSort Sort
+		{
+			set
+			{
+				_sort = (float) value;
+			}
+		}
+		// 
 		#endregion
 
 		#region members

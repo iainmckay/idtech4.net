@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -191,7 +192,7 @@ namespace idTech4.Text
 				_options = value;
 			}
 		}
-				
+
 		/// <summary>
 		/// Punctuation to use for this script.
 		/// </summary>
@@ -240,6 +241,7 @@ namespace idTech4.Text
 
 		#region Members
 		private bool _loaded; // set when a script file is loaded from file or memory.
+		private string _baseFolder;
 		private string _fileName; // file name of the script.
 		private TimeSpan _fileTime; // file time.
 		private bool _allocated;	// true if buffer memory was allocated.
@@ -250,7 +252,6 @@ namespace idTech4.Text
 		private bool _tokenAvailable; // set by unreadToken.
 		private LexerOptions _options;	// several script flags.
 		private idToken _token; // available token.
-		private idLexer _next; // next script in a chain.
 		private bool _hadError; // set by idLexer::Error, even if the error is supressed.
 
 		private int _scriptPosition; // current position in the script.
@@ -403,6 +404,63 @@ namespace idTech4.Text
 			}
 
 			return "unknown punctuation";
+		}
+
+		public bool LoadFile(string fileName, bool osPath)
+		{
+			if(this.IsLoaded == true)
+			{
+				idConsole.Error("idLexer.LoadFile: another script already loaded");
+				return false;
+			}
+
+			string pathName;
+			Stream content;
+
+			if((osPath == false) && (_baseFolder != null))
+			{
+				pathName = Path.Combine(_baseFolder, fileName);
+			}
+			else
+			{
+				pathName = fileName;
+			}
+
+			if(osPath == true)
+			{
+				content = idE.FileSystem.OpenExplicitFileRead(pathName);
+			}
+			else
+			{
+				content = idE.FileSystem.OpenFileRead(pathName);
+			}
+
+			if(content == null)
+			{
+				return false;
+			}
+
+			using(StreamReader r = new StreamReader(content))
+			{
+				// TODO
+				/*idLexer::fileTime = fp->Timestamp();*/
+				_fileName = Path.GetFullPath(pathName);
+
+				_buffer = r.ReadToEnd();
+				_length = _buffer.Length;
+			}
+
+			_scriptPosition = 0;
+			_lastScriptPosition = 0;
+			_endPosition = _length;
+
+			_tokenAvailable = false;
+			_line = 1;
+			_lastLine = 1;
+			_allocated = true;
+			_loaded = true;
+
+			return true;
 		}
 
 		/// <summary>
@@ -566,7 +624,7 @@ namespace idTech4.Text
 			}
 
 			return ret;
-		}		
+		}
 
 		/// <summary>
 		/// Skips until a matching close brace is found.
@@ -659,7 +717,7 @@ namespace idTech4.Text
 		public idToken ReadToken()
 		{
 			idToken token = new idToken();
-			
+
 			if(this.IsLoaded == false)
 			{
 				idConsole.Error("idLexer.ReadToken: no file loaded");
@@ -744,7 +802,7 @@ namespace idTech4.Text
 			else if((c == '"') || (c == '\''))
 			{
 				if(ReadString(token, c) == false)
-				{					
+				{
 					return null;
 				}
 			}
@@ -794,7 +852,7 @@ namespace idTech4.Text
 
 			return null;
 		}
-				
+
 		public void Warning(string format, params object[] args)
 		{
 			if((_options & LexerOptions.NoWarnings) != 0)
@@ -803,7 +861,7 @@ namespace idTech4.Text
 			}
 
 			idConsole.Warning("file {0}, line {1}: {2}\n", _fileName, _line, string.Format(format, args));
-		}		
+		}
 		#endregion
 
 		#region Private
@@ -873,7 +931,7 @@ namespace idTech4.Text
 			}
 
 			return (float) token.ToFloat();
-		}		
+		}
 
 		/// <summary>
 		/// Reads two strings with only a white space between them as one string.
@@ -1209,7 +1267,7 @@ namespace idTech4.Text
 					// default is double-precision: double
 					else
 					{
-						_token.SubType |= TokenSubType.DoublePrecision;
+						token.SubType |= TokenSubType.DoublePrecision;
 					}
 				}
 				else

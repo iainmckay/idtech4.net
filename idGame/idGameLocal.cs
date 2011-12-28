@@ -12,6 +12,8 @@ using idTech4.Renderer;
 using idTech4.Text;
 using idTech4.Threading;
 
+using idTech4.UI;
+
 namespace idTech4.Game
 {
 	public enum GameState
@@ -1425,7 +1427,7 @@ namespace idTech4.Game
 
 			if(_spawnArgs.ContainsKey("spawn_entnum") == true)
 			{
-				entitySpawnIndex = _spawnArgs.GetInt("spawn_entnum", "0");
+				entitySpawnIndex = _spawnArgs.GetInteger("spawn_entnum", "0");
 			}
 			else
 			{

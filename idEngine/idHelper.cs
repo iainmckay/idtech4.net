@@ -34,98 +34,8 @@ using Microsoft.Xna.Framework;
 
 namespace idTech4
 {
-	public enum idColor
-	{
-		Escape = '^',
-		Default = '0',
-		Red = '1',
-		Green = '2',
-		Yellow = '3',
-		Blue = '4',
-		Cyan = '5', 
-		Magenta = '6',
-		White = '7',
-		Gray = '8',
-		Black = '9'
-	}
-
-	public static class idColorString
-	{
-		public const string Default = "^0";
-		public const string Red = "^1";
-		public const string Green = "^2";
-		public const string Yellow = "^3";
-		public const string Blue = "^4";
-		public const string Cyan = "^5";
-		public const string Magenta = "^6";
-		public const string White = "^7";
-		public const string Gray = "^8";
-		public const string Black = "^9";
-	}
-
 	public static class idHelper
 	{
-		public static bool IsColor(string buffer, int index)
-		{
-			if((index + 1) >= buffer.Length)
-			{
-				return false;
-			}
-
-			return ((buffer[index] == (int) idColor.Escape) && (buffer[index + 1] != '\0') && (buffer[index + 1] != ' '));
-		}
-
-		public static int ColorIndex(idColor color)
-		{
-			return ((int) color & 15);
-		}
-
-		public static string RemoveColors(string str)
-		{
-			StringBuilder newStr = new StringBuilder();
-
-			for(int i = 0; i < str.Length; i++)
-			{
-				char c = str[i];
-
-				if(IsColor(str, i) == true)
-				{
-					i++;
-				}
-				else
-				{
-					newStr.Append(c);
-				}
-			}
-
-			return newStr.ToString();
-		}
-
-		public static string WrapText(string text, int columnWidth, int offset)
-		{
-			string str = string.Empty;
-			int lineCount = text.Length / columnWidth;
-
-			if((text.Length % columnWidth) != 0)
-			{
-				lineCount++;
-			}
-
-			for(int i = 0; i < lineCount; i++)
-			{
-				int width = columnWidth;
-
-				if(((i * columnWidth) + columnWidth) > text.Length)
-				{
-					width = text.Length - (i * columnWidth);
-				}
-
-				str += text.Substring(i * columnWidth, width).PadLeft(offset);
-			}
-
-			return str;
-		}
-
 		public static char CharacterFromKeyCode(Keys key, Keys modifiers)
 		{
 			char c = '\0';
@@ -265,17 +175,10 @@ namespace idTech4
 
 			return c;
 		}
-
-		public static int MakePowerOfTwo(int num)
+		
+		public static int ColorIndex(idColor color)
 		{
-			int pot = 0;
-
-			for(pot = 1; pot < num; pot <<= 1)
-			{
-
-			}
-
-			return pot;
+			return ((int) color & 15);
 		}
 
 		public static T[] Flatten<T>(T[,] source)
@@ -317,5 +220,191 @@ namespace idTech4
 
 			return flat;
 		}
+
+		public static bool IsColor(string buffer, int index)
+		{
+			if((index + 1) >= buffer.Length)
+			{
+				return false;
+			}
+
+			return ((buffer[index] == (int) idColor.Escape) && (buffer[index + 1] != '\0') && (buffer[index + 1] != ' '));
+		}
+
+		public static int MakePowerOfTwo(int num)
+		{
+			int pot = 0;
+
+			for(pot = 1; pot < num; pot <<= 1)
+			{
+
+			}
+
+			return pot;
+		}
+
+		public static Rectangle ParseRectangle(string str)
+		{
+			try
+			{
+				string[] parts = str.Split(' ');
+
+				if(parts.Length == 4)
+				{
+					return new Rectangle(
+						int.Parse(parts[0]),
+						int.Parse(parts[1]),
+						int.Parse(parts[2]),
+						int.Parse(parts[3]));
+				}
+			}
+			catch
+			{
+
+			}
+
+			return Rectangle.Empty;
+		}
+
+		public static Vector2 ParseVector2(string str)
+		{
+			try
+			{
+				string[] parts = str.Split(' ');
+
+				if(parts.Length == 2)
+				{
+					return new Vector2(
+						float.Parse(parts[0]),
+						float.Parse(parts[1]));
+				}
+			}
+			catch
+			{
+
+			}
+
+			return Vector2.Zero;
+		}
+
+		public static Vector3 ParseVector3(string str)
+		{
+			try
+			{
+				string[] parts = str.Split(' ');
+
+				if(parts.Length == 3)
+				{
+					return new Vector3(
+						float.Parse(parts[0]),
+						float.Parse(parts[1]),
+						float.Parse(parts[2]));
+				}
+			}
+			catch
+			{
+
+			}
+
+			return Vector3.Zero;
+		}
+
+		public static Vector4 ParseVector4(string str)
+		{
+			try
+			{
+				string[] parts = str.Split(' ');
+
+				if(parts.Length == 4)
+				{
+					return new Vector4(
+						float.Parse(parts[0]),
+						float.Parse(parts[1]),
+						float.Parse(parts[2]),
+						float.Parse(parts[3]));
+				}
+			}
+			catch
+			{
+
+			}
+
+			return Vector4.Zero;
+		}
+
+		public static string RemoveColors(string str)
+		{
+			StringBuilder newStr = new StringBuilder();
+
+			for(int i = 0; i < str.Length; i++)
+			{
+				char c = str[i];
+
+				if(IsColor(str, i) == true)
+				{
+					i++;
+				}
+				else
+				{
+					newStr.Append(c);
+				}
+			}
+
+			return newStr.ToString();
+		}
+
+		public static string WrapText(string text, int columnWidth, int offset)
+		{
+			string str = string.Empty;
+			int lineCount = text.Length / columnWidth;
+
+			if((text.Length % columnWidth) != 0)
+			{
+				lineCount++;
+			}
+
+			for(int i = 0; i < lineCount; i++)
+			{
+				int width = columnWidth;
+
+				if(((i * columnWidth) + columnWidth) > text.Length)
+				{
+					width = text.Length - (i * columnWidth);
+				}
+
+				str += text.Substring(i * columnWidth, width).PadLeft(offset);
+			}
+
+			return str;
+		}
+	}
+
+	public enum idColor
+	{
+		Escape = '^',
+		Default = '0',
+		Red = '1',
+		Green = '2',
+		Yellow = '3',
+		Blue = '4',
+		Cyan = '5',
+		Magenta = '6',
+		White = '7',
+		Gray = '8',
+		Black = '9'
+	}
+
+	public static class idColorString
+	{
+		public const string Default = "^0";
+		public const string Red = "^1";
+		public const string Green = "^2";
+		public const string Yellow = "^3";
+		public const string Blue = "^4";
+		public const string Cyan = "^5";
+		public const string Magenta = "^6";
+		public const string White = "^7";
+		public const string Gray = "^8";
+		public const string Black = "^9";
 	}
 }

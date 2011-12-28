@@ -100,6 +100,7 @@
     <Compile Include="idCmdArgs.cs" />
     <Compile Include="idCvar.cs" />
     <Compile Include="idCvarSystem.cs" />
+    <Compile Include="idDict.cs" />
     <Compile Include="idGameConsole.cs" />
     <Compile Include="idMath.cs" />
     <Compile Include="idRotation.cs" />
@@ -140,8 +141,11 @@
     <Compile Include="Text\idToken.cs" />
     <Compile Include="UI\idDeviceContext.cs" />
     <Compile Include="UI\idInputField.cs" />
+    <Compile Include="UI\idSimpleWindow.cs" />
     <Compile Include="UI\idUserInterface.cs" />
     <Compile Include="UI\idUserInterfaceManager.cs" />
+    <Compile Include="UI\idWindow.cs" />
+    <Compile Include="UI\idWindowVariable.cs" />
     <Compile Include="Version.cs" />
   </ItemGroup>
   <ItemGroup>

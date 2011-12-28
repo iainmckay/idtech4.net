@@ -8,6 +8,7 @@ using Microsoft.Xna.Framework;
 using idTech4.Game;
 using idTech4.Game.Rules;
 using idTech4.Text.Decl;
+using idTech4.UI;
 
 namespace idTech4.Game.Entities
 {
@@ -862,7 +863,7 @@ oldViewYaw = 0.0f;*/
 				// load HUD
 				if(idR.Game.IsMultiplayer == true)
 				{
-					_hud = idR.UIManager.FindGui("guis/mphud.gui", true, false, true);
+					_hud = idR.UIManager.FindInterface("guis/mphud.gui", true, false, true);
 				}
 				else
 				{
@@ -870,7 +871,7 @@ oldViewYaw = 0.0f;*/
 
 					if(temp != string.Empty)
 					{
-						_hud = idR.UIManager.FindGui(temp, true, false, true);
+						_hud = idR.UIManager.FindInterface(temp, true, false, true);
 					}
 				}
 
@@ -884,7 +885,7 @@ oldViewYaw = 0.0f;*/
 
 				if(cursor != string.Empty)
 				{
-					_cursor = idR.UIManager.FindGui(cursor, true, idR.Game.IsMultiplayer, idR.Game.IsMultiplayer);
+					_cursor = idR.UIManager.FindInterface(cursor, true, idR.Game.IsMultiplayer, idR.Game.IsMultiplayer);
 				}
 
 				if(_cursor != null)

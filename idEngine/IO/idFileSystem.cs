@@ -349,6 +349,23 @@ namespace idTech4.IO
 			return found;
 		}
 
+		public Stream OpenExplicitFileRead(string osPath)
+		{
+			if(_searchPaths.Count == 0)
+			{
+				idConsole.FatalError("Filesystem call made without initialization");
+			}
+			
+			if(idE.CvarSystem.GetInteger("fs_debug") > 0)
+			{
+				idConsole.WriteLine("idFileSystem.OpenExplicitFileRead: {0}", osPath);
+			}
+
+			idConsole.DeveloperWriteLine("idFileSystem.OpenExplicitFileRead - reading from: {0}", osPath);
+
+			return OpenOSFile(osPath, FileMode.Open, FileAccess.Read);
+		}
+
 		public Stream OpenFileRead(string relativePath)
 		{
 			return OpenFileRead(relativePath, true, null);
@@ -433,19 +450,23 @@ namespace idTech4.IO
 
 					string netPath = CreatePath(dir.Path, dir.GameDirectory, relativePath);
 					Stream file = null;
+					
+					if(File.Exists(netPath) == true)
+					{
+						try
+						{
+							file = File.OpenRead(netPath);
+						}
+						catch(Exception x)
+						{
+							idConsole.DeveloperWriteLine("OpenFileRead Exception: {0}", x.ToString());
 
-					try
-					{
-						file = File.OpenRead(netPath);
+							continue;
+						}
 					}
-					catch(FileNotFoundException x)
-					{
-						return null;
-					}
-					catch(Exception x)
-					{
-						idConsole.DeveloperWriteLine("OpenFileRead Exception: {0}", x.ToString());
 
+					if(file == null)
+					{
 						continue;
 					}
 

@@ -597,7 +597,7 @@ namespace idTech4.Game
 				}
 			}*/
 
-			_health = _spawnArgs.GetInt("health");
+			_health = _spawnArgs.GetInteger("health");
 
 			Vector3 origin = _renderEntity.Origin;
 			Matrix axis = _renderEntity.Axis;

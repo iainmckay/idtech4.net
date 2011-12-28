@@ -66,6 +66,14 @@ namespace idTech4.UI
 				return _sourceFile;
 			}
 		}
+
+		public idDict StateDictionary
+		{
+			get
+			{
+				return _state;
+			}
+		}
 		#endregion
 
 		#region Members
@@ -74,10 +82,9 @@ namespace idTech4.UI
 		private bool _interactive;
 		private bool _uniqued;
 
-		// TODO
-		/*private idDict _state;
+		private idDict _state;
 		private idWindow _desktop;
-		private idWindow _bindHandler;*/
+		private idWindow _bindHandler;
 
 		private string _sourceFile;
 		private string _activateStr;
@@ -97,6 +104,7 @@ namespace idTech4.UI
 		public idUserInterface()
 		{
 			_referenceCount = 1;
+			_state = new idDict();
 		}
 		#endregion
 
@@ -120,13 +128,12 @@ namespace idTech4.UI
 			}
 
 			_loading = true;
-			// TODO
-			/*_desktop = new idWindow(this, idE.UIManager.Context);
-			_desktop.Flag = Window.Desktop;*/
 
-			// TODO
-			/*_sourceFile = path;
-			_state.Set("text", "Test Text!");*/
+			_desktop = new idWindow(this, idE.UIManager.Context);
+			_desktop.Flags = WindowFlags.Desktop;
+
+			_sourceFile = path;
+			_state.Set("text", "Test Text!");
 
 			// load the timestamp so reload guis will work correctly
 			string content = idE.FileSystem.ReadFile(path, out _timeStamp);
@@ -142,19 +149,18 @@ namespace idTech4.UI
 				{
 					if(token.ToString().Equals("windowDef", StringComparison.OrdinalIgnoreCase) == true)
 					{
-						// TODO
-						/*if(_desktop.Parse(parser, rebuild) == true)
+						if(_desktop.Parse(parser, rebuild) == true)
 						{
-							_desktop.FixupParameters();
-						}*/
+							// TODO: _desktop.FixupParameters();
+						}
 
 						continue;
 					}
 				}
 
-				// TODO: _state.Set("name", path);
-			} 
-			else 
+				_state.Set("name", path);
+			}
+			else
 			{
 				// TODO
 				/*_desktop.Name = "Desktop";
@@ -177,9 +183,41 @@ namespace idTech4.UI
 
 			_loading = false;
 
-			return true; 
+			return true;
 		}
 		#endregion
 		#endregion
+	}
+
+	[Flags]
+	public enum WindowFlags
+	{
+		Child = 0x00000001,
+		Caption = 0x00000002,
+		Border = 0x00000004,
+		Sizable = 0x00000008,
+		Movable = 0x00000010,
+		Focus = 0x00000020,
+		Capture = 0x00000040,
+		HorizontalCenter = 0x00000080,
+		VerticalCenter = 0x00000100,
+		Modal = 0x00000200,
+		InTransition = 0x00000400,
+		CanFocus = 0x00000800,
+		Selected = 0x00001000,
+		Transform = 0x00002000,
+		HoldCapture = 0x00004000,
+		NoWrap = 0x00008000,
+		NoClip = 0x00010000,
+		InvertRectangle = 0x00020000,
+		NaturalMaterial = 0x00040000,
+		NoCursor = 0x00080000,
+		MenuInterface = 0x00100000,
+		Active = 0x00200000,
+		ShowCoordinates = 0x00400000,
+		ShowTime = 0x00800000,
+		WantEnter = 0x01000000,
+
+		Desktop = 0x10000000
 	}
 }

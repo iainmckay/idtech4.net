@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
@@ -58,7 +59,7 @@ namespace idTech4.Text
 		private List<ScriptDefinition> _defines;					// list with macro definitions
 		private Dictionary<string, ScriptDefinition> _defineDict;
 		private Stack<ScriptIndentation> _indentStack;				// stack with indents
-		
+
 		private int _skip;											// > 0 if skipping conditional code
 		private int _markerPosition;
 
@@ -115,6 +116,116 @@ namespace idTech4.Text
 			}
 		}
 
+		public idToken ExpectAnyToken()
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				Error("couldn't read expected token");
+				return null;
+			}
+
+			return token;
+		}
+
+		public bool ExpectTokenString(string str)
+		{
+			idToken token;
+			
+			if((token = ReadToken()) == null)
+			{
+				Error("couldn't find expected '{0}'", str);
+			}
+			else if(token.ToString() != str)
+			{
+				Error("expected '{0}' but found '{1}'", str, token.ToString());
+			}
+			else
+			{
+				return true;
+			}
+
+			return false;
+		}
+
+		public idToken ExpectTokenType(TokenType type, TokenSubType subType)
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				Error("couldn't read expected token");
+				return null;
+			}
+			else if(token.Type != type)
+			{
+				Error("expected a {0} but found '{1}'", type.ToString().ToLower(), token.ToString());
+				return null;
+			}
+			else if(token.Type == TokenType.Number)
+			{
+				if((token.SubType & subType) != subType)
+				{
+					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), token.ToString());
+					return null;
+				}
+			}
+			else if(token.Type == TokenType.Punctuation)
+			{
+				if(token.SubType != subType)
+				{
+					Error("expected '{0}' but found '{1}'", _scriptStack.Peek().GetPunctuationFromID(subType), token.ToString());
+					return null;
+				}
+			}
+
+			return token;
+		}
+
+		/// <summary>
+		/// Load the given source.
+		/// </summary>
+		/// <returns></returns>
+		public bool LoadFile(string fileName, bool osPath)
+		{
+			if(_loaded == true)
+			{
+				idConsole.FatalError("idScriptParser::LoadMemory: another source already loaded");
+				return false;
+			}
+
+			idLexer script = new idLexer(_options);
+			script.Punctuation = _punctuation;
+			script.LoadFile(fileName, osPath);
+
+			if(script.IsLoaded == false)
+			{
+				return false;
+			}
+
+			_fileName = fileName;
+
+			_scriptStack.Clear();
+			_indentStack.Clear();
+			_tokens.Clear();
+
+			_skip = 0;
+			_loaded = true;
+
+			_scriptStack.Push(script);
+
+			if(_defineDict == null)
+			{
+				_defines.Clear();
+				_defineDict = new Dictionary<string, ScriptDefinition>();
+
+				AddGlobalDefinesToSource();
+			}
+
+			return true;
+		}
+
 		/// <summary>
 		/// Load the given source.
 		/// </summary>
@@ -128,6 +239,7 @@ namespace idTech4.Text
 			}
 
 			idLexer script = new idLexer(_options);
+			script.Punctuation = _punctuation;
 			script.LoadMemory(content, name);
 
 			if(script.IsLoaded == false)
@@ -143,6 +255,8 @@ namespace idTech4.Text
 
 			_skip = 0;
 			_loaded = true;
+
+			_scriptStack.Push(script);
 
 			if(_defineDict == null)
 			{
@@ -236,6 +350,16 @@ namespace idTech4.Text
 				// found a token
 				return token;
 			}
+		}
+
+		public void SetMarker()
+		{
+			_markerPosition = 0;
+		}
+
+		public void UnreadToken(idToken token)
+		{
+			UnreadSourceToken(token);
 		}
 
 		public void Warning(string format, params object[] args)
@@ -669,12 +793,9 @@ namespace idTech4.Text
 				// try relative to the current file
 
 				// TODO: replace with something like Path.Combine.
-				path = _scriptStack.Peek().FileName;
-				path += "/";
-				path += token.ToString();
+				path = Path.Combine(Path.GetDirectoryName(_scriptStack.Peek().FileName), token.ToString());
 
-				throw new Exception("XX");
-				/*if(script.LoadFile(path, _osPath) == false)
+				if(script.LoadFile(path, _osPath) == false)
 				{
 					// try absolute path
 					path = token.ToString();
@@ -689,7 +810,7 @@ namespace idTech4.Text
 							script = null;
 						}
 					}
-				}*/
+				}
 			}
 			else if((token.Type == TokenType.Punctuation) && (token.ToString() == "<"))
 			{
@@ -737,7 +858,7 @@ namespace idTech4.Text
 				Error("#include without file name");
 				return false;
 			}
-			
+
 			if(script == null)
 			{
 				Error("file '{0}' not found", path);
@@ -916,7 +1037,7 @@ namespace idTech4.Text
 
 			indent = 1;
 
-			do 
+			do
 			{
 				// if the token is a name
 				if(token.Type == TokenType.Name)
@@ -958,10 +1079,10 @@ namespace idTech4.Text
 						indent--;
 					}
 
-						if(indent <= 0)
-						{
-							break;
-						}
+					if(indent <= 0)
+					{
+						break;
+					}
 
 					tokens.Add(new idToken(token));
 				}
@@ -988,7 +1109,7 @@ namespace idTech4.Text
 			List<idToken> tokens = new List<idToken>();
 			ScriptDefinition define;
 			bool defined = false;
-			
+
 			intValue = 0;
 			floatValue = 0;
 
@@ -1048,7 +1169,7 @@ namespace idTech4.Text
 
 			return true;
 		}
-	
+
 		/*private bool ExpandDefineIntoSource(idToken token, ScriptDefinition define)
 		{
 

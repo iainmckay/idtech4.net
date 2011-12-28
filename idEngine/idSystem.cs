@@ -678,21 +678,23 @@ namespace idTech4
 			// load the game dll
 			LoadGameDLL();
 	
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04351" ) );
+			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04351" ) );*/
 
 			// init the session
-			session->Init();
+			idE.Session.Init();
 
 			// have to do this twice.. first one sets the correct r_mode for the renderer init
 			// this time around the backend is all setup correct.. a bit fugly but do not want
 			// to mess with all the gl init at this point.. an old vid card will never qualify for 
-			if ( sysDetect ) {
+			if(sysDetect == true)
+			{
 				SetMachineSpec();
-				Com_ExecMachineSpec_f( args );
+				Cmd_ExecMachineSpec(this, new CommandEventArgs(new idCmdArgs()));
+
 				idE.CvarSystem.SetInteger( "s_numberOfSpeakers", 6 );
-				cmdSystem->BufferCommandText( CMD_EXEC_NOW, "s_restart\n" );
-				cmdSystem->ExecuteCommandBuffer();
-			}*/
+				idE.CmdSystem.BufferCommandText(Execute.Now, "s_restart");
+				idE.CmdSystem.ExecuteCommandBuffer();
+			}
 		}
 
 		private void InitRenderSystem()

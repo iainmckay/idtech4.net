@@ -68,6 +68,9 @@ namespace idTech4.UI
 
 			_deviceContext = new idDeviceContext();
 			_deviceContext.Init();
+
+			new idCvar("gui_debug", "0", "", CvarFlags.Gui | CvarFlags.Bool);
+			new idCvar("gui_edit", "0", "", CvarFlags.Gui | CvarFlags.Bool);
 		}
 
 		public idUserInterface FindInterface(string path)

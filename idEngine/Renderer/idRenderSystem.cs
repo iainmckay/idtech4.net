@@ -337,7 +337,11 @@ namespace idTech4.Renderer
 		{
 			idConsole.WriteLine("Initializing OpenGL subsystem");
 
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SystemConsole));
+
 			_renderForm = new Form();
+			_renderForm.Text = "DOOM 3";
+			_renderForm.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
 			_renderForm.Width = width;
 			_renderForm.Height = height;
 			_renderForm.FormClosed += delegate(object sender, FormClosedEventArgs e) { idE.System.Quit(); };
