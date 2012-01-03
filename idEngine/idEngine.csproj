@@ -105,6 +105,7 @@
     <Compile Include="idMath.cs" />
     <Compile Include="idRotation.cs" />
     <Compile Include="Renderer\idRenderWorld.cs" />
+    <Compile Include="Renderer\idScreenRect.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />
     <Compile Include="Text\Decl\idDeclParticle.cs" />
     <Compile Include="Text\Decl\idDeclSkin.cs" />
@@ -141,6 +142,8 @@
     <Compile Include="Text\idToken.cs" />
     <Compile Include="UI\idDeviceContext.cs" />
     <Compile Include="UI\idInputField.cs" />
+    <Compile Include="UI\idRegister.cs" />
+    <Compile Include="UI\idRegisterList.cs" />
     <Compile Include="UI\idSimpleWindow.cs" />
     <Compile Include="UI\idUserInterface.cs" />
     <Compile Include="UI\idUserInterfaceManager.cs" />

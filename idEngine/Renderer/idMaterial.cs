@@ -144,16 +144,28 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public int RegisterCount
+		{
+			get
+			{
+				return _registerCount;
+			}
+		}
+
 		/// <summary>
 		/// This is only used by the gui system to force sorting order
 		/// on images referenced from tga's instead of materials. 
 		/// this is done this way as there are 2000 tgas the guis use
 		/// </summary>
-		public MaterialSort Sort
+		public float Sort
 		{
+			get
+			{
+				return (float) _sort;
+			}
 			set
 			{
-				_sort = (float) value;
+				_sort = value;
 			}
 		}
 		// 
@@ -217,6 +229,115 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region Public
+		public void EvaluateRegisters(ref float[] registers, float[] shaderParms, View view)
+		{
+			EvaluateRegisters(ref registers, shaderParms, view, null);
+		}
+
+		public void EvaluateRegisters(ref float[] registers, float[] shaderParms, View view, idSoundEmitter soundEmitter)
+		{
+			// copy the material constants.
+			for(int i = PredefinedRegisterCount; i < _registerCount; i++)
+			{
+				registers[i] = _expressionRegisters[i];
+			}
+
+			// copy the local and global parameters.
+			registers[(int) ExpressionRegister.Time] = view.FloatTime;
+			registers[(int) ExpressionRegister.Parm0] = shaderParms[0];
+			registers[(int) ExpressionRegister.Parm1] = shaderParms[1];
+			registers[(int) ExpressionRegister.Parm2] = shaderParms[2];
+			registers[(int) ExpressionRegister.Parm3] = shaderParms[3];
+			registers[(int) ExpressionRegister.Parm4] = shaderParms[4];
+			registers[(int) ExpressionRegister.Parm5] = shaderParms[5];
+			registers[(int) ExpressionRegister.Parm6] = shaderParms[6];
+			registers[(int) ExpressionRegister.Parm7] = shaderParms[7];
+			registers[(int) ExpressionRegister.Parm8] = shaderParms[8];
+			registers[(int) ExpressionRegister.Parm9] = shaderParms[9];
+			registers[(int) ExpressionRegister.Parm10] = shaderParms[10];
+			registers[(int) ExpressionRegister.Parm11] = shaderParms[11];
+
+			registers[(int) ExpressionRegister.Global0] = view.RenderView.ShaderParameters[0];
+			registers[(int) ExpressionRegister.Global1] = view.RenderView.ShaderParameters[1];
+			registers[(int) ExpressionRegister.Global2] = view.RenderView.ShaderParameters[2];
+			registers[(int) ExpressionRegister.Global3] = view.RenderView.ShaderParameters[3];
+			registers[(int) ExpressionRegister.Global4] = view.RenderView.ShaderParameters[4];
+			registers[(int) ExpressionRegister.Global5] = view.RenderView.ShaderParameters[5];
+			registers[(int) ExpressionRegister.Global6] = view.RenderView.ShaderParameters[6];
+			registers[(int) ExpressionRegister.Global7] = view.RenderView.ShaderParameters[7];
+
+			ExpressionOperation op;
+			int b;
+
+			for(int i = 0; i < _ops.Length; i++)
+			{
+				op = _ops[i];
+
+				switch(op.OperationType)
+				{
+					case ExpressionOperationType.Add:
+						registers[op.C] = registers[op.A] + registers[op.B];
+						break;
+
+					case ExpressionOperationType.Subtract:
+						registers[op.C] = registers[op.A] - registers[op.B];
+						break;
+
+					case ExpressionOperationType.Multiply:
+						registers[op.C] = registers[op.A] * registers[op.B];
+						break;
+
+					case ExpressionOperationType.Divide:
+						registers[op.C] = registers[op.A] / registers[op.B];
+						break;
+
+					case ExpressionOperationType.Modulo:
+						b = (int) registers[op.B];
+						b = (b != 0) ? b : 1;
+
+						registers[op.C] = (int) registers[op.A] % b;
+						break;
+
+					case ExpressionOperationType.Table:
+						idDeclTable table = (idDeclTable) idE.DeclManager.DeclByIndex(DeclType.Table, op.A);
+						registers[op.C] = table.Lookup(registers[op.B]);
+						break;
+					case ExpressionOperationType.Sound:
+						// TODO: OP_TYPE_SOUND:
+						/*if ( soundEmitter ) {
+							registers[op->c] = soundEmitter->CurrentAmplitude();
+						} else {*/
+						registers[op.C] = 0;
+						//}
+						break;
+					case ExpressionOperationType.GreaterThan:
+						registers[op.C] = ((registers[op.A] > registers[op.B]) == true) ? 1 : 0;
+						break;
+					case ExpressionOperationType.GreaterThanOrEquals:
+						registers[op.C] = ((registers[op.A] >= registers[op.B]) == true) ? 1 : 0;
+						break;
+					case ExpressionOperationType.LessThan:
+						registers[op.C] = ((registers[op.A] < registers[op.B]) == true) ? 1 : 0;
+						break;
+					case ExpressionOperationType.LessThanOrEquals:
+						registers[op.C] = ((registers[op.A] <= registers[op.B]) == true) ? 1 : 0;
+						break;
+					case ExpressionOperationType.Equals:
+						registers[op.C] = ((registers[op.A] == registers[op.B]) == true) ? 1 : 0;
+						break;
+					case ExpressionOperationType.NotEquals:
+						registers[op.C] = ((registers[op.A] != registers[op.B]) == true) ? 1 : 0;
+						break;
+					case ExpressionOperationType.And:
+						registers[op.C] = (((registers[op.A] != 0) && (registers[op.B] != 0)) == true) ? 1 : 0;
+						break;
+					case ExpressionOperationType.Or:
+						registers[op.C] = (((registers[op.A] != 0) || (registers[op.B] != 0)) == true) ? 1 : 0;
+						break;
+				}
+			}
+		}
+
 		/// <summary>
 		/// Test for existance of specific material flag(s).
 		/// </summary>
@@ -2427,115 +2548,6 @@ namespace idTech4.Renderer
 			viewDef.RenderView.ShaderParameters = new float[idE.MaxGlobalShaderParameters];
 
 			EvaluateRegisters(ref _constantRegisters, shaderParms, viewDef, null);
-		}
-
-		private void EvaluateRegisters(ref float[] registers, float[] shaderParms, View view)
-		{
-			EvaluateRegisters(ref registers, shaderParms, view, null);
-		}
-
-		private void EvaluateRegisters(ref float[] registers, float[] shaderParms, View view, idSoundEmitter soundEmitter)
-		{
-			// copy the material constants.
-			for(int i = PredefinedRegisterCount; i < _registerCount; i++)
-			{
-				registers[i] = _expressionRegisters[i];
-			}
-
-			// copy the local and global parameters.
-			registers[(int) ExpressionRegister.Time] = view.FloatTime;
-			registers[(int) ExpressionRegister.Parm0] = shaderParms[0];
-			registers[(int) ExpressionRegister.Parm1] = shaderParms[1];
-			registers[(int) ExpressionRegister.Parm2] = shaderParms[2];
-			registers[(int) ExpressionRegister.Parm3] = shaderParms[3];
-			registers[(int) ExpressionRegister.Parm4] = shaderParms[4];
-			registers[(int) ExpressionRegister.Parm5] = shaderParms[5];
-			registers[(int) ExpressionRegister.Parm6] = shaderParms[6];
-			registers[(int) ExpressionRegister.Parm7] = shaderParms[7];
-			registers[(int) ExpressionRegister.Parm8] = shaderParms[8];
-			registers[(int) ExpressionRegister.Parm9] = shaderParms[9];
-			registers[(int) ExpressionRegister.Parm10] = shaderParms[10];
-			registers[(int) ExpressionRegister.Parm11] = shaderParms[11];
-
-			registers[(int) ExpressionRegister.Global0] = view.RenderView.ShaderParameters[0];
-			registers[(int) ExpressionRegister.Global1] = view.RenderView.ShaderParameters[1];
-			registers[(int) ExpressionRegister.Global2] = view.RenderView.ShaderParameters[2];
-			registers[(int) ExpressionRegister.Global3] = view.RenderView.ShaderParameters[3];
-			registers[(int) ExpressionRegister.Global4] = view.RenderView.ShaderParameters[4];
-			registers[(int) ExpressionRegister.Global5] = view.RenderView.ShaderParameters[5];
-			registers[(int) ExpressionRegister.Global6] = view.RenderView.ShaderParameters[6];
-			registers[(int) ExpressionRegister.Global7] = view.RenderView.ShaderParameters[7];
-
-			ExpressionOperation op;
-			int b;
-
-			for(int i = 0; i < _ops.Length; i++)
-			{
-				op = _ops[i];
-
-				switch(op.OperationType)
-				{
-					case ExpressionOperationType.Add:
-						registers[op.C] = registers[op.A] + registers[op.B];
-						break;
-
-					case ExpressionOperationType.Subtract:
-						registers[op.C] = registers[op.A] - registers[op.B];
-						break;
-
-					case ExpressionOperationType.Multiply:
-						registers[op.C] = registers[op.A] * registers[op.B];
-						break;
-
-					case ExpressionOperationType.Divide:
-						registers[op.C] = registers[op.A] / registers[op.B];
-						break;
-
-					case ExpressionOperationType.Modulo:
-						b = (int) registers[op.B];
-						b = (b != 0) ? b : 1;
-
-						registers[op.C] = (int) registers[op.A] % b;
-						break;
-
-					case ExpressionOperationType.Table:
-						idDeclTable table = (idDeclTable) idE.DeclManager.DeclByIndex(DeclType.Table, op.A);
-						registers[op.C] = table.Lookup(registers[op.B]);
-						break;
-					case ExpressionOperationType.Sound:
-						// TODO: OP_TYPE_SOUND:
-						/*if ( soundEmitter ) {
-							registers[op->c] = soundEmitter->CurrentAmplitude();
-						} else {*/
-						registers[op.C] = 0;
-						//}
-						break;
-					case ExpressionOperationType.GreaterThan:
-						registers[op.C] = ((registers[op.A] > registers[op.B]) == true) ? 1 : 0;
-						break;
-					case ExpressionOperationType.GreaterThanOrEquals:
-						registers[op.C] = ((registers[op.A] >= registers[op.B]) == true) ? 1 : 0;
-						break;
-					case ExpressionOperationType.LessThan:
-						registers[op.C] = ((registers[op.A] < registers[op.B]) == true) ? 1 : 0;
-						break;
-					case ExpressionOperationType.LessThanOrEquals:
-						registers[op.C] = ((registers[op.A] <= registers[op.B]) == true) ? 1 : 0;
-						break;
-					case ExpressionOperationType.Equals:
-						registers[op.C] = ((registers[op.A] == registers[op.B]) == true) ? 1 : 0;
-						break;
-					case ExpressionOperationType.NotEquals:
-						registers[op.C] = ((registers[op.A] != registers[op.B]) == true) ? 1 : 0;
-						break;
-					case ExpressionOperationType.And:
-						registers[op.C] = (((registers[op.A] != 0) && (registers[op.B] != 0)) == true) ? 1 : 0;
-						break;
-					case ExpressionOperationType.Or:
-						registers[op.C] = (((registers[op.A] != 0) || (registers[op.B] != 0)) == true) ? 1 : 0;
-						break;
-				}
-			}
 		}
 		#endregion
 		#endregion

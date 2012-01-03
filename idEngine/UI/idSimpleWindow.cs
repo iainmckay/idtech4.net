@@ -80,18 +80,18 @@ namespace idTech4.UI
 		private float _textAlignY;
 		private int _textShadow;
 
-		private idWinString _text = new idWinString();
-		private idWinBool _visible = new idWinBool();
-		private idWinRectangle _rect = new idWinRectangle();
-		private idWinVector4 _backColor = new idWinVector4();
-		private idWinVector4 _foreColor = new idWinVector4();
-		private idWinVector4 _materialColor = new idWinVector4();
-		private idWinVector4 _borderColor = new idWinVector4();
-		private idWinFloat _textScale = new idWinFloat();
-		private idWinFloat _rotate = new idWinFloat();
-		private idWinVector2 _shear = new idWinVector2();
-		private idWinBackground _backgroundName = new idWinBackground();
-		private idWinBool _hideCursor = new idWinBool();
+		private idWinString _text = new idWinString("text");
+		private idWinBool _visible = new idWinBool("visible");
+		private idWinRectangle _rect = new idWinRectangle("rect");
+		private idWinVector4 _backColor = new idWinVector4("backColor");
+		private idWinVector4 _foreColor = new idWinVector4("foreColor");
+		private idWinVector4 _materialColor = new idWinVector4("matColor");
+		private idWinVector4 _borderColor = new idWinVector4("borderColor");
+		private idWinFloat _textScale = new idWinFloat("textScale");
+		private idWinFloat _rotate = new idWinFloat("rotate");
+		private idWinVector2 _shear = new idWinVector2("shear");
+		private idWinBackground _backgroundName = new idWinBackground("background");
+		private idWinBool _hideCursor = new idWinBool("hideCursor");
 
 		private idMaterial _background;
 		#endregion
@@ -135,7 +135,7 @@ namespace idTech4.UI
 			if(_backgroundName != string.Empty)
 			{
 				_background = idE.DeclManager.FindMaterial(_backgroundName);
-				_background.Sort = MaterialSort.Gui; ;
+				_background.Sort = (float) MaterialSort.Gui; ;
 				_background.ImageClassification = 1; // just for resource tracking
 			}
 
@@ -202,6 +202,67 @@ namespace idTech4.UI
 				}
 			}
 		}
+		#endregion
+
+		#region Methods
+		#region Public
+		public idWindowVariable GetVariableByName(string name)
+		{
+			idWindowVariable ret = null;
+			string nameLower = name.ToLower();
+
+			if(nameLower.Equals("background", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _backgroundName;
+			}
+			else if(nameLower.Equals("visible", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _visible;
+			}
+			else if(nameLower.Equals("rect", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _rect;
+			}
+			else if(nameLower.Equals("backColor", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _backColor;
+			}
+			else if(nameLower.Equals("matColor", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _materialColor;
+			}
+			else if(nameLower.Equals("foreColor", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _foreColor;
+			}
+			else if(nameLower.Equals("borderColor", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _borderColor;
+			}
+			else if(nameLower.Equals("textScale", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _textScale;
+			}
+			else if(nameLower.Equals("rotate", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _rotate;
+			}
+			else if(nameLower.Equals("text", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _text;
+			}
+			else if(nameLower.Equals("backgroundName", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _backgroundName;
+			}
+			else if(nameLower.Equals("hideCursor", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				ret = _hideCursor;
+			}
+
+			return ret;
+		}
+		#endregion
 		#endregion
 	}
 }

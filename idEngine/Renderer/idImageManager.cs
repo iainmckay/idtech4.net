@@ -54,6 +54,14 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Properties
+		public idImage CurrentRenderImage
+		{
+			get
+			{
+				return _currentRenderImage;
+			}
+		}
+
 		public int MaxTextureFilter
 		{
 			get
@@ -85,40 +93,32 @@ namespace idTech4.Renderer
 				return _textureLODBias;
 			}
 		}
-
-		public idImage CurrentRenderImage
-		{
-			get
-			{
-				return _currentRenderImage;
-			}
-		}
 		#endregion
 
 		#region Members
 		private Dictionary<string, idImage> _images = new Dictionary<string, idImage>(StringComparer.OrdinalIgnoreCase);
 
 		private idImage _defaultImage;
-		private idImage _flatNormalMap;					// 128 128 255 in all pixels.
-		private idImage _ambientNormalMap;				// tr.ambientLightVector encoded in all pixels.
-		private idImage _rampImage;						// 0-255 in RGBA in S.
-		private idImage _alphaRampImage;				// 0-255 in alpha, 255 in RGB.
-		private idImage _alphaNotchImage;				// 2x1 texture with just 1110 and 1111 with point sampling.
-		private idImage _whiteImage;					// full of 0xff.
-		private idImage _blackImage;					// full of 0x00.
-		private idImage _normalCubeMapImage;			// cube map to normalize STR into RGB.
-		private idImage _noFalloffImage;				// all 255, but zero clamped.
-		private idImage _fogImage;						// increasing alpha is denser fog.
-		private idImage _fogEnterImage;					// adjust fogImage alpha based on terminator plane.
+		private idImage _flatNormalMap;					// 128 128 255 in all pixels
+		private idImage _ambientNormalMap;				// tr.ambientLightVector encoded in all pixels
+		private idImage _rampImage;						// 0-255 in RGBA in S
+		private idImage _alphaRampImage;				// 0-255 in alpha, 255 in RGB
+		private idImage _alphaNotchImage;				// 2x1 texture with just 1110 and 1111 with point sampling
+		private idImage _whiteImage;					// full of 0xff
+		private idImage _blackImage;					// full of 0x00
+		private idImage _normalCubeMapImage;			// cube map to normalize STR into RGB
+		private idImage _noFalloffImage;				// all 255, but zero clamped
+		private idImage _fogImage;						// increasing alpha is denser fog
+		private idImage _fogEnterImage;					// adjust fogImage alpha based on terminator plane
 		private idImage _cinematicImage;
 		private idImage _scratchImage;
 		private idImage _scratchImage2;
 		private idImage _accumImage;
-		private idImage _currentRenderImage;			// for SS_POST_PROCESS shaders.
+		private idImage _currentRenderImage;			// for SS_POST_PROCESS shaders
 		private idImage _scratchCubeMapImage;
-		private idImage _specularTableImage;			// 1D intensity texture with our specular function.
-		private idImage _specular2DTableImage;			// 2D intensity texture with our specular function with variable specularity.
-		private idImage _borderClampImage;				// white inside, black outside.
+		private idImage _specularTableImage;			// 1D intensity texture with our specular function
+		private idImage _specular2DTableImage;			// 2D intensity texture with our specular function with variable specularity
+		private idImage _borderClampImage;				// white inside, black outside
 
 		// default filter modes for images
 		private int _textureMinFilter;
@@ -137,6 +137,75 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region Public
+		/// <summary>
+		/// Resets filtering on all loaded images.  New images will automatically pick up the current values.
+		/// </summary>
+		public void ChangeTextureFilter()
+		{
+			// if these are changed dynamically, it will force another ChangeTextureFilter
+			idE.CvarSystem.ClearModified("image_filter");
+			idE.CvarSystem.ClearModified("image_anisotropy");
+			idE.CvarSystem.ClearModified("image_lodbias");
+
+			string str = idE.CvarSystem.GetString("image_filter");
+
+			if(idImageManager.ImageFilters.ContainsKey(str) == false)
+			{
+				idConsole.Warning("bad r_textureFilter: '{0}'", str);
+			}
+
+			// set the values for future images
+			_textureMinFilter = ImageFilters[str].Minimize;
+			_textureMaxFilter = ImageFilters[str].Maximize;
+			_textureAnisotropy = idE.CvarSystem.GetFloat("image_anisotropy");
+
+			if(_textureAnisotropy < 1)
+			{
+				_textureAnisotropy = 1;
+			}
+			else if(_textureAnisotropy > idE.GLConfig.MaxTextureAnisotropy)
+			{
+				_textureAnisotropy = idE.GLConfig.MaxTextureAnisotropy;
+			}
+
+			_textureLODBias = idE.CvarSystem.GetFloat("image_lodbias");
+		}
+
+		public void CompleteBackgroundImageLoads()
+		{
+			// TODO: CompleteBackgroundImageLoads
+			/*idImage	*remainingList = NULL;
+			idImage	*next;
+
+					foreach(idImage image in _backgroundImageLoads)
+					{
+						if(image.BackgroundLoadComplete == true)
+						{
+							_activeBackgroundImageLoads--;
+
+					fileSystem->CloseFile( image->bgl.f );
+					// upload the image
+					image->UploadPrecompressedImage( (byte *)image->bgl.file.buffer, image->bgl.file.length );
+					R_StaticFree( image->bgl.file.buffer );
+					if ( image_showBackgroundLoads.GetBool() ) {
+						common->Printf( "R_CompleteBackgroundImageLoad: %s\n", image->imgName.c_str() );
+					}
+				} else {
+					image->bglNext = remainingList;
+					remainingList = image;
+				}
+			}
+			if ( image_showBackgroundLoads.GetBool() ) {
+				static int prev;
+				if ( numActiveBackgroundImageLoads != prev ) {
+					prev = numActiveBackgroundImageLoads;
+					common->Printf( "background Loads: %i\n", numActiveBackgroundImageLoads );
+				}
+			}
+
+			backgroundImageLoads = remainingList;*/
+		}
+
 		public void Init()
 		{
 			// set default texture filter modes
@@ -179,40 +248,6 @@ namespace idTech4.Renderer
 		}
 
 		/// <summary>
-		/// Resets filtering on all loaded images.  New images will automatically pick up the current values.
-		/// </summary>
-		public void ChangeTextureFilter()
-		{
-			// if these are changed dynamically, it will force another ChangeTextureFilter
-			idE.CvarSystem.ClearModified("image_filter");
-			idE.CvarSystem.ClearModified("image_anisotropy");
-			idE.CvarSystem.ClearModified("image_lodbias");
-
-			string str = idE.CvarSystem.GetString("image_filter");
-
-			if(idImageManager.ImageFilters.ContainsKey(str) == false)
-			{
-				idConsole.Warning("bad r_textureFilter: '{0}'", str);
-			}
-
-			// set the values for future images
-			_textureMinFilter = ImageFilters[str].Minimize;
-			_textureMaxFilter = ImageFilters[str].Maximize;
-			_textureAnisotropy = idE.CvarSystem.GetFloat("image_anisotropy");
-
-			if(_textureAnisotropy < 1)
-			{
-				_textureAnisotropy = 1;
-			}
-			else if(_textureAnisotropy > idE.GLConfig.MaxTextureAnisotropy)
-			{
-				_textureAnisotropy = idE.GLConfig.MaxTextureAnisotropy;
-			}
-
-			_textureLODBias = idE.CvarSystem.GetFloat("image_lodbias");
-		}
-
-		/// <summary>
 		/// Images that are procedurally generated are allways specified
 		/// with a callback which must work at any time, allowing the render
 		/// system to be completely regenerated if needed.
@@ -252,27 +287,38 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Static
-		public static void GenerateDefaultImage(idImage image)
+		public static void GenerateAmbientNormalImage(idImage image)
 		{
-			image.MakeDefault();
-		}
+			byte[, ,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
 
-		public static void GenerateWhiteImage(idImage image)
-		{
-			// solid white texture.
-			byte[] data = new byte[DefaultImageSize * DefaultImageSize * 4];
+			int red = (idE.CvarSystem.GetInteger("image_useNormalCompression") == 1) ? 0 : 3;
+			int alpha = (red == 0) ? 3 : 0;
 
-			for(int i = 0; i < data.Length; i++)
+			Vector4 ambientLightVector = idE.RenderSystem.AmbientLightVector;
+
+			// flat normal map for default bunp mapping
+			for(int i = 0; i < 4; i++)
 			{
-				data[i] = 255;
+				data[0, i, red] = (byte) (255 * ambientLightVector.X);
+				data[0, i, 1] = (byte) (255 * ambientLightVector.Y);
+				data[0, i, 2] = (byte) (255 * ambientLightVector.Z);
+				data[0, i, alpha] = 255;
 			}
 
-			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
+			byte[,] pics = new byte[6, 4];
+
+			for(int i = 0; i < 6; i++)
+			{
+				// TODO: pics[i] = data[0, 0];
+			}
+
+			// this must be a cube map for fragment programs to simply substitute for the normalization cube map
+			idConsole.WriteLine("TODO: image->GenerateCubeImage( pics, 2, TF_DEFAULT, true, TD_HIGH_QUALITY );");
 		}
 
 		public static void GenerateBlackImage(idImage image)
 		{
-			// solid black texture.
+			// solid black texture
 			byte[] data = new byte[DefaultImageSize * DefaultImageSize * 4];
 			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
 		}
@@ -333,6 +379,10 @@ namespace idTech4.Renderer
 			Gl.glTexParameterfv(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_BORDER_COLOR, color);
 		}
 
+		public static void GenerateDefaultImage(idImage image)
+		{
+			image.MakeDefault();
+		}
 
 		public static void GenerateFlatNormalImage(idImage image)
 		{
@@ -341,7 +391,7 @@ namespace idTech4.Renderer
 			int red = (idE.CvarSystem.GetInteger("image_useNormalCompression") == 1) ? 0 : 3;
 			int alpha = (red == 0) ? 3 : 0;
 
-			// flat normal map for default bunp mapping.
+			// flat normal map for default bunp mapping
 			for(int i = 0; i < 4; i++)
 			{
 				data[0, i, red] = 128;
@@ -353,38 +403,22 @@ namespace idTech4.Renderer
 			image.Generate(idHelper.Flatten<byte>(data), 2, 2, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.HighQuality);
 		}
 
-		public static void GenerateAmbientNormalImage(idImage image) 
+		public static void GenerateWhiteImage(idImage image)
 		{
-			byte[,,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
+			// solid white texture
+			byte[] data = new byte[DefaultImageSize * DefaultImageSize * 4];
 
-			int red = (idE.CvarSystem.GetInteger("image_useNormalCompression") == 1) ? 0 : 3;
-			int alpha = (red == 0) ? 3 : 0;
-
-			Vector4 ambientLightVector = idE.RenderSystem.AmbientLightVector;
-
-			// flat normal map for default bunp mapping
-			for(int i = 0; i < 4; i++)
+			for(int i = 0; i < data.Length; i++)
 			{
-				data[0, i, red] = (byte) (255 * ambientLightVector.X);
-				data[0, i, 1] = (byte) (255 * ambientLightVector.Y);
-				data[0, i, 2] = (byte) (255 * ambientLightVector.Z);
-				data[0, i, alpha] = 255;
+				data[i] = 255;
 			}
 
-			byte[,] pics = new byte[6, 4];
-
-			for(int i = 0; i < 6; i++)
-			{
-				//pics[i] = data[0, 0];
-			}
-
-			// this must be a cube map for fragment programs to simply substitute for the normalization cube map
-			idConsole.WriteLine("TODO: image->GenerateCubeImage( pics, 2, TF_DEFAULT, true, TD_HIGH_QUALITY );");
+			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
 		}
 
-		public static void GenerateRGBA8Image(idImage image) 
+		public static void GenerateRGBA8Image(idImage image)
 		{
-			byte[,,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
+			byte[, ,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
 
 			data[0, 0, 0] = 16;
 			data[0, 0, 1] = 32;
@@ -394,9 +428,9 @@ namespace idTech4.Renderer
 			image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
 		}
 
-		public static void GenerateRGB8Image(idImage image) 
+		public static void GenerateRGB8Image(idImage image)
 		{
-			byte[,,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
+			byte[, ,] data = new byte[DefaultImageSize, DefaultImageSize, 4];
 
 			data[0, 0, 0] = 16;
 			data[0, 0, 1] = 32;
@@ -406,7 +440,7 @@ namespace idTech4.Renderer
 			image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
 		}
 
-		public static void GenerateAlphaNotchImage(idImage image) 
+		public static void GenerateAlphaNotchImage(idImage image)
 		{
 			byte[,] data = new byte[2, 4];
 
@@ -429,9 +463,9 @@ namespace idTech4.Renderer
 
 			for(int x = 0; x < 256; x++)
 			{
-				data[x, 0] = 
+				data[x, 0] =
 					data[x, 1] =
-					data[x, 2] = 
+					data[x, 2] =
 					data[x, 3] = (byte) x;
 			}
 
@@ -450,8 +484,7 @@ namespace idTech4.Renderer
 			{
 				float f = x / 255.0f;
 
-				// this is the behavior of the hacked up fragment programs that
-				// can't really do a power function.
+				// this is the behavior of the hacked up fragment programs that can't really do a power function
 				f = (f - 0.75f) * 4;
 
 				if(f < 0)
@@ -478,7 +511,7 @@ namespace idTech4.Renderer
 		/// <param name="image"></param>
 		public static void GenerateSpecular2DTableImage(idImage image)
 		{
-			byte[,,] data = new byte[256, 256, 4];
+			byte[, ,] data = new byte[256, 256, 4];
 
 			for(int x = 0; x < 256; x++)
 			{
@@ -495,9 +528,9 @@ namespace idTech4.Renderer
 						break;
 					}
 
-					data[y, x, 0] = 
-					data[y, x, 1] = 
-					data[y, x, 2] = 
+					data[y, x, 0] =
+					data[y, x, 1] =
+					data[y, x, 2] =
 					data[y, x, 3] = (byte) b;
 				}
 			}
@@ -530,7 +563,7 @@ namespace idTech4.Renderer
 			float rampRange = 8;
 			float deepRange = -30;
 
-			// only ranges that cross the ramp range are special.
+			// only ranges that cross the ramp range are special
 			if((targetHeight > 0) && (viewHeight > 0))
 			{
 				return 0.0f;
@@ -584,7 +617,7 @@ namespace idTech4.Renderer
 			float ramp = (1.0f - (rampTop * rampSlope + rampBottom * rampSlope) * -0.5f) * (rampTop - rampBottom);
 			float frac = (total - above - ramp) / total;
 
-			// after it gets moderately deep, always use full value.
+			// after it gets moderately deep, always use full value
 			float deepest = (viewHeight < targetHeight) ? viewHeight : targetHeight;
 			float deepFrac = deepest / deepRange;
 
@@ -602,7 +635,7 @@ namespace idTech4.Renderer
 		/// <param name="image"></param>
 		public static void GenerateFogEnterImage(idImage image)
 		{
-			byte[,,] data = new byte[FogEnterSize, FogEnterSize, 4];
+			byte[, ,] data = new byte[FogEnterSize, FogEnterSize, 4];
 
 			for(int x = 0; x < FogEnterSize; x++)
 			{
@@ -627,7 +660,7 @@ namespace idTech4.Renderer
 				}
 			}
 
-			// if mipmapped, acutely viewed surfaces fade wrong.
+			// if mipmapped, acutely viewed surfaces fade wrong
 			image.Generate(idHelper.Flatten<byte>(data), FogEnterSize, FogEnterSize, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
@@ -637,7 +670,7 @@ namespace idTech4.Renderer
 		/// <param name="image"></param>
 		public static void GenerateFogImage(idImage image)
 		{
-			byte[,,] data = new byte[FogSize, FogSize, 4];
+			byte[, ,] data = new byte[FogSize, FogSize, 4];
 			float[] step = new float[256];
 			float remaining = 1.0f;
 
@@ -654,7 +687,7 @@ namespace idTech4.Renderer
 					float d = (float) Math.Sqrt((x - (FogSize / 2)) * (x - (FogSize / 2))
 						+ (y - (FogSize / 2)) * (y - (FogSize / 2)));
 					d /= FogSize / 2 - 1;
-				
+
 					int b = (byte) (d * 255);
 
 					if(b <= 0)
@@ -685,7 +718,7 @@ namespace idTech4.Renderer
 
 		public static void GenerateQuadraticImage(idImage image)
 		{
-			byte[,,] data = new byte[QuadraticHeight, QuadraticWidth, 4];
+			byte[, ,] data = new byte[QuadraticHeight, QuadraticWidth, 4];
 
 			for(int x = 0; x < QuadraticWidth; x++)
 			{
@@ -726,7 +759,7 @@ namespace idTech4.Renderer
 		/// <param name="image"></param>
 		public static void GenerateNoFalloffImage(idImage image)
 		{
-			byte[,,] data = new byte[16, FalloffTextureSize, 4];
+			byte[, ,] data = new byte[16, FalloffTextureSize, 4];
 
 			for(int x = 1; x < (FalloffTextureSize - 1); x++)
 			{

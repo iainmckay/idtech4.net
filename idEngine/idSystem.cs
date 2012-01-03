@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Management;
+using System.Threading;
 
 using Microsoft.Xna.Framework;
 
@@ -46,6 +47,14 @@ namespace idTech4
 				// TODO
 				//return idE.Game.Time.ElapsedGameTime.Milliseconds;
 				return 0;
+			}
+		}
+
+		public int FrameTime
+		{
+			get
+			{
+				return _frameTime;
 			}
 		}
 		#endregion
@@ -77,9 +86,9 @@ namespace idTech4
 		private int _lastErrorTime;
 		private int _errorCount;
 
-		private int _frameTime; // time for the current frame in milliseconds.
-		private int _frameNumber; // variable frame number.
-		private int _ticNumber; // 60 hz tics
+		private int _frameTime;				// time for the current frame in milliseconds
+		private int _frameNumber;			// variable frame number
+		private int _ticNumber;				// 60 hz tics
 
 		private List<string> _errorList = new List<string>();
 
@@ -102,13 +111,10 @@ namespace idTech4
 		public void Init(string[] args)
 		{
 			// TODO
-			try
+			//try
 			{
 				InitCvars();
-
-				// initialize idLib
-				// idLib::Init();
-
+				
 				// clear warning buffer
 				idConsole.ClearWarnings(string.Format("{0} initialization", idE.GameName));
 
@@ -124,7 +130,7 @@ namespace idTech4
 				idConsole.WriteLine(idE.Version);
 
 				// initialize key input/binding, done early so bind command exists
-				/*idKeyInput::Init();*/
+				// TODO: idKeyInput::Init();
 
 				// init the console so we can take prints
 				idE.Console.Init();
@@ -132,19 +138,19 @@ namespace idTech4
 				// get architecture info
 				SysInit();
 
-				/*
 				// initialize networking
-				Sys_InitNetworking();*/
+				// TODO: Sys_InitNetworking();
 
 				// override cvars from command line
 				StartupVariable(null, false);
 
+				// TODO
 				/*if ( !idAsyncNetwork::serverDedicated.GetInteger() && Sys_AlreadyRunning() ) {
 					Sys_Quit();
 				}
 
 				// initialize processor specific SIMD implementation
-				InitSIMD();*/
+				// TODO: InitSIMD();*/
 
 				// init commands
 				InitCommands();
@@ -156,7 +162,7 @@ namespace idTech4
 				if(AddStartupCommands() == false)
 				{
 					// if the user didn't give any commands, run default action
-					// TODO: session->StartMenu( true );
+					idE.Session.StartMenu(true);
 				}
 
 				idConsole.WriteLine("--- Common Initialization Complete ---");
@@ -171,23 +177,23 @@ namespace idTech4
 #endif
 
 				// remove any prints from the notify lines
-				console->ClearNotifyLines();
+				// TODO: console->ClearNotifyLines();
 				*/
 
 				_commandLineArguments = null;
 				_fullyInitialized = true;
 			}
-			catch(Exception x)
+			/*catch(Exception x)
 			{
 				Error("Error during initialization");
 
 				idConsole.WriteLine(x.ToString());
-			}
+			}*/
 		}
 
 		public void Frame()
 		{
-			try
+			//try
 			{
 				// pump all the events
 				// TODO: Sys_GenerateEvents();
@@ -213,11 +219,11 @@ namespace idTech4
 						session->UpdateScreen( false );
 					}
 				} else {
-					session->Frame();
+					session->Frame();*/
 
 					// normal, in-sequence screen update
-					session->UpdateScreen( false );
-				}
+					idE.Session.UpdateScreen(false);
+				/*}
 
 				// report timing information
 				if ( com_speeds.GetBool() ) {
@@ -232,15 +238,15 @@ namespace idTech4
 
 				_frameNumber++;
 			}
-			catch(Exception)
+			/*catch(Exception)
 			{
 				// an ERP_DROP was thrown
-			}
+			}*/
 		}
 
 		public void Quit()
 		{
-			// don't try to shutdown if we are in a recursive error
+			// don't try to shutdown if we are in a recursive error			
 			if(_errorEntered == ErrorType.None)
 			{
 				Shutdown();
@@ -448,7 +454,7 @@ namespace idTech4
 				// full screen rendering window covering the
 				// error dialog
 				idConsole.WriteLine("FATAL: recursed fatal error:\n{0}", string.Format(format, args));
-
+				
 				// write the console to a log file?
 				SysQuit();
 			}
@@ -472,6 +478,8 @@ namespace idTech4
 			// shouldn't be an issue.
 			new idCvar("sys_arch", "", "", CvarFlags.System | CvarFlags.Init);
 			new idCvar("sys_cpustring", "detect", "", CvarFlags.System | CvarFlags.Init);
+			new idCvar("sys_lang", "english", "", CvarFlags.System | CvarFlags.Archive/* TODO: , sysLanguageNames, idCmdSystem::ArgCompletion_String<sysLanguageNames> */);
+
 			new idCvar("in_mouse", "1", "enable mouse input", CvarFlags.System | CvarFlags.Bool);
 			new idCvar("win_allowAltTab", "0", "allow Alt-Tab when fullscreen", CvarFlags.System | CvarFlags.Bool);
 			new idCvar("win_notaskkeys", "0", "disable windows task keys", CvarFlags.System | CvarFlags.Integer);
@@ -583,6 +591,8 @@ namespace idTech4
 			*/
 
 			bool sysDetect = true;
+
+			// TODO
 			/*idFile *file = fileSystem->OpenExplicitFileRead( fileSystem->RelativePathToOSPath( CONFIG_SPEC, "fs_savepath" ) );
 			bool sysDetect = ( file == NULL );
 			if ( file ) {
@@ -924,6 +934,7 @@ namespace idTech4
 			// TODO: Sys_ShutdownInput();
 
 			idE.Quit = true;
+			Thread.CurrentThread.Abort();
 		}
 
 		private void SysInit()

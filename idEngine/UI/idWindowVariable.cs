@@ -43,6 +43,26 @@ namespace idTech4.UI
 		#endregion
 
 		#region Properties
+		public idDict Dictionary
+		{
+			get
+			{
+				return _guiDict;
+			}
+		}
+
+		public bool Evaluate
+		{
+			get
+			{
+				return _eval;
+			}
+			set
+			{
+				_eval = value;
+			}
+		}
+
 		public string Name
 		{
 			get
@@ -71,31 +91,11 @@ namespace idTech4.UI
 			}
 		}
 
-		public idDict Dictionary
-		{
-			get
-			{
-				return _guiDict;
-			}
-		}
-
 		public bool NeedsUpdate
 		{
 			get
 			{
 				return (_guiDict != null);
-			}
-		}
-
-		public bool Evaluate
-		{
-			get
-			{
-				return _eval;
-			}
-			set
-			{
-				_eval = value;
 			}
 		}
 
@@ -116,27 +116,27 @@ namespace idTech4.UI
 		{
 
 		}
+
+		public idWindowVariable(string name)
+		{
+			_name = name;
+		}
 		#endregion
 
 		#region Methods
 		#region Public
-		public abstract void Update();
-		public abstract void Set(string value);
-		#endregion
-
-		#region Protected
-		protected virtual void Init(string name, idWindow win)
+		public virtual void Init(string name, idWindow win)
 		{
 			string key = name;
 			int length = key.Length;
 
 			_guiDict = null;
 
-			if((length > 5) && (key.StartsWith("gui:") == true))
+			if((length > Prefix.Length) && (key.StartsWith(Prefix) == true))
 			{
 				key = key.Substring(length - Prefix.Length);
 
-				SetGuiInfo(win.UserInterface.StateDictionary, key);
+				SetGuiInfo(win.UserInterface.State, key);
 				win.AddUpdateVariable(this);
 			}
 			else
@@ -145,6 +145,11 @@ namespace idTech4.UI
 			}
 		}
 
+		public abstract void Update();
+		public abstract void Set(string value);
+		#endregion
+
+		#region Protected
 		protected virtual void SetGuiInfo(idDict dict, string name)
 		{
 			_guiDict = dict;
@@ -161,8 +166,8 @@ namespace idTech4.UI
 		#endregion
 
 		#region Constructor
-		public idWinBool()
-			: base()
+		public idWinBool(string name)
+			: base(name)
 		{
 
 		}
@@ -180,14 +185,11 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public override void Update()
+		public override void Init(string name, idWindow win)
 		{
-			string s = this.Name;
+			base.Init(name, win);
 
-			if((_guiDict != null) && (s != string.Empty))
-			{
-				_data = _guiDict.GetBool(s);
-			}
+			Update();
 		}
 
 		public void Set(bool value)
@@ -209,15 +211,16 @@ namespace idTech4.UI
 				_guiDict.Set(this.Name, _data);
 			}
 		}
-		#endregion
 
-		#region Protected
-		protected override void Init(string name, idWindow win)
+		public override void Update()
 		{
-			base.Init(name, win);
+			string s = this.Name;
 
-			Update();
-		}		
+			if((_guiDict != null) && (s != string.Empty))
+			{
+				_data = _guiDict.GetBool(s);
+			}
+		}
 		#endregion
 		#endregion
 		#endregion
@@ -233,7 +236,7 @@ namespace idTech4.UI
 		{
 			return _data.Equals(obj);
 		}
-		
+
 		public static bool operator ==(idWinBool b1, bool b2)
 		{
 			return (b1._data == b2);
@@ -258,8 +261,8 @@ namespace idTech4.UI
 		#endregion
 
 		#region Constructor
-		public idWinString()
-			: base()
+		public idWinString(string name)
+			: base(name)
 		{
 
 		}
@@ -277,16 +280,16 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public override void Update()
+		public override void Init(string name, idWindow win)
 		{
-			string s = this.Name;
+			base.Init(name, win);
 
-			if((_guiDict != null) && (s != string.Empty))
+			if(_guiDict != null)
 			{
-				_data = _guiDict.GetString(s);
+				_data = _guiDict.GetString(this.Name);
 			}
 		}
-		
+
 		public override void Set(string value)
 		{
 			_data = value;
@@ -296,16 +299,14 @@ namespace idTech4.UI
 				_guiDict.Set(this.Name, _data);
 			}
 		}
-		#endregion
 
-		#region Protected
-		protected override void Init(string name, idWindow win)
+		public override void Update()
 		{
-			base.Init(name, win);
+			string s = this.Name;
 
-			if(_guiDict != null)
+			if((_guiDict != null) && (s != string.Empty))
 			{
-				_data = _guiDict.GetString(this.Name);
+				_data = _guiDict.GetString(s);
 			}
 		}
 		#endregion
@@ -341,15 +342,15 @@ namespace idTech4.UI
 		#endregion
 	}
 
-	public sealed class idWinFloat : idWindowVariable
+	public sealed class idWinInteger : idWindowVariable
 	{
 		#region Members
-		private float _data;
+		private int _data;
 		#endregion
 
 		#region Constructor
-		public idWinFloat()
-			: base()
+		public idWinInteger(string name)
+			: base(name)
 		{
 
 		}
@@ -367,14 +368,106 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
+		public override void Init(string name, idWindow win)
+		{
+			base.Init(name, win);
+
+			Update();
+		}
+
+		public void Set(int value)
+		{
+			_data = value;
+
+			if(_guiDict != null)
+			{
+				_guiDict.Set(this.Name, _data);
+			}
+		}
+
+		public override void Set(string value)
+		{
+			int.TryParse(value, out _data);
+
+			if(_guiDict != null)
+			{
+				_guiDict.Set(this.Name, _data);
+			}
+		}
+
 		public override void Update()
 		{
 			string s = this.Name;
 
 			if((_guiDict != null) && (s != string.Empty))
 			{
-				_data = _guiDict.GetFloat(s);
+				_data = _guiDict.GetInteger(s);
 			}
+		}
+		#endregion
+		#endregion
+		#endregion
+		#endregion
+
+		#region Overloads
+		public override string ToString()
+		{
+			return _data.ToString();
+		}
+
+		public override bool Equals(object obj)
+		{
+			return _data.Equals(obj);
+		}
+
+		public static bool operator ==(idWinInteger v1, float v2)
+		{
+			return (v1._data == v2);
+		}
+
+		public static bool operator !=(idWinInteger v1, float v2)
+		{
+			return (v1._data != v2);
+		}
+
+		public static implicit operator float(idWinInteger v)
+		{
+			return v._data;
+		}
+		#endregion
+	}
+
+	public sealed class idWinFloat : idWindowVariable
+	{
+		#region Members
+		private float _data;
+		#endregion
+
+		#region Constructor
+		public idWinFloat(string name)
+			: base(name)
+		{
+
+		}
+		#endregion
+
+		#region idWindowVariable implementation
+		#region Properties
+		public override float X
+		{
+			get
+			{
+				return _data;
+			}
+		}
+
+		#region Methods
+		#region Public
+		public override void Init(string name, idWindow win)
+		{
+			base.Init(name, win);
+
+			Update();
 		}
 
 		public void Set(float value)
@@ -396,14 +489,15 @@ namespace idTech4.UI
 				_guiDict.Set(this.Name, _data);
 			}
 		}
-		#endregion
 
-		#region Protected
-		protected override void Init(string name, idWindow win)
+		public override void Update()
 		{
-			base.Init(name, win);
+			string s = this.Name;
 
-			Update();
+			if((_guiDict != null) && (s != string.Empty))
+			{
+				_data = _guiDict.GetFloat(s);
+			}
 		}
 		#endregion
 		#endregion
@@ -479,8 +573,8 @@ namespace idTech4.UI
 		#endregion
 
 		#region Constructor
-		public idWinRectangle()
-			: base()
+		public idWinRectangle(string name)
+			: base(name)
 		{
 
 		}
@@ -498,18 +592,11 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public override void Update()
+		public override void Init(string name, idWindow win)
 		{
-			string s = this.Name;
+			base.Init(name, win);
 
-			if((_guiDict != null) && (s != string.Empty))
-			{
-				Rectangle r = _guiDict.GetRectangle(this.Name);
-				_data.X = r.X;
-				_data.Y = r.Y;
-				_data.Width = r.Width;
-				_data.Height = r.Height;
-			}
+			Update();
 		}
 
 		public void Set(Rectangle value)
@@ -531,14 +618,19 @@ namespace idTech4.UI
 				_guiDict.Set(this.Name, _data);
 			}
 		}
-		#endregion
 
-		#region Protected
-		protected override void Init(string name, idWindow win)
+		public override void Update()
 		{
-			base.Init(name, win);
+			string s = this.Name;
 
-			Update();
+			if((_guiDict != null) && (s != string.Empty))
+			{
+				Rectangle r = _guiDict.GetRectangle(this.Name);
+				_data.X = r.X;
+				_data.Y = r.Y;
+				_data.Width = r.Width;
+				_data.Height = r.Height;
+			}
 		}
 		#endregion
 		#endregion
@@ -590,8 +682,8 @@ namespace idTech4.UI
 		#endregion
 
 		#region Constructor
-		public idWinVector2()
-			: base()
+		public idWinVector2(string name)
+			: base(name)
 		{
 
 		}
@@ -609,16 +701,11 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public override void Update()
+		public override void Init(string name, idWindow win)
 		{
-			string s = this.Name;
+			base.Init(name, win);
 
-			if((_guiDict != null) && (s != string.Empty))
-			{
-				Vector2 v = _guiDict.GetVector2(this.Name);
-				_data.X = v.X;
-				_data.Y = v.Y;
-			}
+			Update();
 		}
 
 		public void Set(Vector2 value)
@@ -640,14 +727,17 @@ namespace idTech4.UI
 				_guiDict.Set(this.Name, _data);
 			}
 		}
-		#endregion
 
-		#region Protected
-		protected override void Init(string name, idWindow win)
+		public override void Update()
 		{
-			base.Init(name, win);
+			string s = this.Name;
 
-			Update();
+			if((_guiDict != null) && (s != string.Empty))
+			{
+				Vector2 v = _guiDict.GetVector2(this.Name);
+				_data.X = v.X;
+				_data.Y = v.Y;
+			}
 		}
 		#endregion
 		#endregion
@@ -707,8 +797,8 @@ namespace idTech4.UI
 		#endregion
 
 		#region Constructor
-		public idWinVector3()
-			: base()
+		public idWinVector3(string name)
+			: base(name)
 		{
 
 		}
@@ -726,17 +816,11 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public override void Update()
+		public override void Init(string name, idWindow win)
 		{
-			string s = this.Name;
+			base.Init(name, win);
 
-			if((_guiDict != null) && (s != string.Empty))
-			{
-				Vector3 v = _guiDict.GetVector3(this.Name);
-				_data.X = v.X;
-				_data.Y = v.Y;
-				_data.Z = v.Z;
-			}
+			Update();
 		}
 
 		public void Set(Vector3 value)
@@ -758,14 +842,18 @@ namespace idTech4.UI
 				_guiDict.Set(this.Name, _data);
 			}
 		}
-		#endregion
 
-		#region Protected
-		protected override void Init(string name, idWindow win)
+		public override void Update()
 		{
-			base.Init(name, win);
+			string s = this.Name;
 
-			Update();
+			if((_guiDict != null) && (s != string.Empty))
+			{
+				Vector3 v = _guiDict.GetVector3(this.Name);
+				_data.X = v.X;
+				_data.Y = v.Y;
+				_data.Z = v.Z;
+			}
 		}
 		#endregion
 		#endregion
@@ -833,8 +921,8 @@ namespace idTech4.UI
 		#endregion
 
 		#region Constructor
-		public idWinVector4()
-			: base()
+		public idWinVector4(string name)
+			: base(name)
 		{
 
 		}
@@ -852,18 +940,11 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public override void Update()
+		public override void Init(string name, idWindow win)
 		{
-			string s = this.Name;
+			base.Init(name, win);
 
-			if((_guiDict != null) && (s != string.Empty))
-			{
-				Vector4 v = _guiDict.GetVector4(this.Name);
-				_data.X = v.X;
-				_data.Y = v.Y;
-				_data.Z = v.Z;
-				_data.W = v.W;
-			}
+			Update();
 		}
 
 		public void Set(Vector4 value)
@@ -885,14 +966,19 @@ namespace idTech4.UI
 				_guiDict.Set(this.Name, _data);
 			}
 		}
-		#endregion
 
-		#region Protected
-		protected override void Init(string name, idWindow win)
+		public override void Update()
 		{
-			base.Init(name, win);
+			string s = this.Name;
 
-			Update();
+			if((_guiDict != null) && (s != string.Empty))
+			{
+				Vector4 v = _guiDict.GetVector4(this.Name);
+				_data.X = v.X;
+				_data.Y = v.Y;
+				_data.Z = v.Z;
+				_data.W = v.W;
+			}
 		}
 		#endregion
 		#endregion
@@ -924,6 +1010,11 @@ namespace idTech4.UI
 		{
 			return v._data;
 		}
+
+		public static implicit operator Color(idWinVector4 v)
+		{
+			return new Color(v._data);
+		}
 		#endregion
 	}
 
@@ -949,8 +1040,8 @@ namespace idTech4.UI
 		#endregion
 
 		#region Constructor
-		public idWinBackground()
-			: base()
+		public idWinBackground(string name)
+			: base(name)
 		{
 
 		}
@@ -968,23 +1059,11 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public override void Update()
+		public override void Init(string name, idWindow win)
 		{
-			string s = this.Name;
+			base.Init(name, win);
 
-			if((_guiDict != null) && (s != string.Empty))
-			{
-				_data = _guiDict.GetString(s);
-
-				if(_data == string.Empty)
-				{
-					_material = null;
-				}
-				else
-				{
-					_material = idE.DeclManager.FindMaterial(_data);
-				}
-			}
+			Update();
 		}
 
 		public override void Set(string value)
@@ -1008,14 +1087,24 @@ namespace idTech4.UI
 				}
 			}
 		}
-		#endregion
 
-		#region Protected
-		protected override void Init(string name, idWindow win)
+		public override void Update()
 		{
-			base.Init(name, win);
+			string s = this.Name;
 
-			Update();
+			if((_guiDict != null) && (s != string.Empty))
+			{
+				_data = _guiDict.GetString(s);
+
+				if(_data == string.Empty)
+				{
+					_material = null;
+				}
+				else
+				{
+					_material = idE.DeclManager.FindMaterial(_data);
+				}
+			}
 		}
 		#endregion
 		#endregion

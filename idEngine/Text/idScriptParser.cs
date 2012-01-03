@@ -269,6 +269,63 @@ namespace idTech4.Text
 			return true;
 		}
 
+		public bool ParseBool()
+		{
+			idToken token;
+
+			if((token = ExpectTokenType(TokenType.Number, 0)) == null)
+			{
+				Error("couldn't read expected boolean");
+				return false;
+			}
+
+			return (token.ToInt32() != 0);
+		}
+
+		public float ParseFloat()
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				Error("couldn't read expected floating point number");
+				return 0.0f;
+			}
+			else if((token.Type == TokenType.Punctuation) && (token.ToString() == "-"))
+			{
+				token = ExpectTokenType(TokenType.Number, 0);
+				return -token.ToFloat();
+			}
+			else if(token.Type != TokenType.Number)
+			{
+				Error("expected float value, found '{0}'", token.ToString());
+			}
+
+			return token.ToFloat();
+		}
+
+		public int ParseInteger()
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				Error("couldn't read expected integer");
+				return 0;
+			}
+			else if((token.Type == TokenType.Punctuation) && (token.ToString() == "-"))
+			{
+				token = ExpectTokenType(TokenType.Number, TokenSubType.Integer);
+				return -token.ToInt32();
+			}
+			else if((token.Type != TokenType.Number) || (token.SubType == TokenSubType.Float))
+			{
+				Error("expected integer value, found '{0}'", token.ToString());
+			}
+
+			return token.ToInt32();
+		}
+
 		public idToken ReadToken()
 		{
 			idToken token;
@@ -1475,6 +1532,8 @@ namespace idTech4.Text
 			token.Flags = 0;
 			token.Set("-");
 			token.Type = TokenType.Punctuation;
+
+			idConsole.WriteLine("TODO: UnreadSignToken");
 			// TODO: token.SubType = LexerPunctuationID.Subtract;
 
 			UnreadSourceToken(token);

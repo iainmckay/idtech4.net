@@ -44,6 +44,14 @@ namespace idTech4.UI
 				return _deviceContext;
 			}
 		}
+
+		public Rectangle ScreenRectangle
+		{
+			get
+			{
+				return _screenRect;
+			}
+		}
 		#endregion
 
 		#region Members
@@ -71,6 +79,8 @@ namespace idTech4.UI
 
 			new idCvar("gui_debug", "0", "", CvarFlags.Gui | CvarFlags.Bool);
 			new idCvar("gui_edit", "0", "", CvarFlags.Gui | CvarFlags.Bool);
+			new idCvar("gui_smallFontLimit", "0.30", "", CvarFlags.Gui | CvarFlags.Archive);
+			new idCvar("gui_mediumFontLimit", "0.60", "", CvarFlags.Gui | CvarFlags.Archive);
 		}
 
 		public idUserInterface FindInterface(string path)

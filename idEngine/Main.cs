@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
+using System.Windows.Forms;
 
 namespace idTech4
 {
@@ -122,7 +123,7 @@ namespace idTech4
 				*/
 
 				idE.System.Frame();
-				System.Windows.Forms.Application.DoEvents();
+				Application.DoEvents();
 				Thread.Sleep(0);
 			}
 		}

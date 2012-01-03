@@ -66,6 +66,12 @@ namespace idTech4
 			(Platform.Is64Bit == true) ? "x86" : "x64",
 			idVersion.BuildDate, idVersion.BuildTime);
 
+		public const int GlyphStart = 0;
+		public const int GlyphEnd = 255;
+		public const int GlyphCharacterStart = 32;
+		public const int GlyphCharacterEnd = 127;
+		public const int GlyphsPerFont = GlyphEnd - GlyphStart + 1;
+
 		public const int MaxPrintMessageSize = 4096;
 		public const int MaxCommandArgs = 64;
 		public const int MaxCommandStringLength = 2048;
@@ -74,6 +80,12 @@ namespace idTech4
 		public const int MaxEntityShaderParameters = 12;
 		public const int MaxExpressionRegisters = 4096;
 		public const int MaxGlobalShaderParameters = 12;
+		public const int MaxRenderCrops = 8;
+
+		// all drawing is done to a 640 x 480 virtual screen size
+		// and will be automatically scaled to the real resolution
+		public const int ScreenWidth = 640;
+		public const int ScreenHeight = 480;
 
 		public const string MasterServerAddress = "dnet.ua-corp.com";
 		public const int MasterServerPort = 27650;

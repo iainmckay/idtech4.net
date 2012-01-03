@@ -880,14 +880,9 @@ namespace idTech4.Text
 
 		private char GetBufferCharacter(int position)
 		{
-			if((position < 0) || (position >= _buffer.Length))
-			{
-				return '\0';
-			}
-
-			return _buffer[position];
+			return idHelper.GetBufferCharacter(_buffer, position);
 		}
-
+				
 		private float ParseFloat(out bool errorFlag, bool useErrorFlag)
 		{
 			idToken token;

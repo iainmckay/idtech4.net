@@ -59,7 +59,7 @@ namespace idTech4
 		//HandleGuiCommand_t guiHandle;
 
 		private idUserInterface _guiInGame;
-		private	idUserInterface _guiMainMenu;
+		private idUserInterface _guiMainMenu;
 		// TODO: idListGUI* guiMainMenu_MapList;		// easy map list handling
 		private idUserInterface _guiRestartMenu;
 		private idUserInterface _guiLoading;
@@ -78,6 +78,7 @@ namespace idTech4
 		private int _wipeStopTic;
 		private bool _wipeHold;
 
+		private bool _insideScreenUpdate;
 		#endregion
 
 		#region Constructor
@@ -168,16 +169,249 @@ namespace idTech4
 			guiMainMenu_MapList->Config(guiMainMenu, "mapList");
 			idAsyncNetwork::client.serverList.GUIConfig(guiMainMenu, "serverList");*/
 
-			_guiRestartMenu = idE.UIManager.FindInterface("guis/restart.gui", true, false, true);
+			// TODO: other gui
+			/*_guiRestartMenu = idE.UIManager.FindInterface("guis/restart.gui", true, false, true);
 			_guiGameOver = idE.UIManager.FindInterface("guis/gameover.gui", true, false, true);
 			_guiMsg = idE.UIManager.FindInterface("guis/msg.gui", true, false, true);
 			_guiTakeNotes = idE.UIManager.FindInterface("guis/takeNotes.gui", true, false, true);
-			_guiIntro = idE.UIManager.FindInterface("guis/intro.gui", true, false, true);
+			_guiIntro = idE.UIManager.FindInterface("guis/intro.gui", true, false, true);*/
 
 			_whiteMaterial = idE.DeclManager.FindMaterial("_white");
-			
+
+			// TODO: remove this
+			SetUserInterface(_guiMainMenu, null);
+
 			idConsole.WriteLine("session initialized");
 			idConsole.WriteLine("--------------------------------------");
+		}
+
+		public void SetUserInterface(idUserInterface ui, /* TODO: HandleGuiCommand_t*/ object handle)
+		{
+			_guiActive = ui;
+			// TODO: guiHandle = handle;
+
+			/*TODO: if ( guiMsgRestore ) {
+				common->DPrintf( "idSessionLocal::SetGUI: cleared an active message box\n" );
+				guiMsgRestore = NULL;
+			}*/
+
+			if(_guiActive == null)
+			{
+				return;
+			}
+
+			// TODO
+			/*if(guiActive == guiMainMenu)
+			{
+				SetSaveGameGuiVars();
+				SetMainMenuGuiVars();
+			}
+			else if(guiActive == guiRestartMenu)
+			{
+				SetSaveGameGuiVars();
+			}
+
+			sysEvent_t ev;
+			memset(&ev, 0, sizeof(ev));
+			ev.evType = SE_NONE;
+
+			cmd = guiActive->HandleEvent(&ev, com_frameTime);*/
+
+			_guiActive.Activate(true, idE.System.FrameTime);
+		}
+
+		/// <summary>
+		/// Activates the main menu.
+		/// </summary>
+		/// <param name="playIntro"></param>
+		public void StartMenu(bool playIntro)
+		{
+			if(_guiActive == _guiMainMenu)
+			{
+				return;
+			}
+
+			// TODO: demo
+			/*if(readDemo)
+			{
+				// if we're playing a demo, esc kills it
+				UnloadMap();
+			}*/
+
+			// pause the game sound world
+			// TODO: sound
+			/*if(sw != NULL && !sw->IsPaused())
+			{
+				sw->Pause();
+			}*/
+
+			// start playing the menu sounds
+			// TODO: soundSystem->SetPlayingSoundWorld(menuSoundWorld);
+
+			SetUserInterface(_guiMainMenu, null);
+			// TODO: guiMainMenu->HandleNamedEvent(playIntro ? "playIntro" : "noIntro");
+
+
+			/*// TODO: if(fileSystem->HasD3XP())
+			{
+				guiMainMenu->SetStateString("game_list", common->GetLanguageDict()->GetString("#str_07202"));
+			}
+			else
+			{
+				guiMainMenu->SetStateString("game_list", common->GetLanguageDict()->GetString("#str_07212"));
+			}
+
+			// TODO: console->Close();*/
+		}
+
+		public void UpdateScreen(bool outOfSequence)
+		{
+			if(_insideScreenUpdate == true)
+			{
+				return;
+			}
+
+			_insideScreenUpdate = true;
+
+			// if this is a long-operation update and we are in windowed mode,
+			// release the mouse capture back to the desktop
+			// TODO
+			/*if ( outOfSequence ) {
+				Sys_GrabMouseCursor( false );
+			}*/
+
+			idE.RenderSystem.BeginFrame(idE.RenderSystem.ScreenWidth, idE.RenderSystem.ScreenHeight);
+			
+			// draw everything
+			Draw();
+
+			// TODO: com_speeds
+			/*if ( com_speeds.GetBool() ) {
+				renderSystem->EndFrame( &time_frontend, &time_backend );
+			} else {*/
+				idE.RenderSystem.EndFrame();
+			/*}*/
+
+			_insideScreenUpdate = false;
+		}
+		#endregion
+
+		#region Private
+		private void Draw()
+		{
+			// TODO
+			/*bool fullConsole = false;
+
+			if(insideExecuteMapChange)
+			{
+				if(guiLoading)
+				{
+					guiLoading->Redraw(com_frameTime);
+				}
+				if(guiActive == guiMsg)
+				{
+					guiMsg->Redraw(com_frameTime);
+				}
+			}
+			else if(guiTest)
+			{
+				// if testing a gui, clear the screen and draw it
+				// clear the background, in case the tested gui is transparent
+				// NOTE that you can't use this for aviGame recording, it will tick at real com_frameTime between screenshots..
+				renderSystem->SetColor(colorBlack);
+				renderSystem->DrawStretchPic(0, 0, 640, 480, 0, 0, 1, 1, declManager->FindMaterial("_white"));
+				guiTest->Redraw(com_frameTime);
+			}
+			else*/ if((_guiActive != null) && (_guiActive.State.GetBool("gameDraw") == false))
+			{
+
+				// draw the frozen gui in the background
+					   // TODO
+				/*if(guiActive == guiMsg && guiMsgRestore)
+				{
+					guiMsgRestore->Redraw(com_frameTime);
+				}*/
+
+				// draw the menus full screen
+				/*if(guiActive == guiTakeNotes && !com_skipGameDraw.GetBool())
+				{
+					game->Draw(GetLocalClientNum());
+				}*/
+
+				_guiActive.Draw(idE.System.FrameTime);
+			}
+			/*else if(readDemo)
+			{
+				rw->RenderScene(&currentDemoRenderView);
+				renderSystem->DrawDemoPics();
+			}
+			else if(mapSpawned)
+			{
+				bool gameDraw = false;
+				// normal drawing for both single and multi player
+				if(!com_skipGameDraw.GetBool() && GetLocalClientNum() >= 0)
+				{
+					// draw the game view
+					int start = Sys_Milliseconds();
+					gameDraw = game->Draw(GetLocalClientNum());
+					int end = Sys_Milliseconds();
+					time_gameDraw += (end - start);	// note time used for com_speeds
+				}
+				if(!gameDraw)
+				{
+					renderSystem->SetColor(colorBlack);
+					renderSystem->DrawStretchPic(0, 0, 640, 480, 0, 0, 1, 1, declManager->FindMaterial("_white"));
+				}
+
+				// save off the 2D drawing from the game
+				if(writeDemo)
+				{
+					renderSystem->WriteDemoPics();
+				}
+			}
+			else
+			{
+#if ID_CONSOLE_LOCK
+		if ( com_allowConsole.GetBool() ) {
+			console->Draw( true );
+		} else {
+			emptyDrawCount++;
+			if ( emptyDrawCount > 5 ) {
+				// it's best if you can avoid triggering the watchgod by doing the right thing somewhere else
+				assert( false );
+				common->Warning( "idSession: triggering mainmenu watchdog" );
+				emptyDrawCount = 0;
+				StartMenu();
+			}
+			renderSystem->SetColor4( 0, 0, 0, 1 );
+			renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1, 1, declManager->FindMaterial( "_white" ) );
+		}
+#else
+				// draw the console full screen - this should only ever happen in developer builds
+				console->Draw(true);
+#endif
+				fullConsole = true;
+			}
+
+#if ID_CONSOLE_LOCK
+	if ( !fullConsole && emptyDrawCount ) {
+		common->DPrintf( "idSession: %d empty frame draws\n", emptyDrawCount );
+		emptyDrawCount = 0;
+	}
+	fullConsole = false;
+#endif
+
+			// draw the wipe material on top of this if it hasn't completed yet
+			DrawWipeModel();
+
+			// draw debug graphs
+			DrawCmdGraph();
+
+			// draw the half console / notify console on top of everything
+			if(!fullConsole)
+			{
+				console->Draw(false);
+			}*/
 		}
 		#endregion
 		#endregion

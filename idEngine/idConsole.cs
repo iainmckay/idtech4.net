@@ -164,10 +164,10 @@ namespace idTech4
 			int timeLength = 0;
 
 			// if the cvar system is not initialized
-			/*if(idE.CvarSystem.IsInitialized == false)
+			if(idE.CvarSystem.IsInitialized == false)
 			{
 				return;
-			}*/
+			}
 
 			// optionally put a timestamp at the beginning of each print,
 			// so we can see how long different init sections are taking
@@ -227,7 +227,7 @@ namespace idTech4
 						fileName = idE.CvarSystem.GetString("com_logFileName");
 					}
 
-					// fileSystem->OpenFileWrite can cause recursive prints into here.
+					// fileSystem->OpenFileWrite can cause recursive prints into here
 					_recursingLogFileOpen = true;
 
 					Stream s = idE.FileSystem.OpenFileWrite(fileName);
@@ -240,13 +240,7 @@ namespace idTech4
 
 					_recursingLogFileOpen = false;
 					_logFile = new StreamWriter(s);
-
-					if(idE.CvarSystem.GetInteger("com_logFile") > 1)
-					{
-						// force it to not buffer so we get valid
-						// data even if we are crashing
-						_logFile.AutoFlush = true;
-					}
+					_logFile.AutoFlush = true;				
 
 					WriteLine("log file '{0}' opened on {1}", fileName, DateTime.Now.ToString());
 				}

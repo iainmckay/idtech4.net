@@ -175,7 +175,18 @@ namespace idTech4
 
 			return c;
 		}
-		
+
+		public static bool CharacterIsPrintable(char c)
+		{
+			// test for regular ascii and western European high-ascii chars
+			return (((c >= 0x20) && (c <= 0x7E)) || ((c >= 0xA1) && (c <= 0xFF)));
+		}
+
+		public static idColor ColorForIndex(int index)
+		{
+			return (idColor) Enum.Parse(typeof(idColor), index.ToString());
+		}
+
 		public static int ColorIndex(idColor color)
 		{
 			return ((int) color & 15);
@@ -219,6 +230,16 @@ namespace idTech4
 			}
 
 			return flat;
+		}
+
+		public static char GetBufferCharacter(string buffer, int position)
+		{
+			if((position < 0) || (position >= buffer.Length))
+			{
+				return '\0';
+			}
+
+			return buffer[position];
 		}
 
 		public static bool IsColor(string buffer, int index)

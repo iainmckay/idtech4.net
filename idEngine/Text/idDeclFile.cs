@@ -41,19 +41,19 @@ namespace idTech4.Text
 		#endregion
 
 		#region Properties
-		public string FileName
-		{
-			get
-			{
-				return _fileName;
-			}
-		}
-
 		public DeclType DefaultType
 		{
 			get
 			{
 				return _defaultType;
+			}
+		}
+
+		public string FileName
+		{
+			get
+			{
+				return _fileName;
 			}
 		}
 

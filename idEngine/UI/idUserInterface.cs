@@ -39,6 +39,14 @@ namespace idTech4.UI
 	public sealed class idUserInterface
 	{
 		#region Properties
+		public idWindow Desktop
+		{
+			get
+			{
+				return _desktop;
+			}
+		}
+
 		public bool IsInteractive
 		{
 			get
@@ -67,11 +75,19 @@ namespace idTech4.UI
 			}
 		}
 
-		public idDict StateDictionary
+		public idDict State
 		{
 			get
 			{
 				return _state;
+			}
+		}
+
+		public int Time
+		{
+			get
+			{
+				return _time;
 			}
 		}
 		#endregion
@@ -110,9 +126,42 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
+		public string Activate(bool activate, int time)
+		{
+			_time = time;
+			_active = activate;
+
+			if(_desktop != null)
+			{
+				_activateStr = string.Empty;
+				_desktop.Activate(activate, ref _activateStr);
+
+				return _activateStr;
+			}
+
+			return string.Empty;
+		}
+
 		public void AddReference()
 		{
 			_referenceCount++;
+		}
+
+		public void Draw(int time)
+		{
+			if(idE.CvarSystem.GetInteger("r_skipGuiShaders") > 5)
+			{
+				return;
+			}
+			
+			if((_loading == false) && (_desktop != null))
+			{
+				_time = time;
+				
+				idE.UIManager.Context.PushClipRectangle(idE.UIManager.ScreenRectangle);
+				_desktop.Draw(0, 0);
+				idE.UIManager.Context.PopClipRectangle();
+			}
 		}
 
 		public bool InitFromFile(string path)
@@ -137,11 +186,15 @@ namespace idTech4.UI
 
 			// load the timestamp so reload guis will work correctly
 			string content = idE.FileSystem.ReadFile(path, out _timeStamp);
+			idScriptParser parser = null;
 
-			idScriptParser parser = new idScriptParser(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.AllowMultiCharacterLiterals | LexerOptions.AllowBackslashStringConcatination);
-			parser.LoadMemory(content, path);
+			if(content != null)
+			{
+				parser = new idScriptParser(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.AllowMultiCharacterLiterals | LexerOptions.AllowBackslashStringConcatination);
+				parser.LoadMemory(content, path);
+			}
 
-			if(parser.IsLoaded == true)
+			if((parser != null) && (parser.IsLoaded == true))
 			{
 				idToken token;
 
@@ -151,7 +204,7 @@ namespace idTech4.UI
 					{
 						if(_desktop.Parse(parser, rebuild) == true)
 						{
-							// TODO: _desktop.FixupParameters();
+							_desktop.FixupParameters();
 						}
 
 						continue;
@@ -162,19 +215,18 @@ namespace idTech4.UI
 			}
 			else
 			{
-				// TODO
-				/*_desktop.Name = "Desktop";
+				_desktop.Name = "Desktop";
 				_desktop.Text = string.Format("Invalid GUI: {0}", path);
 				_desktop.Rectangle = new Rectangle(0, 0, 640, 480);
 				_desktop.DrawRectangle = _desktop.Rectangle;
 				_desktop.ForeColor = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 				_desktop.BackColor = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-				_desktop.SetupFromState();*/
+				_desktop.SetupFromState();
 
 				idConsole.Warning("Couldn't load gui: '{0}'", path);
 			}
 
-			// TODO: _interactive = _desktop.IsInteractive;
+			_interactive = _desktop.IsInteractive;
 
 			if(idE.UIManager.FindInternalInterface(this) == null)
 			{

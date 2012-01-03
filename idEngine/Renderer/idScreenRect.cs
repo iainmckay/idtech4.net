@@ -30,68 +30,18 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using Microsoft.Xna.Framework;
-
-namespace idTech4
+namespace idTech4.Renderer
 {
-	public class idMath
+	public struct idScreenRect
 	{
-		public const float Radian = MathHelper.Pi / 180.0f;
-		public const float Infinity = 1e30f;
-		public static float Abs(float a)
-		{
-			return Math.Abs(a);
-		}
-		
-		public static float Cos(float c)
-		{
-			return (float) Math.Cos(c);
-		}
+		// inclusive pixel bounds inside viewport
+		public int X1;
+		public int X2;
+		public int Y1;
+		public int Y2;
 
-		public static float Floor(float v)
-		{
-			return (float) Math.Floor(v);
-		}
-
-		public static float Max(float a, float b)
-		{
-			return Math.Max(a, b);
-		}
-
-		public static float Min(float a, float b)
-		{
-			return Math.Min(a, b);
-		}
-
-		public static float Pow(float a, float b)
-		{
-			return (float) Math.Pow(a, b);
-		}
-
-		public static float Sqrt(float v)
-		{
-			return (float) Math.Sqrt(v);
-		}
-
-		public static float Sin(float s)
-		{
-			return (float) Math.Sin(s);
-		}
-
-		public static float ToRadians(float v)
-		{
-			return MathHelper.ToRadians(v);
-		}
-		
-		public static int VectorHash(Vector3 v)
-		{
-			int hash = 0;
-
-			hash ^= (int) v.X;
-			hash ^= (int) v.Y;
-			hash ^= (int) v.Z;
-
-			return hash;
-		}
+		// for depth bounds test
+		public float MinZ;
+		public float MaxZ;
 	}
 }

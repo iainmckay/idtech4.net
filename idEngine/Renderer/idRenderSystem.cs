@@ -66,6 +66,33 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public Color Color
+		{
+			set
+			{
+				_guiModel.Color = value;
+			}
+		}
+
+		public idMaterial DefaultMaterial
+		{
+			get
+			{
+				return _defaultMaterial;
+			}
+		}
+
+		/// <summary>
+		/// Shader time for all non-world 2D rendering.
+		/// </summary>
+		public float FrameShaderTime
+		{
+			get
+			{
+				return _frameShaderTime;
+			}
+		}
+
 		public bool IsRunning
 		{
 			get
@@ -73,41 +100,78 @@ namespace idTech4.Renderer
 				return idE.GLConfig.IsInitialized;
 			}
 		}
+
+		public int ScreenWidth
+		{
+			get
+			{
+				return idE.GLConfig.VideoWidth;
+			}
+		}
+
+		public int ScreenHeight
+		{
+			get
+			{
+				return idE.GLConfig.VideoHeight;
+			}
+		}
+
+		public View ViewDefinition
+		{
+			get
+			{
+				return _viewDefinition;
+			}
+			set
+			{
+				_viewDefinition = value;
+			}
+		}
 		#endregion
 
 		#region Members
-		private bool _registered;							// cleared at shutdown, set at InitOpenGL
+		private bool _registered;											// cleared at shutdown, set at InitOpenGL
 
-		private int _frameCount;							// incremented every frame
-		private int _viewCount;								// incremented every view (twice a scene if subviewed) and every R_MarkFragments call
+		private int _frameCount;											// incremented every frame
+		private int _viewCount;												// incremented every view (twice a scene if subviewed) and every R_MarkFragments call
 
-		private Vector4 _ambientLightVector;				// used for "ambient bump mapping"
+		private Vector4 _ambientLightVector;								// used for "ambient bump mapping"
 
 		private idMaterial _defaultMaterial;
-		private ViewEntity _identitySpace;					// can use if we don't know viewDef->worldSpace is valid
+		private ViewEntity _identitySpace;									// can use if we don't know viewDef->worldSpace is valid
+		private View _viewDefinition;
+
+		private float _sortOffset;											// for determinist sorting of equal sort materials
 
 		private List<idRenderWorld> _worlds = new List<idRenderWorld>();
 
-		private BackEndRenderer _backEndRenderer;			// determines which back end to use, and if vertex programs are in use
+		private BackEndRenderer _backEndRenderer;							// determines which back end to use, and if vertex programs are in use
 		private bool _backEndRendererHasVertexPrograms;
-		private float _backEndRendererMaxLight;				// 1.0 for standard, unlimited for floats
+		private float _backEndRendererMaxLight;								// 1.0 for standard, unlimited for floats
 
-		private ushort[] _gammaTable = new ushort[256];		// brightness / gamma modify this
+		private ushort[] _gammaTable = new ushort[256];						// brightness / gamma modify this
 		// determines how much overbrighting needs
 		// to be done post-process
 
-		private int[] _viewPortOffset = new int[2];			// for doing larger-than-window tiled renderings
-		private int[] _tiledViewPort = new int[2];
+		private Vector2 _viewPortOffset;									// for doing larger-than-window tiled renderings
+		private Vector2 _tiledViewPort;
+
+		private int _currentRenderCrop;
+		private Rectangle[] _renderCrops = new Rectangle[idE.MaxRenderCrops];
 
 		private int _stencilIncrement;
-		private int _stencilDecrement;						// GL_INCR / INCR_WRAP_EXT, GL_DECR / GL_DECR_EXT
+		private int _stencilDecrement;										// GL_INCR / INCR_WRAP_EXT, GL_DECR / GL_DECR_EXT
 
-		private int _fragmentDisplayListBase;				// FPROG_NUM_FRAGMENT_PROGRAMS lists
-		
+		private int _fragmentDisplayListBase;								// FPROG_NUM_FRAGMENT_PROGRAMS lists
+
 		// GUI drawing variables for surface creation
-		private int _guiRecursionLevel;			// to prevent infinite overruns
+		private int _guiRecursionLevel;										// to prevent infinite overruns
 		private idGuiModel _guiModel;
 		private idGuiModel _demoGuiModel;
+
+		private FrameData _frameData = new FrameData();
+		private float _frameShaderTime;										// shader time for all non-world 2D rendering
 
 		private Form _renderForm;
 		private SimpleOpenGlControl _renderControl;
@@ -123,6 +187,307 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region Public
+		public void AddDrawSurface(Surface surface, ViewEntity space, RenderEntity renderEntity, idMaterial shader, idScreenRect scissor)
+		{
+			float[] shaderParameters;
+			/*drawSurf_t		*drawSurf;
+	const float		*shaderParms;
+	static float	refRegs[MAX_EXPRESSION_REGISTERS];	// don't put on stack, or VC++ will do a page touch
+	float			generatedShaderParms[MAX_ENTITY_SHADER_PARMS];*/
+
+			DrawSurface drawSurface = new DrawSurface();
+			drawSurface.Geometry = surface;
+			drawSurface.Space = space;
+			drawSurface.Material = shader;
+			drawSurface.ScissorRectangle = scissor;
+			drawSurface.Sort = (float) shader.Sort + _sortOffset;
+
+			// bumping this offset each time causes surfaces with equal sort orders to still
+			// deterministically draw in the order they are added
+			_sortOffset += 0.000001f;
+
+			_viewDefinition.DrawSurfaces.Add(drawSurface);
+
+
+			// process the shader expressions for conditionals / color / texcoords
+			// TODO: constant registers
+			/*const float	*constRegs = shader->ConstantRegisters();
+			if ( constRegs ) {
+				// shader only uses constant values
+				drawSurf->shaderRegisters = constRegs;
+			} else */
+			{
+				drawSurface.ShaderRegisters = new float[shader.RegisterCount];
+
+				// a reference shader will take the calculated stage color value from another shader
+				// and use that for the parm0-parm3 of the current shader, which allows a stage of
+				// a light model and light flares to pick up different flashing tables from
+				// different light shaders
+				// TODO: reference shader
+				/*if ( renderEntity->referenceShader ) {
+					// evaluate the reference shader to find our shader parms
+					const shaderStage_t *pStage;
+
+					renderEntity->referenceShader->EvaluateRegisters( refRegs, renderEntity->shaderParms, tr.viewDef, renderEntity->referenceSound );
+					pStage = renderEntity->referenceShader->GetStage(0);
+
+					memcpy( generatedShaderParms, renderEntity->shaderParms, sizeof( generatedShaderParms ) );
+					generatedShaderParms[0] = refRegs[ pStage->color.registers[0] ];
+					generatedShaderParms[1] = refRegs[ pStage->color.registers[1] ];
+					generatedShaderParms[2] = refRegs[ pStage->color.registers[2] ];
+
+					shaderParms = generatedShaderParms;
+				} else */
+				{
+					// evaluate with the entityDef's shader parms
+					shaderParameters = renderEntity.ShaderParameters;
+				}
+
+				float oldFloatTime;
+				int oldTime;
+
+				// TODO: entityDef
+				/*if ( space->entityDef && space->entityDef->parms.timeGroup ) {
+					oldFloatTime = tr.viewDef->floatTime;
+					oldTime = tr.viewDef->renderView.time;
+
+					tr.viewDef->floatTime = game->GetTimeGroupTime( space->entityDef->parms.timeGroup ) * 0.001;
+					tr.viewDef->renderView.time = game->GetTimeGroupTime( space->entityDef->parms.timeGroup );
+				}*/
+
+				shader.EvaluateRegisters(ref drawSurface.ShaderRegisters, shaderParameters, idE.RenderSystem.ViewDefinition /* TODO: ,renderEntity->referenceSound*/);
+
+				// tODO: entityDef
+				/*if ( space->entityDef && space->entityDef->parms.timeGroup ) {
+					tr.viewDef->floatTime = oldFloatTime;
+					tr.viewDef->renderView.time = oldTime;
+				}*/
+			}
+
+			// check for deformations
+			// TODO: R_DeformDrawSurf( drawSurf );
+
+			// skybox surfaces need a dynamic texgen
+			// TODO: skybox
+			/*switch( shader->Texgen() ) {
+				case TG_SKYBOX_CUBE:
+					R_SkyboxTexGen( drawSurf, tr.viewDef->renderView.vieworg );
+					break;
+				case TG_WOBBLESKY_CUBE:
+					R_WobbleskyTexGen( drawSurf, tr.viewDef->renderView.vieworg );
+					break;
+			}*/
+
+			// check for gui surfaces
+			// TODO: gui surface
+			/*idUserInterface	*gui = NULL;
+
+			if ( !space->entityDef ) {
+				gui = shader->GlobalGui();
+			} else {
+				int guiNum = shader->GetEntityGui() - 1;
+				if ( guiNum >= 0 && guiNum < MAX_RENDERENTITY_GUI ) {
+					gui = renderEntity->gui[ guiNum ];
+				}
+				if ( gui == NULL ) {
+					gui = shader->GlobalGui();
+				}
+			}*/
+
+			/*if ( gui ) {
+				// force guis on the fast time
+				float oldFloatTime;
+				int oldTime;
+
+				oldFloatTime = tr.viewDef->floatTime;
+				oldTime = tr.viewDef->renderView.time;
+
+				tr.viewDef->floatTime = game->GetTimeGroupTime( 1 ) * 0.001;
+				tr.viewDef->renderView.time = game->GetTimeGroupTime( 1 );
+
+				idBounds ndcBounds;
+
+				if ( !R_PreciseCullSurface( drawSurf, ndcBounds ) ) {
+					// did we ever use this to forward an entity color to a gui that didn't set color?
+		//			memcpy( tr.guiShaderParms, shaderParms, sizeof( tr.guiShaderParms ) );
+					R_RenderGuiSurf( gui, drawSurf );
+				}
+
+				tr.viewDef->floatTime = oldFloatTime;
+				tr.viewDef->renderView.time = oldTime;
+			}*/
+
+			// we can't add subviews at this point, because that would
+			// increment tr.viewCount, messing up the rest of the surface
+			// adds for this view
+		}
+
+		/// <summary>
+		/// This is the main 3D rendering command.  A single scene may
+		/// have multiple views if a mirror, portal, or dynamic texture is present.
+		/// </summary>
+		/// <param name="view"></param>
+		public void AddDrawViewCommand(View view)
+		{
+			DrawViewRenderCommand cmd = new DrawViewRenderCommand();
+			cmd.View = view;
+
+			_frameData.Commands.Enqueue(cmd);
+
+			// TODO: lock surfaces
+			/*if ( parms->viewEntitys ) {
+				// save the command for r_lockSurfaces debugging
+				tr.lockSurfacesCmd = *cmd;
+			}*/
+
+			// TODO: tr.pc.c_numViews++;
+
+			// TODO: R_ViewStatistics(parms);
+		}
+
+		public void BeginFrame(int windowWidth, int windowHeight)
+		{
+			if(idE.GLConfig.IsInitialized == false)
+			{
+				return;
+			}
+
+			// determine which back end we will use
+			SetBackEndRenderer();
+
+			_guiModel.Clear();
+
+			// for the larger-than-window tiled rendering screenshots
+			if(_tiledViewPort.X > 0)
+			{
+				windowWidth = (int) _tiledViewPort.X;
+				windowHeight = (int) _tiledViewPort.Y;
+			}
+
+			idE.GLConfig.VideoWidth = windowWidth;
+			idE.GLConfig.VideoHeight = windowHeight;
+
+			_renderCrops[0] = new Rectangle(0, 0, windowWidth, windowHeight);
+			_currentRenderCrop = 0;
+
+			// screenFraction is just for quickly testing fill rate limitations
+			if(idE.CvarSystem.GetInteger("r_screenFraction") != 100)
+			{
+				int w = (int) (idE.ScreenWidth * idE.CvarSystem.GetInteger("r_screenFraction") / 100.0f);
+				int h = (int) (idE.ScreenHeight * idE.CvarSystem.GetInteger("r_screenFraction") / 100.0f);
+
+				// TODO: CropRenderSize(w, h);
+				idConsole.WriteLine("idRenderSystem.CropRenderSize");
+			}
+
+			// this is the ONLY place this is modified
+			_frameCount++;
+
+			// just in case we did a common->Error while this
+			// was set
+			_guiRecursionLevel = 0;
+
+			// the first rendering will be used for commands like
+			// screenshot, rather than a possible subsequent remote
+			// or mirror render
+			//	primaryWorld = NULL;
+
+			// set the time for shader effects in 2D rendering
+			// TODO: frameShaderTime = eventLoop->Milliseconds() * 0.001;
+
+			//
+			// draw buffer stuff
+			//
+			SetBufferRenderCommand cmd = new SetBufferRenderCommand();
+			cmd.FrameCount = _frameCount;
+
+			if(idE.CvarSystem.GetBool("r_frontBuffer") == true)
+			{
+				cmd.Buffer = Gl.GL_FRONT;
+			}
+			else
+			{
+				cmd.Buffer = Gl.GL_BACK;
+			}
+
+			_frameData.Commands.Enqueue(cmd);
+		}
+
+		/// <summary>
+		/// Creates a new renderWorld to be used for drawing.
+		/// </summary>
+		/// <returns></returns>
+		public idRenderWorld CreateRenderWorld()
+		{
+			idRenderWorld world = new idRenderWorld();
+			_worlds.Add(world);
+
+			return world;
+		}
+
+		public void EndFrame()
+		{
+			int front, back;
+
+			EndFrame(out front, out back);
+		}
+
+		public void EndFrame(out int frontendTime, out int backendTime)
+		{
+			frontendTime = 0;
+			backendTime = 0;
+
+			if(idE.GLConfig.IsInitialized == false)
+			{
+				return;
+			}
+
+			// close any gui drawing
+			_guiModel.EmitFullScreen();
+			_guiModel.Clear();
+
+			// save out timing information			
+			// TODO: timing
+			/*if ( frontEndMsec ) {
+				*frontEndMsec = pc.frontEndMsec;
+			}
+			if ( backEndMsec ) {
+				*backEndMsec = backEnd.pc.msec;
+			}*/
+
+			// print any other statistics and clear all of them
+			// TODO: R_PerformanceCounters();
+
+			// check for dynamic changes that require some initialization
+			// TODO: CheckCvars();
+
+			// check for errors
+			GL_CheckErrors();
+
+			// add the swapbuffers command
+			SwapBuffersRenderCommand cmd = new SwapBuffersRenderCommand();
+			_frameData.Commands.Enqueue(cmd);
+
+			// start the back end up again with the new command list
+			IssueRenderCommands();
+
+			// use the other buffers next frame, because another CPU
+			// may still be rendering into the current buffers
+			// TODO: ToggleSmpFrame();
+
+			// we can now release the vertexes used this frame
+			// TODO: vertexCache.EndFrame();
+
+			// TODO: demo
+			/*if ( session->writeDemo ) {
+				session->writeDemo->WriteInt( DS_RENDER );
+				session->writeDemo->WriteInt( DC_END_FRAME );
+				if ( r_showDemo.GetBool() ) {
+					common->Printf( "write DC_END_FRAME\n" );
+				}
+			}*/
+		}
+
 		public void Init()
 		{
 			idConsole.WriteLine("------- Initializing renderSystem --------");
@@ -133,6 +498,7 @@ namespace idTech4.Renderer
 			// there may be other state we need to reset
 
 			_ambientLightVector = new Vector4(0.5f, 0.5f - 0.385f, 0.8925f, 1.0f);
+			_frameData.Commands = new Queue<RenderCommand>();
 
 			InitCommands();
 
@@ -167,322 +533,38 @@ namespace idTech4.Renderer
 		}
 
 		/// <summary>
-		/// Creates a new renderWorld to be used for drawing.
+		/// Converts from SCREEN_WIDTH / SCREEN_HEIGHT coordinates to current cropped pixel coordinates
 		/// </summary>
+		/// <param name="renderView"></param>
 		/// <returns></returns>
-		public idRenderWorld CreateRenderWorld()
+		public idScreenRect RenderViewToViewPort(RenderView renderView)
 		{
-			idRenderWorld world = new idRenderWorld();
-			_worlds.Add(world);
+			Rectangle renderCrop = _renderCrops[_currentRenderCrop];
 
-			return world;
+			float widthRatio = renderCrop.Width / idE.ScreenWidth;
+			float heightRatio = renderCrop.Height / idE.ScreenHeight;
+
+			idScreenRect viewPort = new idScreenRect();
+			viewPort.X1 = (int) (renderCrop.X + renderView.X * widthRatio);
+			viewPort.Y1 = (int) ((renderCrop.Y + renderCrop.Height) - idMath.Floor((renderView.Y + renderView.Height) * heightRatio + 0.5f));
+			viewPort.Y2 = (int) ((renderCrop.Y + renderCrop.Height) - idMath.Floor(renderView.Y * heightRatio + 0.5f) - 1);
+
+			return viewPort;
 		}
 		#endregion
 
 		#region Private
-		private void InitMaterials()
+		private bool CheckExtension(string name)
 		{
-			_defaultMaterial = idE.DeclManager.FindMaterial("_default", false);
-
-			if(_defaultMaterial == null)
+			if(idE.GLConfig.Extensions.Contains(name) == true)
 			{
-				idConsole.FatalError("_default material not found");
+				idConsole.WriteLine("...using {0}", name);
+				return true;
 			}
 
-			idE.DeclManager.FindMaterial("_default", false);
+			idConsole.WriteLine("X..{0} not found", name);
 
-			// needed by R_DeriveLightData
-			idE.DeclManager.FindMaterial("lights/defaultPointLight");
-			idE.DeclManager.FindMaterial("lights/defaultProjectedLight");
-		}
-
-		public void InitGraphics()
-		{
-			// if OpenGL isn't started, start it now
-			if(idE.GLConfig.IsInitialized == true)
-			{
-				return;
-			}
-
-			InitOpenGL();
-			// TODO: idE.ImageManager.ReloadImages();
-
-			int error = Gl.glGetError();
-
-			if(error != Gl.GL_NO_ERROR)
-			{
-				idConsole.WriteLine("glGetError() = 0x{0:X}", error);
-			}
-		}
-
-		private void InitOpenGL()
-		{
-			idConsole.WriteLine("----- R_InitOpenGL -----");
-
-			if(idE.GLConfig.IsInitialized == true)
-			{
-				idConsole.FatalError("R_InitOpenGL called while active");
-			}
-
-			// in case we had an error while doing a tiled rendering
-			_viewPortOffset[0] = 0;
-			_viewPortOffset[1] = 0;
-
-			//
-			// initialize OS specific portions of the renderSystem
-			//
-			for(int i = 0; i < 2; i++)
-			{
-				// set the parameters we are trying
-				GetModeInfo(ref idE.GLConfig.VideoWidth, ref idE.GLConfig.VideoHeight, idE.CvarSystem.GetInteger("r_mode"));
-
-				if(InitOpenGLContext(
-					idE.GLConfig.VideoWidth,
-					idE.GLConfig.VideoHeight,
-					idE.CvarSystem.GetBool("r_fullscreen"),
-					idE.CvarSystem.GetInteger("r_displayRefresh"),
-					idE.CvarSystem.GetInteger("r_multiSamples"),
-					false) == true)
-				{
-					break;
-				}
-
-				if(i == 1)
-				{
-					idConsole.FatalError("Unable to initialize OpenGL");
-				}
-
-				// if we failed, set everything back to "safe mode" and try again
-				idE.CvarSystem.SetInteger("r_mode", 3);
-				idE.CvarSystem.SetInteger("r_fullscreen", 0);
-				idE.CvarSystem.SetInteger("r_displayRefresh", 0);
-				idE.CvarSystem.SetInteger("r_multiSamples", 0);
-			}
-
-			// input and sound systems need to be tied to the new window
-			// TODO: Sys_InitInput();
-			// TODO: soundSystem->InitHW();
-
-			// get our config strings
-			idE.GLConfig.Vendor = Gl.glGetString(Gl.GL_VENDOR);
-			idE.GLConfig.Renderer = Gl.glGetString(Gl.GL_RENDERER);
-			idE.GLConfig.Version = Gl.glGetString(Gl.GL_VERSION);
-			idE.GLConfig.Extensions = Gl.glGetString(Gl.GL_EXTENSIONS);
-
-			// OpenGL driver constants
-			int temp;
-			Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_SIZE, out temp);
-
-			idE.GLConfig.MaxTextureSize = temp;
-
-			// stubbed or broken drivers may have reported 0...
-			if(idE.GLConfig.MaxTextureSize <= 0)
-			{
-				idE.GLConfig.MaxTextureSize = 256;
-			}
-
-			idE.GLConfig.IsInitialized = true;
-
-			// recheck all the extensions (FIXME: this might be dangerous)
-			CheckPortableExtensions();
-
-			// parse our vertex and fragment programs, possibly disably support for
-			// one of the paths if there was an error
-			InitNV10();
-			InitNV20();
-			InitR200();
-			InitARB2();
-
-			// TODO: cmdSystem->AddCommand( "reloadARBprograms", R_ReloadARBPrograms_f, CMD_FL_RENDERER, "reloads ARB programs" );
-
-			// TODO: R_ReloadARBPrograms_f( idCmdArgs() );
-
-			// allocate the vertex array range or vertex objects
-			// TODO: vertexCache.Init();*/
-
-			// select which renderSystem we are going to use
-			idE.CvarSystem.IsModified("r_renderer");
-
-			// allocate the frame data, which may be more if smp is enabled
-			// TODO: R_InitFrameData();
-
-			// Reset our gamma
-			SetColorMappings();
-
-			// TODO: ogl error
-			/*#ifdef _WIN32
-				static bool glCheck = false;
-				if ( !glCheck && win32.osversion.dwMajorVersion == 6 ) {
-					glCheck = true;
-					if ( !idStr::Icmp( glConfig.vendor_string, "Microsoft" ) && idStr::FindText( glConfig.renderer_string, "OpenGL-D3D" ) != -1 ) {
-						if ( cvarSystem->GetCVarBool( "r_fullscreen" ) ) {
-							cmdSystem->BufferCommandText( CMD_EXEC_NOW, "vid_restart partial windowed\n" );
-							Sys_GrabMouseCursor( false );
-						}
-						int ret = MessageBox( NULL, "Please install OpenGL drivers from your graphics hardware vendor to run " GAME_NAME ".\nYour OpenGL functionality is limited.",
-							"Insufficient OpenGL capabilities", MB_OKCANCEL | MB_ICONWARNING | MB_TASKMODAL );
-						if ( ret == IDCANCEL ) {
-							cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "quit\n" );
-							cmdSystem->ExecuteCommandBuffer();
-						}
-						if ( cvarSystem->GetCVarBool( "r_fullscreen" ) ) {
-							cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "vid_restart\n" );
-						}
-					}
-				}
-			#endif*/
-		}
-
-		private bool InitOpenGLContext(int width, int height, bool fullscreen, int refreshRate, int multiSamples, bool stereoMode)
-		{
-			idConsole.WriteLine("Initializing OpenGL subsystem");
-
-			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SystemConsole));
-
-			_renderForm = new Form();
-			_renderForm.Text = "DOOM 3";
-			_renderForm.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
-			_renderForm.Width = width;
-			_renderForm.Height = height;
-			_renderForm.FormClosed += delegate(object sender, FormClosedEventArgs e) { idE.System.Quit(); };
-
-			idConsole.WriteLine("...created window @ {0},{1} ({2},{3})", _renderForm.Location.X, _renderForm.Location.Y, _renderForm.Width, _renderForm.Height);
-			idConsole.WriteLine("...creating GL context");
-
-			_renderControl = new SimpleOpenGlControl();
-			_renderControl.AutoSize = true;
-			_renderControl.Dock = DockStyle.Fill;
-			_renderControl.ColorBits = 32;
-			_renderControl.DepthBits = 24;
-			_renderControl.StencilBits = 8;
-			_renderControl.AccumBits = 0;
-
-			_renderForm.Controls.Add(_renderControl);
-
-			_renderControl.InitializeContexts();
-			_renderForm.Show();
-
-			idConsole.WriteLine("...making context current");
-
-			_renderControl.MakeCurrent();
-
-			idE.GLConfig.IsFullscreen = fullscreen;
-
-			// TODO
-			/* = GetDC( GetDesktopWindow() );
-			win32.desktopBitsPixel = GetDeviceCaps( hDC, BITSPIXEL );
-			win32.desktopWidth = GetDeviceCaps( hDC, HORZRES );
-			win32.desktopHeight = GetDeviceCaps( hDC, VERTRES );
-			ReleaseDC( GetDesktopWindow(), hDC );
-
-			// we can't run in a window unless it is 32 bpp
-			if ( win32.desktopBitsPixel < 32 && !parms.fullScreen ) {
-				common->Printf("^3Windowed mode requires 32 bit desktop depth^0\n");
-				return false;
-			}*/
-
-			// save the hardware gamma so it can be
-			// restored on exit
-			// TODO: GLimp_SaveGamma();
-
-			// create our window classes if we haven't already
-			/*GLW_CreateWindowClasses();
-
-			// this will load the dll and set all our Gl.* function pointers,
-			// but doesn't create a window
-
-			// r_glDriver is only intended for using instrumented OpenGL
-			// dlls.  Normal users should never have to use it, and it is
-			// not archived.
-			driverName = r_glDriver.GetString()[0] ? r_glDriver.GetString() : "opengl32";
-			if ( !Gl._Init( driverName ) ) {
-				common->Printf( "^3GLimp_Init() could not load r_glDriver \"%s\"^0\n", driverName );
-				return false;
-			}
-
-			// getting the wgl extensions involves creating a fake window to get a context,
-			// which is pretty disgusting, and seems to mess with the AGP VAR allocation
-			GLW_GetWGLExtensionsWithFakeWindow();*/
-
-			// try to change to fullscreen
-			/* TODO: if ( parms.fullScreen ) {
-				if ( !GLW_SetFullScreen( parms ) ) {
-					GLimp_Shutdown();
-					return false;
-				}
-			}
-
-			// try to create a window with the correct pixel format
-			// and init the renderer context
-			if ( !GLW_CreateWindow( parms ) ) {
-				GLimp_Shutdown();
-				return false;
-			}
-
-			// wglSwapinterval, etc
-			GLW_CheckWGLExtensions( win32.hDC );
-
-			// check logging
-			GLimp_EnableLogging( ( r_logFile.GetInteger() != 0 ) );*/
-
-			return true;
-		}
-
-		private void InitNV10()
-		{
-			idE.GLConfig.AllowNV10Path = idE.GLConfig.RegisterCombinersAvailable;
-		}
-
-		private void GL_CheckErrors()
-		{
-			List<string> errors = new List<string>();
-
-			// check for up to 10 errors pending
-			for(int i = 0; i < 10; i++)
-			{
-				int error = Gl.glGetError();
-
-				if(error == Gl.GL_NO_ERROR)
-				{
-					return;
-				}
-
-				switch(error)
-				{
-					case Gl.GL_INVALID_ENUM:
-						errors.Add("GL_INVALID_ENUM");
-						break;
-
-					case Gl.GL_INVALID_VALUE:
-						errors.Add("GL_INVALID_VALUE");
-						break;
-
-					case Gl.GL_INVALID_OPERATION:
-						errors.Add("GL_INVALID_OPERATION");
-						break;
-
-					case Gl.GL_STACK_OVERFLOW:
-						errors.Add("GL_STACK_OVERFLOW");
-						break;
-
-					case Gl.GL_STACK_UNDERFLOW:
-						errors.Add("GL_STACK_UNDERFLOW");
-						break;
-
-					case Gl.GL_OUT_OF_MEMORY:
-						errors.Add("GL_OUT_OF_MEMORY");
-						break;
-
-					default:
-						errors.Add(error.ToString("X"));
-						break;
-				}
-			}
-
-			if(idE.CvarSystem.GetBool("r_ignoreGLErrors") == false)
-			{
-				idConsole.WriteLine("GL_CheckErrors: {0}", String.Join(",", errors));
-			}
+			return false;
 		}
 
 		private void CheckPortableExtensions()
@@ -609,17 +691,137 @@ namespace idTech4.Renderer
 			idE.GLConfig.DepthBoundsTestAvailable = CheckExtension("EXT_depth_bounds_test");
 		}
 
-		private bool CheckExtension(string name)
+		private void Clear()
 		{
-			if(idE.GLConfig.Extensions.Contains(name) == true)
+			_registered = false;
+			_frameCount = 0;
+			_viewCount = 0;
+
+			// TODO
+			/*staticAllocCount = 0;*/
+			_frameShaderTime = 0;
+
+			_viewPortOffset = Vector2.Zero;
+			_tiledViewPort = Vector2.Zero;
+
+			_backEndRenderer = BackEndRenderer.Bad;
+			_backEndRendererHasVertexPrograms = false;
+			_backEndRendererMaxLight = 1.0f;
+
+			_ambientLightVector = Vector4.Zero;
+
+			// TODO
+			/*sortOffset = 0;*/
+			_worlds.Clear();
+
+			/*primaryWorld = NULL;
+			memset( &primaryRenderView, 0, sizeof( primaryRenderView ) );
+			primaryView = NULL;*/
+
+			_defaultMaterial = null;
+
+			/*defaultMaterial = NULL;
+			testImage = NULL;
+			ambientCubeImage = NULL;*/
+
+			_viewDefinition = null;
+
+			/*memset( &pc, 0, sizeof( pc ) );
+			memset( &lockSurfacesCmd, 0, sizeof( lockSurfacesCmd ) );*/
+
+			_identitySpace = new ViewEntity();
+
+			/*logFile = NULL;
+			stencilIncr = 0;
+			stencilDecr = 0;*/
+
+			_renderCrops = new Rectangle[idE.MaxRenderCrops];
+			_currentRenderCrop = 0;
+			_guiRecursionLevel = 0;
+			_guiModel = null;
+			/*demoGuiModel = NULL;
+			memset( gammaTable, 0, sizeof( gammaTable ) );
+			takingScreenshot = false;*/
+		}
+
+		/// <summary>
+		/// Called after every buffer submission and by ToggleSmpFrame.
+		/// </summary>
+		private void ClearCommandChain()
+		{
+			// clear the command chain
+			_frameData.Commands.Clear();
+			_frameData.Commands.Enqueue(new NoOperationRenderCommand());
+		}
+
+		private void ExecuteBackEndCommands(Queue<RenderCommand> commands)
+		{
+			// r_debugRenderToTexture
+			int draw3DCount = 0, draw2DCount = 0, setBufferCount = 0, swapBufferCount = 0, copyRenderCount = 0;
+
+			if((commands.Peek().CommandID == RenderCommandType.Nop) && (commands.Count == 1))
 			{
-				idConsole.WriteLine("...using {0}", name);
-				return true;
+				return;
 			}
 
-			idConsole.WriteLine("X..{0} not found", name);
+			// TODO: backEndStartTime = Sys_Milliseconds();
 
-			return false;
+			// needed for editor rendering
+			SetDefaultGLState();
+
+			// upload any image loads that have completed
+			idE.ImageManager.CompleteBackgroundImageLoads();
+
+			foreach(RenderCommand cmd in commands)
+			{
+				switch(cmd.CommandID)
+				{
+					case RenderCommandType.Nop:
+						break;
+
+					case RenderCommandType.DrawView:
+						idConsole.WriteLine("TODO: RenderCommandType.DrawView");
+
+						/*RB_DrawView( cmds );
+						if ( ((const drawSurfsCommand_t *)cmds)->viewDef->viewEntitys ) {
+							c_draw3d++;
+						}
+						else {
+							c_draw2d++;
+						}*/
+						break;
+
+					case RenderCommandType.SetBuffer:
+						SetBuffer((SetBufferRenderCommand) cmd);
+						setBufferCount++;
+						break;
+
+					case RenderCommandType.SwapBuffers:
+						SwapBuffers((SwapBuffersRenderCommand) cmd);
+						swapBufferCount++;
+						break;
+
+					case RenderCommandType.CopyRender:
+						idConsole.WriteLine("TODO: RenderCommandType.CopyRender");
+						/*RB_CopyRender( cmds );
+						c_copyRenders++;*/
+						break;
+				}
+			}
+
+			// go back to the default texture so the editor doesn't mess up a bound image
+			Gl.glBindTexture(Gl.GL_TEXTURE_2D, 0);
+			idE.Backend.GLState.TextureUnits[0].Current2DMap = -1;
+
+			// stop rendering on this thread
+			// TODO: backEndFinishTime = Sys_Milliseconds();
+			// TODO: backEnd.pc.msec = backEndFinishTime - backEndStartTime;
+
+			// TODO: debugRenderToTexture
+			/*if ( r_debugRenderToTexture.GetInteger() == 1 ) {
+				common->Printf( "3d: %i, 2d: %i, SetBuf: %i, SwpBuf: %i, CpyRenders: %i, CpyFrameBuf: %i\n", c_draw3d, c_draw2d, c_setBuffers, c_swapBuffers, c_copyRenders, backEnd.c_copyFrameBuffer );
+				backEnd.c_copyFrameBuffer = 0;
+			}*/
 		}
 
 		private bool GetModeInfo(ref int width, ref int height, int mode)
@@ -645,52 +847,102 @@ namespace idTech4.Renderer
 			return true;
 		}
 
-		private void Clear()
+		private void GL_CheckErrors()
 		{
-			_registered = false;
-			_frameCount = 0;
-			_viewCount = 0;
+			List<string> errors = new List<string>();
 
-			// TODO
-			/*staticAllocCount = 0;
-			frameShaderTime = 0.0f;*/
-			_viewPortOffset[0] = 0;
-			_viewPortOffset[1] = 0;
-			_tiledViewPort[0] = 0;
-			_tiledViewPort[1] = 0;
+			// check for up to 10 errors pending
+			for(int i = 0; i < 10; i++)
+			{
+				int error = Gl.glGetError();
 
-			_backEndRenderer = BackEndRenderer.Bad;
-			_backEndRendererHasVertexPrograms = false;
-			_backEndRendererMaxLight = 1.0f;
+				if(error == Gl.GL_NO_ERROR)
+				{
+					return;
+				}
 
-			_ambientLightVector = Vector4.Zero;
+				switch(error)
+				{
+					case Gl.GL_INVALID_ENUM:
+						errors.Add("GL_INVALID_ENUM");
+						break;
 
-			// TODO
-			/*sortOffset = 0;*/
-			_worlds.Clear();
+					case Gl.GL_INVALID_VALUE:
+						errors.Add("GL_INVALID_VALUE");
+						break;
 
-			/*primaryWorld = NULL;
-			memset( &primaryRenderView, 0, sizeof( primaryRenderView ) );
-			primaryView = NULL;
-			defaultMaterial = NULL;
-			testImage = NULL;
-			ambientCubeImage = NULL;
-			viewDef = NULL;
-			memset( &pc, 0, sizeof( pc ) );
-			memset( &lockSurfacesCmd, 0, sizeof( lockSurfacesCmd ) );*/
+					case Gl.GL_INVALID_OPERATION:
+						errors.Add("GL_INVALID_OPERATION");
+						break;
 
-			_identitySpace = new ViewEntity();
+					case Gl.GL_STACK_OVERFLOW:
+						errors.Add("GL_STACK_OVERFLOW");
+						break;
 
-			/*logFile = NULL;
-			stencilIncr = 0;
-			stencilDecr = 0;
-			memset( renderCrops, 0, sizeof( renderCrops ) );
-			currentRenderCrop = 0;
-			guiRecursionLevel = 0;
-			guiModel = NULL;
-			demoGuiModel = NULL;
-			memset( gammaTable, 0, sizeof( gammaTable ) );
-			takingScreenshot = false;*/
+					case Gl.GL_STACK_UNDERFLOW:
+						errors.Add("GL_STACK_UNDERFLOW");
+						break;
+
+					case Gl.GL_OUT_OF_MEMORY:
+						errors.Add("GL_OUT_OF_MEMORY");
+						break;
+
+					default:
+						errors.Add(error.ToString("X"));
+						break;
+				}
+			}
+
+			if(idE.CvarSystem.GetBool("r_ignoreGLErrors") == false)
+			{
+				idConsole.WriteLine("GL_CheckErrors: {0}", String.Join(",", errors));
+			}
+		}
+
+		private void GL_SelectTexture(int unit)
+		{
+			if(idE.Backend.GLState.CurrentTextureUnit == unit)
+			{
+				return;
+			}
+
+			if((unit < 0) || (unit >= idE.GLConfig.MaxTextureUnits) && (unit >= idE.GLConfig.MaxTextureImageUnits))
+			{
+				idConsole.Warning("GL_SelectTexture: unit = {0}", unit);
+			}
+			else
+			{
+				Gl.glActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
+				Gl.glClientActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
+
+				// TODO: RB_LogComment("glActiveTextureARB( %i );\nglClientActiveTextureARB( %i );\n", unit, unit);
+
+				idE.Backend.GLState.CurrentTextureUnit = unit;
+			}
+		}
+
+		private void GL_TextureEnvironment(int env)
+		{
+			if(env == idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].TexEnv)
+			{
+				return;
+			}
+
+			idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].TexEnv = env;
+
+			switch(env)
+			{
+				case Gl.GL_COMBINE_EXT:
+				case Gl.GL_MODULATE:
+				case Gl.GL_REPLACE:
+				case Gl.GL_DECAL:
+				case Gl.GL_ADD:
+					Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, env);
+					break;
+				default:
+					idConsole.Error("GL_TexEnv: invalid env '{0}' passed\n", env);
+					break;
+			}
 		}
 
 		private void InitCommands()
@@ -904,6 +1156,283 @@ namespace idTech4.Renderer
 			new idCvar("r_debugRenderToTexture", "0", "", CvarFlags.Renderer | CvarFlags.Integer);
 		}
 
+		public void InitGraphics()
+		{
+			// if OpenGL isn't started, start it now
+			if(idE.GLConfig.IsInitialized == true)
+			{
+				return;
+			}
+
+			InitOpenGL();
+			// TODO: idE.ImageManager.ReloadImages();
+
+			int error = Gl.glGetError();
+
+			if(error != Gl.GL_NO_ERROR)
+			{
+				idConsole.WriteLine("glGetError() = 0x{0:X}", error);
+			}
+		}
+
+		private void InitNV10()
+		{
+			idE.GLConfig.AllowNV10Path = idE.GLConfig.RegisterCombinersAvailable;
+		}
+
+		private void InitMaterials()
+		{
+			_defaultMaterial = idE.DeclManager.FindMaterial("_default", false);
+
+			if(_defaultMaterial == null)
+			{
+				idConsole.FatalError("_default material not found");
+			}
+
+			idE.DeclManager.FindMaterial("_default", false);
+
+			// needed by R_DeriveLightData
+			idE.DeclManager.FindMaterial("lights/defaultPointLight");
+			idE.DeclManager.FindMaterial("lights/defaultProjectedLight");
+		}
+
+		private void InitOpenGL()
+		{
+			idConsole.WriteLine("----- R_InitOpenGL -----");
+
+			if(idE.GLConfig.IsInitialized == true)
+			{
+				idConsole.FatalError("R_InitOpenGL called while active");
+			}
+
+			// in case we had an error while doing a tiled rendering
+			_viewPortOffset = Vector2.Zero;
+
+			//
+			// initialize OS specific portions of the renderSystem
+			//
+			for(int i = 0; i < 2; i++)
+			{
+				// set the parameters we are trying
+				GetModeInfo(ref idE.GLConfig.VideoWidth, ref idE.GLConfig.VideoHeight, idE.CvarSystem.GetInteger("r_mode"));
+
+				if(InitOpenGLContext(
+					idE.GLConfig.VideoWidth,
+					idE.GLConfig.VideoHeight,
+					idE.CvarSystem.GetBool("r_fullscreen"),
+					idE.CvarSystem.GetInteger("r_displayRefresh"),
+					idE.CvarSystem.GetInteger("r_multiSamples"),
+					false) == true)
+				{
+					break;
+				}
+
+				if(i == 1)
+				{
+					idConsole.FatalError("Unable to initialize OpenGL");
+				}
+
+				// if we failed, set everything back to "safe mode" and try again
+				idE.CvarSystem.SetInteger("r_mode", 3);
+				idE.CvarSystem.SetInteger("r_fullscreen", 0);
+				idE.CvarSystem.SetInteger("r_displayRefresh", 0);
+				idE.CvarSystem.SetInteger("r_multiSamples", 0);
+			}
+
+			// input and sound systems need to be tied to the new window
+			// TODO: Sys_InitInput();
+			// TODO: soundSystem->InitHW();
+
+			// get our config strings
+			idE.GLConfig.Vendor = Gl.glGetString(Gl.GL_VENDOR);
+			idE.GLConfig.Renderer = Gl.glGetString(Gl.GL_RENDERER);
+			idE.GLConfig.Version = Gl.glGetString(Gl.GL_VERSION);
+			idE.GLConfig.Extensions = Gl.glGetString(Gl.GL_EXTENSIONS);
+
+			// OpenGL driver constants
+			int temp;
+			Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_SIZE, out temp);
+
+			idE.GLConfig.MaxTextureSize = temp;
+
+			// stubbed or broken drivers may have reported 0...
+			if(idE.GLConfig.MaxTextureSize <= 0)
+			{
+				idE.GLConfig.MaxTextureSize = 256;
+			}
+
+			idE.GLConfig.IsInitialized = true;
+
+			// recheck all the extensions (FIXME: this might be dangerous)
+			CheckPortableExtensions();
+
+			// parse our vertex and fragment programs, possibly disably support for
+			// one of the paths if there was an error
+			InitNV10();
+			InitNV20();
+			InitR200();
+			InitARB2();
+
+			// TODO: cmdSystem->AddCommand( "reloadARBprograms", R_ReloadARBPrograms_f, CMD_FL_RENDERER, "reloads ARB programs" );
+
+			// TODO: R_ReloadARBPrograms_f( idCmdArgs() );
+
+			// allocate the vertex array range or vertex objects
+			// TODO: vertexCache.Init();*/
+
+			// select which renderSystem we are going to use
+			idE.CvarSystem.IsModified("r_renderer");
+
+			ToggleSmpFrame();
+
+			// Reset our gamma
+			SetColorMappings();
+
+			// TODO: ogl error
+			/*#ifdef _WIN32
+				static bool glCheck = false;
+				if ( !glCheck && win32.osversion.dwMajorVersion == 6 ) {
+					glCheck = true;
+					if ( !idStr::Icmp( glConfig.vendor_string, "Microsoft" ) && idStr::FindText( glConfig.renderer_string, "OpenGL-D3D" ) != -1 ) {
+						if ( cvarSystem->GetCVarBool( "r_fullscreen" ) ) {
+							cmdSystem->BufferCommandText( CMD_EXEC_NOW, "vid_restart partial windowed\n" );
+							Sys_GrabMouseCursor( false );
+						}
+						int ret = MessageBox( NULL, "Please install OpenGL drivers from your graphics hardware vendor to run " GAME_NAME ".\nYour OpenGL functionality is limited.",
+							"Insufficient OpenGL capabilities", MB_OKCANCEL | MB_ICONWARNING | MB_TASKMODAL );
+						if ( ret == IDCANCEL ) {
+							cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "quit\n" );
+							cmdSystem->ExecuteCommandBuffer();
+						}
+						if ( cvarSystem->GetCVarBool( "r_fullscreen" ) ) {
+							cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "vid_restart\n" );
+						}
+					}
+				}
+			#endif*/
+		}
+
+		private bool InitOpenGLContext(int width, int height, bool fullscreen, int refreshRate, int multiSamples, bool stereoMode)
+		{
+			idConsole.WriteLine("Initializing OpenGL subsystem");
+
+			System.ComponentModel.ComponentResourceManager resources = new System.ComponentModel.ComponentResourceManager(typeof(SystemConsole));
+
+			_renderForm = new Form();
+			_renderForm.Text = "DOOM 3";
+			_renderForm.Icon = ((System.Drawing.Icon) (resources.GetObject("$this.Icon")));
+			_renderForm.Width = width;
+			_renderForm.Height = height;
+			_renderForm.FormClosed += delegate(object sender, FormClosedEventArgs e) { idE.System.Quit(); };
+
+			idConsole.WriteLine("...created window @ {0},{1} ({2},{3})", _renderForm.Location.X, _renderForm.Location.Y, _renderForm.Width, _renderForm.Height);
+			idConsole.WriteLine("...creating GL context");
+
+			_renderControl = new SimpleOpenGlControl();
+			_renderControl.AutoSize = true;
+			_renderControl.Dock = DockStyle.Fill;
+			_renderControl.ColorBits = 32;
+			_renderControl.DepthBits = 24;
+			_renderControl.StencilBits = 8;
+			_renderControl.AccumBits = 0;
+
+			_renderForm.Controls.Add(_renderControl);
+
+			_renderControl.InitializeContexts();
+			_renderForm.Show();
+
+			idConsole.WriteLine("...making context current");
+
+			_renderControl.MakeCurrent();
+
+			idE.GLConfig.IsFullscreen = fullscreen;
+
+			Wgl.ReloadFunctions();
+
+			// TODO
+			/* = GetDC( GetDesktopWindow() );
+			win32.desktopBitsPixel = GetDeviceCaps( hDC, BITSPIXEL );
+			win32.desktopWidth = GetDeviceCaps( hDC, HORZRES );
+			win32.desktopHeight = GetDeviceCaps( hDC, VERTRES );
+			ReleaseDC( GetDesktopWindow(), hDC );
+
+			// we can't run in a window unless it is 32 bpp
+			if ( win32.desktopBitsPixel < 32 && !parms.fullScreen ) {
+				common->Printf("^3Windowed mode requires 32 bit desktop depth^0\n");
+				return false;
+			}*/
+
+			// save the hardware gamma so it can be
+			// restored on exit
+			// TODO: GLimp_SaveGamma();
+
+			// create our window classes if we haven't already
+			/*GLW_CreateWindowClasses();
+
+			// this will load the dll and set all our Gl.* function pointers,
+			// but doesn't create a window
+
+			// r_glDriver is only intended for using instrumented OpenGL
+			// dlls.  Normal users should never have to use it, and it is
+			// not archived.
+			driverName = r_glDriver.GetString()[0] ? r_glDriver.GetString() : "opengl32";
+			if ( !Gl._Init( driverName ) ) {
+				common->Printf( "^3GLimp_Init() could not load r_glDriver \"%s\"^0\n", driverName );
+				return false;
+			}
+
+			// getting the wgl extensions involves creating a fake window to get a context,
+			// which is pretty disgusting, and seems to mess with the AGP VAR allocation
+			GLW_GetWGLExtensionsWithFakeWindow();*/
+
+			// try to change to fullscreen
+			/* TODO: if ( parms.fullScreen ) {
+				if ( !GLW_SetFullScreen( parms ) ) {
+					GLimp_Shutdown();
+					return false;
+				}
+			}
+
+			// try to create a window with the correct pixel format
+			// and init the renderer context
+			if ( !GLW_CreateWindow( parms ) ) {
+				GLimp_Shutdown();
+				return false;
+			}
+
+			// wglSwapinterval, etc
+			GLW_CheckWGLExtensions( win32.hDC );
+
+			// check logging
+			GLimp_EnableLogging( ( r_logFile.GetInteger() != 0 ) );*/
+
+			return true;
+		}
+
+		private void IssueRenderCommands()
+		{
+			if((_frameData.Commands.Peek().CommandID == RenderCommandType.Nop) && (_frameData.Commands.Count == 1))
+			{
+				// nothing to issue
+				return;
+			}
+
+			// r_skipBackEnd allows the entire time of the back end
+			// to be removed from performance measurements, although
+			// nothing will be drawn to the screen.  If the prints
+			// are going to a file, or r_skipBackEnd is later disabled,
+			// usefull data can be received.
+
+			// r_skipRender is usually more usefull, because it will still
+			// draw 2D graphics
+			if(idE.CvarSystem.GetBool("r_skipBackEnd") == false)
+			{
+				ExecuteBackEndCommands(_frameData.Commands);
+			}
+
+			ClearCommandChain();
+		}
+
 		/// <summary>
 		/// Check for changes in the back end renderSystem, possibly invalidating cached data.
 		/// </summary>
@@ -1022,6 +1551,33 @@ namespace idTech4.Renderer
 			idE.CvarSystem.ClearModified("r_renderer");
 		}
 
+		private void SetBuffer(SetBufferRenderCommand cmd)
+		{
+			// see which draw buffer we want to render the frame to
+			idE.Backend.FrameCount = cmd.FrameCount;
+
+			Gl.glDrawBuffer(cmd.Buffer);
+
+			// clear screen for debugging
+			// automatically enable this with several other debug tools
+			// that might leave unrendered portions of the screen
+
+			// TODO: r_clear
+			/*if ( r_clear.GetFloat() || idStr::Length( r_clear.GetString() ) != 1 || r_lockSurfaces.GetBool() || r_singleArea.GetBool() || r_showOverDraw.GetBool() ) {
+				float c[3];
+				if ( sscanf( r_clear.GetString(), "%f %f %f", &c[0], &c[1], &c[2] ) == 3 ) {
+					qglClearColor( c[0], c[1], c[2], 1 );
+				} else if ( r_clear.GetInteger() == 2 ) {
+					qglClearColor( 0.0f, 0.0f,  0.0f, 1.0f );
+				} else if ( r_showOverDraw.GetBool() ) {
+					qglClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
+				} else {
+					qglClearColor( 0.4f, 0.0f, 0.25f, 1.0f );
+				}
+				qglClear( GL_COLOR_BUFFER_BIT );
+			}*/
+		}
+
 		private void SetColorMappings()
 		{
 			float g = idE.CvarSystem.GetFloat("r_gamma");
@@ -1060,6 +1616,194 @@ namespace idTech4.Renderer
 			}
 
 			SetGamma(_gammaTable, _gammaTable, _gammaTable);
+		}
+
+		/// <summary>
+		/// This should initialize all GL state that any part of the entire program
+		/// may touch, including the editor.
+		/// </summary>
+		private void SetDefaultGLState()
+		{
+			// TODO: RB_LogComment("--- R_SetDefaultGLState ---\n");
+
+			Gl.glClearDepth(1.0f);
+			Gl.glColor4f(1, 1, 1, 1);
+
+			// the vertex array is always enabled
+			Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+			Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+			// TODO: Gl.glDisableClientState(Gl.GL_COLOR_ALPHA);
+
+			//
+			// make sure our GL state vector is set correctly
+			//
+			idE.Backend.GLState = new GLState();
+			idE.Backend.GLState.ForceState = true;
+
+			Gl.glColorMask(1, 1, 1, 1);
+
+			Gl.glEnable(Gl.GL_DEPTH_TEST);
+			Gl.glEnable(Gl.GL_BLEND);
+			Gl.glEnable(Gl.GL_SCISSOR_TEST);
+			Gl.glEnable(Gl.GL_CULL_FACE);
+			Gl.glDisable(Gl.GL_LIGHTING);
+			Gl.glDisable(Gl.GL_LINE_STIPPLE);
+			Gl.glDisable(Gl.GL_STENCIL_TEST);
+
+			Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
+			Gl.glDepthMask(Gl.GL_TRUE);
+			Gl.glDepthFunc(Gl.GL_ALWAYS);
+
+			Gl.glCullFace(Gl.GL_FRONT_AND_BACK);
+			Gl.glShadeModel(Gl.GL_SMOOTH);
+
+			if(idE.CvarSystem.GetBool("r_useScissor") == true)
+			{
+				Gl.glScissor(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
+			}
+
+			for(int i = idE.GLConfig.MaxTextureUnits - 1; i >= 0; i--)
+			{
+				GL_SelectTexture(i);
+
+				// object linear texgen is our default
+				Gl.glTexGenf(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				Gl.glTexGenf(Gl.GL_T, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				Gl.glTexGenf(Gl.GL_R, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				Gl.glTexGenf(Gl.GL_Q, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+
+				GL_TextureEnvironment(Gl.GL_MODULATE);
+				Gl.glDisable(Gl.GL_TEXTURE_2D);
+
+				if(idE.GLConfig.Texture3DAvailable == true)
+				{
+					Gl.glDisable(Gl.GL_TEXTURE_3D);
+				}
+
+				if(idE.GLConfig.CubeMapAvailable == true)
+				{
+					Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Draw all the images to the screen, on top of whatever
+		/// was there.  This is used to test for texture thrashing.
+		/// </summary>
+		private void ShowImages()
+		{
+			// TODO: showimages
+			/*GL_Set2D();
+			
+			Gl.glFinish();
+
+			int x, y, w, h;
+			int start = idE.System.Time;
+
+			foreach(idImage image in idE.ImageManager.Images)
+			{
+				if((image.IsLoaded == true) && (image.PartialImage == null))
+				{
+					continue;
+				}
+
+				w = idE.GLConfig.VideoWidth / 20;
+				h = idE.GLConfig.VideoHeight / 15;
+				x = idE 
+
+		w = glConfig.vidWidth / 20;
+		h = glConfig.vidHeight / 15;
+		x = i % 20 * w;
+		y = i / 20 * h;
+
+		// show in proportional size in mode 2
+		if ( r_showImages.GetInteger() == 2 ) {
+			w *= image->uploadWidth / 512.0f;
+			h *= image->uploadHeight / 512.0f;
+		}
+
+		image->Bind();
+		qglBegin (GL_QUADS);
+		qglTexCoord2f( 0, 0 );
+		qglVertex2f( x, y );
+		qglTexCoord2f( 1, 0 );
+		qglVertex2f( x + w, y );
+		qglTexCoord2f( 1, 1 );
+		qglVertex2f( x + w, y + h );
+		qglTexCoord2f( 0, 1 );
+		qglVertex2f( x, y + h );
+		qglEnd();
+	}
+
+	qglFinish();
+
+	end = Sys_Milliseconds();
+	common->Printf( "%i msec to draw all images\n", end - start );*/
+		}
+
+		private void SwapBuffers(SwapBuffersRenderCommand cmd)
+		{
+			// texture swapping test
+			if(idE.CvarSystem.GetInteger("r_showImages") != 0)
+			{
+				ShowImages();
+			}
+
+			// force a gl sync if requested
+			if(idE.CvarSystem.GetBool("r_finish") == true)
+			{
+				Gl.glFinish();
+			}
+
+			// TODO: RB_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
+
+			// don't flip if drawing to front buffer
+			if(idE.CvarSystem.GetBool("r_frontBuffer") == false)
+			{
+				//
+				// wglSwapinterval is a windows-private extension,
+				// so we must check for it here instead of portably
+				//
+				if(idE.CvarSystem.IsModified("r_swapInterval") == true)
+				{
+					idE.CvarSystem.ClearModified("r_swapInterval");
+
+					Wgl.wglSwapIntervalEXT(idE.CvarSystem.GetInteger("r_swapInterval"));
+				}
+
+				Wgl.wglSwapBuffers(_renderControl.Handle);
+			}
+		}
+
+		private void ToggleSmpFrame()
+		{
+			if(idE.CvarSystem.GetBool("r_lockSurfaces") == true)
+			{
+				return;
+			}
+
+			// TODO
+			/*R_FreeDeferredTriSurfs( frameData );
+
+			// clear frame-temporary data
+			frameData_t		*frame;
+			frameMemoryBlock_t	*block;
+
+			// update the highwater mark
+			R_CountFrameData();
+
+			frame = frameData;
+
+			// reset the memory allocation to the first block
+			frame->alloc = frame->memory;
+
+			// clear all the blocks
+			for ( block = frame->memory ; block ; block = block->next ) {
+				block->used = 0;
+			}*/
+
+			ClearCommandChain();
 		}
 		#endregion
 
@@ -1614,23 +2358,17 @@ namespace idTech4.Renderer
 		public TextureType Type;
 	}
 
-	internal struct View
+	public class View
 	{
 		public RenderView RenderView;
-		/*// viewDefs are allocated on the frame temporary stack memory
-	typedef struct viewDef_s {
-		// specified in the call to DrawScene()
-		renderView_t		renderView;
 
-		float				projectionMatrix[16];
-		viewEntity_t		worldSpace;
-
-		idRenderWorldLocal *renderWorld;*/
+		public Matrix ProjectionMatrix;
+		public ViewEntity WorldSpace;
+		public idRenderWorld RenderWorld;
 
 		public float FloatTime;
 
-		/*
-		idVec3				initialViewAreaOrigin;
+		public Vector3 InitialViewAreaOrigin;
 		// Used to find the portalArea that view flooding will take place from.
 		// for a normal view, the initialViewOrigin will be renderView.viewOrg,
 		// but a mirror may put the projection origin outside
@@ -1640,33 +2378,31 @@ namespace idTech4.Renderer
 		// mirror intersects a portal, and the initialViewAreaOrigin is on
 		// a different side than the renderView.viewOrg is.
 
-		bool				isSubview;				// true if this view is not the main view
-		bool				isMirror;				// the portal is a mirror, invert the face culling
-		bool				isXraySubview;
+		public bool IsSubview;				// true if this view is not the main view
+		public bool IsMirror;				// the portal is a mirror, invert the face culling
+		public bool IsXraySubview;
+		public bool IsEditor;
 
-		bool				isEditor;
-
-		int					numClipPlanes;			// mirrors will often use a single clip plane
+		/*int					numClipPlanes;			// mirrors will often use a single clip plane
 		idPlane				clipPlanes[MAX_CLIP_PLANES];		// in world space, the positive side
 													// of the plane is the visible side
-		idScreenRect		viewport;				// in real pixels and proper Y flip
+		 * */
 
-		idScreenRect		scissor;
+		public idScreenRect ViewPort; // in real pixels and proper Y flip
+		public idScreenRect Scissor;
 		// for scissor clipping, local inside renderView viewport
 		// subviews may only be rendering part of the main view
 		// these are real physical pixel values, possibly scaled and offset from the
 		// renderView x/y/width/height
 
-		struct viewDef_s *	superView;				// never go into an infinite subview loop 
-		struct drawSurf_s *	subviewSurface;
+		/*struct viewDef_s *	superView;				// never go into an infinite subview loop 
+		struct drawSurf_s *	subviewSurface;*/
 
 		// drawSurfs are the visible surfaces of the viewEntities, sorted
 		// by the material sort parameter
-		drawSurf_t **		drawSurfs;				// we don't use an idList for this, because
-		int					numDrawSurfs;			// it is allocated in frame temporary memory
-		int					maxDrawSurfs;			// may be resized
+		public List<DrawSurface> DrawSurfaces = new List<DrawSurface>();
 
-		struct viewLight_s	*viewLights;			// chain of all viewLights effecting view
+		/*struct viewLight_s	*viewLights;			// chain of all viewLights effecting view
 		struct viewEntity_s	*viewEntitys;			// chain of all viewEntities effecting view, including off screen ones casting shadows
 		// we use viewEntities as a check to see if a given view consists solely
 		// of 2D rendering, which we can optimize in certain ways.  A 2D view will
@@ -1681,21 +2417,22 @@ namespace idTech4.Renderer
 		// An array in frame temporary memory that lists if an area can be reached without
 		// crossing a closed door.  This is used to avoid drawing interactions
 		// when the light is behind a closed door.
-
-	} viewDef_t;*/
+*/
 	}
 
 	public struct RenderView
 	{
-		/*typedef struct renderView_s {
 		// player views will set this to a non-zero integer for model suppress / allow
 		// subviews (mirrors, cameras, etc) will always clear it to zero
-		int						viewID;
+		public int ViewID;
 
 		// sized from 0 to SCREEN_WIDTH / SCREEN_HEIGHT (640/480), not actual resolution
-		int						x, y, width, height;
+		public int X;
+		public int Y;
+		public int Width;
+		public int Height;
 
-		float					fov_x, fov_y;
+		/*float					fov_x, fov_y;
 		idVec3					vieworg;
 		idMat3					viewaxis;			// transformation matrix, view looks down the positive X axis
 
@@ -1712,24 +2449,214 @@ namespace idTech4.Renderer
 		public idMaterial GlobalMaterial;
 	}
 
+	public struct RenderEntity
+	{
+
+		/*idRenderModel *			hModel;				// this can only be null if callback is set
+
+		int						entityNum;
+		int						bodyId;
+
+		// Entities that are expensive to generate, like skeletal models, can be
+		// deferred until their bounds are found to be in view, in the frustum
+		// of a shadowing light that is in view, or contacted by a trace / overlay test.
+		// This is also used to do visual cueing on items in the view
+		// The renderView may be NULL if the callback is being issued for a non-view related
+		// source.
+		// The callback function should clear renderEntity->callback if it doesn't
+		// want to be called again next time the entity is referenced (ie, if the
+		// callback has now made the entity valid until the next updateEntity)
+		idBounds				bounds;					// only needs to be set for deferred models and md5s
+		deferredEntityCallback_t	callback;
+
+		void *					callbackData;			// used for whatever the callback wants
+
+		// player bodies and possibly player shadows should be suppressed in views from
+		// that player's eyes, but will show up in mirrors and other subviews
+		// security cameras could suppress their model in their subviews if we add a way
+		// of specifying a view number for a remoteRenderMap view
+		int						suppressSurfaceInViewID;
+		int						suppressShadowInViewID;
+
+		// world models for the player and weapons will not cast shadows from view weapon
+		// muzzle flashes
+		int						suppressShadowInLightID;
+
+		// if non-zero, the surface and shadow (if it casts one)
+		// will only show up in the specific view, ie: player weapons
+		int						allowSurfaceInViewID;
+
+		// positioning
+		// axis rotation vectors must be unit length for many
+		// R_LocalToGlobal functions to work, so don't scale models!
+		// axis vectors are [0] = forward, [1] = left, [2] = up
+		idVec3					origin;
+		idMat3					axis;
+
+		// texturing
+		const idMaterial *		customShader;			// if non-0, all surfaces will use this
+		const idMaterial *		referenceShader;		// used so flares can reference the proper light shader
+		const idDeclSkin *		customSkin;				// 0 for no remappings
+		class idSoundEmitter *	referenceSound;			// for shader sound tables, allowing effects to vary with sounds*/
+		public float[] ShaderParameters;				// can be used in any way by shader or model generation
+
+		// networking: see WriteGUIToSnapshot / ReadGUIFromSnapshot
+		/*class idUserInterface * gui[ MAX_RENDERENTITY_GUI ];
+
+		struct renderView_s	*	remoteRenderView;		// any remote camera surfaces will use this
+
+		int						numJoints;
+		idJointMat *			joints;					// array of joints that will modify vertices.
+														// NULL if non-deformable model.  NOT freed by renderer
+
+		float					modelDepthHack;			// squash depth range so particle effects don't clip into walls
+
+		// options to override surface shader flags (replace with material parameters?)
+		bool					noSelfShadow;			// cast shadows onto other objects,but not self
+		bool					noShadow;				// no shadow at all
+
+		bool					noDynamicInteractions;	// don't create any light / shadow interactions after
+														// the level load is completed.  This is a performance hack
+														// for the gigantic outdoor meshes in the monorail map, so
+														// all the lights in the moving monorail don't touch the meshes*/
+
+		public bool WeaponDepthHack;					// squash depth range so view weapons don't poke into walls
+		// this automatically implies noShadow
+		/*int						forceUpdate;			// force an update (NOTE: not a bool to keep this struct a multiple of 4 bytes)
+		int						timeGroup;
+		int						xrayIndex;
+	} renderEntity_t;*/
+
+		public void Init()
+		{
+			ShaderParameters = new float[idE.MaxEntityShaderParameters];
+		}
+	}
+
 	public struct ViewEntity
 	{
 		/*struct viewEntity_s	*next;
 
 	// back end should NOT reference the entityDef, because it can change when running SMP
-	idRenderEntityLocal	*entityDef;
+	idRenderEntityLocal	*entityDef;*/
 
-	// for scissor clipping, local inside renderView viewport
-	// scissorRect.Empty() is true if the viewEntity_t was never actually
-	// seen through any portals, but was created for shadow casting.
-	// a viewEntity can have a non-empty scissorRect, meaning that an area
-	// that it is in is visible, and still not be visible.
-	idScreenRect		scissorRect;
+		// for scissor clipping, local inside renderView viewport
+		// scissorRect.Empty() is true if the viewEntity_t was never actually
+		// seen through any portals, but was created for shadow casting.
+		// a viewEntity can have a non-empty scissorRect, meaning that an area
+		// that it is in is visible, and still not be visible.
+		public idScreenRect ScissorRectangle;
 
-	bool				weaponDepthHack;
-	float				modelDepthHack;*/
+		public bool WeaponDepthHack;
+		public float ModelDepthHack;
+
 		public Matrix ModelMatrix; // local coords to global coords
 		public Matrix ModelViewMatrix; // local coords to eye coords
+	}
+
+	public struct DrawSurface
+	{
+		public Surface Geometry;
+		public ViewEntity Space;
+		public idMaterial Material;				// may be null for shadow volumes
+		public float Sort;						// material->sort, modified by gui / entity sort offsets
+
+		public float[] ShaderRegisters;			// evaluated and adjusted for referenceShaders
+
+		public idScreenRect ScissorRectangle;	// for scissor clipping, local inside renderView viewport
+
+		/*
+		 const struct drawSurf_s	*nextOnLight;	// viewLight chains
+		 * int						dsFlags;			// DSF_VIEW_INSIDE_SHADOW, etc
+		struct vertCache_s		*dynamicTexCoords;	// float * in vertex cache memory
+		// specular directions for non vertex program cards, skybox texcoords, etc
+		 * */
+	}
+
+	public struct Surface
+	{
+		/*idBounds					bounds;					// for culling
+
+	int							ambientViewCount;		// if == tr.viewCount, it is visible this view
+
+	bool						generateNormals;		// create normals from geometry, instead of using explicit ones
+	bool						tangentsCalculated;		// set when the vertex tangents have been calculated
+	bool						facePlanesCalculated;	// set when the face planes have been calculated
+	bool						perfectHull;			// true if there aren't any dangling edges
+	bool						deformedSurface;		// if true, indexes, silIndexes, mirrorVerts, and silEdges are
+														// pointers into the original surface, and should not be freed*/
+
+		public idVertex[] Vertices;
+		public int[] Indexes;							// for shadows, this has both front and rear end caps and silhouette planes
+
+		/*
+		glIndex_t *					silIndexes;				// indexes changed to be the first vertex with same XYZ, ignoring normal and texcoords
+
+		int							numMirroredVerts;		// this many verts at the end of the vert list are tangent mirrors
+		int *						mirroredVerts;			// tri->mirroredVerts[0] is the mirror of tri->numVerts - tri->numMirroredVerts + 0
+
+		int							numDupVerts;			// number of duplicate vertexes
+		int *						dupVerts;				// pairs of the number of the first vertex and the number of the duplicate vertex
+
+		int							numSilEdges;			// number of silhouette edges
+		silEdge_t *					silEdges;				// silhouette edges
+
+		idPlane *					facePlanes;				// [numIndexes/3] plane equations
+
+		dominantTri_t *				dominantTris;			// [numVerts] for deformed surface fast tangent calculation
+
+		int							numShadowIndexesNoFrontCaps;	// shadow volumes with front caps omitted
+		int							numShadowIndexesNoCaps;			// shadow volumes with the front and rear caps omitted
+
+		int							shadowCapPlaneBits;		// bits 0-5 are set when that plane of the interacting light has triangles
+															// projected on it, which means that if the view is on the outside of that
+															// plane, we need to draw the rear caps of the shadow volume
+															// turboShadows will have SHADOW_CAP_INFINITE
+
+		shadowCache_t *				shadowVertexes;			// these will be copied to shadowCache when it is going to be drawn.
+															// these are NULL when vertex programs are available
+
+		struct srfTriangles_s *		ambientSurface;			// for light interactions, point back at the original surface that generated
+															// the interaction, which we will get the ambientCache from
+
+		struct srfTriangles_s *		nextDeferredFree;		// chain of tris to free next frame
+
+		// data in vertex object space, not directly readable by the CPU
+		struct vertCache_s *		indexCache;				// int
+		struct vertCache_s *		ambientCache;			// idDrawVert
+		struct vertCache_s *		lightingCache;			// lightingCache_t
+		struct vertCache_s *		shadowCache;			// shadowCache_t
+	} srfTriangles_t;*/
+	}
+
+	public struct idVertex
+	{
+		public Vector3 Position;
+		public Vector2 TextureCoordinates;
+		public Vector3 Normal;
+		public Vector3[] Tangents;
+		public byte[] Color;
+	}
+
+	internal struct FrameData
+	{
+
+		/*// one or more blocks of memory for all frame
+		// temporary allocations
+		frameMemoryBlock_t	*memory;
+
+		// alloc will point somewhere into the memory chain
+		frameMemoryBlock_t	*alloc;
+
+		srfTriangles_t *	firstDeferredFreeTriSurf;
+		srfTriangles_t *	lastDeferredFreeTriSurf;
+
+		int					memoryHighwater;	// max used on any frame*/
+
+		// the currently building command list 
+		// commands can be inserted at the front if needed, as for required
+		// dynamically generated textures
+		public Queue<RenderCommand> Commands;
 	}
 
 	internal struct VideoMode
@@ -1754,5 +2681,121 @@ namespace idTech4.Renderer
 		DiffuseAndSpecularColor,
 
 		Count
+	}
+
+	internal enum RenderCommandType
+	{
+		Nop,
+		DrawView,
+		SetBuffer,
+		CopyRender,
+		SwapBuffers		// can't just assume swap at end of list because
+		// of forced list submission before syncs
+	}
+
+	internal abstract class RenderCommand
+	{
+		#region Properties
+		public abstract RenderCommandType CommandID
+		{
+			get;
+		}
+		#endregion
+
+		#region Constructor
+		public RenderCommand()
+		{
+
+		}
+		#endregion
+	}
+
+	internal sealed class DrawViewRenderCommand : RenderCommand
+	{
+		public View View;
+
+		#region Constructor
+		public DrawViewRenderCommand()
+			: base()
+		{
+
+		}
+		#endregion
+
+		#region RenderCommand
+		public override RenderCommandType CommandID
+		{
+			get
+			{
+				return RenderCommandType.DrawView;
+			}
+		}
+		#endregion
+	}
+
+	internal sealed class NoOperationRenderCommand : RenderCommand
+	{
+		#region Constructor
+		public NoOperationRenderCommand()
+			: base()
+		{
+
+		}
+		#endregion
+
+		#region RenderCommand
+		public override RenderCommandType CommandID
+		{
+			get
+			{
+				return RenderCommandType.Nop;
+			}
+		}
+		#endregion
+	}
+
+	internal sealed class SetBufferRenderCommand : RenderCommand
+	{
+		public int Buffer;
+		public int FrameCount;
+
+		#region Constructor
+		public SetBufferRenderCommand()
+			: base()
+		{
+
+		}
+		#endregion
+
+		#region RenderCommand
+		public override RenderCommandType CommandID
+		{
+			get
+			{
+				return RenderCommandType.SetBuffer;
+			}
+		}
+		#endregion
+	}
+
+	internal sealed class SwapBuffersRenderCommand : RenderCommand
+	{
+		#region Constructor
+		public SwapBuffersRenderCommand()
+			: base()
+		{
+
+		}
+		#endregion
+
+		#region RenderCommand
+		public override RenderCommandType CommandID
+		{
+			get
+			{
+				return RenderCommandType.SwapBuffers;
+			}
+		}
+		#endregion
 	}
 }

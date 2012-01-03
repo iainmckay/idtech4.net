@@ -88,12 +88,12 @@ namespace idTech4
 			return defaultValue;
 		}
 
-		public float GetInteger(string key)
+		public int GetInteger(string key)
 		{
 			return GetInteger(key, 0);
 		}
 
-		public float GetInteger(string key, int defaultValue)
+		public int GetInteger(string key, int defaultValue)
 		{
 			if(_dict.ContainsKey(key) == true)
 			{
