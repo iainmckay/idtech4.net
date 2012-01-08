@@ -89,7 +89,8 @@ namespace idTech4.UI
 
 			if((_enabled == false) || (_var == null) || ((_var != null) && ((_var.Dictionary != null) || (_var.Evaluate == false))))
 			{
-				return;
+				// TODO: this seems to be breaking var parsing.  maybe it depends on other code that hasn't been ported.
+				//return;
 			}
 
 			switch(_type)
@@ -142,9 +143,10 @@ namespace idTech4.UI
 
 			if((_enabled == false) || (_var == null) || ((_var != null) && ((_var.Dictionary != null) || (_var.Evaluate == false))))
 			{
-				return;
+				// TODO: this seems to be breaking var parsing.  maybe it depends on other code that hasn't been ported.
+				//return;
 			}
-
+			
 			v.X = registers[_indexes[0]];
 			v.Y = registers[_indexes[1]];
 			v.Z = registers[_indexes[2]];
@@ -161,7 +163,7 @@ namespace idTech4.UI
 					rect.Y = (int) v.Y;
 					rect.Width = (int) v.Z;
 					rect.Height = (int) v.W;
-
+					
 					((idWinRectangle) _var).Set(rect);
 					break;
 

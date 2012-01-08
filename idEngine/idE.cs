@@ -77,15 +77,15 @@ namespace idTech4
 		public const int MaxCommandStringLength = 2048;
 		public const int MaxWarningList = 256;				
 		public const int MaxUserCommandRelay = 10;
-		public const int MaxEntityShaderParameters = 12;
+		public const int MaxEntityMaterialParameters = 12;
 		public const int MaxExpressionRegisters = 4096;
-		public const int MaxGlobalShaderParameters = 12;
+		public const int MaxGlobalMaterialParameters = 12;
 		public const int MaxRenderCrops = 8;
 
 		// all drawing is done to a 640 x 480 virtual screen size
 		// and will be automatically scaled to the real resolution
-		public const int ScreenWidth = 640;
-		public const int ScreenHeight = 480;
+		public const int VirtualScreenWidth = 640;
+		public const int VirtualScreenHeight = 480;
 
 		public const string MasterServerAddress = "dnet.ua-corp.com";
 		public const int MasterServerPort = 27650;
@@ -106,6 +106,8 @@ namespace idTech4
 		#endregion
 
 		#region Internal
+		internal const string ConfigSpecification = "config.spec";
+
 		internal static idGameConsole Console = new idGameConsole();
 		internal static SystemConsole SystemConsole = new SystemConsole();
 		internal static idAsyncNetwork AsyncNetwork = new idAsyncNetwork();

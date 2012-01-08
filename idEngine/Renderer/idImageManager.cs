@@ -93,6 +93,14 @@ namespace idTech4.Renderer
 				return _textureLODBias;
 			}
 		}
+
+		public idImage WhiteImage
+		{
+			get
+			{
+				return _whiteImage;
+			}
+		}
 		#endregion
 
 		#region Members
@@ -138,6 +146,31 @@ namespace idTech4.Renderer
 		#region Methods
 		#region Public
 		/// <summary>
+		/// Disable the active texture unit.
+		/// </summary>
+		public void BindNullTexture()
+		{
+			TextureUnit unit = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit];
+
+			// TODO: RB_LogComment( "BindNull()\n" );
+
+			if(unit.Type == TextureType.Cubic)
+			{
+				Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
+			}
+			else if(unit.Type == TextureType.ThreeD) 
+			{
+				Gl.glDisable(Gl.GL_TEXTURE_3D);
+			} 
+			else if(unit.Type == TextureType.TwoD)
+			{
+				Gl.glDisable(Gl.GL_TEXTURE_2D);
+			}
+
+			unit.Type = TextureType.Disabled;
+		}
+
+		/// <summary>
 		/// Resets filtering on all loaded images.  New images will automatically pick up the current values.
 		/// </summary>
 		public void ChangeTextureFilter()
@@ -173,7 +206,7 @@ namespace idTech4.Renderer
 
 		public void CompleteBackgroundImageLoads()
 		{
-			// TODO: CompleteBackgroundImageLoads
+			idConsole.WriteLine("TODO: CompleteBackgroundImageLoads");
 			/*idImage	*remainingList = NULL;
 			idImage	*next;
 
@@ -367,7 +400,7 @@ namespace idTech4.Renderer
 
 			image.Generate(idHelper.Flatten<byte>(data), borderClampSize, borderClampSize, TextureFilter.Linear, false, TextureRepeat.ClampToBorder, TextureDepth.Default);
 
-			if(idE.GLConfig.IsInitialized == false)
+			if(idE.RenderSystem.IsRunning == false)
 			{
 				// can't call qglTexParameterfv yet
 				return;

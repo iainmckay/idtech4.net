@@ -315,6 +315,14 @@ namespace idTech4.Text
 
 		#region Methods
 		#region Public
+		public void EnsureNotPurged()
+		{
+			if(_state == DeclState.Unparsed)
+			{
+				ParseLocal();
+			}
+		}
+
 		public virtual bool Parse(string text)
 		{
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);

@@ -71,6 +71,7 @@ namespace idTech4.UI
 				{
 					if((_guiDict != null) && (_name == "*"))
 					{
+						// TODO: check _name[1].  is this the correct porting behaviour?
 						return _guiDict.GetString(_name[1].ToString());
 					}
 
@@ -125,11 +126,17 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
+		public void CopyFrom(idWindowVariable var)
+		{
+			_guiDict = var.Dictionary;
+			this.Name = var.Name;
+		}
+
 		public virtual void Init(string name, idWindow win)
 		{
 			string key = name;
 			int length = key.Length;
-
+			idConsole.WriteLine("Init({0}, {1})", name, win);
 			_guiDict = null;
 
 			if((length > Prefix.Length) && (key.StartsWith(Prefix) == true))
@@ -626,6 +633,7 @@ namespace idTech4.UI
 			if((_guiDict != null) && (s != string.Empty))
 			{
 				Rectangle r = _guiDict.GetRectangle(this.Name);
+
 				_data.X = r.X;
 				_data.Y = r.Y;
 				_data.Width = r.Width;

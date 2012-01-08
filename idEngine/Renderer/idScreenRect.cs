@@ -43,5 +43,26 @@ namespace idTech4.Renderer
 		// for depth bounds test
 		public float MinZ;
 		public float MaxZ;
+
+		public override bool Equals(object obj)
+		{
+			if(obj is idScreenRect)
+			{
+				return (this == (idScreenRect) obj);
+			}
+
+			return base.Equals(obj);
+		}
+
+		public static bool operator ==(idScreenRect r1, idScreenRect r2)
+		{
+			return ((r1.X1 == r2.X1) && (r1.X2 == r2.X2) && (r1.Y1 == r2.Y2) && (r1.Y2 == r2.Y2)
+				&& (r1.MinZ == r2.MinZ) && (r1.MaxZ == r2.MaxZ));
+		}
+
+		public static bool operator !=(idScreenRect r1, idScreenRect r2)
+		{
+			return !(r1 == r2);
+		}
 	}
 }

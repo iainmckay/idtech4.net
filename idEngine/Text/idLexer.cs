@@ -1232,6 +1232,7 @@ namespace idTech4.Text
 					if(dot != 3)
 					{
 						Error("ip address should have three dots");
+
 						return false;
 					}
 

@@ -69,19 +69,55 @@ namespace idTech4.Renderer
 		private const int PredefinedRegisterCount = 21;
 		#endregion
 
-		#region Properties
+		#region Properties	
 		/// <summary>
-		/// Gets or sets material specific flags.
-		/// </summary>		
-		public MaterialFlags MaterialFlag
+		/// For interaction list linking and dmap flood filling.  The depth buffer will not be filled for translucent surfaces.
+		/// </summary>
+		public MaterialCoverage Coverage
 		{
 			get
 			{
-				return _materialFlags;
+				return _coverage;
 			}
+		}
+
+		public CullType CullType
+		{
+			get
+			{
+				return _cullType;
+			}
+		}
+
+		/// <summary>
+		/// true if the material will draw any non light interaction stages.
+		/// </summary>
+		public bool HasAmbient
+		{
+			get
+			{
+				return (_ambientStageCount > 0);
+			}
+		}
+
+		/// <summary>
+		/// Just for image resource tracking.
+		/// </summary>
+		public int ImageClassification
+		{
 			set
 			{
-				_materialFlags |= value;
+				idImage image;
+
+				foreach(MaterialStage stage in _stages)
+				{
+					image = stage.Texture.Image;
+
+					if(image != null)
+					{
+						image.Classification = value;
+					}
+				}
 			}
 		}
 
@@ -101,46 +137,34 @@ namespace idTech4.Renderer
 			}
 		}
 
-		/// <summary>
-		/// Gets the surface flags.
-		/// </summary>
-		public SurfaceFlags SurfaceFlags
+		public bool IsPortalSky
 		{
 			get
 			{
-				return _surfaceFlags;
+				return _portalSky;
 			}
 		}
 
 		/// <summary>
-		/// For interaction list linking and dmap flood filling.  The depth buffer will not be filled for translucent surfaces.
-		/// </summary>
-		public MaterialCoverage Coverage
+		/// Gets or sets material specific flags.
+		/// </summary>		
+		public MaterialFlags MaterialFlag
 		{
 			get
 			{
-				return _coverage;
+				return _materialFlags;
 			}
-		}
-
-		/// <summary>
-		/// Just for image resource tracking.
-		/// </summary>
-		public int ImageClassification
-		{
 			set
 			{
-				idImage image;
+				_materialFlags |= value;
+			}
+		}
 
-				foreach(ShaderStage stage in _stages)
-				{
-					image = stage.Texture.Image;
-
-					if(image != null)
-					{
-						image.Classification = value;
-					}
-				}
+		public float PolygonOffset
+		{
+			get
+			{
+				return _polygonOffset;
 			}
 		}
 
@@ -168,7 +192,25 @@ namespace idTech4.Renderer
 				_sort = value;
 			}
 		}
-		// 
+
+		public MaterialStage[] Stages
+		{
+			get
+			{
+				return _stages;
+			}
+		}
+
+		/// <summary>
+		/// Gets the surface flags.
+		/// </summary>
+		public SurfaceFlags SurfaceFlags
+		{
+			get
+			{
+				return _surfaceFlags;
+			}
+		} 
 		#endregion
 
 		#region members
@@ -212,7 +254,7 @@ namespace idTech4.Renderer
 		private float _polygonOffset;
 		private int _spectrum;					// for invisible writing, used for both lights and surfaces.
 
-		private ShaderStage[] _stages;
+		private MaterialStage[] _stages;
 		private ExpressionOperation[] _ops;		// evaluate to make _expressionRegisters.
 		private float[] _expressionRegisters;
 		private float[] _constantRegisters;		// null if _ops ever reference globalParms or entityParms.
@@ -257,19 +299,23 @@ namespace idTech4.Renderer
 			registers[(int) ExpressionRegister.Parm10] = shaderParms[10];
 			registers[(int) ExpressionRegister.Parm11] = shaderParms[11];
 
-			registers[(int) ExpressionRegister.Global0] = view.RenderView.ShaderParameters[0];
-			registers[(int) ExpressionRegister.Global1] = view.RenderView.ShaderParameters[1];
-			registers[(int) ExpressionRegister.Global2] = view.RenderView.ShaderParameters[2];
-			registers[(int) ExpressionRegister.Global3] = view.RenderView.ShaderParameters[3];
-			registers[(int) ExpressionRegister.Global4] = view.RenderView.ShaderParameters[4];
-			registers[(int) ExpressionRegister.Global5] = view.RenderView.ShaderParameters[5];
-			registers[(int) ExpressionRegister.Global6] = view.RenderView.ShaderParameters[6];
-			registers[(int) ExpressionRegister.Global7] = view.RenderView.ShaderParameters[7];
+			if(view.RenderView.MaterialParameters != null)
+			{
+				registers[(int) ExpressionRegister.Global0] = view.RenderView.MaterialParameters[0];
+				registers[(int) ExpressionRegister.Global1] = view.RenderView.MaterialParameters[1];
+				registers[(int) ExpressionRegister.Global2] = view.RenderView.MaterialParameters[2];
+				registers[(int) ExpressionRegister.Global3] = view.RenderView.MaterialParameters[3];
+				registers[(int) ExpressionRegister.Global4] = view.RenderView.MaterialParameters[4];
+				registers[(int) ExpressionRegister.Global5] = view.RenderView.MaterialParameters[5];
+				registers[(int) ExpressionRegister.Global6] = view.RenderView.MaterialParameters[6];
+				registers[(int) ExpressionRegister.Global7] = view.RenderView.MaterialParameters[7];
+			}
 
 			ExpressionOperation op;
 			int b;
+			int opCount = (_ops != null) ? _ops.Length : 0;
 
-			for(int i = 0; i < _ops.Length; i++)
+			for(int i = 0; i < opCount; i++)
 			{
 				op = _ops[i];
 
@@ -715,9 +761,9 @@ namespace idTech4.Renderer
 			// in temporary form.
 			if(_cullType == CullType.TwoSided)
 			{
-				for(int i = 0; i < _parsingData.ShaderStages.Count; i++)
+				for(int i = 0; i < _parsingData.Stages.Count; i++)
 				{
-					if((_parsingData.ShaderStages[i].Lighting != StageLighting.Ambient) || (_parsingData.ShaderStages[i].Texture.TextureCoordinates != TextureCoordinateGeneration.Explicit))
+					if((_parsingData.Stages[i].Lighting != StageLighting.Ambient) || (_parsingData.Stages[i].Texture.TextureCoordinates != TextureCoordinateGeneration.Explicit))
 					{
 						if(_cullType == CullType.TwoSided)
 						{
@@ -733,15 +779,15 @@ namespace idTech4.Renderer
 			// currently a surface can only have one unique texgen for all the stages on old hardware.
 			TextureCoordinateGeneration firstGen = TextureCoordinateGeneration.Explicit;
 
-			for(int i = 0; i < _parsingData.ShaderStages.Count; i++)
+			for(int i = 0; i < _parsingData.Stages.Count; i++)
 			{
-				if(_parsingData.ShaderStages[i].Texture.TextureCoordinates != TextureCoordinateGeneration.Explicit)
+				if(_parsingData.Stages[i].Texture.TextureCoordinates != TextureCoordinateGeneration.Explicit)
 				{
 					if(firstGen == TextureCoordinateGeneration.Explicit)
 					{
-						firstGen = _parsingData.ShaderStages[i].Texture.TextureCoordinates;
+						firstGen = _parsingData.Stages[i].Texture.TextureCoordinates;
 					}
-					else if(firstGen != _parsingData.ShaderStages[i].Texture.TextureCoordinates)
+					else if(firstGen != _parsingData.Stages[i].Texture.TextureCoordinates)
 					{
 						idConsole.Warning("material '{0}' has multiple stages with a texgen", this.Name);
 						break;
@@ -769,9 +815,9 @@ namespace idTech4.Renderer
 			bool hasBump = false;
 			bool hasReflection = false;
 
-			for(int i = 0; i < _parsingData.ShaderStages.Count; i++)
+			for(int i = 0; i < _parsingData.Stages.Count; i++)
 			{
-				switch(_parsingData.ShaderStages[i].Lighting)
+				switch(_parsingData.Stages[i].Lighting)
 				{
 					case StageLighting.Bump:
 						hasBump = true;
@@ -786,7 +832,7 @@ namespace idTech4.Renderer
 						break;
 				}
 
-				if(_parsingData.ShaderStages[i].Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
+				if(_parsingData.Stages[i].Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
 				{
 					hasReflection = true;
 				}
@@ -833,16 +879,16 @@ namespace idTech4.Renderer
 		{
 			int i = 0, j = 0;
 
-			for(i = 0; i < _parsingData.ShaderStages.Count; i = j)
+			for(i = 0; i < _parsingData.Stages.Count; i = j)
 			{
 				// find the next bump map
-				for(j = i + 1; j < _parsingData.ShaderStages.Count; j++)
+				for(j = i + 1; j < _parsingData.Stages.Count; j++)
 				{
-					if(_parsingData.ShaderStages[j].Lighting == StageLighting.Bump)
+					if(_parsingData.Stages[j].Lighting == StageLighting.Bump)
 					{
 						// if the very first stage wasn't a bumpmap,
 						// this bumpmap is part of the first group.
-						if(_parsingData.ShaderStages[i].Lighting != StageLighting.Bump)
+						if(_parsingData.Stages[i].Lighting != StageLighting.Bump)
 						{
 							continue;
 						}
@@ -857,12 +903,12 @@ namespace idTech4.Renderer
 			{
 				for(int k = i; k < k - l; k++)
 				{
-					if(_parsingData.ShaderStages[k].Lighting > _parsingData.ShaderStages[k + 1].Lighting)
+					if(_parsingData.Stages[k].Lighting > _parsingData.Stages[k + 1].Lighting)
 					{
-						ShaderStage temp = _parsingData.ShaderStages[k];
+						MaterialStage temp = _parsingData.Stages[k];
 
-						_parsingData.ShaderStages[k] = _parsingData.ShaderStages[k + 1];
-						_parsingData.ShaderStages[k + 1] = temp;
+						_parsingData.Stages[k] = _parsingData.Stages[k + 1];
+						_parsingData.Stages[k + 1] = temp;
 					}
 				}
 			}
@@ -1227,7 +1273,7 @@ namespace idTech4.Renderer
 
 			if(tokenLower == "fragmentPrograms")
 			{
-				return GetExpressionConstant((idE.GLConfig.ArbFragmentProgramAvailable == true) ? 1.0f : 0.0f);
+				return GetExpressionConstant(1.0f);
 			}
 			else if(tokenLower == "sound")
 			{
@@ -1286,10 +1332,10 @@ namespace idTech4.Renderer
 			bool allowPicmip = true;
 			string imageName = string.Empty;
 
-			NewShaderStage newStage = new NewShaderStage();
+			NewMaterialStage newStage = new NewMaterialStage();
 			newStage.VertexParameters = new int[4, 4];
 
-			ShaderStage shaderStage = new ShaderStage();
+			MaterialStage shaderStage = new MaterialStage();
 			shaderStage.Color.Registers = new int[4];
 
 			int[,] matrix = new int[2, 3];
@@ -1639,27 +1685,27 @@ namespace idTech4.Renderer
 				// color mask options
 				else if(tokenLower == "maskred")
 				{
-					shaderStage.DrawStateBits |= ShaderStates.Red;
+					shaderStage.DrawStateBits |= MaterialStates.Red;
 				}
 				else if(tokenLower == "maskgreen")
 				{
-					shaderStage.DrawStateBits |= ShaderStates.Green;
+					shaderStage.DrawStateBits |= MaterialStates.Green;
 				}
 				else if(tokenLower == "maskblue")
 				{
-					shaderStage.DrawStateBits |= ShaderStates.Blue;
+					shaderStage.DrawStateBits |= MaterialStates.Blue;
 				}
 				else if(tokenLower == "maskalpha")
 				{
-					shaderStage.DrawStateBits |= ShaderStates.Alpha;
+					shaderStage.DrawStateBits |= MaterialStates.Alpha;
 				}
 				else if(tokenLower == "maskcolor")
 				{
-					shaderStage.DrawStateBits |= ShaderStates.Color;
+					shaderStage.DrawStateBits |= MaterialStates.Color;
 				}
 				else if(tokenLower == "maskdepth")
 				{
-					shaderStage.DrawStateBits |= ShaderStates.Depth;
+					shaderStage.DrawStateBits |= MaterialStates.Depth;
 				}
 				else if(tokenLower == "alphatest")
 				{
@@ -1788,7 +1834,7 @@ namespace idTech4.Renderer
 			}
 
 			// successfully parsed a stage.
-			_parsingData.ShaderStages.Add(shaderStage);
+			_parsingData.Stages.Add(shaderStage);
 
 			// select a compressed depth based on what the stage is.
 			if(textureDepth == TextureDepth.Default)
@@ -1822,7 +1868,7 @@ namespace idTech4.Renderer
 			}*/
 		}
 
-		private void ParseBlend(idLexer lexer, ref ShaderStage stage)
+		private void ParseBlend(idLexer lexer, ref MaterialStage stage)
 		{
 			idToken token;
 
@@ -1837,20 +1883,20 @@ namespace idTech4.Renderer
 			// blending combinations.
 			if(tokenLower == "blend")
 			{
-				stage.DrawStateBits = ShaderStates.SourceBlendSourceAlpha | ShaderStates.DestinationBlendOneMinusSourceAlpha;
+				stage.DrawStateBits = MaterialStates.SourceBlendSourceAlpha | MaterialStates.DestinationBlendOneMinusSourceAlpha;
 			}
 			else if(tokenLower == "add")
 			{
-				stage.DrawStateBits = ShaderStates.SourceBlendOne | ShaderStates.DestinationBlendOne;
+				stage.DrawStateBits = MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne;
 			}
 			else if((tokenLower == "filter") || (tokenLower == "modulate"))
 			{
-				stage.DrawStateBits = ShaderStates.SourceBlendDestinationColor | ShaderStates.DestinationBlendZero;
+				stage.DrawStateBits = MaterialStates.SourceBlendDestinationColor | MaterialStates.DestinationBlendZero;
 			}
 			else if(tokenLower == "none")
 			{
 				// none is used when defining an alpha mask that doesn't draw.
-				stage.DrawStateBits = ShaderStates.SourceBlendZero | ShaderStates.DestinationBlendOne;
+				stage.DrawStateBits = MaterialStates.SourceBlendZero | MaterialStates.DestinationBlendOne;
 			}
 			else if(tokenLower == "bumpmap")
 			{
@@ -1866,7 +1912,7 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				ShaderStates sourceBlendMode = GetSourceBlendMode(tokenLower);
+				int sourceBlendMode = GetSourceBlendMode(tokenLower);
 
 				MatchToken(lexer, ",");
 
@@ -1875,7 +1921,7 @@ namespace idTech4.Renderer
 					return;
 				}
 
-				ShaderStates destinationBlendMode = GetDestinationBlendMode(tokenLower);
+				int destinationBlendMode = GetDestinationBlendMode(tokenLower);
 
 				stage.DrawStateBits = sourceBlendMode | destinationBlendMode;
 			}
@@ -1891,7 +1937,7 @@ namespace idTech4.Renderer
 		/// </remarks>
 		/// <param name="lexer"></param>
 		/// <param name="newStage"></param>
-		private void ParseVertexParameter(idLexer lexer, ref NewShaderStage newStage)
+		private void ParseVertexParameter(idLexer lexer, ref NewMaterialStage newStage)
 		{
 			idToken token = lexer.ReadTokenOnLine();
 			int parm = token.ToInt32();
@@ -1944,7 +1990,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		private void ParseFragmentMap(idLexer lexer, ref NewShaderStage newStage)
+		private void ParseFragmentMap(idLexer lexer, ref NewMaterialStage newStage)
 		{
 			TextureFilter textureFilter = TextureFilter.Default;
 			TextureRepeat textureRepeat = TextureRepeat.Repeat;
@@ -2377,7 +2423,7 @@ namespace idTech4.Renderer
 		private ExpressionOperation GetExpressionOperation()
 		{
 			ExpressionOperation op = new ExpressionOperation();
-			_parsingData.ShaderOperations.Add(op);
+			_parsingData.Operations.Add(op);
 
 			return op;
 		}
@@ -2438,95 +2484,95 @@ namespace idTech4.Renderer
 													old[1, 2], ExpressionOperationType.Add);
 		}
 
-		private ShaderStates GetSourceBlendMode(string name)
+		private int GetSourceBlendMode(string name)
 		{
 			name = name.ToUpper();
 
 			if(name == "GL_ONE")
 			{
-				return ShaderStates.SourceBlendOne;
+				return MaterialStates.SourceBlendOne;
 			}
 			else if(name == "GL_ZERO")
 			{
-				return ShaderStates.SourceBlendZero;
+				return MaterialStates.SourceBlendZero;
 			}
 			else if(name == "GL_DST_COLOR")
 			{
-				return ShaderStates.SourceBlendDestinationColor;
+				return MaterialStates.SourceBlendDestinationColor;
 			}
 			else if(name == "GL_ONE_MINUS_DST_COLOR")
 			{
-				return ShaderStates.SourceBlendOneMinusDestinationColor;
+				return MaterialStates.SourceBlendOneMinusDestinationColor;
 			}
 			else if(name == "GL_SRC_ALPHA")
 			{
-				return ShaderStates.SourceBlendSourceAlpha;
+				return MaterialStates.SourceBlendSourceAlpha;
 			}
 			else if(name == "GL_ONE_MINUS_SRC_ALPHA")
 			{
-				return ShaderStates.SourceBlendOneMinusSourceAlpha;
+				return MaterialStates.SourceBlendOneMinusSourceAlpha;
 			}
 			else if(name == "GL_DST_ALPHA")
 			{
-				return ShaderStates.SourceBlendDestinationAlpha;
+				return MaterialStates.SourceBlendDestinationAlpha;
 			}
 			else if(name == "GL_ONE_MINUS_DST_ALPHA")
 			{
-				return ShaderStates.SourceBlendOneMinusDestinationAlpha;
+				return MaterialStates.SourceBlendOneMinusDestinationAlpha;
 			}
 			else if(name == "GL_SRC_ALPHA_SATURATE")
 			{
-				return ShaderStates.SourceBlendAlphaSaturate;
+				return MaterialStates.SourceBlendAlphaSaturate;
 			}
 
 			idConsole.Warning("unknown blend mode '{0}' in material '{1}'", name, this.Name);
 			this.MaterialFlag = MaterialFlags.Defaulted;
 
-			return ShaderStates.SourceBlendOne;
+			return MaterialStates.SourceBlendOne;
 		}
 
-		private ShaderStates GetDestinationBlendMode(string name)
+		private int GetDestinationBlendMode(string name)
 		{
 			name = name.ToUpper();
 
 			if(name == "GL_ONE")
 			{
-				return ShaderStates.DestinationBlendOne;
+				return MaterialStates.DestinationBlendOne;
 			}
 			else if(name == "GL_ZERO")
 			{
-				return ShaderStates.DestinationBlendZero;
+				return MaterialStates.DestinationBlendZero;
 
 			}
 			else if(name == "GL_SRC_ALPHA")
 			{
-				return ShaderStates.DestinationBlendSourceAlpha;
+				return MaterialStates.DestinationBlendSourceAlpha;
 			}
 			else if(name == "GL_ONE_MINUS_SRC_ALPHA")
 			{
-				return ShaderStates.DestinationBlendOneMinusSourceAlpha;
+				return MaterialStates.DestinationBlendOneMinusSourceAlpha;
 			}
 			else if(name == "GL_DST_ALPHA")
 			{
-				return ShaderStates.DestinationBlendDestinationAlpha;
+				return MaterialStates.DestinationBlendDestinationAlpha;
 			}
 			else if(name == "GL_ONE_MINUS_DST_ALPHA")
 			{
-				return ShaderStates.DestinationBlendOneMinusDestinationAlpha;
+				return MaterialStates.DestinationBlendOneMinusDestinationAlpha;
 			}
 			else if(name == "GL_SRC_COLOR")
 			{
-				return ShaderStates.DestinationBlendSourceColor;
+				return MaterialStates.DestinationBlendSourceColor;
 			}
 			else if(name == "GL_ONE_MINUS_SRC_COLOR")
 			{
-				return ShaderStates.DestinationBlendOneMinusSourceColor;
+				return MaterialStates.DestinationBlendOneMinusSourceColor;
 			}
 
 			idConsole.Warning("unknown blend mode '{0}' in material '{1}'", name, this.Name);
 			this.MaterialFlag = MaterialFlags.Defaulted;
 
-			return ShaderStates.DestinationBlendOne;
+			return MaterialStates.DestinationBlendOne;
 		}
 
 		/// <summary>
@@ -2543,11 +2589,12 @@ namespace idTech4.Renderer
 
 			// evaluate the registers once and save them.
 			_constantRegisters = new float[_registerCount];
-			float[] shaderParms = new float[idE.MaxEntityShaderParameters];
-			View viewDef = new View();
-			viewDef.RenderView.ShaderParameters = new float[idE.MaxGlobalShaderParameters];
+			float[] materialParms = new float[idE.MaxEntityMaterialParameters];
 
-			EvaluateRegisters(ref _constantRegisters, shaderParms, viewDef, null);
+			View viewDef = new View();
+			viewDef.RenderView.MaterialParameters = new float[idE.MaxGlobalMaterialParameters];
+
+			EvaluateRegisters(ref _constantRegisters, materialParms, viewDef, null);
 		}
 		#endregion
 		#endregion
@@ -2585,11 +2632,11 @@ namespace idTech4.Renderer
 
 			// count non-lit stages.
 			_ambientStageCount = 0;
-			_stageCount = _parsingData.ShaderStages.Count;
+			_stageCount = _parsingData.Stages.Count;
 
 			for(int i = 0; i < _stageCount; i++)
 			{
-				if(_parsingData.ShaderStages[i].Lighting == StageLighting.Ambient)
+				if(_parsingData.Stages[i].Lighting == StageLighting.Ambient)
 				{
 					_ambientStageCount++;
 				}
@@ -2604,9 +2651,9 @@ namespace idTech4.Renderer
 			{
 				_hasSubview = false;
 
-				for(int i = 0; i < _parsingData.ShaderStages.Count; i++)
+				for(int i = 0; i < _parsingData.Stages.Count; i++)
 				{
-					if(_parsingData.ShaderStages[i].Texture.Dynamic != null)
+					if(_parsingData.Stages[i].Texture.Dynamic != null)
 					{
 						_hasSubview = true;
 					}
@@ -2630,13 +2677,13 @@ namespace idTech4.Renderer
 				}
 				else
 				{
-					ShaderStates drawStateBits = _parsingData.ShaderStages[0].DrawStateBits;
+					int drawStateBits = _parsingData.Stages[0].DrawStateBits;
 
-					if(((drawStateBits & ShaderStates.DestinationBlendBits) != ShaderStates.DestinationBlendZero)
-						|| ((drawStateBits & ShaderStates.SourceBlendBits) == ShaderStates.SourceBlendDestinationColor)
-						|| ((drawStateBits & ShaderStates.SourceBlendBits) == ShaderStates.SourceBlendOneMinusDestinationColor)
-						|| ((drawStateBits & ShaderStates.SourceBlendBits) == ShaderStates.SourceBlendDestinationAlpha)
-						|| ((drawStateBits & ShaderStates.SourceBlendBits) == ShaderStates.SourceBlendOneMinusDestinationAlpha))
+					if(((drawStateBits & MaterialStates.DestinationBlendBits) != MaterialStates.DestinationBlendZero)
+						|| ((drawStateBits & MaterialStates.SourceBlendBits) == MaterialStates.SourceBlendDestinationColor)
+						|| ((drawStateBits & MaterialStates.SourceBlendBits) == MaterialStates.SourceBlendOneMinusDestinationColor)
+						|| ((drawStateBits & MaterialStates.SourceBlendBits) == MaterialStates.SourceBlendDestinationAlpha)
+						|| ((drawStateBits & MaterialStates.SourceBlendBits) == MaterialStates.SourceBlendOneMinusDestinationAlpha))
 					{
 						// blended with the destination.
 						_coverage = MaterialCoverage.Translucent;
@@ -2680,7 +2727,7 @@ namespace idTech4.Renderer
 			// and coverage = MC_TRANSLUCENT.
 			for(int i = 0; i < _stageCount; i++)
 			{
-				ShaderStage stage = _parsingData.ShaderStages[i];
+				MaterialStage stage = _parsingData.Stages[i];
 
 				if(stage.Texture.Image == idE.ImageManager.CurrentRenderImage)
 				{
@@ -2693,9 +2740,9 @@ namespace idTech4.Renderer
 					break;
 				}
 
-				if(stage.NewStage.HasValue == true)
+				if(stage.NewStage.IsEmpty == false)
 				{
-					NewShaderStage newShaderStage = stage.NewStage.Value;
+					NewMaterialStage newShaderStage = stage.NewStage;
 
 					for(int j = 0; j < newShaderStage.FragmentProgramImages.Length; j++)
 					{
@@ -2717,27 +2764,27 @@ namespace idTech4.Renderer
 			// set the drawStateBits depth flags.
 			for(int i = 0; i < _stageCount; i++)
 			{
-				ShaderStage stage = _parsingData.ShaderStages[i];
+				MaterialStage stage = _parsingData.Stages[i];
 
 				if(_sort == (float) MaterialSort.PostProcess)
 				{
 					// post-process effects fill the depth buffer as they draw, so only the
 					// topmost post-process effect is rendered.
-					stage.DrawStateBits |= ShaderStates.DepthFunctionLess;
+					stage.DrawStateBits |= MaterialStates.DepthFunctionLess;
 				}
 				else if((_coverage == MaterialCoverage.Translucent) || (stage.IgnoreAlphaTest == true))
 				{
 					// translucent surfaces can extend past the exactly marked depth buffer.
-					stage.DrawStateBits |= ShaderStates.DepthFunctionLess | ShaderStates.Depth;
+					stage.DrawStateBits |= MaterialStates.DepthFunctionLess | MaterialStates.Depth;
 				}
 				else
 				{
 					// opaque and perforated surfaces must exactly match the depth buffer,
 					// which gets alpha test correct.
-					stage.DrawStateBits |= ShaderStates.DepthFunctionEqual | ShaderStates.Depth;
+					stage.DrawStateBits |= MaterialStates.DepthFunctionEqual | MaterialStates.Depth;
 				}
 
-				_parsingData.ShaderStages[i] = stage;
+				_parsingData.Stages[i] = stage;
 			}
 
 			// determine if this surface will accept overlays / decals.
@@ -2783,12 +2830,12 @@ namespace idTech4.Renderer
 
 			if(_stageCount > 0)
 			{
-				_stages = _parsingData.ShaderStages.ToArray();
+				_stages = _parsingData.Stages.ToArray();
 			}
 
-			if(_parsingData.ShaderOperations.Count > 0)
+			if(_parsingData.Operations.Count > 0)
 			{
-				_ops = _parsingData.ShaderOperations.ToArray();
+				_ops = _parsingData.Operations.ToArray();
 			}
 
 			if(_registerCount > 0)
@@ -2931,8 +2978,8 @@ namespace idTech4.Renderer
 		public bool[] RegisterIsTemporary = new bool[idE.MaxExpressionRegisters];
 		public float[] ShaderRegisters = new float[idE.MaxExpressionRegisters];
 
-		public List<ExpressionOperation> ShaderOperations = new List<ExpressionOperation>();
-		public List<ShaderStage> ShaderStages = new List<ShaderStage>();
+		public List<ExpressionOperation>Operations = new List<ExpressionOperation>();
+		public List<MaterialStage> Stages = new List<MaterialStage>();
 
 		public bool RegistersAreConstant;
 		public bool ForceOverlays;
@@ -2967,12 +3014,12 @@ namespace idTech4.Renderer
 		public float[] End;
 	}
 
-	internal struct ShaderStage
+	public struct MaterialStage
 	{
 		public int ConditionRegister;				// if registers[conditionRegister] == 0, skip stage.
 		public StageLighting Lighting;				// determines which passes interact with lights.
 
-		public ShaderStates DrawStateBits;
+		public int DrawStateBits;
 		public ColorStage Color;
 		public bool HasAlphaTest;
 		public int AlphaTestRegister;
@@ -2983,15 +3030,17 @@ namespace idTech4.Renderer
 		public bool IgnoreAlphaTest;				// this stage should act as translucent, even if the surface is alpha tested.
 		public float PrivatePolygonOffset;			// a per-stage polygon offset.
 
-		public Nullable<NewShaderStage> NewStage;	// vertex / fragment program based stage.
+		public NewMaterialStage NewStage;	// vertex / fragment program based stage.
 	}
 
-	internal struct TextureStage
+	public struct TextureStage
 	{
 		// TODO
 		/*idCinematic *		cinematic;*/
 		public idImage Image;
 		public TextureCoordinateGeneration TextureCoordinates;
+
+		public bool HasMatrix;
 		public int[,] Matrix;	// we only allow a subset of the full projection matrix.
 
 		// dynamic image variables
@@ -3001,13 +3050,24 @@ namespace idTech4.Renderer
 		public int FrameCount;
 	}
 
-	internal struct ColorStage
+	public struct ColorStage
 	{
 		public int[] Registers;
 	}
 
-	internal struct NewShaderStage
+	public struct NewMaterialStage
 	{
+		#region Properties
+		public bool IsEmpty
+		{
+			get
+			{
+				return ((VertexProgram == 0) && (VertexParameters == null) && (FragmentProgram == 0));
+			}
+		}
+		#endregion
+
+		#region Fields
 		public int VertexProgram;
 		public int[,] VertexParameters; // evaluated register indexes.
 
@@ -3015,6 +3075,7 @@ namespace idTech4.Renderer
 		public idImage[] FragmentProgramImages;
 
 		// TODO: public idMegaTexture MegaTexture; // handles all the binding and parameter setting.
+		#endregion
 	}
 
 	public enum SurfaceTypes
@@ -3037,43 +3098,46 @@ namespace idTech4.Renderer
 		Extra6
 	}
 
-	/// <summary>
-	/// These masks are the inverse, meaning when set the glColorMask value will be 0, preventing that channel from being written.
-	/// </summary>
-	[Flags]
-	public enum ShaderStates
+	public class MaterialStates
 	{
-		Depth = 0x00000100,
-		Red = 0x00000200,
-		Green = 0x00000400,
-		Blue = 0x00000800,
-		Alpha = 0x00001000,
-		Color = Red | Green | Blue,
+		public const int Depth = 0x00000100;
+		public const int Red = 0x00000200;
+		public const int Green = 0x0000040;
+		public const int Blue = 0x00000800;
+		public const int Alpha = 0x00001000;
+		public const int Color = Red | Green | Blue;
 
-		SourceBlendZero = 0x00000001,
-		SourceBlendOne = 0x0,
-		SourceBlendDestinationColor = 0x00000003,
-		SourceBlendOneMinusDestinationColor = 0x00000004,
-		SourceBlendSourceAlpha = 0x00000005,
-		SourceBlendOneMinusSourceAlpha = 0x00000006,
-		SourceBlendDestinationAlpha = 0x00000007,
-		SourceBlendOneMinusDestinationAlpha = 0x00000008,
-		SourceBlendAlphaSaturate = 0x00000009,
-		SourceBlendBits = 0x0000000f,
+		public const int SourceBlendZero = 0x00000001;
+		public const int SourceBlendOne = 0x0;
+		public const int SourceBlendDestinationColor = 0x00000003;
+		public const int SourceBlendOneMinusDestinationColor = 0x00000004;
+		public const int SourceBlendSourceAlpha = 0x00000005;
+		public const int SourceBlendOneMinusSourceAlpha = 0x00000006;
+		public const int SourceBlendDestinationAlpha = 0x00000007;
+		public const int SourceBlendOneMinusDestinationAlpha = 0x00000008;
+		public const int SourceBlendAlphaSaturate = 0x00000009;
+		public const int SourceBlendBits = 0x0000000F;
 
-		DestinationBlendZero = 0x0,
-		DestinationBlendOne = 0x00000020,
-		DestinationBlendSourceColor = 0x00000030,
-		DestinationBlendOneMinusSourceColor = 0x00000040,
-		DestinationBlendSourceAlpha = 0x00000050,
-		DestinationBlendOneMinusSourceAlpha = 0x00000060,
-		DestinationBlendDestinationAlpha = 0x00000070,
-		DestinationBlendOneMinusDestinationAlpha = 0x00000080,
-		DestinationBlendBits = 0x000000f0,
+		public const int DestinationBlendZero = 0x0;
+		public const int DestinationBlendOne = 0x00000020;
+		public const int DestinationBlendSourceColor = 0x00000030;
+		public const int DestinationBlendOneMinusSourceColor = 0x00000040;
+		public const int DestinationBlendSourceAlpha = 0x00000050;
+		public const int DestinationBlendOneMinusSourceAlpha = 0x00000060;
+		public const int DestinationBlendDestinationAlpha = 0x00000070;
+		public const int DestinationBlendOneMinusDestinationAlpha = 0x00000080;
+		public const int DestinationBlendBits = 0x000000F0;
 
-		DepthFunctionAlways = 0x00010000,
-		DepthFunctionEqual = 0x00020000,
-		DepthFunctionLess = 0x0
+		public const int PolygonModeLine = 0x00002000;
+
+		public const int DepthFunctionAlways = 0x00010000;
+		public const int DepthFunctionEqual = 0x00020000;
+		public const int DepthFunctionLess = 0x0;
+
+		public const int AlphaTestEqual255 = 0x10000000;
+		public const int AlphaTestLessThan128 = 0x20000000;
+		public const int AlphaTestGreaterOrEqual128 = 0x40000000;
+		public const int AlphaTestBits = 0x70000000;
 	}
 
 	[Flags]
@@ -3189,7 +3253,8 @@ namespace idTech4.Renderer
 
 	public enum CullType
 	{
-		Front,
+		None = -1,
+		Front = 1,
 		Back,
 		TwoSided
 	}

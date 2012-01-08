@@ -27,12 +27,18 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Management;
+using System.Net;
+using System.Net.Sockets;
 using System.Threading;
+using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
+
+using idTech4.Net;
 
 namespace idTech4
 {
@@ -44,8 +50,7 @@ namespace idTech4
 		{
 			get
 			{
-				// TODO
-				//return idE.Game.Time.ElapsedGameTime.Milliseconds;
+				idConsole.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAARGH");
 				return 0;
 			}
 		}
@@ -104,17 +109,72 @@ namespace idTech4
 
 		#region Methods
 		#region Public
-		/// <summary>
-		/// Initialize everything.
-		/// </summary>
-		/// <param name="args"></param>
+		public void Frame()
+		{
+			//try
+			{
+				// pump all the events
+				// TODO: Sys_GenerateEvents();
+
+				// write config file if anything changed
+				// TODO: WriteConfiguration(); 
+
+				// change SIMD implementation if required
+				// TODO
+				/*if ( com_forceGenericSIMD.IsModified() ) {
+					InitSIMD();
+				}*/
+
+				/*eventLoop->RunEventLoop();*/
+
+				_frameTime = _ticNumber * idE.UserCommandMillseconds;
+
+				/*idAsyncNetwork::RunFrame();*/
+
+				if(idE.AsyncNetwork.IsActive == true)
+				{
+					if(idE.CvarSystem.GetInteger("net_serverDedicated") != 1)
+					{
+						idE.Session.GuiFrameEvents();
+						idE.Session.UpdateScreen(false);
+					}
+				}
+				/*else
+				{
+				
+				 * else {
+					session->Frame();*/
+
+				// normal, in-sequence screen update
+				idE.Session.UpdateScreen(false);
+				/*}
+
+				// report timing information
+				if ( com_speeds.GetBool() ) {
+					static int	lastTime;
+					int		nowTime = Sys_Milliseconds();
+					int		com_frameMsec = nowTime - lastTime;
+					lastTime = nowTime;
+					Printf( "frame:%i all:%3i gfr:%3i rf:%3i bk:%3i\n", com_frameNumber, com_frameMsec, time_gameFrame, time_frontend, time_backend );
+					time_gameFrame = 0;
+					time_gameDraw = 0;
+				}	*/
+
+				_frameNumber++;
+			}
+			/*catch(Exception)
+			{
+				// an ERP_DROP was thrown
+			}*/
+		}
+
 		public void Init(string[] args)
 		{
 			// TODO
 			//try
 			{
 				InitCvars();
-				
+
 				// clear warning buffer
 				idConsole.ClearWarnings(string.Format("{0} initialization", idE.GameName));
 
@@ -136,7 +196,7 @@ namespace idTech4
 				idE.Console.Init();
 
 				// get architecture info
-				SysInit();
+				Sys_Init();
 
 				// initialize networking
 				// TODO: Sys_InitNetworking();
@@ -144,13 +204,8 @@ namespace idTech4
 				// override cvars from command line
 				StartupVariable(null, false);
 
-				// TODO
-				/*if ( !idAsyncNetwork::serverDedicated.GetInteger() && Sys_AlreadyRunning() ) {
-					Sys_Quit();
-				}
-
 				// initialize processor specific SIMD implementation
-				// TODO: InitSIMD();*/
+				// TODO: InitSIMD();
 
 				// init commands
 				InitCommands();
@@ -191,59 +246,6 @@ namespace idTech4
 			}*/
 		}
 
-		public void Frame()
-		{
-			//try
-			{
-				// pump all the events
-				// TODO: Sys_GenerateEvents();
-
-				// write config file if anything changed
-				// TODO: WriteConfiguration(); 
-
-				// change SIMD implementation if required
-				// TODO
-				/*if ( com_forceGenericSIMD.IsModified() ) {
-					InitSIMD();
-				}*/
-
-				/*eventLoop->RunEventLoop();*/
-
-				_frameTime = _ticNumber * idE.UserCommandMillseconds;
-
-				/*idAsyncNetwork::RunFrame();
-
-				if ( idAsyncNetwork::IsActive() ) {
-					if ( idAsyncNetwork::serverDedicated.GetInteger() != 1 ) {
-						session->GuiFrameEvents();
-						session->UpdateScreen( false );
-					}
-				} else {
-					session->Frame();*/
-
-					// normal, in-sequence screen update
-					idE.Session.UpdateScreen(false);
-				/*}
-
-				// report timing information
-				if ( com_speeds.GetBool() ) {
-					static int	lastTime;
-					int		nowTime = Sys_Milliseconds();
-					int		com_frameMsec = nowTime - lastTime;
-					lastTime = nowTime;
-					Printf( "frame:%i all:%3i gfr:%3i rf:%3i bk:%3i\n", com_frameNumber, com_frameMsec, time_gameFrame, time_frontend, time_backend );
-					time_gameFrame = 0;
-					time_gameDraw = 0;
-				}	*/
-
-				_frameNumber++;
-			}
-			/*catch(Exception)
-			{
-				// an ERP_DROP was thrown
-			}*/
-		}
-
 		public void Quit()
 		{
 			// don't try to shutdown if we are in a recursive error			
@@ -252,7 +254,7 @@ namespace idTech4
 				Shutdown();
 			}
 
-			SysQuit();
+			Sys_Quit();
 		}
 
 		public void Shutdown()
@@ -360,7 +362,6 @@ namespace idTech4
 			}
 
 			// if we don't have GL running, make it a fatal error
-			// TODO: MAJOR
 			if(idE.RenderSystem.IsRunning == false)
 			{
 				code = ErrorType.Fatal;
@@ -425,7 +426,7 @@ namespace idTech4
 
 				_errorEntered = ErrorType.None;
 
-				//throw new Exception(errorMessage);
+				throw new Exception(errorMessage);
 			}
 			else
 			{
@@ -440,7 +441,7 @@ namespace idTech4
 			}
 
 			Shutdown();
-			SysError(errorMessage);
+			Sys_Error(errorMessage);
 		}
 
 		internal void FatalError(string format, params object[] args)
@@ -454,9 +455,9 @@ namespace idTech4
 				// full screen rendering window covering the
 				// error dialog
 				idConsole.WriteLine("FATAL: recursed fatal error:\n{0}", string.Format(format, args));
-				
+
 				// write the console to a log file?
-				SysQuit();
+				Sys_Quit();
 			}
 
 			_errorEntered = ErrorType.Fatal;
@@ -467,7 +468,7 @@ namespace idTech4
 			}
 
 			Shutdown();
-			SysError(format, args);
+			Sys_Error(format, args);
 		}
 		#endregion
 
@@ -586,21 +587,18 @@ namespace idTech4
 			// initialize the declaration manager
 			idE.DeclManager.Init();
 
-			/*
-			// TODO
-			*/
+			bool sysDetect = idE.FileSystem.FileExists(idE.ConfigSpecification, "fs_savepath");
 
-			bool sysDetect = true;
+			if(sysDetect == true)
+			{
+				Stream s = idE.FileSystem.OpenFileWrite(idE.ConfigSpecification);
 
-			// TODO
-			/*idFile *file = fileSystem->OpenExplicitFileRead( fileSystem->RelativePathToOSPath( CONFIG_SPEC, "fs_savepath" ) );
-			bool sysDetect = ( file == NULL );
-			if ( file ) {
-				fileSystem->CloseFile( file );
-			} else {
-				file = fileSystem->OpenFileWrite( CONFIG_SPEC );
-				fileSystem->CloseFile( file );
-			}*/
+				if(s != null)
+				{
+					s.Dispose();
+					s = null;
+				}
+			}
 
 			if(sysDetect == true)
 			{
@@ -701,7 +699,8 @@ namespace idTech4
 				SetMachineSpec();
 				Cmd_ExecMachineSpec(this, new CommandEventArgs(new idCmdArgs()));
 
-				idE.CvarSystem.SetInteger( "s_numberOfSpeakers", 6 );
+				idE.CvarSystem.SetInteger("s_numberOfSpeakers", 6);
+
 				idE.CmdSystem.BufferCommandText(Execute.Now, "s_restart");
 				idE.CmdSystem.ExecuteCommandBuffer();
 			}
@@ -719,12 +718,12 @@ namespace idTech4
 			// TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04343" ) );
 		}
 
-		private void ParseCommandLine(string[] commandLineArgs)
+		private void ParseCommandLine(string[] args)
 		{
 			List<idCmdArgs> argList = new List<idCmdArgs>();
 			idCmdArgs current = null;
 
-			foreach(string arg in commandLineArgs)
+			foreach(string arg in args)
 			{
 				if(arg.StartsWith("+") == true)
 				{
@@ -775,6 +774,17 @@ namespace idTech4
 			}
 
 			return added;
+		}
+
+		private void CreateConsole()
+		{
+			// don't show it now that we have a splash screen up
+			if(idE.CvarSystem.GetBool("win32_viewlog") == true)
+			{
+				idE.SystemConsole.Show(1, true);
+			}
+
+			idConsole.ClearInputHistory();
 		}
 
 		private void SetMachineSpec()
@@ -914,21 +924,32 @@ namespace idTech4
 		/// </summary>
 		/// <param name="format"></param>
 		/// <param name="args"></param>
-		private void SysError(string format, params object[] args)
+		private void Sys_Error(string format, params object[] args)
 		{
 			string errorMessage = string.Format(format, args);
 
 			idE.SystemConsole.Append(errorMessage + "\n");
 			idE.SystemConsole.Show(1, true);
 
-			// TODO: Win_SetErrorText( text );
-			// TODO: timeEndPeriod( 1 );
-
 			// TODO: Sys_ShutdownInput();
-			// TODO: GLimp_Shutdown();
+
+			// wait for the user to quit
+			while(true)
+			{
+				if(idE.SystemConsole.IsDisposed == true)
+				{
+					Quit();
+					break;
+				}
+
+				Application.DoEvents();
+				Thread.Sleep(0);
+			}
+
+			Sys_Quit();
 		}
 
-		private void SysQuit()
+		private void Sys_Quit()
 		{
 			// TODO: timeEndPeriod( 1 );
 			// TODO: Sys_ShutdownInput();
@@ -937,7 +958,7 @@ namespace idTech4
 			Thread.CurrentThread.Abort();
 		}
 
-		private void SysInit()
+		private void Sys_Init()
 		{
 			// TODO
 			/*cmdSystem->AddCommand( "in_restart", Sys_In_Restart_f, CMD_FL_SYSTEM, "restarts the input system" );
@@ -1051,6 +1072,11 @@ namespace idTech4
 			idConsole.WriteLine(capabilities);
 			idConsole.WriteLine("{0} MB system memory", idE.Platform.TotalPhysicalMemory);
 			idConsole.WriteLine("{0} MB video memory", idE.Platform.TotalVideoMemory);
+		}
+
+		private void Sys_InitNetworking()
+		{
+			throw new NotImplementedException();
 		}
 		#endregion
 
@@ -1166,5 +1192,46 @@ namespace idTech4
 		}
 		#endregion
 		#endregion
+	}
+
+	public sealed class SystemEventArgs : EventArgs
+	{
+		#region Properties
+		public SystemEventType Type
+		{
+			get
+			{
+				return _type;
+			}
+		}
+		#endregion
+
+		#region Members
+		private SystemEventType _type;
+		#endregion
+
+		#region Constructor
+		public SystemEventArgs(SystemEventType type)
+			: base()
+		{
+			_type = type;
+		}
+		#endregion
+	}
+
+	public enum SystemEventType
+	{
+		/// <summary>EventTime is still valid.</summary>
+		None,
+		/// <summary>Value is a key code, Value2 is the down flag.</summary>
+		Key,
+		/// <summary>Value is an ascii character.</summary>
+		Char,
+		/// <summary>Value and Value2 are relative signed x / y moves.</summary>
+		Mouse,
+		/// <summary>Value is an axis number and Value2 is the current state (-127 to 127).</summary>
+		JoystickAxis,
+		/// <summary>Ptr is a char*, from typing something at a non-game console.</summary>
+		Console
 	}
 }

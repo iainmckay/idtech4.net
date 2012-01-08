@@ -101,6 +101,40 @@ namespace idTech4
 
 		#region Methods
 		#region Public
+		public void GuiFrameEvents()
+		{
+			// stop generating move and button commands when a local console or menu is active
+			// running here so SP, async networking and no game all go through it
+			// TODO:
+			/*if ( console->Active() || guiActive ) {
+				usercmdGen->InhibitUsercmd( INHIBIT_SESSION, true );
+			} else {
+				usercmdGen->InhibitUsercmd( INHIBIT_SESSION, false );
+			}*/
+
+			idUserInterface gui;
+
+			if(_guiTest != null)
+			{
+				gui = _guiTest;
+			}
+			else if(_guiActive != null)
+			{
+				gui = _guiActive;
+			}
+			else
+			{
+				return;
+			}
+
+			string cmd = gui.HandleEvent(new SystemEventArgs(SystemEventType.None), idE.System.FrameTime);
+
+			if(cmd != string.Empty)
+			{
+				// TODO: DispatchCommand(guiActive, cmd);
+			}
+		}
+
 		/// <summary>
 		/// Called in an orderly fashion at system startup, so commands, cvars, files, etc are all available.
 		/// </summary>
@@ -178,9 +212,6 @@ namespace idTech4
 
 			_whiteMaterial = idE.DeclManager.FindMaterial("_white");
 
-			// TODO: remove this
-			SetUserInterface(_guiMainMenu, null);
-
 			idConsole.WriteLine("session initialized");
 			idConsole.WriteLine("--------------------------------------");
 		}
@@ -209,14 +240,9 @@ namespace idTech4
 			else if(guiActive == guiRestartMenu)
 			{
 				SetSaveGameGuiVars();
-			}
+			}*/
 
-			sysEvent_t ev;
-			memset(&ev, 0, sizeof(ev));
-			ev.evType = SE_NONE;
-
-			cmd = guiActive->HandleEvent(&ev, com_frameTime);*/
-
+			_guiActive.HandleEvent(new SystemEventArgs(SystemEventType.None), idE.System.FrameTime);
 			_guiActive.Activate(true, idE.System.FrameTime);
 		}
 
@@ -281,7 +307,7 @@ namespace idTech4
 			}*/
 
 			idE.RenderSystem.BeginFrame(idE.RenderSystem.ScreenWidth, idE.RenderSystem.ScreenHeight);
-			
+
 			// draw everything
 			Draw();
 
@@ -289,7 +315,7 @@ namespace idTech4
 			/*if ( com_speeds.GetBool() ) {
 				renderSystem->EndFrame( &time_frontend, &time_backend );
 			} else {*/
-				idE.RenderSystem.EndFrame();
+			idE.RenderSystem.EndFrame();
 			/*}*/
 
 			_insideScreenUpdate = false;
@@ -322,11 +348,12 @@ namespace idTech4
 				renderSystem->DrawStretchPic(0, 0, 640, 480, 0, 0, 1, 1, declManager->FindMaterial("_white"));
 				guiTest->Redraw(com_frameTime);
 			}
-			else*/ if((_guiActive != null) && (_guiActive.State.GetBool("gameDraw") == false))
+			else*/
+			if((_guiActive != null) && (_guiActive.State.GetBool("gameDraw") == false))
 			{
 
 				// draw the frozen gui in the background
-					   // TODO
+				// TODO
 				/*if(guiActive == guiMsg && guiMsgRestore)
 				{
 					guiMsgRestore->Redraw(com_frameTime);
@@ -371,8 +398,8 @@ namespace idTech4
 			}
 			else
 			{
-#if ID_CONSOLE_LOCK
-		if ( com_allowConsole.GetBool() ) {
+
+		/*if ( com_allowConsole.GetBool() ) {
 			console->Draw( true );
 		} else {
 			emptyDrawCount++;
@@ -386,10 +413,7 @@ namespace idTech4
 			renderSystem->SetColor4( 0, 0, 0, 1 );
 			renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1, 1, declManager->FindMaterial( "_white" ) );
 		}
-#else
-				// draw the console full screen - this should only ever happen in developer builds
-				console->Draw(true);
-#endif
+
 				fullConsole = true;
 			}
 

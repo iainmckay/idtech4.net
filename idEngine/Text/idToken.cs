@@ -247,27 +247,36 @@ namespace idTech4.Text
 
 		public int ToInt32()
 		{
-			return (int) _intValue;
+			return (int) ToInt64();
 		}
 
 		public long ToInt64()
 		{
-			return (long) _intValue;
+			long tmp;
+			long.TryParse(ToString(), out tmp);
+
+			return tmp;
 		}
 
 		public ulong ToUInt64()
 		{
-			return _intValue;
+			ulong tmp;
+			ulong.TryParse(ToString(), out tmp);
+
+			return tmp;
 		}
 
 		public float ToFloat()
 		{
-			return (float) _floatValue;
+			return (float) ToDouble();
 		}
 
 		public double ToDouble()
 		{
-			return _floatValue;
+			double tmp;
+			double.TryParse(ToString(), out tmp);
+
+			return tmp;
 		}
 
 		public override string ToString()
@@ -286,11 +295,13 @@ namespace idTech4.Text
 		internal void SetInteger(ulong value)
 		{
 			_intValue = value;
+			_floatValue = value;
 		}
 
 		internal void SetFloat(double value)
 		{
 			_floatValue = value;
+			_intValue = (ulong) value;
 		}
 
 		internal void Append(string str)

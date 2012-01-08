@@ -41,7 +41,7 @@ namespace idTech4.Renderer
 		{
 			set
 			{
-				if(idE.GLConfig.IsInitialized == false)
+				if(idE.RenderSystem.IsRunning == false)
 				{
 					return;
 				}
@@ -67,7 +67,7 @@ namespace idTech4.Renderer
 
 		private List<GuiModelSurface> _surfaces = new List<GuiModelSurface>();
 		private List<int> _indexes = new List<int>();
-		private List<idVertex> _vertices = new List<idVertex>();
+		private List<Vertex> _vertices = new List<Vertex>();
 		#endregion
 
 		#region Constructor
@@ -88,6 +88,106 @@ namespace idTech4.Renderer
 			AdvanceSurface();
 		}
 
+		public void DrawStretchPicture(Vertex[] vertices, int[] indexes, idMaterial material, bool clip, float minX, float minY, float maxX, float maxY)
+		{
+			if((vertices == null) || (indexes == null) || (material == null))
+			{
+				return;
+			}
+
+			// break the current surface if we are changing to a new material
+			if(material != _surface.Material)
+			{
+				if(_surface.VertexCount > 0)
+				{
+					AdvanceSurface();
+				}
+
+				_surface.Material = material;
+				_surface.Material.EnsureNotPurged(); // in case it was a gui item started before a level change
+			}
+
+			// TODO: remove
+			clip = false;
+
+			// add the verts and indexes to the current surface
+			if(clip == true)
+			{
+				idConsole.WriteLine("idGuiModle.DrawStretchPicture clip");
+
+				/*int i, j;
+
+		// FIXME:	this is grim stuff, and should be rewritten if we have any significant
+		//			number of guis asking for clipping
+		idFixedWinding w;
+		for ( i = 0; i < indexCount; i += 3 ) {
+			w.Clear();
+			w.AddPoint(idVec5(dverts[dindexes[i]].xyz.x, dverts[dindexes[i]].xyz.y, dverts[dindexes[i]].xyz.z, dverts[dindexes[i]].st.x, dverts[dindexes[i]].st.y));
+			w.AddPoint(idVec5(dverts[dindexes[i+1]].xyz.x, dverts[dindexes[i+1]].xyz.y, dverts[dindexes[i+1]].xyz.z, dverts[dindexes[i+1]].st.x, dverts[dindexes[i+1]].st.y));
+			w.AddPoint(idVec5(dverts[dindexes[i+2]].xyz.x, dverts[dindexes[i+2]].xyz.y, dverts[dindexes[i+2]].xyz.z, dverts[dindexes[i+2]].st.x, dverts[dindexes[i+2]].st.y));
+
+			for ( j = 0; j < 3; j++ ) {
+				if ( w[j].x < min_x || w[j].x > max_x ||
+					w[j].y < min_y || w[j].y > max_y ) {
+					break;
+				}
+			}
+			if ( j < 3 ) {
+				idPlane p;
+				p.Normal().y = p.Normal().z = 0.0f; p.Normal().x = 1.0f; p.SetDist( min_x );
+				w.ClipInPlace( p );
+				p.Normal().y = p.Normal().z = 0.0f; p.Normal().x = -1.0f; p.SetDist( -max_x );
+				w.ClipInPlace( p );
+				p.Normal().x = p.Normal().z = 0.0f; p.Normal().y = 1.0f; p.SetDist( min_y );
+				w.ClipInPlace( p );
+				p.Normal().x = p.Normal().z = 0.0f; p.Normal().y = -1.0f; p.SetDist( -max_y );
+				w.ClipInPlace( p );
+			}
+
+			int	numVerts = verts.Num();
+			verts.SetNum( numVerts + w.GetNumPoints(), false );
+			for ( j = 0 ; j < w.GetNumPoints() ; j++ ) {
+				idDrawVert *dv = &verts[numVerts+j];
+
+				dv->xyz.x = w[j].x;
+				dv->xyz.y = w[j].y;
+				dv->xyz.z = w[j].z;
+				dv->st.x = w[j].s;
+				dv->st.y = w[j].t;
+				dv->normal.Set(0, 0, 1);
+				dv->tangents[0].Set(1, 0, 0);
+				dv->tangents[1].Set(0, 1, 0);
+			}
+			surf->numVerts += w.GetNumPoints();
+
+			for ( j = 2; j < w.GetNumPoints(); j++ ) {
+				indexes.Append( numVerts - surf->firstVert );
+				indexes.Append( numVerts + j - 1 - surf->firstVert );
+				indexes.Append( numVerts + j - surf->firstVert );
+				surf->numIndexes += 3;
+			}
+		}*/
+
+			}
+			else
+			{
+				int currentVertexCount = _vertices.Count;
+				int currentIndexCount = _indexes.Count;
+				int vertexCount = vertices.Length;
+				int indexCount = indexes.Length;
+
+				_surface.VertexCount += vertexCount;
+				_surface.IndexCount += indexCount;
+
+				for(int i = 0; i < indexCount; i++)
+				{
+					_indexes.Add(currentVertexCount + indexes[i] - _surface.FirstVertex);
+				}
+
+				_vertices.AddRange(vertices);
+			}
+		}
+
 		/// <summary>
 		/// Creates a view that covers the screen and emit the surfaces.
 		/// </summary>
@@ -105,8 +205,8 @@ namespace idTech4.Renderer
 			{
 				viewDef.RenderView.X = 0;
 				viewDef.RenderView.Y = 0;
-				viewDef.RenderView.Width = idE.ScreenWidth;
-				viewDef.RenderView.Height = idE.ScreenHeight;
+				viewDef.RenderView.Width = idE.VirtualScreenWidth;
+				viewDef.RenderView.Height = idE.VirtualScreenHeight;
 
 				viewDef.ViewPort = idE.RenderSystem.RenderViewToViewPort(viewDef.RenderView);
 
@@ -203,7 +303,7 @@ namespace idTech4.Renderer
 			// copy verts and indexes
 			Surface tri = new Surface();
 			tri.Indexes = new int[surface.IndexCount];
-			tri.Vertices = new idVertex[surface.VertexCount];
+			tri.Vertices = new Vertex[surface.VertexCount];
 
 			_indexes.CopyTo(surface.FirstIndex, tri.Indexes, 0, surface.IndexCount);
 
@@ -213,19 +313,20 @@ namespace idTech4.Renderer
 			_vertices.CopyTo(surface.FirstVertex, tri.Vertices, 0, surface.VertexCount);
 
 			// move the verts to the vertex cache
-			// TODO: tri->ambientCache = vertexCache.AllocFrameTemp( tri->verts, tri->numVerts * sizeof( tri->verts[0] ) );
+			tri.AmbientCache = idE.RenderSystem.AllocateVertexCacheFrameTemporary(tri.Vertices);
 
 			// if we are out of vertex cache, don't create the surface
-			/*if ( !tri->ambientCache ) {
+			if(tri.AmbientCache == null) 
+			{
 				return;
-			}*/
+			}
 
 			RenderEntity renderEntity = new RenderEntity();
 			renderEntity.Init();
-			renderEntity.ShaderParameters[0] = surface.Color.R;
-			renderEntity.ShaderParameters[1] = surface.Color.G;
-			renderEntity.ShaderParameters[2] = surface.Color.B;
-			renderEntity.ShaderParameters[3] = surface.Color.A;
+			renderEntity.MaterialParameters[0] = surface.Color.R;
+			renderEntity.MaterialParameters[1] = surface.Color.G;
+			renderEntity.MaterialParameters[2] = surface.Color.B;
+			renderEntity.MaterialParameters[3] = surface.Color.A;
 
 			ViewEntity guiSpace = new ViewEntity();
 			guiSpace.ModelMatrix = modelMatrix;
@@ -239,7 +340,7 @@ namespace idTech4.Renderer
 		#endregion
 	}
 
-	internal struct GuiModelSurface
+	internal class GuiModelSurface
 	{
 		public idMaterial Material;
 		public Color Color;

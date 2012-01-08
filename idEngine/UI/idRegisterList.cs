@@ -38,7 +38,7 @@ namespace idTech4.UI
 	{
 		#region Members
 		private List<idRegister> _registers = new List<idRegister>();
-		private Dictionary<string, idRegister> _registerDict = new Dictionary<string, idRegister>();
+		private Dictionary<string, idRegister> _registerDict = new Dictionary<string, idRegister>(StringComparer.OrdinalIgnoreCase);
 		#endregion
 
 		#region Constructor
@@ -58,11 +58,11 @@ namespace idTech4.UI
 			{
 				int regCount = idRegister.RegisterTypeCount[(int) type];
 				register = new idRegister(name, type, var);
-
+				
 				if(type == RegisterType.String)
 				{
 					idToken token;
-					idConsole.WriteLine("AddRegister string");
+					
 					if((token = parser.ReadToken()) != null)
 					{
 						idConsole.WriteLine("TODO: GetLanguageDict");

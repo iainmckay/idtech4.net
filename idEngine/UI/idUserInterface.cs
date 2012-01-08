@@ -164,6 +164,37 @@ namespace idTech4.UI
 			}
 		}
 
+		public string HandleEvent(SystemEventArgs e, int time)
+		{
+			_time = time;
+
+			// TODO
+			/*if ( bindHandler && event->evType == SE_KEY && event->evValue2 == 1 ) {
+				const char *ret = bindHandler->HandleEvent( event, updateVisuals );
+				bindHandler = NULL;
+				return ret;
+			}
+
+			if ( event->evType == SE_MOUSE ) {
+				cursorX += event->evValue;
+				cursorY += event->evValue2;
+
+				if (cursorX < 0) {
+					cursorX = 0;
+				}
+				if (cursorY < 0) {
+					cursorY = 0;
+				}
+			}*/
+
+			if(_desktop != null)
+			{
+				_desktop.HandleEvent(e);
+			}
+
+			return string.Empty;
+		}
+
 		public bool InitFromFile(string path)
 		{
 			return InitFromFile(path, true, true);

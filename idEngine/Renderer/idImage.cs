@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+
 using Tao.OpenGl;
 
 namespace idTech4.Renderer
@@ -38,27 +40,17 @@ namespace idTech4.Renderer
 	{
 		#region Properties
 		/// <summary>
-		/// Gets the name of this image.
+		/// Just for resource profiling.
 		/// </summary>
-		/// <remarks>
-		/// Game path, including extension (except for cube maps), may be an image program.
-		/// </remarks>
-		public string Name
+		public int Classification
 		{
 			get
 			{
-				return _name;
+				return _classification;
 			}
-		}
-
-		/// <summary>
-		/// Gets whether or not the data has been loaded yet and sent off to the GPU.
-		/// </summary>
-		public bool IsLoaded
-		{
-			get
+			set
 			{
-				return _loaded;
+				_classification = value;
 			}
 		}
 
@@ -70,6 +62,17 @@ namespace idTech4.Renderer
 			get
 			{
 				return _defaulted;
+			}
+		}
+
+		/// <summary>
+		/// Gets whether or not the data has been loaded yet and sent off to the GPU.
+		/// </summary>
+		public bool IsLoaded
+		{
+			get
+			{
+				return _loaded;
 			}
 		}
 
@@ -85,6 +88,20 @@ namespace idTech4.Renderer
 			}
 		}
 
+		/// <summary>
+		/// Gets the name of this image.
+		/// </summary>
+		/// <remarks>
+		/// Game path, including extension (except for cube maps), may be an image program.
+		/// </remarks>
+		public string Name
+		{
+			get
+			{
+				return _name;
+			}
+		}
+
 		public bool ReferencedOutsideLevelLoad
 		{
 			get
@@ -97,18 +114,27 @@ namespace idTech4.Renderer
 			}
 		}
 
-		/// <summary>
-		/// Just for resource profiling.
-		/// </summary>
-		public int Classification
+		public int UploadDepth
 		{
 			get
 			{
-				return _classification;
+				return _uploadDepth;
 			}
-			set
+		}
+
+		public int UploadHeight
+		{
+			get
 			{
-				_classification = value;
+				return _uploadHeight;
+			}
+		}
+
+		public int UploadWidth
+		{
+			get
+			{
+				return _uploadWidth;
 			}
 		}
 		#endregion
@@ -123,6 +149,8 @@ namespace idTech4.Renderer
 		private bool _referencedOutsideLevelLoad;
 		private bool _levelLoadReferenced;		// for determining if it needs to be purged.
 
+		private int _texNumber;
+
 		private TextureType _type;
 		private TextureFilter _filter;
 		private TextureRepeat _repeat;
@@ -131,7 +159,6 @@ namespace idTech4.Renderer
 
 		private ImageLoadCallback _generator;
 		
-		private int _texNumber;
 		private int _frameUsed;					// for texture usage in frame statistics.
 		private int _bindCount;					// incremented each bind.
 
@@ -154,10 +181,7 @@ namespace idTech4.Renderer
 			_type = TextureType.Disabled;
 
 			/*
-			bgl.opcode = DLTYPE_FILE;
-			bgl.f = NULL;
-			bglNext = NULL;
-			generatorFunction = NULL;*/
+			bgl.opcode = DLTYPE_FILE;*/
 
 			_filter = TextureFilter.Default;
 			_repeat = TextureRepeat.Repeat;
@@ -173,26 +197,6 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region Public
-		/// <summary>
-		/// F the texture object, but leaves the structure so it can be reloaded.
-		/// </summary>
-		public void Purge()
-		{
-			if(_loaded == true)
-			{
-				Gl.glDeleteTextures(1, ref _texNumber);
-				_loaded = false;
-			}
-
-			// clear all the current binding caches, so the next bind will do a real one
-			for(int i = 0; i < idE.Backend.GLState.TextureUnits.Length; i++)
-			{
-				idE.Backend.GLState.TextureUnits[i].Current2DMap = -1;
-				idE.Backend.GLState.TextureUnits[i].Current3DMap = -1;
-				idE.Backend.GLState.TextureUnits[i].CurrentCubeMap = -1;
-			}
-		}
-
 		/// <summary>
 		/// Absolutely every image goes through this path.  On exit, the idImage will have a valid OpenGL texture number that can be bound.
 		/// </summary>
@@ -279,55 +283,125 @@ namespace idTech4.Renderer
 			}*/
 		}
 
-		public void MakeDefault()
+		/// <summary>
+		/// Automatically enables 2D mapping, cube mapping, or 3D texturing if needed.
+		/// </summary>
+		public void Bind()
 		{
-			byte[, ,] data = new byte[idImageManager.DefaultImageSize, idImageManager.DefaultImageSize, 4];
+			// TODO
+			/*if ( tr.logFile ) {
+				RB_LogComment( "idImage::Bind( %s )\n", imgName.c_str() );
+			}*/
 
-			if(idE.CvarSystem.GetBool("com_developer") == true)
+			// if this is an image that we are caching, move it to the front of the LRU chain.
+			if(_partialImage != null)
 			{
-				// grey center
-				for(int y = 0; y < idImageManager.DefaultImageSize; y++)
-				{
-					for(int x = 0; x < idImageManager.DefaultImageSize; x++)
-					{
-						data[y, x, 0] = 32;
-						data[y, x, 1] = 32;
-						data[y, x, 2] = 32;
-						data[y, x, 3] = 255;
-					}
+				idConsole.WriteLine("TODO: Bind LRU _partialImage");
+
+				/*if ( cacheUsageNext ) {
+					// unlink from old position
+					cacheUsageNext->cacheUsagePrev = cacheUsagePrev;
+					cacheUsagePrev->cacheUsageNext = cacheUsageNext;
 				}
+				// link in at the head of the list
+				cacheUsageNext = globalImages->cacheLRU.cacheUsageNext;
+				cacheUsagePrev = &globalImages->cacheLRU;
 
-				// white border
-				for(int x = 0; x < idImageManager.DefaultImageSize; x++)
-				{
-					data[0, x, 0]
-						= data[0, x, 1]
-						= data[0, x, 2]
-						= data[0, x, 3] = 255;
-
-					data[x, 0, 0] = data[x, 0, 1]
-						= data[x, 0, 2]
-						= data[x, 0, 3] = 255;
-
-					data[idImageManager.DefaultImageSize - 1, x, 0]
-						= data[idImageManager.DefaultImageSize - 1, x, 1]
-						= data[idImageManager.DefaultImageSize - 1, x, 2]
-						= data[idImageManager.DefaultImageSize - 1, x, 3] = 255;
-
-					data[x, idImageManager.DefaultImageSize - 1, 0]
-						= data[x, idImageManager.DefaultImageSize - 1, 1]
-						= data[x, idImageManager.DefaultImageSize - 1, 2]
-						= data[x, idImageManager.DefaultImageSize - 1, 3] = 255;
-				}
-			}
-			else
-			{
-				// completely black.
+				cacheUsageNext->cacheUsagePrev = this;
+				cacheUsagePrev->cacheUsageNext = this;*/
 			}
 
-			Generate(idHelper.Flatten<byte>(data), idImageManager.DefaultImageSize, idImageManager.DefaultImageSize, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.Default);
+			// load the image if necessary (FIXME: not SMP safe!).
+			if(_loaded == false)
+			{
+				if(_partialImage != null)
+				{
+					idConsole.WriteLine("TODO: Bind _partialImage loading");
+					// if we have a partial image, go ahead and use that
+					_partialImage.Bind();
 
-			_defaulted = true;
+					// start a background load of the full thing if it isn't already in the queue.
+					/*if ( !backgroundLoadInProgress ) {
+						StartBackgroundImageLoad();
+					}*/
+
+					return;
+				}
+
+				// load the image on demand here, which isn't our normal game operating mode.
+				idConsole.WriteLine("TODO: ActuallyLoadImage( true, true );"); // check for precompressed, load is from back end.
+			}
+
+			// bump our statistic counters
+			_frameUsed = idE.Backend.FrameCount;
+			_bindCount++;
+
+			TextureUnit textureUnit = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit];
+
+			// enable or disable apropriate texture modes.
+			if((textureUnit.Type != _type) && (idE.Backend.GLState.CurrentTextureUnit < idE.Backend.GLState.TextureUnits.Length))
+			{
+				if(textureUnit.Type == TextureType.Cubic)
+				{
+					Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
+				}
+				else if(textureUnit.Type == TextureType.ThreeD)
+				{
+					Gl.glDisable(Gl.GL_TEXTURE_3D);
+				}
+				else if(textureUnit.Type == TextureType.TwoD)
+				{
+					Gl.glDisable(Gl.GL_TEXTURE_2D);
+				}
+
+				if(_type == TextureType.Cubic)
+				{
+					Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
+				}
+				else if(_type == TextureType.ThreeD)
+				{
+					Gl.glEnable(Gl.GL_TEXTURE_3D);
+				}
+				else if(_type == TextureType.TwoD)
+				{
+					Gl.glEnable(Gl.GL_TEXTURE_2D);
+				}
+
+				textureUnit.Type = _type;
+			}
+
+			// bind the texture.
+			if(_type == TextureType.TwoD)
+			{
+				if(textureUnit.Current2DMap != _texNumber)
+				{
+					textureUnit.Current2DMap = _texNumber;
+					Gl.glBindTexture(Gl.GL_TEXTURE_2D, _texNumber);
+				}
+			}
+			else if(_type == TextureType.Cubic)
+			{
+				if(textureUnit.CurrentCubeMap != _texNumber)
+				{
+					textureUnit.CurrentCubeMap = _texNumber;
+					Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP_EXT, _texNumber);
+				}
+			}
+			else if(_type == TextureType.ThreeD)
+			{
+				if(textureUnit.Current3DMap != _texNumber)
+				{
+					textureUnit.Current3DMap = _texNumber;
+					Gl.glBindTexture(Gl.GL_TEXTURE_3D, _texNumber);
+				}
+			}
+
+			if(idE.CvarSystem.GetBool("com_purgeAll") == true)
+			{
+				float priority = 1.0f;
+
+				Gl.glPrioritizeTextures(1, ref _texNumber, ref priority);
+			}
 		}
 
 		/// <summary>
@@ -371,7 +445,7 @@ namespace idTech4.Renderer
 			// an image match from a shader before OpenGL starts would miss
 			// the generated texture
 
-			if(idE.GLConfig.IsInitialized == false)
+			if(idE.RenderSystem.IsRunning == false)
 			{
 				return;
 			}
@@ -392,10 +466,7 @@ namespace idTech4.Renderer
 			// TODO: GetDownsize( scaled_width, scaled_height );
 
 			byte[] scaledBuffer = null;
-
-			// generate the texture number
-			Gl.glGenTextures(1, out _texNumber);
-
+			
 			// select proper internal format before we resample
 			_internalFormat = SelectInternalFormat(data, 1, width, height, depth, out _isMonochrome);
 
@@ -508,8 +579,8 @@ namespace idTech4.Renderer
 			// upload the main image level
 			Bind();
 
-			idConsole.WriteLine("TODO: if(_internalFormat == SurfaceFormat.PaletteAlpha16)");
-			/*if(_internalFormat == SurfaceFormat.PaletteAlpha16)
+			// TODO
+			/*if(_internalFormat == Gl.GL_COLOR_INDEX8_EXT)
 			{
 				idConsole.WriteLine("TODO: UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, 0 );");
 			}
@@ -557,10 +628,81 @@ namespace idTech4.Renderer
 
 			SetImageFilterAndRepeat();
 		}
+
+		public void MakeDefault()
+		{
+			byte[, ,] data = new byte[idImageManager.DefaultImageSize, idImageManager.DefaultImageSize, 4];
+
+			if(idE.CvarSystem.GetBool("com_developer") == true)
+			{
+				// grey center
+				for(int y = 0; y < idImageManager.DefaultImageSize; y++)
+				{
+					for(int x = 0; x < idImageManager.DefaultImageSize; x++)
+					{
+						data[y, x, 0] = 32;
+						data[y, x, 1] = 32;
+						data[y, x, 2] = 32;
+						data[y, x, 3] = 255;
+					}
+				}
+
+				// white border
+				for(int x = 0; x < idImageManager.DefaultImageSize; x++)
+				{
+					data[0, x, 0]
+						= data[0, x, 1]
+						= data[0, x, 2]
+						= data[0, x, 3] = 255;
+
+					data[x, 0, 0] = data[x, 0, 1]
+						= data[x, 0, 2]
+						= data[x, 0, 3] = 255;
+
+					data[idImageManager.DefaultImageSize - 1, x, 0]
+						= data[idImageManager.DefaultImageSize - 1, x, 1]
+						= data[idImageManager.DefaultImageSize - 1, x, 2]
+						= data[idImageManager.DefaultImageSize - 1, x, 3] = 255;
+
+					data[x, idImageManager.DefaultImageSize - 1, 0]
+						= data[x, idImageManager.DefaultImageSize - 1, 1]
+						= data[x, idImageManager.DefaultImageSize - 1, 2]
+						= data[x, idImageManager.DefaultImageSize - 1, 3] = 255;
+				}
+			}
+			else
+			{
+				// completely black.
+			}
+
+			Generate(idHelper.Flatten<byte>(data), idImageManager.DefaultImageSize, idImageManager.DefaultImageSize, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.Default);
+
+			_defaulted = true;
+		}
+
+		/// <summary>
+		/// Frees the texture object, but leaves the structure so it can be reloaded.
+		/// </summary>
+		public void Purge()
+		{
+			if(_loaded == true)
+			{
+				Gl.glDeleteTextures(1, ref _texNumber);
+				_loaded = false;
+			}
+
+			// clear all the current binding caches, so the next bind will do a real one
+			for(int i = 0; i < idE.Backend.GLState.TextureUnits.Length; i++)
+			{
+				idE.Backend.GLState.TextureUnits[i].Current2DMap = -1;
+				idE.Backend.GLState.TextureUnits[i].Current3DMap = -1;
+				idE.Backend.GLState.TextureUnits[i].CurrentCubeMap = -1;
+			}
+		}
 		#endregion
 
 		#region Private
-		public int SelectInternalFormat(byte[] data, int dataSize, int width, int height, TextureDepth minimumDepth, out bool isMonochrome)
+		private int SelectInternalFormat(byte[] data, int dataSize, int width, int height, TextureDepth minimumDepth, out bool isMonochrome)
 		{
 			int offset = 0;
 
@@ -736,7 +878,9 @@ namespace idTech4.Renderer
 				return Gl.GL_LUMINANCE8_ALPHA8;	// two bytes, max quality.
 			}
 
-			return Gl.GL_RGBA4;	// two bytes.
+			return Gl.GL_RGBA4;	// two bytes.*/
+
+			return 0;
 		}
 
 		private void SetImageFilterAndRepeat()
@@ -798,132 +942,6 @@ namespace idTech4.Renderer
 					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
 					break;
 			}
-		}
-
-		/// <summary>
-		/// Automatically enables 2D mapping, cube mapping, or 3D texturing if needed.
-		/// </summary>
-		private void Bind()
-		{
-			// TODO
-			/*if ( tr.logFile ) {
-				RB_LogComment( "idImage::Bind( %s )\n", imgName.c_str() );
-			}*/
-
-			// if this is an image that we are caching, move it to the front of the LRU chain.
-			if(_partialImage != null)
-			{
-				idConsole.WriteLine("TODO: Bind LRU _partialImage");
-
-				/*if ( cacheUsageNext ) {
-					// unlink from old position
-					cacheUsageNext->cacheUsagePrev = cacheUsagePrev;
-					cacheUsagePrev->cacheUsageNext = cacheUsageNext;
-				}
-				// link in at the head of the list
-				cacheUsageNext = globalImages->cacheLRU.cacheUsageNext;
-				cacheUsagePrev = &globalImages->cacheLRU;
-
-				cacheUsageNext->cacheUsagePrev = this;
-				cacheUsagePrev->cacheUsageNext = this;*/
-			}
-
-			// load the image if necessary (FIXME: not SMP safe!).
-			if(_loaded == false)
-			{
-				if(_partialImage != null)
-				{
-					idConsole.WriteLine("TODO: Bind _partialImage loading");
-					// if we have a partial image, go ahead and use that
-					_partialImage.Bind();
-
-					// start a background load of the full thing if it isn't already in the queue.
-					/*if ( !backgroundLoadInProgress ) {
-						StartBackgroundImageLoad();
-					}*/
-
-					return;
-				}
-
-				// load the image on demand here, which isn't our normal game operating mode.
-				idConsole.WriteLine("TODO: ActuallyLoadImage( true, true );"); // check for precompressed, load is from back end.
-			}
-
-			// bump our statistic counters
-			_frameUsed = idE.Backend.FrameCount;
-			_bindCount++;
-
-			TextureUnit textureUnit = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit];
-
-			// enable or disable apropriate texture modes.
-			if((textureUnit.Type != _type) && (idE.Backend.GLState.CurrentTextureUnit < idE.Backend.GLState.TextureUnits.Length))
-			{
-				if(textureUnit.Type == TextureType.Cubic)
-				{
-					Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
-				}
-				else if(textureUnit.Type == TextureType.ThreeD)
-				{
-					Gl.glDisable(Gl.GL_TEXTURE_3D);
-				}
-				else if(textureUnit.Type == TextureType.TwoD)
-				{
-					Gl.glDisable(Gl.GL_TEXTURE_2D);
-				}
-
-				if(_type == TextureType.Cubic)
-				{
-					Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
-				}
-				else if(_type == TextureType.ThreeD)
-				{
-					Gl.glEnable(Gl.GL_TEXTURE_3D);
-				}
-				else if(_type == TextureType.TwoD)
-				{
-					Gl.glEnable(Gl.GL_TEXTURE_2D);
-				}
-
-				textureUnit.Type = _type;
-			}
-
-			// bind the texture.
-			if(_type == TextureType.TwoD)
-			{
-				if(textureUnit.Current2DMap != _texNumber)
-				{
-					textureUnit.Current2DMap = _texNumber;
-
-					Gl.glBindTexture(Gl.GL_TEXTURE_2D, _texNumber);
-				}
-			}
-			else if(_type == TextureType.Cubic)
-			{
-				if(textureUnit.CurrentCubeMap != _texNumber)
-				{
-					textureUnit.CurrentCubeMap = _texNumber;
-
-					Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP_EXT, _texNumber);
-				}
-			}
-			else if(_type == TextureType.ThreeD)
-			{
-				if(textureUnit.Current3DMap != _texNumber)
-				{
-					textureUnit.Current3DMap = _texNumber;
-
-					Gl.glBindTexture(Gl.GL_TEXTURE_3D, _texNumber);
-				}
-			}
-
-			if(idE.CvarSystem.GetBool("com_purgeAll") == true)
-			{
-				float priority = 1.0f;
-
-				Gl.glPrioritizeTextures(1, ref _texNumber, ref priority);
-			}
-
-			idConsole.WriteLine("DONE");
 		}
 		#endregion
 		#endregion

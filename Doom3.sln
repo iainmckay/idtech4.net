@@ -9,8 +9,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idEngine", "idEngine\idEngi
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idEngineContent", "idEngineContent\idEngineContent.contentproj", "{837FB8CF-623D-45CE-9885-9833F1B2FBBD}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Test", "Test\Test.csproj", "{49FD9FBA-5B18-415B-820B-7447B583E601}"
-EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug with inlines and memory log|Any CPU = Debug with inlines and memory log|Any CPU
@@ -119,30 +117,6 @@ Global
 		{837FB8CF-623D-45CE-9885-9833F1B2FBBD}.Release|Mixed Platforms.ActiveCfg = Release|x86
 		{837FB8CF-623D-45CE-9885-9833F1B2FBBD}.Release|Win32.ActiveCfg = Release|x86
 		{837FB8CF-623D-45CE-9885-9833F1B2FBBD}.Release|x86.ActiveCfg = Release|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines and memory log|Any CPU.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines and memory log|Mixed Platforms.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines and memory log|Mixed Platforms.Build.0 = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines and memory log|Win32.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines and memory log|x86.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines and memory log|x86.Build.0 = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines|Any CPU.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines|Mixed Platforms.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines|Mixed Platforms.Build.0 = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines|Win32.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines|x86.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug with inlines|x86.Build.0 = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug|Any CPU.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug|Mixed Platforms.Build.0 = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug|Win32.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug|x86.ActiveCfg = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Debug|x86.Build.0 = Debug|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Release|Any CPU.ActiveCfg = Release|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Release|Mixed Platforms.ActiveCfg = Release|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Release|Mixed Platforms.Build.0 = Release|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Release|Win32.ActiveCfg = Release|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Release|x86.ActiveCfg = Release|x86
-		{49FD9FBA-5B18-415B-820B-7447B583E601}.Release|x86.Build.0 = Release|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

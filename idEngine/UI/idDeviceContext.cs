@@ -38,6 +38,20 @@ namespace idTech4.UI
 {
 	public sealed class idDeviceContext
 	{
+		#region Properties
+		public bool ClippingEnabled
+		{
+			get
+			{
+				return _enableClipping;
+			}
+			set
+			{
+				_enableClipping = value;
+			}
+		}
+		#endregion
+
 		#region Members
 		private bool _initialized;
 		private Matrix _matrix;
@@ -45,6 +59,9 @@ namespace idTech4.UI
 
 		private float _scaleX;
 		private float _scaleY;
+
+		private float _videoWidth;
+		private float _videoHeight;
 
 		private bool _enableClipping;
 		private bool _mbcs;
@@ -63,9 +80,27 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
+		public void DrawFilledRectangle(float x, float y, float width, float height, Color color)
+		{
+			if(color.A == 0.0f)
+			{
+				return;
+			}
+
+			idE.RenderSystem.Color = color;
+	
+			if(ClipCoordinates(ref x, ref y, ref width, ref height) == true)
+			{
+				return;
+			}
+			
+			AdjustCoordinates(ref x, ref y, ref width, ref height);
+			DrawStretchPicture(x, y, width, height, 0, 0, 0, 0, _whiteImage);
+		}
+
 		public void DrawStretchPicture(float x, float y, float width, float height, float s, float t, float s2, float t2, idMaterial shader)
 		{
-			idVertex[] verts = new idVertex[4];
+			Vertex[] verts = new Vertex[4];
 			int[] indexes = new int[6];
 
 			indexes[0] = 3;
@@ -75,33 +110,44 @@ namespace idTech4.UI
 			indexes[4] = 0;
 			indexes[5] = 1;
 
-			verts[0].Position = new Vector3(x, y, 0);
-			verts[0].TextureCoordinates = new Vector2(s, t);
-			verts[0].Normal = new Vector3(0, 0, 1);
-			verts[0].Tangents[0] = new Vector3(1, 0, 0);
-			verts[0].Tangents[1] = new Vector3(0, 1, 0);
+			verts[0].Position = new float[] { x, y, 0 };
+			verts[0].TextureCoordinates = new float[] { s, t };
+			verts[0].Normal = new float[] { 0, 0, 1 };
+			verts[0].Tangents = new float[,] {
+				{ 1, 0, 0 },
+				{ 0, 1, 0 }
+			};
 
-			verts[1].Position = new Vector3(x + width, y, 0);
-			verts[1].TextureCoordinates = new Vector2(s2, t);
-			verts[1].Normal = new Vector3(0, 0, 1);
-			verts[1].Tangents[0] = new Vector3(1, 0, 0);
-			verts[1].Tangents[1] = new Vector3(0, 1, 0);
+			verts[1].Position = new float[] { x + width, y, 0 };
+			verts[1].TextureCoordinates = new float[] { s2, t };
+			verts[1].Normal = new float[] { 0, 0, 1 };
+			verts[1].Tangents = new float[,] {
+				{ 1, 0, 0 },
+				{ 0, 1, 0 }
+			};
 
-			verts[2].Position = new Vector3(x + width, y + height, 0);
-			verts[2].TextureCoordinates = new Vector2(s2, t2);
-			verts[2].Normal = new Vector3(0, 0, 1);
-			verts[2].Tangents[0] = new Vector3(1, 0, 0);
-			verts[2].Tangents[1] = new Vector3(0, 1, 0);
+			verts[2].Position = new float[] { x + width, y + height, 0 };
+			verts[2].TextureCoordinates = new float[] { s2, t2 };
+			verts[2].Normal = new float[] { 0, 0, 1 };
+			verts[2].Tangents = new float[,] {
+				{ 1, 0, 0 },
+				{ 0, 1, 0 }
+			};
 
-			verts[3].Position = new Vector3(x, y + height, 0);
-			verts[3].TextureCoordinates = new Vector2(s, t);
-			verts[3].Normal = new Vector3(0, 0, 1);
-			verts[3].Tangents[0] = new Vector3(1, 0, 0);
-			verts[3].Tangents[1] = new Vector3(0, 1, 0);
+			verts[3].Position = new float[] { x, y + height, 0 };
+			verts[3].TextureCoordinates = new float[] { s, t };
+			verts[3].Normal = new float[] { 0, 0, 1 };
+			verts[3].Tangents = new float[,] {
+				{ 1, 0, 0 },
+				{ 0, 1, 0 }
+			};
 
-			if(_matrix != Matrix.Identity)
+			bool ident = _matrix != Matrix.Identity;
+
+			if(ident == true)
 			{
-				verts[0].Position -= _origin;
+				idConsole.Write("TODO: IDENT == true");
+				/*verts[0].Position -= _origin;
 				verts[0].Position *= _matrix.Translation;
 				verts[0].Position += _origin;
 				verts[1].Position -= _origin;
@@ -112,11 +158,10 @@ namespace idTech4.UI
 				verts[2].Position += _origin;
 				verts[3].Position -= _origin;
 				verts[3].Position *= _matrix.Translation;
-				verts[3].Position += _origin;
+				verts[3].Position += _origin;*/
 			}
 
-			idConsole.WriteLine("TODO: DrawStretchPic {0}x{1} {2}x{3}", x, y, width, height);
-			//renderSystem->DrawStretchPic( &verts[0], &indexes[0], 4, 6, shader, ident );
+			idE.RenderSystem.DrawStretchPicture(verts.ToArray(), indexes.ToArray(), shader, ident);
 		}
 
 		public int DrawText(string text, float textScale, TextAlign textAlign, Color color, Rectangle rectDraw, bool wrap)
@@ -389,6 +434,20 @@ namespace idTech4.UI
 			_clipRectangles.Push(new Rectangle(x, y, width, height));
 		}
 
+		public void SetSize(float width, float height)
+		{
+			_videoWidth = idE.VirtualScreenWidth;
+			_videoHeight = idE.VirtualScreenHeight;
+
+			_scaleX = _scaleY = 0;
+
+			if((width != 0.0f) && (height != 0.0f))
+			{
+				_scaleX = _videoWidth * (1.0f / width);
+				_scaleY = _videoHeight * (1.0f / height);
+			}
+		}
+
 		public void SetTransformInformation(Vector3 origin, Matrix transform)
 		{
 			_matrix = transform;
@@ -412,6 +471,13 @@ namespace idTech4.UI
 			// TODO: _useFont = null;
 			// TODO: _activeFont = null;
 			_mbcs = false;
+		}
+
+		private bool ClipCoordinates(ref float x, ref float y, ref float width, ref float height)
+		{
+			float s = 0, t = 0, s2 = 0, t2 = 0;
+
+			return ClipCoordinates(ref x, ref y, ref width, ref height, ref s, ref t, ref s2, ref t2);
 		}
 
 		private bool ClipCoordinates(ref float x, ref float y, ref float width, ref float height, ref float s, ref float t, ref float s2, ref float t2)

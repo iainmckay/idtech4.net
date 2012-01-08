@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Windows.Forms;
 
@@ -93,6 +94,9 @@ namespace idTech4.Renderer
 			}
 		}
 
+		/// <summary>
+		/// Has the renderer been initialized and ready for graphic operations?
+		/// </summary>
 		public bool IsRunning
 		{
 			get
@@ -100,7 +104,7 @@ namespace idTech4.Renderer
 				return idE.GLConfig.IsInitialized;
 			}
 		}
-
+		
 		public int ScreenWidth
 		{
 			get
@@ -116,7 +120,7 @@ namespace idTech4.Renderer
 				return idE.GLConfig.VideoHeight;
 			}
 		}
-
+		
 		public View ViewDefinition
 		{
 			get
@@ -131,18 +135,17 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Members
-		private bool _registered;											// cleared at shutdown, set at InitOpenGL
-
+		private bool _registered;
+		
 		private int _frameCount;											// incremented every frame
 		private int _viewCount;												// incremented every view (twice a scene if subviewed) and every R_MarkFragments call
+		private float _sortOffset;											// for determinist sorting of equal sort materials
 
 		private Vector4 _ambientLightVector;								// used for "ambient bump mapping"
 
 		private idMaterial _defaultMaterial;
 		private ViewEntity _identitySpace;									// can use if we don't know viewDef->worldSpace is valid
 		private View _viewDefinition;
-
-		private float _sortOffset;											// for determinist sorting of equal sort materials
 
 		private List<idRenderWorld> _worlds = new List<idRenderWorld>();
 
@@ -161,7 +164,7 @@ namespace idTech4.Renderer
 		private Rectangle[] _renderCrops = new Rectangle[idE.MaxRenderCrops];
 
 		private int _stencilIncrement;
-		private int _stencilDecrement;										// GL_INCR / INCR_WRAP_EXT, GL_DECR / GL_DECR_EXT
+		private int _stencilDecrement;
 
 		private int _fragmentDisplayListBase;								// FPROG_NUM_FRAGMENT_PROGRAMS lists
 
@@ -175,6 +178,9 @@ namespace idTech4.Renderer
 
 		private Form _renderForm;
 		private SimpleOpenGlControl _renderControl;
+
+		// vertex cache
+		private List<VertexCache> _dynamicVertexCache = new List<VertexCache>();
 		#endregion
 
 		#region Constructor
@@ -187,27 +193,22 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region Public
-		public void AddDrawSurface(Surface surface, ViewEntity space, RenderEntity renderEntity, idMaterial shader, idScreenRect scissor)
+		public void AddDrawSurface(Surface surface, ViewEntity space, RenderEntity renderEntity, idMaterial material, idScreenRect scissor)
 		{
-			float[] shaderParameters;
-			/*drawSurf_t		*drawSurf;
-	const float		*shaderParms;
-	static float	refRegs[MAX_EXPRESSION_REGISTERS];	// don't put on stack, or VC++ will do a page touch
-	float			generatedShaderParms[MAX_ENTITY_SHADER_PARMS];*/
+			float[] materialParameters;
 
 			DrawSurface drawSurface = new DrawSurface();
 			drawSurface.Geometry = surface;
 			drawSurface.Space = space;
-			drawSurface.Material = shader;
+			drawSurface.Material = material;
 			drawSurface.ScissorRectangle = scissor;
-			drawSurface.Sort = (float) shader.Sort + _sortOffset;
+			drawSurface.Sort = (float) material.Sort + _sortOffset;
 
 			// bumping this offset each time causes surfaces with equal sort orders to still
 			// deterministically draw in the order they are added
 			_sortOffset += 0.000001f;
 
 			_viewDefinition.DrawSurfaces.Add(drawSurface);
-
 
 			// process the shader expressions for conditionals / color / texcoords
 			// TODO: constant registers
@@ -217,7 +218,7 @@ namespace idTech4.Renderer
 				drawSurf->shaderRegisters = constRegs;
 			} else */
 			{
-				drawSurface.ShaderRegisters = new float[shader.RegisterCount];
+				drawSurface.MaterialRegisters = new float[material.RegisterCount];
 
 				// a reference shader will take the calculated stage color value from another shader
 				// and use that for the parm0-parm3 of the current shader, which allows a stage of
@@ -240,7 +241,7 @@ namespace idTech4.Renderer
 				} else */
 				{
 					// evaluate with the entityDef's shader parms
-					shaderParameters = renderEntity.ShaderParameters;
+					materialParameters = renderEntity.MaterialParameters;
 				}
 
 				float oldFloatTime;
@@ -255,7 +256,7 @@ namespace idTech4.Renderer
 					tr.viewDef->renderView.time = game->GetTimeGroupTime( space->entityDef->parms.timeGroup );
 				}*/
 
-				shader.EvaluateRegisters(ref drawSurface.ShaderRegisters, shaderParameters, idE.RenderSystem.ViewDefinition /* TODO: ,renderEntity->referenceSound*/);
+				material.EvaluateRegisters(ref drawSurface.MaterialRegisters, materialParameters, idE.RenderSystem.ViewDefinition /* TODO: ,renderEntity->referenceSound*/);
 
 				// tODO: entityDef
 				/*if ( space->entityDef && space->entityDef->parms.timeGroup ) {
@@ -367,14 +368,14 @@ namespace idTech4.Renderer
 			idE.GLConfig.VideoWidth = windowWidth;
 			idE.GLConfig.VideoHeight = windowHeight;
 
-			_renderCrops[0] = new Rectangle(0, 0, windowWidth, windowHeight);
 			_currentRenderCrop = 0;
+			_renderCrops[0] = new Rectangle(0, 0, windowWidth, windowHeight);
 
 			// screenFraction is just for quickly testing fill rate limitations
 			if(idE.CvarSystem.GetInteger("r_screenFraction") != 100)
 			{
-				int w = (int) (idE.ScreenWidth * idE.CvarSystem.GetInteger("r_screenFraction") / 100.0f);
-				int h = (int) (idE.ScreenHeight * idE.CvarSystem.GetInteger("r_screenFraction") / 100.0f);
+				int w = (int) (idE.VirtualScreenWidth * idE.CvarSystem.GetInteger("r_screenFraction") / 100.0f);
+				int h = (int) (idE.VirtualScreenHeight * idE.CvarSystem.GetInteger("r_screenFraction") / 100.0f);
 
 				// TODO: CropRenderSize(w, h);
 				idConsole.WriteLine("idRenderSystem.CropRenderSize");
@@ -423,6 +424,21 @@ namespace idTech4.Renderer
 			_worlds.Add(world);
 
 			return world;
+		}
+
+		public void DrawStretchPicture(Vertex[] vertices, int[] indexes, idMaterial material)
+		{
+			DrawStretchPicture(vertices, indexes, material, true);
+		}
+
+		public void DrawStretchPicture(Vertex[] vertices, int[] indexes, idMaterial material, bool clip)
+		{
+			DrawStretchPicture(vertices, indexes, material, true, 0.0f, 0.0f, 640.0f, 0.0f);
+		}
+
+		public void DrawStretchPicture(Vertex[] vertices, int[] indexes, idMaterial material, bool clip, float minX, float minY, float maxX, float maxY)
+		{
+			_guiModel.DrawStretchPicture(vertices, indexes, material, clip, minX, minY, maxX, maxY);
 		}
 
 		public void EndFrame()
@@ -491,7 +507,7 @@ namespace idTech4.Renderer
 		public void Init()
 		{
 			idConsole.WriteLine("------- Initializing renderSystem --------");
-
+			
 			// clear all our internal state
 			_viewCount = 1;	// so cleared structures never match viewCount
 			// we used to memset tr, but now that it is a class, we can't, so
@@ -532,6 +548,25 @@ namespace idTech4.Renderer
 			idConsole.WriteLine("--------------------------------------");
 		}
 
+		public void InitGraphics()
+		{
+			// if OpenGL isn't started, start it now
+			if(idE.GLConfig.IsInitialized == true)
+			{
+				return;
+			}
+
+			InitOpenGL();
+			// TODO: idE.ImageManager.ReloadImages();
+
+			int error = Gl.glGetError();
+
+			if(error != Gl.GL_NO_ERROR)
+			{
+				idConsole.WriteLine("glGetError() = 0x{0:X}", error);
+			}
+		}
+
 		/// <summary>
 		/// Converts from SCREEN_WIDTH / SCREEN_HEIGHT coordinates to current cropped pixel coordinates
 		/// </summary>
@@ -541,8 +576,8 @@ namespace idTech4.Renderer
 		{
 			Rectangle renderCrop = _renderCrops[_currentRenderCrop];
 
-			float widthRatio = renderCrop.Width / idE.ScreenWidth;
-			float heightRatio = renderCrop.Height / idE.ScreenHeight;
+			float widthRatio = renderCrop.Width / idE.VirtualScreenWidth;
+			float heightRatio = renderCrop.Height / idE.VirtualScreenHeight;
 
 			idScreenRect viewPort = new idScreenRect();
 			viewPort.X1 = (int) (renderCrop.X + renderView.X * widthRatio);
@@ -553,7 +588,130 @@ namespace idTech4.Renderer
 		}
 		#endregion
 
+		#region Internal
+		internal VertexCache AllocateVertexCacheFrameTemporary(Vertex[] vertices)
+		{
+			VertexCache cache = new VertexCache();
+
+			if(vertices.Length == 0)
+			{
+				idConsole.Error("AllocateVertexCacheFromTemorary: size = 0");
+			}
+
+			// TODO: vertex cache alloc > frameBytes
+			/*if(dynamicAllocThisFrame + size > frameBytes)
+			{
+				// if we don't have enough room in the temp block, allocate a static block,
+				// but immediately free it so it will get freed at the next frame
+				tempOverflow = true;
+				Alloc(data, size, &block);
+				Free(block);
+				return block;
+			}*/
+
+			// this data is just going on the shared dynamic list
+
+			// move it from the freeDynamicHeaders list to the dynamicHeaders list
+			_dynamicVertexCache.Add(cache);
+
+			// TODO: dynamicAllocThisFrame += block->size;
+			// TODO: dynamicCountThisFrame++;
+
+			cache.Tag = VertexCacheType.Temporary;
+			cache.Data = vertices;
+
+			return cache;
+		}
+		#endregion
+
 		#region Private
+		/// <summary>
+		/// Any mirrored or portaled views have already been drawn, so prepare
+		/// to actually render the visible surfaces for this view.
+		/// </summary>
+		private void BeginDrawingView()
+		{
+			// set the modelview matrix for the viewer
+			Gl.glMatrixMode(Gl.GL_PROJECTION);
+			// TODO: Gl.glLoadMatrixf(idE.Backend.ViewDefinition.ProjectionMatrix);
+			Gl.glMatrixMode(Gl.GL_MODELVIEW);
+
+			// set the window clipping
+			Gl.glViewport((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1,
+				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1,
+				idE.Backend.ViewDefinition.ViewPort.X2 + 1 - idE.Backend.ViewDefinition.ViewPort.X1,
+				idE.Backend.ViewDefinition.ViewPort.Y2 + 1 - idE.Backend.ViewDefinition.ViewPort.Y1);
+
+			// the scissor may be smaller than the viewport for subviews
+			Gl.glScissor((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.ViewDefinition.Scissor.X1,
+				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.ViewDefinition.Scissor.Y1,
+				idE.Backend.ViewDefinition.Scissor.X2 + 1 - idE.Backend.ViewDefinition.Scissor.X1,
+				idE.Backend.ViewDefinition.Scissor.Y2 + 1 - idE.Backend.ViewDefinition.Scissor.Y1);
+
+			idE.Backend.CurrentScissor = idE.Backend.ViewDefinition.Scissor;
+
+			// ensures that depth writes are enabled for the depth clear
+			GL_State(MaterialStates.DepthFunctionAlways);
+
+			// we don't have to clear the depth / stencil buffer for 2D rendering
+			// TODO:
+			/*if ( backEnd.viewDef->viewEntitys ) {
+				Gl.glStencilMask(0xFF);
+				// some cards may have 7 bit stencil buffers, so don't assume this
+				// should be 128
+				Gl.glClearStencil(1 << (glConfig.stencilBits - 1));
+				Gl.glClear(Gl.GL_DEPTH_BUFFER_BIT | Gl.GL_STENCIL_BUFFER_BIT);
+				Gl.glEnable(Gl.GL_DEPTH_TEST);
+			} else */
+			{
+				Gl.glDisable(Gl.GL_DEPTH_TEST);
+				Gl.glDisable(Gl.GL_STENCIL_TEST);
+			}
+
+			idE.Backend.GLState.FaceCulling = CullType.None; // force face culling to set next time
+
+			GL_Cull(CullType.Front);
+		}
+
+		/// <summary>
+		/// Handles generating a cinematic frame if needed.
+		/// </summary>
+		/// <param name="texture"></param>
+		/// <param name="registers"></param>
+		private void BindVariableStageImage(TextureStage texture, float[] registers)
+		{
+			/* TODO: if(texture.IsCinematic == true)*/
+			if(false)
+			{
+				idConsole.WriteLine("TODO: BindVariableStageImage cinematic");
+				/*cinData_t	cin;
+
+				if ( r_skipDynamicTextures.GetBool() ) {
+					globalImages->defaultImage->Bind();
+					return;
+				}
+
+				// offset time by shaderParm[7] (FIXME: make the time offset a parameter of the shader?)
+				// We make no attempt to optimize for multiple identical cinematics being in view, or
+				// for cinematics going at a lower framerate than the renderer.
+				cin = texture->cinematic->ImageForTime( (int)(1000 * ( backEnd.viewDef->floatTime + backEnd.viewDef->renderView.shaderParms[11] ) ) );
+
+				if ( cin.image ) {
+					globalImages->cinematicImage->UploadScratch( cin.image, cin.imageWidth, cin.imageHeight );
+				} else {
+					globalImages->blackImage->Bind();
+				}*/
+			}
+			else
+			{
+				//FIXME: see why image is invalid
+				if(texture.Image != null)
+				{
+					texture.Image.Bind();
+				}
+			}
+		}
+
 		private bool CheckExtension(string name)
 		{
 			if(idE.GLConfig.Extensions.Contains(name) == true)
@@ -693,7 +851,6 @@ namespace idTech4.Renderer
 
 		private void Clear()
 		{
-			_registered = false;
 			_frameCount = 0;
 			_viewCount = 0;
 
@@ -709,9 +866,7 @@ namespace idTech4.Renderer
 			_backEndRendererMaxLight = 1.0f;
 
 			_ambientLightVector = Vector4.Zero;
-
-			// TODO
-			/*sortOffset = 0;*/
+			_sortOffset = 0;
 			_worlds.Clear();
 
 			/*primaryWorld = NULL;
@@ -720,7 +875,7 @@ namespace idTech4.Renderer
 
 			_defaultMaterial = null;
 
-			/*defaultMaterial = NULL;
+			/*
 			testImage = NULL;
 			ambientCubeImage = NULL;*/
 
@@ -731,9 +886,7 @@ namespace idTech4.Renderer
 
 			_identitySpace = new ViewEntity();
 
-			/*logFile = NULL;
-			stencilIncr = 0;
-			stencilDecr = 0;*/
+			/*logFile = NULL;*/
 
 			_renderCrops = new Rectangle[idE.MaxRenderCrops];
 			_currentRenderCrop = 0;
@@ -752,6 +905,229 @@ namespace idTech4.Renderer
 			// clear the command chain
 			_frameData.Commands.Clear();
 			_frameData.Commands.Enqueue(new NoOperationRenderCommand());
+		}
+
+		private void DrawElementsWithCounters(Surface tri)
+		{
+			// TODO: performance counters
+			/*backEnd.pc.c_drawElements++;
+			backEnd.pc.c_drawIndexes += tri->numIndexes;
+			backEnd.pc.c_drawVertexes += tri->numVerts;*/
+
+			/*if ( tri->ambientSurface != NULL  ) {
+				if ( tri->indexes == tri->ambientSurface->indexes ) {
+					backEnd.pc.c_drawRefIndexes += tri->numIndexes;
+				}
+				if ( tri->verts == tri->ambientSurface->verts ) {
+					backEnd.pc.c_drawRefVertexes += tri->numVerts;
+				}
+			}*/
+
+			if((tri.IndexCache != null) && (idE.CvarSystem.GetBool("r_useIndexBuffers") == true))
+			{
+				idConsole.WriteLine("TODO: indexCache");
+				/*Gl.glDrawElements(Gl.GL_TRIANGLES,
+					(idE.CvarSystem.GetBool("r_singleTriangle") == true) ? 3 : tri.Indexes.Length,
+					Gl.GL_INDEX_ARRAY_TYPE,
+					(int*) vertexCache.Position(tri->indexCache));*/
+
+				// TODO: backEnd.pc.c_vboIndexes += tri->numIndexes;
+			}
+			else
+			{
+				if(idE.CvarSystem.GetBool("r_useIndexBuffers") == true)
+				{
+					UnbindIndex();
+				}
+
+				idConsole.WriteLine("TODO: glDrawElements");
+				/*Gl.glDrawElements(Gl.GL_TRIANGLES,
+					(idE.CvarSystem.GetBool("r_singleTriangle") == true) ? 3 : tri.Indexes.Length,
+					Gl.GL_INDEX_ARRAY_TYPE,
+					tri.Indexes);*/
+			}
+		}
+
+		/// <summary>
+		/// Draw non-light dependent passes.
+		/// </summary>
+		/// <param name="surfaces"></param>
+		/// <returns></returns>
+		private int DrawShaderPasses(DrawSurface[] surfaces)
+		{
+			// only obey skipAmbient if we are rendering a view
+			// TODO
+			/*if ( backEnd.viewDef->viewEntitys && r_skipAmbient.GetBool() ) {
+				return numDrawSurfs;
+			}*/
+
+			// RB_LogComment( "---------- RB_STD_DrawShaderPasses ----------\n" );
+
+			// if we are about to draw the first surface that needs
+			// the rendering in a texture, copy it over
+			// TODO
+			/*if ( drawSurfs[0]->material->GetSort() >= SS_POST_PROCESS ) {
+				if ( r_skipPostProcess.GetBool() ) {
+					return 0;
+				}
+
+				// only dump if in a 3d view
+				if ( backEnd.viewDef->viewEntitys && tr.backEndRenderer == BE_ARB2 ) {
+					globalImages->currentRenderImage->CopyFramebuffer( backEnd.viewDef->viewport.x1,
+						backEnd.viewDef->viewport.y1,  backEnd.viewDef->viewport.x2 -  backEnd.viewDef->viewport.x1 + 1,
+						backEnd.viewDef->viewport.y2 -  backEnd.viewDef->viewport.y1 + 1, true );
+				}
+				backEnd.currentRenderCopied = true;
+			}*/
+
+			// TODO: GL_SelectTexture(1);
+			// TODO: idE.ImageManager.BindNullTexture();
+
+			// TODO: GL_SelectTexture(0);
+			// TODO: Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+
+			SetProgramEnvironment();
+
+			// we don't use RB_RenderDrawSurfListWithFunction()
+			// because we want to defer the matrix load because many
+			// surfaces won't draw any ambient passes
+			// TODO: backEnd.currentSpace = NULL;
+			int i;
+
+			for(i = 0; i < surfaces.Length; i++)
+			{
+				DrawSurface surface = surfaces[i];
+
+				// TODO:
+				/*if ( drawSurfs[i]->material->SuppressInSubview() ) {
+					continue;
+				}*/
+
+				// TODO
+				/*if ( backEnd.viewDef->isXraySubview && drawSurfs[i]->space->entityDef ) {
+					if ( drawSurfs[i]->space->entityDef->parms.xrayIndex != 2 ) {
+						continue;
+					}
+				}
+				*/
+
+				// we need to draw the post process shaders after we have drawn the fog lights
+				/*if ( drawSurfs[i]->material->GetSort() >= SS_POST_PROCESS
+					&& !backEnd.currentRenderCopied ) {
+					break;
+				}*/
+
+				RenderShaderPasses(surface);
+			}
+
+			GL_Cull(CullType.TwoSided);
+			// TODO: Gl.glColor3f(1, 1, 1);
+
+			return i;
+		}
+
+		private void DrawView(DrawViewRenderCommand command)
+		{
+			idE.Backend.ViewDefinition = command.View;
+
+			// we will need to do a new copyTexSubImage of the screen
+			// when a SS_POST_PROCESS material is used
+			// TODO: _currentRenderCopied = false;
+
+			// if there aren't any drawsurfs, do nothing
+			if(idE.Backend.ViewDefinition.DrawSurfaces.Count == 0)
+			{
+				return;
+			}
+
+			// skip render bypasses everything that has models, assuming
+			// them to be 3D views, but leaves 2D rendering visible
+			if((idE.CvarSystem.GetBool("r_skipRender") == true) /* TODO: && backEnd.viewDef->viewEntitys*/)
+			{
+				return;
+			}
+
+			// skip render context sets the wgl context to NULL,
+			// which should factor out the API cost, under the assumption
+			// that all gl calls just return if the context isn't valid
+
+			// TODO: r_skipRenderContext
+			/*if ( r_skipRenderContext.GetBool() && backEnd.viewDef->viewEntitys ) {
+				GLimp_DeactivateContext();
+			}*/
+
+			// TODO: backEnd.pc.c_surfaces += backEnd.viewDef->numDrawSurfs;
+
+			// TODO: RB_ShowOverdraw();
+
+			// render the scene, jumping to the hardware specific interaction renderers
+			DrawViewActual();
+
+			// restore the context for 2D drawing if we were stubbing it out
+			// TODO: r_skipRenderContext
+			/*if ( r_skipRenderContext.GetBool() && backEnd.viewDef->viewEntitys ) {
+				GLimp_ActivateContext();
+				RB_SetDefaultGLState();
+			}*/
+		}
+
+		private void DrawViewActual()
+		{
+			// TODO: RB_LogComment( "---------- RB_STD_DrawView ----------\n" );
+
+			idE.Backend.DepthFunction = MaterialStates.DepthFunctionEqual;
+
+			DrawSurface[] surfaces = idE.Backend.ViewDefinition.DrawSurfaces.ToArray();
+			int surfaceCount = surfaces.Length;
+
+			// clear the z buffer, set the projection matrix, etc
+			BeginDrawingView();
+
+			// decide how much overbrighting we are going to do
+			// TODO: RB_DetermineLightScale();
+
+			// fill the depth buffer and clear color buffer to black except on
+			// subviews
+			// TODO: RB_STD_FillDepthBuffer( drawSurfs, numDrawSurfs );
+
+			// main light renderer
+			/*switch( tr.backEndRenderer ) {
+			case BE_ARB:
+				RB_ARB_DrawInteractions();
+				break;
+			case BE_ARB2:
+				RB_ARB2_DrawInteractions();
+				break;
+			case BE_NV20:
+				RB_NV20_DrawInteractions();
+				break;
+			case BE_NV10:
+				RB_NV10_DrawInteractions();
+				break;
+			case BE_R200:
+				RB_R200_DrawInteractions();
+				break;
+			}*/
+
+			// disable stencil shadow test
+			Gl.glStencilFunc(Gl.GL_ALWAYS, 128, 255);
+
+			// uplight the entire screen to crutch up not having better blending range
+			// TODO: RB_STD_LightScale();
+
+			// now draw any non-light dependent shading passes
+			int processed = DrawShaderPasses(surfaces);
+
+			// fob and blend lights
+			// TODO: RB_STD_FogAllLights();
+
+			// now draw any post-processing effects using _currentRender
+			/*if ( processed < numDrawSurfs ) {
+				RB_STD_DrawShaderPasses( drawSurfs+processed, numDrawSurfs-processed );
+			}
+
+			RB_RenderDebugTools( drawSurfs, numDrawSurfs );*/
+
 		}
 
 		private void ExecuteBackEndCommands(Queue<RenderCommand> commands)
@@ -780,9 +1156,10 @@ namespace idTech4.Renderer
 						break;
 
 					case RenderCommandType.DrawView:
-						idConsole.WriteLine("TODO: RenderCommandType.DrawView");
+						DrawView((DrawViewRenderCommand) cmd);
 
-						/*RB_DrawView( cmds );
+						// TODO: perf counter
+						/*
 						if ( ((const drawSurfsCommand_t *)cmds)->viewDef->viewEntitys ) {
 							c_draw3d++;
 						}
@@ -809,10 +1186,6 @@ namespace idTech4.Renderer
 				}
 			}
 
-			// go back to the default texture so the editor doesn't mess up a bound image
-			Gl.glBindTexture(Gl.GL_TEXTURE_2D, 0);
-			idE.Backend.GLState.TextureUnits[0].Current2DMap = -1;
-
 			// stop rendering on this thread
 			// TODO: backEndFinishTime = Sys_Milliseconds();
 			// TODO: backEnd.pc.msec = backEndFinishTime - backEndStartTime;
@@ -823,6 +1196,99 @@ namespace idTech4.Renderer
 				backEnd.c_copyFrameBuffer = 0;
 			}*/
 		}
+
+		private void FinishStageTexturing(MaterialStage stage, DrawSurface surface, Vertex[] position)
+		{
+			// unset privatePolygonOffset if necessary
+			if((stage.PrivatePolygonOffset > 0) && (surface.Material.TestMaterialFlag(MaterialFlags.PolygonOffset) == false))
+			{
+				idConsole.WriteLine("TODO: Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);");
+			}
+
+			if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
+			{
+				idConsole.WriteLine("TODO: FinishStageTexturing DiffuseCube");
+
+				// TODO qglTexCoordPointer( 2, GL_FLOAT, sizeof( idDrawVert ), (void *)&ac->st );
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
+			{
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2)
+			{
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
+			{
+				idConsole.WriteLine("TODO: FinishStageTexturing GlassWarp");
+
+				/*if ( tr.backEndRenderer == BE_ARB2) {
+					GL_SelectTexture( 2 );
+					globalImages->BindNull();
+
+					GL_SelectTexture( 1 );
+					if ( pStage->texture.hasMatrix ) {
+						RB_LoadShaderTextureMatrix( surf->shaderRegisters, &pStage->texture );
+					}
+					qglDisable( GL_TEXTURE_GEN_S );
+					qglDisable( GL_TEXTURE_GEN_T );
+					qglDisable( GL_TEXTURE_GEN_Q );
+					qglDisable( GL_FRAGMENT_PROGRAM_ARB );
+					globalImages->BindNull();
+					GL_SelectTexture( 0 );
+				}*/
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
+			{
+				idConsole.WriteLine("TODO: FinishStageTexturing ReflectCube");
+				/*if ( tr.backEndRenderer == BE_ARB2 ) {
+					// see if there is also a bump map specified
+					const shaderStage_t *bumpStage = surf->material->GetBumpStage();
+					if ( bumpStage ) {
+						// per-pixel reflection mapping with bump mapping
+						GL_SelectTexture( 1 );
+						globalImages->BindNull();
+						GL_SelectTexture( 0 );
+
+						qglDisableVertexAttribArrayARB( 9 );
+						qglDisableVertexAttribArrayARB( 10 );
+					} else {
+						// per-pixel reflection mapping without bump mapping
+					}
+
+					qglDisableClientState( GL_NORMAL_ARRAY );
+					qglDisable( GL_FRAGMENT_PROGRAM_ARB );
+					qglDisable( GL_VERTEX_PROGRAM_ARB );
+					// Fixme: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
+					qglBindProgramARB( GL_VERTEX_PROGRAM_ARB, 0 );
+				} else {
+					qglDisable( GL_TEXTURE_GEN_S );
+					qglDisable( GL_TEXTURE_GEN_T );
+					qglDisable( GL_TEXTURE_GEN_R );
+					qglTexGenf( GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR );
+					qglTexGenf( GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR );
+					qglTexGenf( GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR );
+					qglDisableClientState( GL_NORMAL_ARRAY );
+
+					qglMatrixMode( GL_TEXTURE );
+					qglLoadIdentity();
+					qglMatrixMode( GL_MODELVIEW );
+				}*/
+			}
+
+			if(stage.Texture.HasMatrix == true)
+			{
+				Gl.glMatrixMode(Gl.GL_TEXTURE);
+				Gl.glLoadIdentity();
+				Gl.glMatrixMode(Gl.GL_MODELVIEW);
+			}
+		}
+
 
 		private bool GetModeInfo(ref int width, ref int height, int mode)
 		{
@@ -899,6 +1365,55 @@ namespace idTech4.Renderer
 			}
 		}
 
+		/// <summary>
+		/// This handles the flipping needed when the view being rendered is a mirored view.
+		/// </summary>
+		/// <param name="type"></param>
+		private void GL_Cull(CullType type)
+		{
+			if(idE.Backend.GLState.FaceCulling == type)
+			{
+				return;
+			}
+
+			if(type == CullType.TwoSided)
+			{
+				Gl.glDisable(Gl.GL_CULL_FACE);
+			}
+			else
+			{
+				if(idE.Backend.GLState.FaceCulling == CullType.TwoSided)
+				{
+					Gl.glEnable(Gl.GL_CULL_FACE);
+				}
+
+				if(type == CullType.TwoSided)
+				{
+					if(idE.Backend.ViewDefinition.IsMirror == true)
+					{
+						Gl.glCullFace(Gl.GL_FRONT);
+					}
+					else
+					{
+						Gl.glCullFace(Gl.GL_BACK);
+					}
+				}
+				else
+				{
+					if(idE.Backend.ViewDefinition.IsMirror == true)
+					{
+						Gl.glCullFace(Gl.GL_BACK);
+					}
+					else
+					{
+						Gl.glCullFace(Gl.GL_FRONT);
+					}
+				}
+			}
+
+			idE.Backend.GLState.FaceCulling = type;
+		}
+
 		private void GL_SelectTexture(int unit)
 		{
 			if(idE.Backend.GLState.CurrentTextureUnit == unit)
@@ -921,6 +1436,205 @@ namespace idTech4.Renderer
 			}
 		}
 
+		/// <summary>
+		/// This routine is responsible for setting the most commonly changed state.
+		/// </summary>
+		/// <param name="state"></param>
+		private void GL_State(int state)
+		{
+			int diff;
+			int srcFactor, dstFactor;
+
+			if((idE.CvarSystem.GetBool("r_useStateCaching") == false) || (idE.Backend.GLState.ForceState == true))
+			{
+				// make sure everything is set all the time, so we
+				// can see if our delta checking is screwing up
+				diff = -1;
+				idE.Backend.GLState.ForceState = false;
+			}
+			else
+			{
+				diff = state ^ idE.Backend.GLState.StateBits;
+
+				if(diff == 0)
+				{
+					return;
+				}
+			}
+
+			//
+			// check depthFunc bits
+			//
+			if((diff & (MaterialStates.DepthFunctionEqual | MaterialStates.DepthFunctionLess | MaterialStates.DepthFunctionAlways)) != 0)
+			{
+				if((state & MaterialStates.DepthFunctionEqual) != 0)
+				{
+					Gl.glDepthFunc(Gl.GL_EQUAL);
+				}
+				else if((state & MaterialStates.DepthFunctionAlways) != 0)
+				{
+					Gl.glDepthFunc(Gl.GL_ALWAYS);
+				}
+				else
+				{
+					Gl.glDepthFunc(Gl.GL_LEQUAL);
+				}
+			}
+			
+			//
+			// check blend bits
+			//
+			if((diff & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) != 0)
+			{
+				switch(state & MaterialStates.SourceBlendBits)
+				{
+					case MaterialStates.SourceBlendZero:
+						srcFactor = Gl.GL_ZERO;
+						break;
+					case MaterialStates.SourceBlendOne:
+						srcFactor = Gl.GL_ONE;
+						break;
+					case MaterialStates.SourceBlendDestinationColor:
+						srcFactor = Gl.GL_DST_COLOR;
+						break;
+					case MaterialStates.SourceBlendOneMinusDestinationColor:
+						srcFactor = Gl.GL_ONE_MINUS_DST_COLOR;
+						break;
+					case MaterialStates.SourceBlendSourceAlpha:
+						srcFactor = Gl.GL_SRC_ALPHA;
+						break;
+					case MaterialStates.SourceBlendOneMinusSourceAlpha:
+						srcFactor = Gl.GL_ONE_MINUS_SRC_ALPHA;
+						break;
+					case MaterialStates.SourceBlendDestinationAlpha:
+						srcFactor = Gl.GL_DST_ALPHA;
+						break;
+					case MaterialStates.SourceBlendOneMinusDestinationAlpha:
+						srcFactor = Gl.GL_ONE_MINUS_DST_ALPHA;
+						break;
+					case MaterialStates.SourceBlendAlphaSaturate:
+						srcFactor = Gl.GL_SRC_ALPHA_SATURATE;
+						break;
+					default:
+						srcFactor = Gl.GL_ONE;		// to get warning to shut up
+
+						idConsole.Error("GL_State: invalid src blend state bits");
+						break;
+				}
+
+				switch(state & MaterialStates.DestinationBlendBits)
+				{
+					case MaterialStates.DestinationBlendZero:
+						dstFactor = Gl.GL_ZERO;
+						break;
+					case MaterialStates.DestinationBlendOne:
+						dstFactor = Gl.GL_ONE;
+						break;
+					case MaterialStates.DestinationBlendSourceColor:
+						dstFactor = Gl.GL_SRC_COLOR;
+						break;
+					case MaterialStates.DestinationBlendOneMinusSourceColor:
+						dstFactor = Gl.GL_ONE_MINUS_SRC_COLOR;
+						break;
+					case MaterialStates.DestinationBlendSourceAlpha:
+						dstFactor = Gl.GL_SRC_ALPHA;
+						break;
+					case MaterialStates.DestinationBlendOneMinusSourceAlpha:
+						dstFactor = Gl.GL_ONE_MINUS_SRC_ALPHA;
+						break;
+					case MaterialStates.DestinationBlendDestinationAlpha:
+						dstFactor = Gl.GL_DST_ALPHA;
+						break;
+					case MaterialStates.DestinationBlendOneMinusDestinationAlpha:
+						dstFactor = Gl.GL_ONE_MINUS_DST_ALPHA;
+						break;
+					default:
+						dstFactor = Gl.GL_ONE;		// to get warning to shut up
+
+						idConsole.Error("GL_State: invalid dst blend state bits");
+						break;
+				}
+
+				Gl.glBlendFunc(srcFactor, dstFactor);
+			}
+
+			//
+			// check depthmask
+			//
+			if((diff & MaterialStates.Depth) != 0)
+			{
+				if((state & MaterialStates.Depth) != 0)
+				{
+					Gl.glDepthMask(Gl.GL_FALSE);
+				}
+				else
+				{
+					Gl.glDepthMask(Gl.GL_TRUE);
+				}
+			}
+
+			//
+			// check colormask
+			//
+			if((diff & (MaterialStates.Red | MaterialStates.Green | MaterialStates.Blue | MaterialStates.Alpha)) != 0)
+			{
+				int r = ((state & MaterialStates.Red) != 0) ? 0 : 1;
+				int g = ((state & MaterialStates.Green) != 0) ? 0 : 1;
+				int b = ((state & MaterialStates.Blue) != 0) ? 0 : 1;
+				int a = ((state & MaterialStates.Alpha) != 0) ? 0 : 1;
+
+				Gl.glColorMask(r, g, b, a);
+			}
+
+			//
+			// fill/line mode
+			//
+			if((diff & MaterialStates.PolygonModeLine) != 0)
+			{
+				if((state & MaterialStates.PolygonModeLine) != 0)
+				{
+					Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE);
+				}
+				else
+				{
+					Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
+				}
+			}
+			
+			//
+			// alpha test
+			//
+			if((diff & MaterialStates.AlphaTestBits) != 0)
+			{
+				switch(state & MaterialStates.AlphaTestBits)
+				{
+					case 0:
+						Gl.glDisable(Gl.GL_ALPHA_TEST);
+						break;
+
+					case MaterialStates.AlphaTestEqual255:
+						Gl.glEnable(Gl.GL_ALPHA_TEST);
+						Gl.glAlphaFunc(Gl.GL_EQUAL, 1.0f);
+						break;
+
+					case MaterialStates.AlphaTestLessThan128:
+						Gl.glEnable(Gl.GL_ALPHA_TEST);
+						Gl.glAlphaFunc(Gl.GL_LESS, 0.5f);
+						break;
+
+					case MaterialStates.AlphaTestGreaterOrEqual128:
+						Gl.glEnable(Gl.GL_ALPHA_TEST);
+						Gl.glAlphaFunc(Gl.GL_GEQUAL, 0.5f);
+						break;
+
+					default:
+						break;
+				}
+			}
+
+			idE.Backend.GLState.StateBits = state;
+		}
+
 		private void GL_TextureEnvironment(int env)
 		{
 			if(env == idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].TexEnv)
@@ -929,7 +1643,7 @@ namespace idTech4.Renderer
 			}
 
 			idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].TexEnv = env;
-
+			
 			switch(env)
 			{
 				case Gl.GL_COMBINE_EXT:
@@ -1155,31 +1869,7 @@ namespace idTech4.Renderer
 
 			new idCvar("r_debugRenderToTexture", "0", "", CvarFlags.Renderer | CvarFlags.Integer);
 		}
-
-		public void InitGraphics()
-		{
-			// if OpenGL isn't started, start it now
-			if(idE.GLConfig.IsInitialized == true)
-			{
-				return;
-			}
-
-			InitOpenGL();
-			// TODO: idE.ImageManager.ReloadImages();
-
-			int error = Gl.glGetError();
-
-			if(error != Gl.GL_NO_ERROR)
-			{
-				idConsole.WriteLine("glGetError() = 0x{0:X}", error);
-			}
-		}
-
-		private void InitNV10()
-		{
-			idE.GLConfig.AllowNV10Path = idE.GLConfig.RegisterCombinersAvailable;
-		}
-
+						
 		private void InitMaterials()
 		{
 			_defaultMaterial = idE.DeclManager.FindMaterial("_default", false);
@@ -1433,6 +2123,511 @@ namespace idTech4.Renderer
 			ClearCommandChain();
 		}
 
+		private void PrepareStageTexturing(MaterialStage stage, DrawSurface surface, Vertex[] position)
+		{
+			// set privatePolygonOffset if necessary
+			if(stage.PrivatePolygonOffset > 0)
+			{
+				Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
+				Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * stage.PrivatePolygonOffset);
+			}
+
+			// set the texture matrix if needed
+			if(stage.Texture.HasMatrix == true)
+			{
+				idConsole.WriteLine("TODO: LoadShaderTextureMatrix(surface.ShaderRegisters, stage.Texture);");
+			}
+
+			// texgens
+			if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube)
+			{
+				idConsole.WriteLine("TODO: TexGen DiffuseCube");
+				// TODO: Gl.glTexCoordPointer(3, Gl.GL_FLOAT, sizeof( idVertex ), new float[] { position.Normal.X, position.Normal.Y, position.Normal.Z });
+			}
+			else if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
+			{
+				idConsole.WriteLine("TODO: TexGen SkyboxCube | WobbleSky");
+				// TODO: Gl.glTexCoordPointer(3, Gl.GL_FLOAT, 0, vertexCache.Position( surf->dynamicTexCoords));
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
+			{
+				idConsole.WriteLine("TODO: TexGen Screen");
+
+				/*qglEnable( GL_TEXTURE_GEN_S );
+				qglEnable( GL_TEXTURE_GEN_T );
+				qglEnable( GL_TEXTURE_GEN_Q );
+
+				float	mat[16], plane[4];
+				myGlMultMatrix( surf->space->modelViewMatrix, backEnd.viewDef->projectionMatrix, mat );
+
+				plane[0] = mat[0];
+				plane[1] = mat[4];
+				plane[2] = mat[8];
+				plane[3] = mat[12];
+				qglTexGenfv( GL_S, GL_OBJECT_PLANE, plane );
+
+				plane[0] = mat[1];
+				plane[1] = mat[5];
+				plane[2] = mat[9];
+				plane[3] = mat[13];
+				qglTexGenfv( GL_T, GL_OBJECT_PLANE, plane );
+
+				plane[0] = mat[3];
+				plane[1] = mat[7];
+				plane[2] = mat[11];
+				plane[3] = mat[15];
+				qglTexGenfv( GL_Q, GL_OBJECT_PLANE, plane );*/
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2)
+			{
+				idConsole.WriteLine("TODO: TexGen Screen2");
+				/*qglEnable( GL_TEXTURE_GEN_S );
+				qglEnable( GL_TEXTURE_GEN_T );
+				qglEnable( GL_TEXTURE_GEN_Q );
+
+				float	mat[16], plane[4];
+				myGlMultMatrix( surf->space->modelViewMatrix, backEnd.viewDef->projectionMatrix, mat );
+
+				plane[0] = mat[0];
+				plane[1] = mat[4];
+				plane[2] = mat[8];
+				plane[3] = mat[12];
+				qglTexGenfv( GL_S, GL_OBJECT_PLANE, plane );
+
+				plane[0] = mat[1];
+				plane[1] = mat[5];
+				plane[2] = mat[9];
+				plane[3] = mat[13];
+				qglTexGenfv( GL_T, GL_OBJECT_PLANE, plane );
+
+				plane[0] = mat[3];
+				plane[1] = mat[7];
+				plane[2] = mat[11];
+				plane[3] = mat[15];
+				qglTexGenfv( GL_Q, GL_OBJECT_PLANE, plane );*/
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
+			{
+				idConsole.WriteLine("TODO: TexGen GlassWarp");
+
+				/*if ( tr.backEndRenderer == BE_ARB2) {
+					qglBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, FPROG_GLASSWARP );
+					qglEnable( GL_FRAGMENT_PROGRAM_ARB );
+
+					GL_SelectTexture( 2 );
+					globalImages->scratchImage->Bind();
+
+					GL_SelectTexture( 1 );
+					globalImages->scratchImage2->Bind();
+
+					qglEnable( GL_TEXTURE_GEN_S );
+					qglEnable( GL_TEXTURE_GEN_T );
+					qglEnable( GL_TEXTURE_GEN_Q );
+
+					float	mat[16], plane[4];
+					myGlMultMatrix( surf->space->modelViewMatrix, backEnd.viewDef->projectionMatrix, mat );
+
+					plane[0] = mat[0];
+					plane[1] = mat[4];
+					plane[2] = mat[8];
+					plane[3] = mat[12];
+					qglTexGenfv( GL_S, GL_OBJECT_PLANE, plane );
+
+					plane[0] = mat[1];
+					plane[1] = mat[5];
+					plane[2] = mat[9];
+					plane[3] = mat[13];
+					qglTexGenfv( GL_T, GL_OBJECT_PLANE, plane );
+
+					plane[0] = mat[3];
+					plane[1] = mat[7];
+					plane[2] = mat[11];
+					plane[3] = mat[15];
+					qglTexGenfv( GL_Q, GL_OBJECT_PLANE, plane );
+
+					GL_SelectTexture( 0 );
+				}*/
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
+			{
+				idConsole.WriteLine("TODO: TexGen ReflectCube");
+
+				/*if ( tr.backEndRenderer == BE_ARB2 ) {
+					// see if there is also a bump map specified
+					const shaderStage_t *bumpStage = surf->material->GetBumpStage();
+					if ( bumpStage ) {
+						// per-pixel reflection mapping with bump mapping
+						GL_SelectTexture( 1 );
+						bumpStage->texture.image->Bind();
+						GL_SelectTexture( 0 );
+
+						qglNormalPointer( GL_FLOAT, sizeof( idDrawVert ), ac->normal.ToFloatPtr() );
+						qglVertexAttribPointerARB( 10, 3, GL_FLOAT, false, sizeof( idDrawVert ), ac->tangents[1].ToFloatPtr() );
+						qglVertexAttribPointerARB( 9, 3, GL_FLOAT, false, sizeof( idDrawVert ), ac->tangents[0].ToFloatPtr() );
+
+						qglEnableVertexAttribArrayARB( 9 );
+						qglEnableVertexAttribArrayARB( 10 );
+						qglEnableClientState( GL_NORMAL_ARRAY );
+
+						// Program env 5, 6, 7, 8 have been set in RB_SetProgramEnvironmentSpace
+
+						qglBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, FPROG_BUMPY_ENVIRONMENT );
+						qglEnable( GL_FRAGMENT_PROGRAM_ARB );
+						qglBindProgramARB( GL_VERTEX_PROGRAM_ARB, VPROG_BUMPY_ENVIRONMENT );
+						qglEnable( GL_VERTEX_PROGRAM_ARB );
+					} else {
+						// per-pixel reflection mapping without a normal map
+						qglNormalPointer( GL_FLOAT, sizeof( idDrawVert ), ac->normal.ToFloatPtr() );
+						qglEnableClientState( GL_NORMAL_ARRAY );
+
+						qglBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, FPROG_ENVIRONMENT );
+						qglEnable( GL_FRAGMENT_PROGRAM_ARB );
+						qglBindProgramARB( GL_VERTEX_PROGRAM_ARB, VPROG_ENVIRONMENT );
+						qglEnable( GL_VERTEX_PROGRAM_ARB );
+					}
+				} else {
+					qglEnable( GL_TEXTURE_GEN_S );
+					qglEnable( GL_TEXTURE_GEN_T );
+					qglEnable( GL_TEXTURE_GEN_R );
+					qglTexGenf( GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT );
+					qglTexGenf( GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT );
+					qglTexGenf( GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT );
+					qglEnableClientState( GL_NORMAL_ARRAY );
+					qglNormalPointer( GL_FLOAT, sizeof( idDrawVert ), ac->normal.ToFloatPtr() );
+
+					qglMatrixMode( GL_TEXTURE );
+					float	mat[16];
+
+					R_TransposeGLMatrix( backEnd.viewDef->worldSpace.modelViewMatrix, mat );
+
+					qglLoadMatrixf( mat );
+					qglMatrixMode( GL_MODELVIEW );
+				}*/
+			}
+		}
+
+		private void RenderShaderPasses(DrawSurface surface)
+		{
+			/*void RB_STD_T_RenderShaderPasses( const drawSurf_t *surf ) {
+		int			stage;
+		const idMaterial	*shader;
+		const shaderStage_t *pStage;
+		const float	*regs;
+		float		color[4];
+		const srfTriangles_t	*tri;*/
+
+			Surface tri = surface.Geometry;
+			idMaterial material = surface.Material;
+
+			if(material.HasAmbient == false)
+			{
+				return;
+			}
+
+			if(material.IsPortalSky == false)
+			{
+				return;
+			}
+
+			// change the matrix if needed
+			// TODO
+			/*if ( surf->space != backEnd.currentSpace ) {
+				qglLoadMatrixf( surf->space->modelViewMatrix );
+				backEnd.currentSpace = surf->space;
+				RB_SetProgramEnvironmentSpace();
+			}*/
+
+			// change the scissor if needed
+			if((idE.CvarSystem.GetBool("r_useScissor") == true) && (idE.Backend.CurrentScissor != surface.ScissorRectangle))
+			{
+				idE.Backend.CurrentScissor = surface.ScissorRectangle;
+
+				Gl.glScissor(idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
+					idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.CurrentScissor.Y1,
+					idE.Backend.CurrentScissor.X2 + 1 - idE.Backend.CurrentScissor.X1,
+					idE.Backend.CurrentScissor.Y2 + 1 - idE.Backend.CurrentScissor.Y1);
+			}
+
+			// some deforms may disable themselves by setting numIndexes = 0
+			if(tri.Indexes.Length == 0)
+			{
+				return;
+			}
+
+			if(tri.AmbientCache == null)
+			{
+				idConsole.WriteLine("RenderShaderPasses: !tri.AmbientCache");
+				return;
+			}
+
+			// get the expressions for conditionals / color / texcoords
+			float[] registers = surface.MaterialRegisters;
+
+			// set face culling appropriately
+			GL_Cull(material.CullType);
+
+			// set polygon offset if necessary
+			if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
+			{
+				Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
+				Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * material.PolygonOffset);
+			}
+
+			// TODO: weapon depth hack
+			/*if ( surf->space->weaponDepthHack ) {
+				RB_EnterWeaponDepthHack();
+			}
+
+			if ( surf->space->modelDepthHack != 0.0f ) {
+				RB_EnterModelDepthHack( surf->space->modelDepthHack );
+			}*/
+
+			Vertex[] ambientCacheData = tri.AmbientCache.Data;
+
+			unsafe
+			{
+				fixed(float* positionPtr = &ambientCacheData[0].Position[0])
+					Gl.glVertexPointer(3, Gl.GL_FLOAT, Marshal.SizeOf(typeof(Vertex)), (IntPtr) positionPtr);
+				fixed(float* uvPtr = &ambientCacheData[0].TextureCoordinates[0])
+					Gl.glTexCoordPointer(2, Gl.GL_FLOAT, Marshal.SizeOf(typeof(Vertex)), (IntPtr) uvPtr);
+			}
+
+			foreach(MaterialStage stage in material.Stages)
+			{
+				// check the enable condition
+				if(registers[stage.ConditionRegister] == 0)
+				{
+					continue;
+				}
+
+				// skip the stages involved in lighting
+				if(stage.Lighting != StageLighting.Ambient)
+				{
+					continue;
+				}
+
+				// skip if the stage is ( GL_ZERO, GL_ONE ), which is used for some alpha masks
+				if((stage.DrawStateBits & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendZero | MaterialStates.DestinationBlendZero))
+				{
+					continue;
+				}
+
+				// see if we are a new-style stage
+				NewMaterialStage newStage = stage.NewStage;
+
+				if(newStage.IsEmpty == false)
+				{
+					//--------------------------
+					//
+					// new style stages
+					//
+					//--------------------------
+
+					if(idE.CvarSystem.GetBool("r_skipNewAmbient") == true)
+					{
+						continue;
+					}
+
+					// TODO: render
+					/*Gl.glColorPointer(4, Gl.GL_UNSIGNED_BYTE, Marshal.SizeOf(typeof(Vertex)), (void*) &ambientCacheData->color);
+					Gl.glVertexAttribPointerARB(9, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[0].ToFloatPtr());
+					Gl.glVertexAttribPointerARB(10, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[1].ToFloatPtr());
+					Gl.glNormalPointer(Gl.GL_FLOAT, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->normal.ToFloatPtr());*/
+
+					Gl.glEnableClientState(Gl.GL_COLOR_ARRAY);
+					Gl.glEnableVertexAttribArrayARB(9);
+					Gl.glEnableVertexAttribArrayARB(10);
+					Gl.glEnableClientState(Gl.GL_NORMAL_ARRAY);
+
+					GL_State(stage.DrawStateBits);
+
+					Gl.glBindProgramARB(Gl.GL_VERTEX_PROGRAM_ARB, newStage.VertexProgram);
+					Gl.glEnable(Gl.GL_VERTEX_PROGRAM_ARB);
+
+					// megaTextures bind a lot of images and set a lot of parameters
+					// TODO: megatextures
+					/*if ( newStage->megaTexture ) {
+						newStage->megaTexture->SetMappingForSurface( tri );
+						idVec3	localViewer;
+						R_GlobalPointToLocal( surf->space->modelMatrix, backEnd.viewDef->renderView.vieworg, localViewer );
+						newStage->megaTexture->BindForViewOrigin( localViewer );
+					}*/
+
+					for(int i = 0; i < newStage.VertexParameters.Length; i++)
+					{
+						float[] parm = new float[4];
+						parm[0] = registers[newStage.VertexParameters[i, 0]];
+						parm[1] = registers[newStage.VertexParameters[i, 1]];
+						parm[2] = registers[newStage.VertexParameters[i, 2]];
+						parm[3] = registers[newStage.VertexParameters[i, 3]];
+
+						Gl.glProgramLocalParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, i, parm);
+					}
+
+					for(int i = 0; i < newStage.FragmentProgramImages.Length; i++)
+					{
+						if(newStage.FragmentProgramImages[i] != null)
+						{
+							GL_SelectTexture(i);
+							newStage.FragmentProgramImages[i].Bind();
+						}
+					}
+
+					Gl.glBindProgramARB(Gl.GL_FRAGMENT_PROGRAM_ARB, newStage.FragmentProgram);
+					Gl.glEnable(Gl.GL_FRAGMENT_PROGRAM_ARB);
+
+					// draw it
+					DrawElementsWithCounters(tri);
+
+					for(int i = 1; i < newStage.FragmentProgramImages.Length; i++)
+					{
+						if(newStage.FragmentProgramImages[i] != null)
+						{
+							GL_SelectTexture(i);
+							idE.ImageManager.BindNullTexture();
+						}
+					}
+
+					// TODO: megatexture
+					/*if ( newStage->megaTexture ) {
+						newStage->megaTexture->Unbind();
+					}*/
+
+					GL_SelectTexture(0);
+
+					Gl.glDisable(Gl.GL_VERTEX_PROGRAM_ARB);
+					Gl.glDisable(Gl.GL_FRAGMENT_PROGRAM_ARB);
+					// FIXME: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
+					Gl.glBindProgramARB(Gl.GL_VERTEX_PROGRAM_ARB, 0);
+
+					Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
+					Gl.glDisableVertexAttribArrayARB(9);
+					Gl.glDisableVertexAttribArrayARB(10);
+					Gl.glDisableClientState(Gl.GL_NORMAL_ARRAY);
+
+					continue;
+				}
+
+				//--------------------------
+				//
+				// old style stages
+				//
+				//--------------------------
+
+				// set the color
+				float[] color = new float[4];
+				color[0] = registers[stage.Color.Registers[0]];
+				color[1] = registers[stage.Color.Registers[1]];
+				color[2] = registers[stage.Color.Registers[2]];
+				color[3] = registers[stage.Color.Registers[3]];
+
+				// skip the entire stage if an add would be black
+				if(((stage.DrawStateBits & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne))
+					&& (color[0] <= 0) && (color[1] <= 0) && (color[2] <= 0))
+				{
+					continue;
+				}
+
+				// skip the entire stage if a blend would be completely transparent
+				if(((stage.DrawStateBits & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendSourceAlpha | MaterialStates.DestinationBlendOneMinusSourceAlpha))
+					&& (color[3] <= 0))
+				{
+					continue;
+				}
+
+				// select the vertex color source
+				if(stage.VertexColor == StageVertexColor.Ignore)
+				{
+					Gl.glColor4fv(color);
+				}
+				else
+				{
+					unsafe
+					{
+						fixed(byte* colorPtr = &ambientCacheData[0].Color[0])
+							Gl.glColorPointer(4, Gl.GL_UNSIGNED_BYTE, Marshal.SizeOf(typeof(Vertex)), (IntPtr) colorPtr);
+					}
+
+					Gl.glEnableClientState(Gl.GL_COLOR_ARRAY);
+
+					if(stage.VertexColor == StageVertexColor.InverseModulate)
+					{
+						GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
+
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_RGB_ARB, Gl.GL_MODULATE);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_RGB_ARB, Gl.GL_TEXTURE);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB_ARB, Gl.GL_PRIMARY_COLOR_ARB);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB_ARB, Gl.GL_SRC_COLOR);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB_ARB, Gl.GL_ONE_MINUS_SRC_COLOR);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE_ARB, 1);
+					}
+
+					// for vertex color and modulated color, we need to enable a second texture stage
+					if(color[0] != 1 || color[1] != 1 || color[2] != 1 || color[3] != 1)
+					{
+						GL_SelectTexture(1);
+						idE.ImageManager.WhiteImage.Bind();
+						GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
+
+						Gl.glTexEnvfv(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_COLOR, color);
+
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_RGB_ARB, Gl.GL_MODULATE);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_RGB_ARB, Gl.GL_PREVIOUS_ARB);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB_ARB, Gl.GL_CONSTANT_ARB);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB_ARB, Gl.GL_SRC_COLOR);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB_ARB, Gl.GL_SRC_COLOR);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE_ARB, 1);
+
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_ALPHA_ARB, Gl.GL_MODULATE);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_ALPHA_ARB, Gl.GL_PREVIOUS_ARB);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_ALPHA_ARB, Gl.GL_CONSTANT_ARB);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_ALPHA_ARB, Gl.GL_SRC_ALPHA);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_ALPHA_ARB, Gl.GL_SRC_ALPHA);
+						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_ALPHA_SCALE, 1);
+
+						GL_SelectTexture(0);
+					}
+				}
+
+				// bind the texture
+				BindVariableStageImage(stage.Texture, registers);
+
+				// set the state
+				GL_State(stage.DrawStateBits);
+
+				PrepareStageTexturing(stage, surface, ambientCacheData);
+
+				// draw it
+				DrawElementsWithCounters(tri);
+
+				FinishStageTexturing(stage, surface, ambientCacheData);
+
+				if(stage.VertexColor != StageVertexColor.Ignore)
+				{
+					Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
+
+					GL_SelectTexture(1);
+					GL_TextureEnvironment(Gl.GL_MODULATE);
+
+					idE.ImageManager.BindNullTexture();
+
+					GL_SelectTexture(0);
+					GL_TextureEnvironment(Gl.GL_MODULATE);
+				}
+			}
+
+			// reset polygon offset
+			if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
+			{
+				Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
+			}
+
+			// TODO: weapon depth hack
+			/*if ( surf->space->weaponDepthHack || surf->space->modelDepthHack != 0.0f ) {
+				RB_LeaveDepthHack();
+			}*/
+		}
+
 		/// <summary>
 		/// Check for changes in the back end renderSystem, possibly invalidating cached data.
 		/// </summary>
@@ -1632,8 +2827,8 @@ namespace idTech4.Renderer
 			// the vertex array is always enabled
 			Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
 			Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-			// TODO: Gl.glDisableClientState(Gl.GL_COLOR_ALPHA);
-
+			Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
+			
 			//
 			// make sure our GL state vector is set correctly
 			//
@@ -1756,7 +2951,7 @@ namespace idTech4.Renderer
 				Gl.glFinish();
 			}
 
-			// TODO: RB_LogComment( "***************** RB_SwapBuffers *****************\n\n\n" );
+			// TODO: RB_LogComment("***************** RB_SwapBuffers *****************\n\n\n");
 
 			// don't flip if drawing to front buffer
 			if(idE.CvarSystem.GetBool("r_frontBuffer") == false)
@@ -1768,7 +2963,6 @@ namespace idTech4.Renderer
 				if(idE.CvarSystem.IsModified("r_swapInterval") == true)
 				{
 					idE.CvarSystem.ClearModified("r_swapInterval");
-
 					Wgl.wglSwapIntervalEXT(idE.CvarSystem.GetInteger("r_swapInterval"));
 				}
 
@@ -1805,6 +2999,11 @@ namespace idTech4.Renderer
 
 			ClearCommandChain();
 		}
+
+		private void UnbindIndex()
+		{
+			Gl.glBindBufferARB(Gl.GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+		}
 		#endregion
 
 		#region GLimp* - to be refactored in to separate render lib
@@ -1829,6 +3028,56 @@ namespace idTech4.Renderer
 			/*if ( !SetDeviceGammaRamp( win32.hDC, table ) ) {
 				common->Printf( "WARNING: SetDeviceGammaRamp failed.\n" );
 			}*/
+		}
+
+		/// <summary>
+		/// Sets variables that can be used by all vertex programs.
+		/// </summary>
+		private void SetProgramEnvironment()
+		{
+			float[] parameters = new float[4];
+			int pot;
+
+			// screen power of two correction factor, assuming the copy to _currentRender
+			// also copied an extra row and column for the bilerp
+			int width = idE.Backend.ViewDefinition.ViewPort.X2 - idE.Backend.ViewDefinition.ViewPort.X1 + 1;
+			pot = idE.ImageManager.CurrentRenderImage.UploadWidth;
+			parameters[0] = width / pot;
+
+			int height = idE.Backend.ViewDefinition.ViewPort.Y2 - idE.Backend.ViewDefinition.ViewPort.Y1 + 1;
+			pot = idE.ImageManager.CurrentRenderImage.UploadHeight;
+			parameters[1] = height / pot;
+
+			parameters[2] = 0;
+			parameters[3] = 1;
+
+			Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 0, parameters);
+			Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 0, parameters);
+
+			// window coord to 0.0 to 1.0 conversion
+			parameters[0] = 1.0f / width;
+			parameters[1] = 1.0f / height;
+			parameters[2] = 0;
+			parameters[3] = 1;
+
+			Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 1, parameters);
+
+			//
+			// set eye position in global space
+			//
+			parameters[0] = idE.Backend.ViewDefinition.RenderView.ViewOrigin.X;
+			parameters[1] = idE.Backend.ViewDefinition.RenderView.ViewOrigin.Y;
+			parameters[2] = idE.Backend.ViewDefinition.RenderView.ViewOrigin.Z;
+			parameters[3] = 1.0f;
+
+			Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 1, parameters);
+		}
+		#endregion
+
+		#region NV10
+		private void InitNV10()
+		{
+			idE.GLConfig.AllowNV10Path = idE.GLConfig.RegisterCombinersAvailable;
 		}
 		#endregion
 
@@ -2046,7 +3295,6 @@ namespace idTech4.Renderer
 					Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
 					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
-
 				// for GL_CONSTANT_COLOR0_NV * TEXTURE0 * TEXTURE1
 				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_CONSTANT_COLOR0_NV,
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
@@ -2062,7 +3310,6 @@ namespace idTech4.Renderer
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
 				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
-
 			}
 		}
 
@@ -2189,7 +3436,7 @@ namespace idTech4.Renderer
 
 				common->Printf( "FPROG_FAST_PATH\n" );
 				R_BuildSurfaceFragmentProgram( FPROG_FAST_PATH );*/
-
+			
 				idConsole.WriteLine("---------------------");
 
 				idE.GLConfig.AllowR200Path = true;
@@ -2239,16 +3486,17 @@ namespace idTech4.Renderer
 	{
 		public int FrameCount; // used to track all images used in a frame.
 
-		/*const viewDef_t	*	viewDef;
-		backEndCounters_t	pc;*/
+		public View ViewDefinition;
+		/*backEndCounters_t	pc;*/
 
-		/*const viewEntity_t *currentSpace;		// for detecting when a matrix must change
-		idScreenRect		currentScissor;*/
+		/*const viewEntity_t *currentSpace;		// for detecting when a matrix must change*/
+
+		public idScreenRect CurrentScissor;
 		// for scissor clipping, local inside renderView viewport
 
-		/*viewLight_t *		vLight;
-		int					depthFunc;			// GLS_DEPTHFUNC_EQUAL, or GLS_DEPTHFUNC_LESS for translucent
-		float				lightTextureMatrix[16];	// only if lightStage->texture.hasMatrix
+		/*viewLight_t *		vLight;*/
+		public int DepthFunction;				// GLS_DEPTHFUNC_EQUAL, or GLS_DEPTHFUNC_LESS for translucent
+		/*float				lightTextureMatrix[16];	// only if lightStage->texture.hasMatrix
 		float				lightColor[4];		// evaluation of current light's color stage
 
 		float				lightScale;			// Every light color calaculation will be multiplied by this,
@@ -2271,7 +3519,7 @@ namespace idTech4.Renderer
 		public TextureUnit[] TextureUnits = new TextureUnit[8];
 		public int CurrentTextureUnit;
 
-		public int FaceCulling;
+		public CullType FaceCulling;
 		public int StateBits;
 		public bool ForceState; // the next GL_State will ignore glStateBits and set everything.
 
@@ -2432,18 +3680,19 @@ namespace idTech4.Renderer
 		public int Width;
 		public int Height;
 
-		/*float					fov_x, fov_y;
-		idVec3					vieworg;
-		idMat3					viewaxis;			// transformation matrix, view looks down the positive X axis
+		/*float					fov_x, fov_y;*/
 
-		bool					cramZNear;			// for cinematics, we want to set ZNear much lower
+		public Vector3 ViewOrigin;
+		public Matrix ViewAxis;						// transformation matrix, view looks down the positive X axis
+
+		/*bool					cramZNear;			// for cinematics, we want to set ZNear much lower
 		bool					forceUpdate;		// for an update 
 
 		// time in milliseconds for shader effects and other time dependent rendering issues
 		int						time;*/
 
 		/// <summary>Can be used in any way by the shader.</summary>
-		public float[] ShaderParameters;
+		public float[] MaterialParameters;
 
 		/// <summary>Used to override everything draw.</summary>
 		public idMaterial GlobalMaterial;
@@ -2498,7 +3747,7 @@ namespace idTech4.Renderer
 		const idMaterial *		referenceShader;		// used so flares can reference the proper light shader
 		const idDeclSkin *		customSkin;				// 0 for no remappings
 		class idSoundEmitter *	referenceSound;			// for shader sound tables, allowing effects to vary with sounds*/
-		public float[] ShaderParameters;				// can be used in any way by shader or model generation
+		public float[] MaterialParameters;				// can be used in any way by material or model generation
 
 		// networking: see WriteGUIToSnapshot / ReadGUIFromSnapshot
 		/*class idUserInterface * gui[ MAX_RENDERENTITY_GUI ];
@@ -2529,7 +3778,7 @@ namespace idTech4.Renderer
 
 		public void Init()
 		{
-			ShaderParameters = new float[idE.MaxEntityShaderParameters];
+			MaterialParameters = new float[idE.MaxEntityMaterialParameters];
 		}
 	}
 
@@ -2558,10 +3807,10 @@ namespace idTech4.Renderer
 	{
 		public Surface Geometry;
 		public ViewEntity Space;
-		public idMaterial Material;				// may be null for shadow volumes
 		public float Sort;						// material->sort, modified by gui / entity sort offsets
 
-		public float[] ShaderRegisters;			// evaluated and adjusted for referenceShaders
+		public idMaterial Material;				// may be null for shadow volumes
+		public float[] MaterialRegisters;			// evaluated and adjusted for referenceShaders
 
 		public idScreenRect ScissorRectangle;	// for scissor clipping, local inside renderView viewport
 
@@ -2586,7 +3835,7 @@ namespace idTech4.Renderer
 	bool						deformedSurface;		// if true, indexes, silIndexes, mirrorVerts, and silEdges are
 														// pointers into the original surface, and should not be freed*/
 
-		public idVertex[] Vertices;
+		public Vertex[] Vertices;
 		public int[] Indexes;							// for shadows, this has both front and rear end caps and silhouette planes
 
 		/*
@@ -2621,21 +3870,40 @@ namespace idTech4.Renderer
 
 		struct srfTriangles_s *		nextDeferredFree;		// chain of tris to free next frame
 
-		// data in vertex object space, not directly readable by the CPU
-		struct vertCache_s *		indexCache;				// int
-		struct vertCache_s *		ambientCache;			// idDrawVert
-		struct vertCache_s *		lightingCache;			// lightingCache_t
+		// data in vertex object space, not directly readable by the CPU*/
+
+		public VertexCache IndexCache;						// int
+		public VertexCache AmbientCache;					// idDrawVert
+		/*struct vertCache_s *		lightingCache;			// lightingCache_t
 		struct vertCache_s *		shadowCache;			// shadowCache_t
-	} srfTriangles_t;*/
+	*/
 	}
 
-	public struct idVertex
+	public struct Vertex
 	{
-		public Vector3 Position;
-		public Vector2 TextureCoordinates;
-		public Vector3 Normal;
-		public Vector3[] Tangents;
+		public float[] Position;
+		public float[] TextureCoordinates;
+		public float[] Normal;
+		public float[,] Tangents;
 		public byte[] Color;
+	}
+
+	public abstract class BaseVertexCache
+	{
+		public VertexCacheType Tag;
+	}
+
+	public sealed class VertexCache : BaseVertexCache
+	{
+		public Vertex[] Data;
+	}
+
+	public enum VertexCacheType
+	{
+		Free,
+		Used,
+		Fixed,
+		Temporary
 	}
 
 	internal struct FrameData

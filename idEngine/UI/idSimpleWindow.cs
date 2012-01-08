@@ -76,8 +76,8 @@ namespace idTech4.UI
 		private float _materialScaleY;
 		private int _borderSize;
 		private TextAlign _textAlign;
-		private float _textAlignX;
-		private float _textAlignY;
+		private int _textAlignX;
+		private int _textAlignY;
 		private int _textShadow;
 
 		private idWinString _text = new idWinString("text");
@@ -206,61 +206,215 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
+		public void Draw(int x, int y)
+		{
+			if(_visible == false)
+			{
+				return;
+			}
+
+			CalculateClientRectangle(0, 0);
+
+			// TODO: font
+			// dc->SetFont(fontNum);
+
+			_drawRect.Offset(x, y);
+			_clientRect.Offset(x, y);
+			_textRect.Offset(x, y);
+
+			SetupTransforms(x, y);
+
+			if((_flags & WindowFlags.NoClip) != 0)
+			{
+				_context.ClippingEnabled = false;
+			}
+
+			DrawBackground(_drawRect);
+
+			// TODO: DrawBorderAndCaption(drawRect);
+
+			// TODO: textShadow
+			/*if ( textShadow ) {
+				idStr shadowText = text;
+				idRectangle shadowRect = textRect;
+
+				shadowText.RemoveColors();
+				shadowRect.x += textShadow;
+				shadowRect.y += textShadow;
+
+				dc->DrawText( shadowText, textScale, textAlign, colorBlack, shadowRect, !( flags & WIN_NOWRAP ), -1 );
+			}
+			 
+			 // TODO: DrawText
+			dc->DrawText(text, textScale, textAlign, foreColor, textRect, !( flags & WIN_NOWRAP ), -1);*/
+
+			_context.SetTransformInformation(Vector3.Zero, Matrix.Identity);
+
+			if((_flags & WindowFlags.NoClip) != 0)
+			{
+				_context.ClippingEnabled = true;
+			}
+
+			_drawRect.Offset(-x, -y);
+			_clientRect.Offset(-x, -y);
+			_textRect.Offset(-x, -y);
+		}
+
 		public idWindowVariable GetVariableByName(string name)
 		{
 			idWindowVariable ret = null;
 			string nameLower = name.ToLower();
 
-			if(nameLower.Equals("background", StringComparison.OrdinalIgnoreCase) == true)
+			if(nameLower == "background")
 			{
 				ret = _backgroundName;
 			}
-			else if(nameLower.Equals("visible", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "visible")
 			{
 				ret = _visible;
 			}
-			else if(nameLower.Equals("rect", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "rect")
 			{
 				ret = _rect;
 			}
-			else if(nameLower.Equals("backColor", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "backcolor")
 			{
 				ret = _backColor;
 			}
-			else if(nameLower.Equals("matColor", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "matcolor")
 			{
 				ret = _materialColor;
 			}
-			else if(nameLower.Equals("foreColor", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "forecolor")
 			{
 				ret = _foreColor;
 			}
-			else if(nameLower.Equals("borderColor", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "bordercolor")
 			{
 				ret = _borderColor;
 			}
-			else if(nameLower.Equals("textScale", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "textscale")
 			{
 				ret = _textScale;
 			}
-			else if(nameLower.Equals("rotate", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "rotate")
 			{
 				ret = _rotate;
 			}
-			else if(nameLower.Equals("text", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "text")
 			{
 				ret = _text;
 			}
-			else if(nameLower.Equals("backgroundName", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "backgroundname")
 			{
 				ret = _backgroundName;
 			}
-			else if(nameLower.Equals("hideCursor", StringComparison.OrdinalIgnoreCase) == true)
+			else if(nameLower == "hidecursor")
 			{
 				ret = _hideCursor;
 			}
 
 			return ret;
+		}
+		#endregion
+
+		#region Private
+		private void CalculateClientRectangle(int offsetX, int offsetY)
+		{
+			_drawRect = _rect.Data;
+
+			if((_flags & WindowFlags.InvertRectangle) != 0)
+			{
+				_drawRect.X = (int) (_rect.X - _rect.Width);
+				_drawRect.Y = (int) (_rect.Y - _rect.Height);
+			}
+
+			_drawRect.X += offsetX;
+			_drawRect.Y += offsetY;
+
+			_clientRect = _drawRect;
+
+			if((_rect.Height > 0.0f) && (_rect.Width > 0.0f))
+			{
+				if(((_flags & WindowFlags.Border) != 0) && (_borderSize != 0.0f))
+				{
+					_clientRect.X += _borderSize;
+					_clientRect.Y += _borderSize;
+					_clientRect.Width -= _borderSize;
+					_clientRect.Height -= _borderSize;
+				}
+
+				_textRect = _clientRect;
+				_textRect.X += 2;
+				_textRect.Y += 2;
+				_textRect.Width -= 2;
+				_textRect.Height -= 2;
+
+				_textRect.X += _textAlignX;
+				_textRect.Y += _textAlignY;
+			}
+
+			_origin = new Vector2(_rect.X + (_rect.Width / 2), _rect.Y + (_rect.Height / 2));
+		}
+
+		private void DrawBackground(Rectangle drawRect)
+		{
+			if(_backColor.W > 0)
+			{
+				idConsole.WriteLine("DrawFilled");
+			}
+			/*if (backColor.w() > 0) {
+		dc->DrawFilledRect(drawRect.x, drawRect.y, drawRect.w, drawRect.h, backColor);
+	}*/
+
+			if(_background != null)
+			{
+				if(_materialColor.W > 0)
+				{
+					idConsole.WriteLine("DrawMaterial");
+				}
+			}
+
+			/*if (background) {
+				if (matColor.w() > 0) {
+					float scalex, scaley;
+					if ( flags & WIN_NATURALMAT ) {
+						scalex = drawRect.w / background->GetImageWidth();
+						scaley = drawRect.h / background->GetImageHeight();
+					} else {
+						scalex = matScalex;
+						scaley = matScaley;
+					}
+					dc->DrawMaterial(drawRect.x, drawRect.y, drawRect.w, drawRect.h, background, matColor, scalex, scaley);
+				}*/
+		}
+
+		private void SetupTransforms(float x, float y)
+		{
+			Matrix transform = Matrix.Identity;
+			Vector3 origin = new Vector3(_origin.X + x, _origin.Y + y, 0);
+
+			// TODO: rotate
+			/*if ( rotate ) {
+				static idRotation rot;
+				static idVec3 vec(0, 0, 1);
+				rot.Set( org, vec, rotate );
+				trans = rot.ToMat3();
+			}*/
+
+			// TODO: shear
+			/*if ( shear.x || shear.y ) {
+				static idMat3 smat;
+				smat.Identity();
+				smat[0][1] = shear.x;
+				smat[1][0] = shear.y;
+				trans *= smat;
+			}*/
+
+			if(transform != Matrix.Identity)
+			{
+				_context.SetTransformInformation(origin, transform);
+			}
 		}
 		#endregion
 		#endregion

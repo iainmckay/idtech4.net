@@ -341,10 +341,21 @@ namespace idTech4.IO
 
 		public bool FileExists(string relativePath)
 		{
+			return FileExists(relativePath, null);
+		}
+
+		public bool FileExists(string relativePath, string basePath)
+		{
 			bool found;
 			Pack pack;
 
-			OpenFileRead(relativePath, true, out pack, null, FileSearch.SearchDirectories | FileSearch.SearchPaks, true, out found);
+			if(basePath != null)
+			{
+				relativePath = RelativePathToOSPath(relativePath, basePath);
+			}
+
+			Stream s = OpenFileRead(relativePath, true, out pack, null, FileSearch.SearchDirectories | FileSearch.SearchPaks, true, out found);
+			s.Dispose();
 
 			return found;
 		}
@@ -819,6 +830,18 @@ namespace idTech4.IO
 			}*/
 			
 			return content;
+		}
+
+		public string RelativePathToOSPath(string relativePath, string basePath)
+		{
+			string path = idE.CvarSystem.GetString(basePath);
+
+			if(path == null)
+			{
+				path = idE.CvarSystem.GetString("fs_savepath");
+			}
+
+			return CreatePath(path, _gameFolder, relativePath);
 		}
 		#endregion
 
@@ -1437,7 +1460,20 @@ namespace idTech4.IO
 		/// <returns></returns>
 		private Stream OpenOSFile(string name, FileMode mode, FileAccess access, out string caseSensitiveName)
 		{
-			Stream s = File.Open(name, mode, access, FileShare.Read);
+			Stream s = null;
+
+			if(File.Exists(name) == false)
+			{
+				if((mode == FileMode.Create) || (mode == FileMode.CreateNew) || (mode == FileMode.OpenOrCreate))
+				{
+					s = File.Create(name);
+				}
+			}
+			else
+			{
+				s = File.Open(name, mode, access, FileShare.Read);
+			}
+
 			caseSensitiveName = string.Empty;
 			
 			if((s == null) && (idE.CvarSystem.GetBool("fs_caseSensitiveOS") == true))

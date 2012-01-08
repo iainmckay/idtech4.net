@@ -49,6 +49,7 @@ namespace idTech4
 		public SystemConsole()
 		{
 			InitializeComponent();
+			Hide();
 
 			_consoleField.InputAvailable += new EventHandler<EventArgs>(OnInputAvailable);
 		}
@@ -79,6 +80,7 @@ namespace idTech4
 					break;
 				case 1:
 					this.Show();
+					this.FocusInput();
 					break;
 				case 2:
 					this.WindowState = FormWindowState.Minimized;

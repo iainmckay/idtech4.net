@@ -64,6 +64,26 @@ namespace idTech4
 
 		#region Methods
 		#region Public
+		public void Dump(string file)
+		{
+			Stream f = idE.FileSystem.OpenFileWrite(file);
+
+			if(f == null)
+			{
+				idConsole.Warning("couldn't open {0}", file);
+			}
+			else
+			{
+				using(StreamWriter w = new StreamWriter(f))
+				{
+					foreach(string str in _buffer)
+					{
+						w.WriteLine(idHelper.RemoveColors(str));
+					}
+				}
+			}
+		}
+
 		public void Init()
 		{
 			idE.CmdSystem.AddCommand("clear", "clears the console", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Clear));
@@ -92,27 +112,7 @@ namespace idTech4
 			/*if ( current >= 0 ) {
 				times[current % NUM_CON_TIMES] = com_frameTime;
 			}*/
-		}
-
-		public void Dump(string file)
-		{
-			Stream f = idE.FileSystem.OpenFileWrite(file);
-
-			if(f == null)
-			{
-				idConsole.Warning("couldn't open {0}", file);
-			}
-			else
-			{
-				using(StreamWriter w = new StreamWriter(f))
-				{
-					foreach(string str in _buffer)
-					{
-						w.WriteLine(idHelper.RemoveColors(str));
-					}
-				}
-			}
-		}
+		}		
 		#endregion
 
 		#region Command handlers
