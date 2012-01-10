@@ -9,6 +9,16 @@ namespace idTech4.Text
 {
 	public class idImageProgramParser
 	{
+		#region Properties
+		public string Source
+		{
+			get
+			{
+				return _builder.ToString();
+			}
+		}
+		#endregion
+
 		#region Members
 		private idLexer _lexer;
 		private StringBuilder _builder = new StringBuilder();
@@ -23,20 +33,54 @@ namespace idTech4.Text
 
 		#region Methods
 		#region Public
+		public byte[] ParseImageProgram(idLexer lexer)
+		{
+			_lexer = lexer;
+
+			int width = 0;
+			int height = 0;
+			DateTime timeStamp = DateTime.Now;;
+			TextureDepth depth = TextureDepth.Default;
+
+			return ParseImageProgram(ref width, ref height, ref timeStamp, ref depth, true);
+		}
+
+		public byte[] ParseImageProgram(idLexer lexer, ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth)
+		{
+			_lexer = lexer;
+			return ParseImageProgram(ref width, ref height, ref timeStamp, ref depth, false);
+		}
+
 		public byte[] ParseImageProgram(string source, ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth)
 		{
-			if(_lexer == null)
+			_lexer = new idLexer(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowPathNames);
+			_lexer.LoadMemory(source, source);
+
+			return ParseImageProgram(ref width, ref height, ref timeStamp, ref depth, false);
+		}
+				
+		#endregion
+
+		#region Private
+		private void AppendToken(idToken token)
+		{
+			if(_builder.Length > 0)
 			{
-				_lexer = new idLexer(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowPathNames);
-				_lexer.LoadMemory(source, source);
+				_builder.AppendFormat(" {0}", token.ToString());
 			}
+			else
+			{
+				_builder.Append(token.ToString());
+			}
+		}
 
-			idToken token = _lexer.ReadToken();
-
+		private byte[] ParseImageProgram(ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth, bool parseOnly)
+		{
+			idToken token = _lexer.ReadToken();			
 			AppendToken(token);
-
+			
 			string tokenLower = token.ToString().ToLower();
-
+		
 			if(tokenLower == "heightmap")
 			{
 				idConsole.WriteLine("TODO: image program heightmap");
@@ -159,8 +203,7 @@ namespace idTech4.Text
 
 				return null;
 			}
-
-			if(tokenLower == "scale")
+			else if(tokenLower == "scale")
 			{
 				idConsole.WriteLine("image program scale");
 				/*float	scale[4];
@@ -274,22 +317,14 @@ namespace idTech4.Text
 				return null;
 			}
 
-			// load it as an image
-			return idE.ImageManager.LoadImage(token.ToString(), ref width, ref height, ref timeStamp, true);			
-		}
-		#endregion
+			// if we are just parsing instead of loading or checking, don't do the R_LoadImage
+			if(parseOnly == true)
+			{
+				return new byte[] {};
+			}
 
-		#region Private
-		private void AppendToken(idToken token)
-		{
-			if(_builder.Length > 0)
-			{
-				_builder.AppendFormat(" {0}", token.ToString());
-			}
-			else
-			{
-				_builder.Append(token.ToString());
-			}
+			// load it as an image
+			return idE.ImageManager.LoadImage(token.ToString(), ref width, ref height, ref timeStamp, true);
 		}
 		#endregion
 		#endregion

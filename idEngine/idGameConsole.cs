@@ -87,11 +87,11 @@ namespace idTech4
 		public void Init()
 		{
 			idE.CmdSystem.AddCommand("clear", "clears the console", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Clear));
-			idE.CmdSystem.AddCommand("conDump", "dumps the console tex to a file", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Dump));
+			idE.CmdSystem.AddCommand("conDump", "dumps the console text to a file", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Dump));
 		}
 
 		/// <summary>
-		/// Can't be combined with init, because init happens before the renderSystem is initialized.		
+		/// Can't be combined with init, because init happens before the renderSystem is initialized.
 		/// </summary>
 		public void LoadGraphics()
 		{

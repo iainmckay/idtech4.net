@@ -394,12 +394,10 @@ namespace idTech4.Renderer
 			// if we are a partial image, we are only going to load from a compressed file
 			if(_isPartialImage == true) 
 			{
-				// TODO
-				/*if(CheckPrecompressedImage(false) == true) 
+				if(CheckPrecompressedImage(false) == true) 
 				{
 					return;
-				}*/
-				return;
+				}
 
 				// this is an error -- the partial image failed to load
 				MakeDefault();
@@ -436,12 +434,11 @@ namespace idTech4.Renderer
 				// already image processed and compressed
 				if((checkForPrecompressed == true) && (idE.CvarSystem.GetBool("image_usePrecompressedTextures") == true)) 
 				{
-					// TODO: CheckPrecompressedImage
-					/*if(CheckPrecompressedImage(true) == true) 
+					if(CheckPrecompressedImage(true) == true) 
 					{
 						// we got the precompressed image
 						return;
-					}*/
+					}
 
 					// fall through to load the normal image
 				}
@@ -454,6 +451,7 @@ namespace idTech4.Renderer
 				{
 					idConsole.Warning("Couldn't load image: {0}", this.Name);
 					MakeDefault();
+
 					return;
 				}
 
@@ -653,6 +651,10 @@ namespace idTech4.Renderer
 
 			byte[] scaledBuffer = null;
 
+			Gl.glGenTextures(1, out _texNumber);
+
+			_loaded = true;
+
 			// select proper internal format before we resample
 			_internalFormat = SelectInternalFormat(data, 1, width, height, depth, out _isMonochrome);
 
@@ -773,7 +775,7 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				idConsole.WriteLine("TODO: qglTexImage2D( GL_TEXTURE_2D, 0, internalFormat, scaled_width, scaled_height, 0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );");
+				Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, _internalFormat, scaledWidth, scaledHeight, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, scaledBuffer );
 			}
 
 			// create and upload the mip map levels, which we do in all cases, even if we don't think they are needed
@@ -928,12 +930,116 @@ namespace idTech4.Renderer
 				// force no precompressed image check, which will cause it to be reloaded
 				// from source, and another precompressed file generated.
 				// Load is from the front end, so the back end must be synced
-				idConsole.WriteLine("TODO: another ActuallyLoadImage(checkPrecompressed, false);");
+				ActuallyLoadImage(checkPrecompressed, false);
 			}
 		}
 		#endregion
 
 		#region Private
+		/// <summary>
+		/// If fullLoad is false, only the small mip levels of the image will be loaded.
+		/// </summary>
+		/// <returns></returns>
+		private bool CheckPrecompressedImage(bool fullLoad)
+		{
+			if((idE.GLConfig.IsInitialized == false) || (idE.GLConfig.TextureCompressionAvailable == false))
+			{
+				return false;
+			}
+			
+/*#if 1 // ( _D3XP had disabled ) - Allow grabbing of DDS's from original Doom pak files
+	// if we are doing a copyFiles, make sure the original images are referenced
+	if ( fileSystem->PerformingCopyFiles() ) {
+		return false;
+	}
+#endif*/
+
+			if((_depth == TextureDepth.Bump) && (idE.CvarSystem.GetInteger("image_useNormalCompression") != 2))
+			{
+				return false;
+			}
+
+			// god i love last minute hacks :-)
+			if((idE.CvarSystem.GetInteger("com_machineSpec") >= 1) && (idE.CvarSystem.GetInteger("com_videoRam") >= 128) && (_name.StartsWith("lights/", StringComparison.OrdinalIgnoreCase) == true))
+			{
+				return false;
+			}
+
+			idConsole.WriteLine("TODO: CheckPrecompressedImage");
+
+
+	/*char filename[MAX_IMAGE_NAME];
+	ImageProgramStringToCompressedFileName( imgName, filename );
+
+	// get the file timestamp
+	ID_TIME_T precompTimestamp;
+	fileSystem->ReadFile( filename, NULL, &precompTimestamp );
+
+
+	if ( precompTimestamp == FILE_NOT_FOUND_TIMESTAMP ) {
+		return false;
+	}
+
+	if ( !generatorFunction && timestamp != FILE_NOT_FOUND_TIMESTAMP ) {
+		if ( precompTimestamp < timestamp ) {
+			// The image has changed after being precompressed
+			return false;
+		}
+	}
+
+	timestamp = precompTimestamp;
+
+	// open it and just read the header
+	idFile *f;
+
+	f = fileSystem->OpenFileRead( filename );
+	if ( !f ) {
+		return false;
+	}
+
+	int	len = f->Length();
+	if ( len < sizeof( ddsFileHeader_t ) ) {
+		fileSystem->CloseFile( f );
+		return false;
+	}
+
+	if ( !fullLoad && len > globalImages->image_cacheMinK.GetInteger() * 1024 ) {
+		len = globalImages->image_cacheMinK.GetInteger() * 1024;
+	}
+
+	byte *data = (byte *)R_StaticAlloc( len );
+
+	f->Read( data, len );
+
+	fileSystem->CloseFile( f );
+
+	unsigned long magic = LittleLong( *(unsigned long *)data );
+	ddsFileHeader_t	*_header = (ddsFileHeader_t *)(data + 4);
+	int ddspf_dwFlags = LittleLong( _header->ddspf.dwFlags );
+
+	if ( magic != DDS_MAKEFOURCC('D', 'D', 'S', ' ')) {
+		common->Printf( "CheckPrecompressedImage( %s ): magic != 'DDS '\n", imgName.c_str() );
+		R_StaticFree( data );
+		return false;
+	}
+
+	// if we don't support color index textures, we must load the full image
+	// should we just expand the 256 color image to 32 bit for upload?
+	if ( ddspf_dwFlags & DDSF_ID_INDEXCOLOR && !glConfig.sharedTexturePaletteAvailable ) {
+		R_StaticFree( data );
+		return false;
+	}
+
+	// upload all the levels
+	UploadPrecompressedImage( data, len );
+
+	R_StaticFree( data );
+
+	return true;*/
+
+			return false;
+		}
+
 		private int SelectInternalFormat(byte[] data, int dataSize, int width, int height, TextureDepth minimumDepth, out bool isMonochrome)
 		{
 			int offset = 0;

@@ -1362,7 +1362,7 @@ namespace idTech4.Renderer
 			{
 				if(TestMaterialFlag(MaterialFlags.Defaulted) == true)
 				{
-					// we have a parse error.
+					// we have a parse error
 					return;
 				}
 				else if((token = lexer.ExpectAnyToken()) == null)
@@ -1374,17 +1374,17 @@ namespace idTech4.Renderer
 				tokenValue = token.ToString();
 				tokenLower = tokenValue.ToLower();
 
-				// the close brace for the entire material ends the draw block.
+				// the close brace for the entire material ends the draw block
 				if(tokenLower == "}")
 				{
 					break;
 				}
-				// BSM Nerve: Added for stage naming in the material editor.
+				// BSM Nerve: Added for stage naming in the material editor
 				else if(tokenLower == "name")
 				{
 					lexer.SkipRestOfLine();
 				}
-				// image options.
+				// image options
 				else if(tokenLower == "blend")
 				{
 					ParseBlend(lexer, ref materialStage);
@@ -1428,7 +1428,7 @@ namespace idTech4.Renderer
 				else if(tokenLower == "videomap")
 				{
 					// note that videomaps will always be in clamp mode, so texture
-					// coordinates had better be in the 0 to 1 range.
+					// coordinates had better be in the 0 to 1 range
 					if((token = lexer.ReadToken()) == null)
 					{
 						idConsole.Warning("missing parameter for 'videoMap' keyword in material '{0}'", this.Name);
@@ -1450,7 +1450,7 @@ namespace idTech4.Renderer
 
 						idConsole.Warning("TODO: material videoMap keyword");
 
-						// TODO
+						// TODO: cinematic
 						/*ts->cinematic = idCinematic::Alloc();
 						ts->cinematic->InitFromFile( token.c_str(), loop );*/
 					}
@@ -1532,7 +1532,7 @@ namespace idTech4.Renderer
 				{
 					materialStage.VertexColor = StageVertexColor.InverseModulate;
 				}
-				// privatePolygonOffset.
+				// privatePolygonOffset
 				else if(tokenLower == "privatepolygonoffset")
 				{
 					if((token = lexer.ReadTokenOnLine()) == null)
@@ -1541,12 +1541,12 @@ namespace idTech4.Renderer
 					}
 					else
 					{
-						// explict larger (or negative) offset.
+						// explict larger (or negative) offset
 						lexer.UnreadToken = token;
 						materialStage.PrivatePolygonOffset = lexer.ParseFloat();
 					}
 				}
-				// texture coordinate generation.
+				// texture coordinate generation
 				else if(tokenLower == "texgen")
 				{
 					token = lexer.ExpectAnyToken();
@@ -1603,7 +1603,7 @@ namespace idTech4.Renderer
 					MatchToken(lexer, ",");
 					b = ParseExpression(lexer);
 
-					// this just scales without a centering.
+					// this just scales without a centering
 					matrix[0, 0] = a;
 					matrix[0, 1] = GetExpressionConstant(0);
 					matrix[0, 2] = GetExpressionConstant(0);
@@ -1620,7 +1620,7 @@ namespace idTech4.Renderer
 					MatchToken(lexer, ",");
 					b = ParseExpression(lexer);
 
-					// this subtracts 0.5, then scales, then adds 0.5.
+					// this subtracts 0.5, then scales, then adds 0.5
 					matrix[0, 0] = a;
 					matrix[0, 1] = GetExpressionConstant(0);
 					matrix[0, 2] = EmitOp(GetExpressionConstant(0.5f), EmitOp(GetExpressionConstant(0.5f), a, ExpressionOperationType.Multiply), ExpressionOperationType.Subtract);
@@ -1637,7 +1637,7 @@ namespace idTech4.Renderer
 					MatchToken(lexer, ",");
 					b = ParseExpression(lexer);
 
-					// this subtracts 0.5, then shears, then adds 0.5.
+					// this subtracts 0.5, then shears, then adds 0.5
 					matrix[0, 0] = GetExpressionConstant(1);
 					matrix[0, 1] = a;
 					matrix[0, 2] = EmitOp(GetExpressionConstant(-0.5f), a, ExpressionOperationType.Multiply);
@@ -1652,7 +1652,7 @@ namespace idTech4.Renderer
 				{
 					int sinReg, cosReg;
 
-					// in cycles.
+					// in cycles
 					a = ParseExpression(lexer);
 
 					idDeclTable table = idE.DeclManager.FindType<idDeclTable>(DeclType.Table, "sinTable", false);
@@ -1666,7 +1666,6 @@ namespace idTech4.Renderer
 					}
 
 					sinReg = EmitOp(table.Index, a, ExpressionOperationType.Table);
-
 					table = idE.DeclManager.FindType<idDeclTable>(DeclType.Table, "cosTable", false);
 
 					if(table == null)
@@ -1679,7 +1678,7 @@ namespace idTech4.Renderer
 
 					cosReg = EmitOp(table.Index, a, ExpressionOperationType.Table);
 
-					// this subtracts 0.5, then rotates, then adds 0.5.
+					// this subtracts 0.5, then rotates, then adds 0.5
 					matrix[0, 0] = cosReg;
 					matrix[0, 1] = EmitOp(GetExpressionConstant(0), sinReg, ExpressionOperationType.Subtract);
 					matrix[0, 2] = EmitOp(EmitOp(EmitOp(GetExpressionConstant(-0.5f), cosReg, ExpressionOperationType.Multiply),
@@ -1726,7 +1725,7 @@ namespace idTech4.Renderer
 
 					_coverage = MaterialCoverage.Perforated;
 				}
-				// shorthand for 2D modulated.
+				// shorthand for 2D modulated
 				else if(tokenLower == "colored")
 				{
 					materialStage.Color.Registers[0] = (int) ExpressionRegister.Parm0;
@@ -1839,13 +1838,13 @@ namespace idTech4.Renderer
 				}
 			}
 
-			// if we are using newStage, allocate a copy of it.
+			// if we are using newStage, allocate a copy of it
 			if((newStage.FragmentProgram != 0) || (newStage.VertexProgram != 0))
 			{
 				materialStage.NewStage = newStage;
 			}
 			
-			// select a compressed depth based on what the stage is.
+			// select a compressed depth based on what the stage is
 			if(textureDepth == TextureDepth.Default)
 			{
 				switch(materialStage.Lighting)
@@ -2112,263 +2111,11 @@ namespace idTech4.Renderer
 		}
 
 		private string ParsePastImageProgram(idLexer lexer)
-		{
-			StringBuilder b = new StringBuilder();
-			int width = 0, height = 0;
-			TextureDepth depth = TextureDepth.Default;
-			byte[] data = new byte[] {};
+		{	
+			idImageProgramParser parser = new idImageProgramParser();
+			parser.ParseImageProgram(lexer);
 
-			ParseImageProgram(b, lexer, ref data, ref width, ref height, null, ref depth, true);
-			
-			return b.ToString();
-		}
-
-		private bool ParseImageProgram(StringBuilder programName, idLexer lexer, ref byte[] data, ref int width, ref int height, Nullable<DateTime> timeStamp, ref TextureDepth depth, bool parseOnly)
-		{
-			idToken token = lexer.ReadToken();
-			AppendToken(programName, token);
-
-			string tokenLower = token.ToString().ToLower();
-			float scale;
-
-			if(tokenLower == "heightmap")
-			{
-				MatchAndAppendToken(programName, lexer, "(");
-
-				if(ParseImageProgram(programName, lexer, ref data, ref width, ref height, timeStamp, ref depth, parseOnly) == false)
-				{
-					return false;
-				}
-
-				MatchAndAppendToken(programName, lexer, ",");
-
-				token = lexer.ReadToken();
-				scale = token.ToFloat();
-
-				AppendToken(programName, token);
-
-				// process it
-				idConsole.WriteLine("TODO: ParseImageProgram - heightmap");
-				/*if ( pic ) {
-					R_HeightmapToNormalMap( *pic, *width, *height, scale );
-					if ( depth ) {
-						*depth = TD_BUMP;
-					}
-				}*/
-
-				MatchAndAppendToken(programName, lexer, ")");
-				return true;
-			}
-			else if(tokenLower == "addnormals")
-			{
-				idConsole.WriteLine("TODO: ParseImageProgram - addnormals");
-				return false;
-				byte[] data2 = null;
-				int width2 = 0, height2 = 0;
-
-				MatchAndAppendToken(programName, lexer, "(");
-
-				if(ParseImageProgram(programName, lexer, ref data, ref width, ref height, timeStamp, ref depth, parseOnly) == false)
-				{
-					return false;
-				}
-
-				MatchAndAppendToken(programName, lexer, ",");
-
-				/*if(ParseImageProgram(programName, lexer, (data != null) ? ref data2 : null, ref width2, ref height2, timeStamp, ref depth, parseOnly) == false)
-				{
-					/*if ( pic ) {
-						R_StaticFree( *pic );
-						*pic = NULL;
-					}*/
-				/*
-					return false;
-				}*/
-
-				// process it
-				idConsole.WriteLine("TODO: ParseImageProgram - addnormals");
-
-				/*if ( pic ) {
-					R_AddNormalMaps( *pic, *width, *height, pic2, width2, height2 );
-					R_StaticFree( pic2 );
-					if ( depth ) {
-						*depth = TD_BUMP;
-					}
-				}*/
-
-				MatchAndAppendToken(programName, lexer, ")");
-				return true;
-			}
-
-			/*if ( !token.Icmp( "smoothnormals" ) ) {
-				MatchAndAppendToken( src, "(" );
-
-				if ( !R_ParseImageProgram_r( src, pic, width, height, timestamps, depth ) ) {
-					return false;
-				}
-
-				if ( pic ) {
-					R_SmoothNormalMap( *pic, *width, *height );
-					if ( depth ) {
-						*depth = TD_BUMP;
-					}
-				}
-
-				MatchAndAppendToken( src, ")" );
-				return true;
-			}
-
-			if ( !token.Icmp( "add" ) ) {
-				byte	*pic2;
-				int		width2, height2;
-
-				MatchAndAppendToken( src, "(" );
-
-				if ( !R_ParseImageProgram_r( src, pic, width, height, timestamps, depth ) ) {
-					return false;
-				}
-
-				MatchAndAppendToken( src, "," );
-
-				if ( !R_ParseImageProgram_r( src, pic ? &pic2 : NULL, &width2, &height2, timestamps, depth ) ) {
-					if ( pic ) {
-						R_StaticFree( *pic );
-						*pic = NULL;
-					}
-					return false;
-				}
-		
-				// process it
-				if ( pic ) {
-					R_ImageAdd( *pic, *width, *height, pic2, width2, height2 );
-					R_StaticFree( pic2 );
-				}
-
-				MatchAndAppendToken( src, ")" );
-				return true;
-			}
-
-			if ( !token.Icmp( "scale" ) ) {
-				float	scale[4];
-				int		i;
-
-				MatchAndAppendToken( src, "(" );
-
-				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
-
-				for ( i = 0 ; i < 4 ; i++ ) {
-					MatchAndAppendToken( src, "," );
-					src.ReadToken( &token );
-					AppendToken( token );
-					scale[i] = token.GetFloatValue();
-				}
-
-				// process it
-				if ( pic ) {
-					R_ImageScale( *pic, *width, *height, scale );
-				}
-
-				MatchAndAppendToken( src, ")" );
-				return true;
-			}
-
-			if ( !token.Icmp( "invertAlpha" ) ) {
-				MatchAndAppendToken( src, "(" );
-
-				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
-
-				// process it
-				if ( pic ) {
-					R_InvertAlpha( *pic, *width, *height );
-				}
-
-				MatchAndAppendToken( src, ")" );
-				return true;
-			}
-
-			if ( !token.Icmp( "invertColor" ) ) {
-				MatchAndAppendToken( src, "(" );
-
-				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
-
-				// process it
-				if ( pic ) {
-					R_InvertColor( *pic, *width, *height );
-				}
-
-				MatchAndAppendToken( src, ")" );
-				return true;
-			}
-
-			if ( !token.Icmp( "makeIntensity" ) ) {
-				int		i;
-
-				MatchAndAppendToken( src, "(" );
-
-				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
-
-				// copy red to green, blue, and alpha
-				if ( pic ) {
-					int		c;
-					c = *width * *height * 4;
-					for ( i = 0 ; i < c ; i+=4 ) {
-						(*pic)[i+1] = 
-						(*pic)[i+2] = 
-						(*pic)[i+3] = (*pic)[i];
-					}
-				}
-
-				MatchAndAppendToken( src, ")" );
-				return true;
-			}
-
-			if ( !token.Icmp( "makeAlpha" ) ) {
-				int		i;
-
-				MatchAndAppendToken( src, "(" );
-
-				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
-
-				// average RGB into alpha, then set RGB to white
-				if ( pic ) {
-					int		c;
-					c = *width * *height * 4;
-					for ( i = 0 ; i < c ; i+=4 ) {
-						(*pic)[i+3] = ( (*pic)[i+0] + (*pic)[i+1] + (*pic)[i+2] ) / 3;
-						(*pic)[i+0] = 
-						(*pic)[i+1] = 
-						(*pic)[i+2] = 255;
-					}
-				}
-
-				MatchAndAppendToken( src, ")" );
-				return true;
-			}*/
-
-			// if we are just parsing instead of loading or checking, don't do the R_LoadImage.
-			if(parseOnly == true)
-			{
-				return true;
-			}
-
-			// load it as an image
-			idConsole.WriteLine("ParseImageProgram - load image");
-
-			return false;
-			/*R_LoadImage( token.c_str(), pic, width, height, &timestamp, true );
-
-			if ( timestamp == -1 ) {
-				return false;
-			}
-
-			// add this to the timestamp
-			if ( timestamps ) {
-				if ( timestamp > *timestamps ) {
-					*timestamps = timestamp;
-				}
-			}*/
-
-			return true;
+			return parser.Source;
 		}
 
 		private void AppendToken(StringBuilder b, idToken token)
@@ -2894,8 +2641,6 @@ namespace idTech4.Renderer
 
 		protected override void ClearData()
 		{
-			idConsole.WriteLine("idMaterial.ClearData");
-
 			_stages = null;
 			_expressionRegisters = null;
 			_constantRegisters = null;

@@ -638,10 +638,18 @@ namespace idTech4.Renderer
 		/// </summary>
 		private void BeginDrawingView()
 		{
+			Matrix projMatrix = idE.Backend.ViewDefinition.ProjectionMatrix;
+			
+			float[] tmpProjMatrix = new float[] {
+				projMatrix.M11, projMatrix.M12, projMatrix.M13, projMatrix.M14,
+				projMatrix.M21, projMatrix.M22, projMatrix.M23, projMatrix.M24,
+				projMatrix.M31, projMatrix.M32, projMatrix.M33, projMatrix.M34,
+				projMatrix.M41, projMatrix.M42, projMatrix.M43, projMatrix.M44
+			};
+
 			// set the modelview matrix for the viewer
 			Gl.glMatrixMode(Gl.GL_PROJECTION);
-			// TODO: Gl.glLoadMatrixf(idE.Backend.ViewDefinition.ProjectionMatrix);
-			idConsole.WriteLine("TODO: proj  mat");
+			Gl.glLoadMatrixf(tmpProjMatrix);
 			Gl.glMatrixMode(Gl.GL_MODELVIEW);
 
 			// set the window clipping

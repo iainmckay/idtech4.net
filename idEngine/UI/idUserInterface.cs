@@ -149,7 +149,6 @@ namespace idTech4.UI
 
 		public void Draw(int time)
 		{
-			idConsole.WriteLine("DX");
 			if(idE.CvarSystem.GetInteger("r_skipGuiShaders") > 5)
 			{
 				return;

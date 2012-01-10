@@ -182,6 +182,7 @@ namespace idTech4.Renderer
 				|| (name.Equals("_default", StringComparison.OrdinalIgnoreCase) == true))
 			{
 				idE.DeclManager.MediaPrint("DEFAULTED");
+
 				return this.DefaultImage;
 			}
 
