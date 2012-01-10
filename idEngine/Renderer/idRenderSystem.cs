@@ -34,6 +34,7 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
+using Tao.DevIl;
 using Tao.OpenGl;
 using Tao.Platform.Windows;
 
@@ -211,12 +212,14 @@ namespace idTech4.Renderer
 			_viewDefinition.DrawSurfaces.Add(drawSurface);
 
 			// process the shader expressions for conditionals / color / texcoords
-			// TODO: constant registers
-			/*const float	*constRegs = shader->ConstantRegisters();
-			if ( constRegs ) {
+			float[] constantRegisters = material.ConstantRegisters;
+			
+			if(constantRegisters != null)
+			{
 				// shader only uses constant values
-				drawSurf->shaderRegisters = constRegs;
-			} else */
+				drawSurface.MaterialRegisters = constantRegisters;
+			} 
+			else
 			{
 				drawSurface.MaterialRegisters = new float[material.RegisterCount];
 
@@ -225,6 +228,7 @@ namespace idTech4.Renderer
 				// a light model and light flares to pick up different flashing tables from
 				// different light shaders
 				// TODO: reference shader
+				
 				/*if ( renderEntity->referenceShader ) {
 					// evaluate the reference shader to find our shader parms
 					const shaderStage_t *pStage;
@@ -489,7 +493,7 @@ namespace idTech4.Renderer
 
 			// use the other buffers next frame, because another CPU
 			// may still be rendering into the current buffers
-			// TODO: ToggleSmpFrame();
+			ToggleSmpFrame();
 
 			// we can now release the vertexes used this frame
 			// TODO: vertexCache.EndFrame();
@@ -522,6 +526,9 @@ namespace idTech4.Renderer
 			_demoGuiModel = new idGuiModel();
 
 			// TODO: R_InitTriSurfData();
+
+			Il.ilInit();
+			Ilu.iluInit();
 
 			idE.ImageManager.Init();
 
@@ -557,7 +564,7 @@ namespace idTech4.Renderer
 			}
 
 			InitOpenGL();
-			// TODO: idE.ImageManager.ReloadImages();
+			idE.ImageManager.ReloadImages();
 
 			int error = Gl.glGetError();
 
@@ -634,6 +641,7 @@ namespace idTech4.Renderer
 			// set the modelview matrix for the viewer
 			Gl.glMatrixMode(Gl.GL_PROJECTION);
 			// TODO: Gl.glLoadMatrixf(idE.Backend.ViewDefinition.ProjectionMatrix);
+			idConsole.WriteLine("TODO: proj  mat");
 			Gl.glMatrixMode(Gl.GL_MODELVIEW);
 
 			// set the window clipping
@@ -980,11 +988,11 @@ namespace idTech4.Renderer
 				backEnd.currentRenderCopied = true;
 			}*/
 
-			// TODO: GL_SelectTexture(1);
-			// TODO: idE.ImageManager.BindNullTexture();
+			GL_SelectTexture(1);
+			idE.ImageManager.BindNullTexture();
 
-			// TODO: GL_SelectTexture(0);
-			// TODO: Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+			GL_SelectTexture(0);
+			Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
 			SetProgramEnvironment();
 
@@ -1021,7 +1029,7 @@ namespace idTech4.Renderer
 			}
 
 			GL_Cull(CullType.TwoSided);
-			// TODO: Gl.glColor3f(1, 1, 1);
+			Gl.glColor3f(1, 1, 1);
 
 			return i;
 		}
@@ -1033,7 +1041,7 @@ namespace idTech4.Renderer
 			// we will need to do a new copyTexSubImage of the screen
 			// when a SS_POST_PROCESS material is used
 			// TODO: _currentRenderCopied = false;
-
+			
 			// if there aren't any drawsurfs, do nothing
 			if(idE.Backend.ViewDefinition.DrawSurfaces.Count == 0)
 			{
@@ -1146,8 +1154,8 @@ namespace idTech4.Renderer
 			SetDefaultGLState();
 
 			// upload any image loads that have completed
-			idE.ImageManager.CompleteBackgroundImageLoads();
-
+			idE.ImageManager.CompleteBackgroundLoading();
+			
 			foreach(RenderCommand cmd in commands)
 			{
 				switch(cmd.CommandID)
@@ -1202,7 +1210,7 @@ namespace idTech4.Renderer
 			// unset privatePolygonOffset if necessary
 			if((stage.PrivatePolygonOffset > 0) && (surface.Material.TestMaterialFlag(MaterialFlags.PolygonOffset) == false))
 			{
-				idConsole.WriteLine("TODO: Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);");
+				Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
 			}
 
 			if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
@@ -1516,7 +1524,7 @@ namespace idTech4.Renderer
 						srcFactor = Gl.GL_SRC_ALPHA_SATURATE;
 						break;
 					default:
-						srcFactor = Gl.GL_ONE;		// to get warning to shut up
+						srcFactor = Gl.GL_ONE; // to get warning to shut up
 
 						idConsole.Error("GL_State: invalid src blend state bits");
 						break;
@@ -1549,7 +1557,7 @@ namespace idTech4.Renderer
 						dstFactor = Gl.GL_ONE_MINUS_DST_ALPHA;
 						break;
 					default:
-						dstFactor = Gl.GL_ONE;		// to get warning to shut up
+						dstFactor = Gl.GL_ONE; // to get warning to shut up
 
 						idConsole.Error("GL_State: invalid dst blend state bits");
 						break;
@@ -1894,7 +1902,7 @@ namespace idTech4.Renderer
 			{
 				idConsole.FatalError("R_InitOpenGL called while active");
 			}
-
+			
 			// in case we had an error while doing a tiled rendering
 			_viewPortOffset = Vector2.Zero;
 
@@ -1952,7 +1960,7 @@ namespace idTech4.Renderer
 			}
 
 			idE.GLConfig.IsInitialized = true;
-
+		
 			// recheck all the extensions (FIXME: this might be dangerous)
 			CheckPortableExtensions();
 
@@ -1964,7 +1972,7 @@ namespace idTech4.Renderer
 			InitARB2();
 
 			// TODO: cmdSystem->AddCommand( "reloadARBprograms", R_ReloadARBPrograms_f, CMD_FL_RENDERER, "reloads ARB programs" );
-
+			idConsole.WriteLine("TODO: R_ReloadARBPrograms");
 			// TODO: R_ReloadARBPrograms_f( idCmdArgs() );
 
 			// allocate the vertex array range or vertex objects
@@ -2030,6 +2038,10 @@ namespace idTech4.Renderer
 
 			_renderControl.InitializeContexts();
 			_renderForm.Show();
+
+			idE.GLConfig.ColorBits = _renderControl.ColorBits;
+			idE.GLConfig.DepthBits = _renderControl.DepthBits;
+			idE.GLConfig.StencilBits = _renderControl.StencilBits;
 
 			idConsole.WriteLine("...making context current");
 
@@ -2308,14 +2320,6 @@ namespace idTech4.Renderer
 
 		private void RenderShaderPasses(DrawSurface surface)
 		{
-			/*void RB_STD_T_RenderShaderPasses( const drawSurf_t *surf ) {
-		int			stage;
-		const idMaterial	*shader;
-		const shaderStage_t *pStage;
-		const float	*regs;
-		float		color[4];
-		const srfTriangles_t	*tri;*/
-
 			Surface tri = surface.Geometry;
 			idMaterial material = surface.Material;
 
@@ -2428,7 +2432,7 @@ namespace idTech4.Renderer
 						continue;
 					}
 
-					// TODO: render
+					idConsole.WriteLine("TODO: render");
 					/*Gl.glColorPointer(4, Gl.GL_UNSIGNED_BYTE, Marshal.SizeOf(typeof(Vertex)), (void*) &ambientCacheData->color);
 					Gl.glVertexAttribPointerARB(9, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[0].ToFloatPtr());
 					Gl.glVertexAttribPointerARB(10, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[1].ToFloatPtr());
@@ -3035,6 +3039,11 @@ namespace idTech4.Renderer
 		/// </summary>
 		private void SetProgramEnvironment()
 		{
+			if(idE.GLConfig.ArbVertexProgramAvailable == false)
+			{
+				return;
+			}
+
 			float[] parameters = new float[4];
 			int pot;
 
@@ -3415,6 +3424,7 @@ namespace idTech4.Renderer
 			}
 			else
 			{
+				idConsole.WriteLine("TODO: R200_Init");
 				// TODO: R200
 				/*Gl.glGetIntegerv( Gl.GL_NUM_FRAGMENT_REGISTERS_ATI, &fsi.numFragmentRegisters );
 				Gl.glGetIntegerv( Gl.GL_NUM_FRAGMENT_CONSTANTS_ATI, &fsi.numFragmentConstants );
@@ -3542,9 +3552,6 @@ namespace idTech4.Renderer
 		public string Version;
 		public Version VersionF;
 		public string Extensions;
-		public string WGLExtensions;
-
-		public float VersionNumber;
 
 		public int MaxTextureSize;
 		public int MaxTextureUnits;

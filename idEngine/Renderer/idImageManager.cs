@@ -27,12 +27,19 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
+using System.Text.RegularExpressions;
 
 using Microsoft.Xna.Framework;
 
+using Tao.DevIl;
 using Tao.OpenGl;
+
+using idTech4.IO;
+using idTech4.Text;
 
 namespace idTech4.Renderer
 {
@@ -59,6 +66,14 @@ namespace idTech4.Renderer
 			get
 			{
 				return _currentRenderImage;
+			}
+		}
+
+		public idImage DefaultImage
+		{
+			get
+			{
+				return _defaultImage;
 			}
 		}
 
@@ -104,7 +119,9 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Members
-		private Dictionary<string, idImage> _images = new Dictionary<string, idImage>(StringComparer.OrdinalIgnoreCase);
+		private List<idImage> _images = new List<idImage>();
+		private Dictionary<string, idImage> _imageDictionary = new Dictionary<string, idImage>(StringComparer.OrdinalIgnoreCase);
+		private Dictionary<idImage, BackgroundDownload> _backgroundImageLoads = new Dictionary<idImage, BackgroundDownload>();
 
 		private idImage _defaultImage;
 		private idImage _flatNormalMap;					// 128 128 255 in all pixels
@@ -133,6 +150,8 @@ namespace idTech4.Renderer
 		private int _textureMaxFilter;
 		private float _textureAnisotropy;
 		private float _textureLODBias;
+
+		private bool _insideLevelLoad;					// don't actually load images now
 		#endregion
 
 		#region Constructor
@@ -146,6 +165,189 @@ namespace idTech4.Renderer
 		#region Methods
 		#region Public
 		/// <summary>
+		/// Finds or loads the given image, always returning a valid image pointer.
+		/// Loading of the image may be deferred for dynamic loading.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="filter"></param>
+		/// <param name="allowDownSize"></param>
+		/// <param name="repeat"></param>
+		/// <param name="depth"></param>
+		/// <param name="cubeMap"></param>
+		/// <returns></returns>
+		public idImage ImageFromFile(string name, TextureFilter filter, bool allowDownSize, TextureRepeat repeat, TextureDepth depth, CubeFiles cubeMap)
+		{
+			if((name == null) || (name == string.Empty)
+				|| (name.Equals("default", StringComparison.OrdinalIgnoreCase) == true)
+				|| (name.Equals("_default", StringComparison.OrdinalIgnoreCase) == true))
+			{
+				idE.DeclManager.MediaPrint("DEFAULTED");
+				return this.DefaultImage;
+			}
+
+			idImage image;
+
+			// strip any .tga file extensions from anywhere in the _name, including image program parameters
+			name = name.Replace(".tga", "");
+
+			//
+			// see if the image is already loaded, unless we
+			// are in a reloadImages call
+			//
+			if(_imageDictionary.ContainsKey(name) == true)
+			{
+				image = _imageDictionary[name];
+
+				// the built in's, like _white and _flat always match the other options
+				if(name.StartsWith("_") == true)
+				{
+					return image;
+				}
+
+				if(image.CubeFiles != cubeMap)
+				{
+					idConsole.Error("Image '{0}' has been referenced with conflicting cube map states", name);
+				}
+
+				if((image.Filter != filter) || (image.Repeat != repeat))
+				{
+					// we might want to have the system reset these parameters on every bind and
+					// share the image data					
+				}
+				else
+				{
+					if((image.AllowDownSize == allowDownSize) && (image.Depth == depth))
+					{
+						// note that it is used this level load
+						image.LevelLoadReferenced = true;
+
+						if(image.PartialImage != null)
+						{
+							image.PartialImage.LevelLoadReferenced = true;
+						}
+
+						return image;
+					}
+
+					// the same image is being requested, but with a different allowDownSize or depth
+					// so pick the highest of the two and reload the old image with those parameters
+					if(image.AllowDownSize == false)
+					{
+						allowDownSize = false;
+					}
+
+					if(image.Depth > depth)
+					{
+						depth = image.Depth;
+					}
+
+					if((image.AllowDownSize == allowDownSize) && (image.Depth == depth))
+					{
+						// the already created one is already the highest quality
+						image.LevelLoadReferenced = true;
+
+						if(image.PartialImage != null)
+						{
+							image.PartialImage.LevelLoadReferenced = true;
+						}
+
+						return image;
+					}
+
+					image.AllowDownSize = allowDownSize;
+					image.UploadDepth = depth;
+					image.LevelLoadReferenced = true;
+
+					if(image.PartialImage != null)
+					{
+						image.PartialImage.LevelLoadReferenced = true;
+					}
+
+					if((idE.CvarSystem.GetBool("image_preload") == true) && (_insideLevelLoad == false))
+					{
+						image.ReferencedOutsideLevelLoad = true;
+						image.ActuallyLoadImage(true, false); // check for precompressed, load is from front end
+
+						idE.DeclManager.MediaPrint("{0}x{1} {1} (reload for mixed referneces)", image.UploadWidth, image.UploadHeight, image.Name);
+					}
+
+					return image;
+				}
+			}
+
+			//
+			// create a new image
+			//
+			image = CreateImage(name);
+
+			// HACK: to allow keep fonts from being mip'd, as new ones will be introduced with localization
+			// this keeps us from having to make a material for each font tga
+			if(name.Contains("fontImage_") == true)
+			{
+				allowDownSize = false;
+			}
+
+			image.AllowDownSize = allowDownSize;
+			image.Repeat = repeat;
+			image.Depth = depth;
+			image.Type = TextureType.TwoD;
+			image.CubeFiles = cubeMap;
+			image.Filter = filter;
+
+			image.LevelLoadReferenced = true;
+
+			// also create a shrunken version if we are going to dynamically cache the full size image
+			if(image.ShouldImageBePartialCached == true)
+			{
+				// if we only loaded part of the file, create a new idImage for the shrunken version
+				image.PartialImage = new idImage(name);
+				image.PartialImage.IsPartialImage = true;
+				image.PartialImage.AllowDownSize = allowDownSize;
+				image.PartialImage.Repeat = repeat;
+				image.PartialImage.Depth = depth;
+				image.PartialImage.Type = TextureType.TwoD;
+				image.PartialImage.CubeFiles = cubeMap;
+				image.PartialImage.Filter = filter;
+				image.PartialImage.LevelLoadReferenced = true;
+
+				// we don't bother hooking this into the hash table for lookup, but we do add it to the manager
+				// list for listImages
+				_images.Add(image.PartialImage);
+
+				// let the background file loader know that we can load
+				image.PrecompressedFile = true;
+
+				if((idE.CvarSystem.GetBool("image_preload") == true) && (_insideLevelLoad == false))
+				{
+					image.PartialImage.ActuallyLoadImage(true, false);	// check for precompressed, load is from front end
+
+					idE.DeclManager.MediaPrint("{0}x{1} {2}", image.PartialImage.UploadWidth, image.PartialImage.UploadHeight, image.Name);
+				}
+				else
+				{
+					idE.DeclManager.MediaPrint(image.Name);
+				}
+
+				return image;
+			}
+
+			// load it if we aren't in a level preload
+			if((idE.CvarSystem.GetBool("image_preload") == true) && (_insideLevelLoad == false))
+			{
+				image.ReferencedOutsideLevelLoad = true;
+				image.ActuallyLoadImage(true, false); // check for precompressed, load is from front end
+
+				idE.DeclManager.MediaPrint("{0}x{1} {2}", image.UploadWidth, image.UploadHeight, image.Name);
+			}
+			else
+			{
+				idE.DeclManager.MediaPrint(image.Name);
+			}
+
+			return image;
+		}
+
+		/// <summary>
 		/// Disable the active texture unit.
 		/// </summary>
 		public void BindNullTexture()
@@ -158,10 +360,10 @@ namespace idTech4.Renderer
 			{
 				Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
 			}
-			else if(unit.Type == TextureType.ThreeD) 
+			else if(unit.Type == TextureType.ThreeD)
 			{
 				Gl.glDisable(Gl.GL_TEXTURE_3D);
-			} 
+			}
 			else if(unit.Type == TextureType.TwoD)
 			{
 				Gl.glDisable(Gl.GL_TEXTURE_2D);
@@ -204,39 +406,49 @@ namespace idTech4.Renderer
 			_textureLODBias = idE.CvarSystem.GetFloat("image_lodbias");
 		}
 
-		public void CompleteBackgroundImageLoads()
+		public void CompleteBackgroundLoading()
 		{
-			idConsole.WriteLine("TODO: CompleteBackgroundImageLoads");
-			/*idImage	*remainingList = NULL;
-			idImage	*next;
+			idImage image;
+			BackgroundDownload backgroundDownload;
+			List<idImage> complete = new List<idImage>();
 
-					foreach(idImage image in _backgroundImageLoads)
-					{
-						if(image.BackgroundLoadComplete == true)
-						{
-							_activeBackgroundImageLoads--;
+			foreach(KeyValuePair<idImage, BackgroundDownload> kvp in _backgroundImageLoads)
+			{
+				image = kvp.Key;
+				backgroundDownload = kvp.Value;
 
-					fileSystem->CloseFile( image->bgl.f );
+				if(backgroundDownload.Completed == true)
+				{
+					backgroundDownload.Stream.Dispose();
+					backgroundDownload.Stream = null;
+
 					// upload the image
-					image->UploadPrecompressedImage( (byte *)image->bgl.file.buffer, image->bgl.file.length );
-					R_StaticFree( image->bgl.file.buffer );
-					if ( image_showBackgroundLoads.GetBool() ) {
-						common->Printf( "R_CompleteBackgroundImageLoad: %s\n", image->imgName.c_str() );
+					idConsole.Write("image.UploadPrecompressedImage");
+					/*image->UploadPrecompressedImage( (byte *)image->bgl.file.buffer, image->bgl.file.length );
+					R_StaticFree( image->bgl.file.buffer );*/
+
+					complete.Add(image);
+
+					if(idE.CvarSystem.GetBool("image_showBackgroundLoads") == true)
+					{
+						idConsole.Write("idImageManager.CompleteBackgroundLoading: {0}", image.Name);
 					}
-				} else {
-					image->bglNext = remainingList;
-					remainingList = image;
 				}
 			}
-			if ( image_showBackgroundLoads.GetBool() ) {
+
+			foreach(idImage tmp in complete)
+			{
+				_backgroundImageLoads.Remove(tmp);
+			}
+
+			// TODO
+			/*if ( image_showBackgroundLoads.GetBool() ) {
 				static int prev;
 				if ( numActiveBackgroundImageLoads != prev ) {
 					prev = numActiveBackgroundImageLoads;
 					common->Printf( "background Loads: %i\n", numActiveBackgroundImageLoads );
 				}
-			}
-
-			backgroundImageLoads = remainingList;*/
+			}*/
 		}
 
 		public void Init()
@@ -273,8 +485,8 @@ namespace idTech4.Renderer
 			_currentRenderImage = LoadFromCallback("_currentRender", GenerateRGBA8Image);
 
 			// TODO: cmds
-			/*cmdSystem->AddCommand("reloadImages", R_ReloadImages_f, CMD_FL_RENDERER, "reloads images");
-			cmdSystem->AddCommand("listImages", R_ListImages_f, CMD_FL_RENDERER, "lists images");
+			idE.CmdSystem.AddCommand("reloadImages", "reloads images", CommandFlags.Renderer, new EventHandler<CommandEventArgs>(Cmd_ReloadImages));
+			/*cmdSystem->AddCommand("listImages", R_ListImages_f, CMD_FL_RENDERER, "lists images");
 			cmdSystem->AddCommand("combineCubeImages", R_CombineCubeImages_f, CMD_FL_RENDERER, "combines six images for roq compression");*/
 
 			// should forceLoadImages be here?
@@ -299,9 +511,9 @@ namespace idTech4.Renderer
 			name = name.Replace("\\", "/");
 
 			// see if the image already exists
-			if(_images.ContainsKey(name) == true)
+			if(_imageDictionary.ContainsKey(name) == true)
 			{
-				return _images[name];
+				return _imageDictionary[name];
 			}
 
 			// create the image and issue the callback
@@ -316,6 +528,158 @@ namespace idTech4.Renderer
 			}
 
 			return image;
+		}
+
+		public byte[] LoadImageProgram(string name, ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth)
+		{
+			return ParseImageProgram(name, ref width, ref height, ref timeStamp, ref depth);
+		}
+
+		public string ImageProgramStringToCompressedFileName(string program)
+		{
+			Regex regex = new Regex(@"[\<\>\:\|""\.]", RegexOptions.Compiled);
+			program = regex.Replace(program, "_");
+
+			regex = new Regex(@"[\/\\\\]", RegexOptions.Compiled);
+			program = regex.Replace(program, "/");
+
+			regex = new Regex(@"[\),]", RegexOptions.Compiled);
+			program = regex.Replace(program, "");
+
+			program = program.Replace("/ ", "/");
+
+			return string.Format("dds/{0}.dds", program);
+		}
+
+		public void QueueBackgroundLoad(idImage image)
+		{
+			string fileName = idE.ImageManager.ImageProgramStringToCompressedFileName(image.Name);
+
+			BackgroundDownload backgroundDownload = new BackgroundDownload();
+			backgroundDownload.Stream = idE.FileSystem.OpenFileRead(fileName);
+
+			if(backgroundDownload.Stream == null)
+			{
+				idConsole.Warning("idImageManager.StartBackgroundLoad: Couldn't load {0}", image.Name);
+			}
+			else
+			{
+				idE.FileSystem.QueueBackgroundLoad(backgroundDownload);
+
+				_backgroundImageLoads.Add(image, backgroundDownload);
+
+				// TODO: purge image cache
+				/*// purge some images if necessary
+				int		totalSize = 0;
+				for ( idImage *check = globalImages->cacheLRU.cacheUsageNext ; check != &globalImages->cacheLRU ; check = check->cacheUsageNext ) {
+					totalSize += check->StorageSize();
+				}
+				int	needed = this->StorageSize();
+
+				while ( ( totalSize + needed ) > globalImages->image_cacheMegs.GetFloat() * 1024 * 1024 ) {
+					// purge the least recently used
+					idImage	*check = globalImages->cacheLRU.cacheUsagePrev;
+					if ( check->texnum != TEXTURE_NOT_LOADED ) {
+						totalSize -= check->StorageSize();
+						if ( globalImages->image_showBackgroundLoads.GetBool() ) {
+							common->Printf( "purging %s\n", check->imgName.c_str() );
+						}
+						check->PurgeImage();
+					}
+					// remove it from the cached list
+					check->cacheUsageNext->cacheUsagePrev = check->cacheUsagePrev;
+					check->cacheUsagePrev->cacheUsageNext = check->cacheUsageNext;
+					check->cacheUsageNext = NULL;
+					check->cacheUsagePrev = NULL;
+				}*/
+			}
+		}
+
+		public void ReloadImages()
+		{
+			// build the compressed normal map palette
+			idConsole.WriteLine("TODO: SetNormalPalette();");
+
+			Cmd_ReloadImages(this, new CommandEventArgs(new idCmdArgs("reloadImages reload", false)));
+		}
+
+		/// <summary>
+		/// Used to resample images in a more general than quartering fashion.
+		/// </summary>
+		/// <remarks>
+		/// This will only have filter coverage if the resampled size
+		/// is greater than half the original size.
+		/// <p/>
+		/// If a larger shrinking is needed, use the mipmap function 
+		/// after resampling to the next lower power of two.
+		/// </remarks>
+		/// <param name="data"></param>
+		/// <param name="width"></param>
+		/// <param name="height"></param>
+		/// <param name="scaledWidth"></param>
+		/// <param name="scaledHeight"></param>
+		/// <returns></returns>
+		public byte[] ResampleTexture(byte[] data, int width, int height, int scaledWidth, int scaledHeight)
+		{
+			int maxDimension = 4096;
+
+			if(scaledWidth > maxDimension)
+			{
+				scaledWidth = maxDimension;
+			}
+
+			if(scaledHeight > maxDimension)
+			{
+				scaledHeight = maxDimension;
+			}
+
+			byte[] resampledData = new byte[scaledWidth * scaledHeight * 4];
+
+			int fracStep = width * 0x10000 / scaledWidth;
+			int frac = fracStep >> 2;
+
+			int[] p1 = new int[maxDimension];
+			int[] p2 = new int[maxDimension];
+
+			byte pix1, pix2, pix3, pix4;
+			int rowOffset, rowOffset2;
+			int resampledOffset = 0;
+
+			for(int i = 0;  i < scaledWidth; i++)
+			{
+				p1[i] = 4 * (frac >> 16);
+				frac += fracStep;
+			}
+
+			frac = 3 * (fracStep >> 2);
+
+			for(int i = 0; i < scaledWidth; i++)
+			{
+				p2[i] = 4 * (frac >> 16);
+				frac += fracStep;
+			}
+
+			for(int i = 0; i < scaledHeight; i++, resampledOffset += (scaledWidth * 4))
+			{
+				rowOffset = 4 * width * (int) ((i + 0.25f) * height / scaledHeight);
+				rowOffset2 = 4 * width * (int) ((i + 0.75f) * height / scaledHeight);
+				frac = fracStep >> 1;
+
+				for(int j = 0; j < scaledWidth; j++)
+				{
+					pix1 = (byte) (rowOffset + p1[j]);
+					pix2 = (byte) (rowOffset + p2[j]);
+					pix3 = (byte) (rowOffset2 + p1[j]);
+					pix4 = (byte) (rowOffset2 + p2[j]);
+
+					resampledData[resampledOffset + (j * 4)] = (byte) ((data[pix1] + data[pix2] + data[pix3] + data[pix4]) >> 2);
+					resampledData[resampledOffset + (j * 4 + 1)] = (byte) ((data[pix1 + 1] + data[pix2 + 1] + data[pix3 + 1] + data[pix4 + 1]) >> 2);
+					resampledData[resampledOffset + (j * 4 + 2)] = (byte) ((data[pix1 + 2] + data[pix2 + 2] + data[pix3 + 2] + data[pix4 + 2]) >> 2);
+					resampledData[resampledOffset + (j * 4 + 3)] = (byte) ((data[pix1 + 3] + data[pix2 + 3] + data[pix3 + 3] + data[pix4 + 3]) >> 2);
+				}
+			}
+			
+			return resampledData;
 		}
 		#endregion
 
@@ -807,19 +1171,151 @@ namespace idTech4.Renderer
 
 			image.Generate(idHelper.Flatten<byte>(data), FalloffTextureSize, 16, TextureFilter.Default, false, TextureRepeat.ClampToZero, TextureDepth.HighQuality);
 		}
+
+		/// <summary>
+		/// Loads any of the supported image types into a cannonical 32 bit format.
+		/// </summary>
+		/// <remarks>
+		/// 
+		/// Automatically attempts to load .jpg files if .tga files fail to load.
+		/// <p/>
+		/// Anything that is going to make this into a texture would use
+		/// makePowerOf2 = true, but something loading an image as a lookup
+		/// table of some sort would leave it in identity form.
+		/// <p/>
+		/// It is important to do this at image load time instead of texture load
+		/// time for bump maps.
+		/// <p/>
+		/// timestamp may be NULL if the value is going to be ignored
+		/// <p/>
+		/// If data is NULL, the image won't actually be loaded, it will just find the
+		/// timestamp.
+		/// </remarks>
+		/// <param name="name"></param>
+		/// <param name="width"></param>
+		/// <param name="height"></param>
+		/// <param name="timeStamp"></param>
+		/// <param name="makePowerOf2"></param>
+		/// <returns></returns>
+		public byte[] LoadImage(string name, ref int width, ref int height, ref DateTime timeStamp, bool makePowerOf2)
+		{
+			width = 0;
+			height = 0;
+
+			if(Path.HasExtension(name) == false)
+			{
+				name += ".tga";
+			}
+
+			name = name.ToLower();
+
+			string ext = Path.GetExtension(name);
+			byte[] data = null;
+
+			if(ext == ".tga")
+			{
+				data = LoadTGA(name, ref width, ref height, ref timeStamp);
+
+				if(data == null)
+				{
+					name = Path.Combine(Path.GetDirectoryName(name), Path.GetFileNameWithoutExtension(name));
+					name += ".jpg";
+
+					// TODO: data = LoadJPG(name, ref width, ref height, ref timeStamp);
+					idConsole.WriteLine("LoadImage try jpg");
+				}
+			}
+			else if(ext == ".pcx")
+			{
+				idConsole.WriteLine("TODO: LoadImage pcx");
+				//LoadPCX32( name.c_str(), pic, width, height, timestamp );
+			}
+			else if(ext == ".bmp")
+			{
+				idConsole.WriteLine("TODO: LoadImage bmp");
+				// LoadBMP( name.c_str(), pic, width, height, timestamp );
+			}
+			else if(ext == ".jpg")
+			{
+				idConsole.WriteLine("TODO: LoadImage jpg");
+			}
+
+			if((width < 1) || (height < 1))
+			{
+				return null;
+			}
+
+			//
+			// convert to exact power of 2 sizes
+			//
+			if((data != null) && (makePowerOf2 == true))
+			{
+				int scaledWidth, scaledHeight;
+
+				int tmpWidth = width;
+				int tmpHeight = height;
+
+				for(scaledWidth = 1; scaledWidth < tmpWidth; scaledWidth <<= 1)
+				{
+
+				}
+
+				for(scaledHeight = 1; scaledHeight < tmpHeight; scaledHeight <<= 1)
+				{
+
+				}
+
+				if((scaledWidth != tmpWidth) || (scaledHeight != tmpHeight))
+				{
+					if((idE.CvarSystem.GetBool("image_roundDown") == true) && (scaledWidth > tmpWidth))
+					{
+						scaledWidth >>= 1;
+					}
+
+					if((idE.CvarSystem.GetBool("image_roundDown") == true) && (scaledHeight > tmpHeight))
+					{
+						scaledHeight >>= 1;
+					}
+
+					data = ResampleTexture(data, tmpWidth, tmpHeight, scaledWidth, scaledHeight);
+
+					width = scaledWidth;
+					height = scaledHeight;
+				}
+			}
+
+			return data;
+		}
+		
+		/// <summary>
+		/// If data is NULL, the timestamps will be filled in, but no image will be generated
+		/// If both data and timeStamp are NULL, it will just advance past it, which can be
+		/// used to parse an image program from a text stream.
+		/// </summary>
+		/// <param name="lexer"></param>
+		/// <param name="data"></param>
+		/// <param name="width"></param>
+		/// <param name="height"></param>
+		/// <param name="timeStamp"></param>
+		/// <param name="depth"></param>
+		/// <returns></returns>
+		public byte[] ParseImageProgram(string source, ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth)
+		{
+			return new idImageProgramParser().ParseImageProgram(source, ref width, ref height, ref timeStamp, ref depth);
+		}
 		#endregion
 
 		#region Private
-		private void InitFilters()
+		private idImage CreateImage(string name)
 		{
-			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", Gl.GL_LINEAR_MIPMAP_NEAREST, Gl.GL_LINEAR));
-			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", Gl.GL_LINEAR_MIPMAP_LINEAR, Gl.GL_LINEAR));
-			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", Gl.GL_NEAREST, Gl.GL_NEAREST));
-			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", Gl.GL_LINEAR, Gl.GL_LINEAR));
-			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", Gl.GL_NEAREST_MIPMAP_NEAREST, Gl.GL_NEAREST));
-			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", Gl.GL_NEAREST_MIPMAP_LINEAR, Gl.GL_NEAREST));
-		}
+			idImage image = new idImage(name);
 
+			_images.Add(image);
+			_imageDictionary.Add(name, image);
+
+			return image;
+		}
+		
 		private void InitCvars()
 		{
 			new idCvar("image_filter", "GL_LINEAR_MIPMAP_LINEAR", ImageFilters.Keys.ToArray(), "changes texture filtering on mipmapped images", new ArgCompletion_String(ImageFilters.Keys.ToArray()), CvarFlags.Renderer | CvarFlags.Archive);
@@ -851,12 +1347,85 @@ namespace idTech4.Renderer
 			new idCvar("image_downSizeLimit", "256", "controls diffuse map downsample limit", CvarFlags.Renderer | CvarFlags.Archive);
 		}
 
-		private idImage CreateImage(string name)
+		private void InitFilters()
 		{
-			idImage image = new idImage(name);
-			_images.Add(name, image);
+			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", Gl.GL_LINEAR_MIPMAP_NEAREST, Gl.GL_LINEAR));
+			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", Gl.GL_LINEAR_MIPMAP_LINEAR, Gl.GL_LINEAR));
+			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", Gl.GL_NEAREST, Gl.GL_NEAREST));
+			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", Gl.GL_LINEAR, Gl.GL_LINEAR));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", Gl.GL_NEAREST_MIPMAP_NEAREST, Gl.GL_NEAREST));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", Gl.GL_NEAREST_MIPMAP_LINEAR, Gl.GL_NEAREST));
+		}
 
-			return image;
+		private byte[] LoadTGA(string name, ref int width, ref int height, ref DateTime timeStamp)
+		{
+			byte[] data = idE.FileSystem.ReadFile(name, out timeStamp);
+
+			if(data == null)
+			{
+				return null;
+			}
+
+			byte[] retData = null;
+
+			int image = Il.ilGenImage();
+			Il.ilBindImage(image);
+
+			if(Il.ilLoadL(Il.IL_TGA, data, data.Length) == true)
+			{
+				int bitsPerPixel = Il.ilGetInteger(Il.IL_IMAGE_BITS_PER_PIXEL);
+
+				retData = new byte[width * height * bitsPerPixel];
+
+				IntPtr ptr = Il.ilGetData();
+				Marshal.Copy(ptr, retData, 0, retData.Length);
+			}			
+
+			Il.ilDeleteImages(1, ref image);
+
+			return retData;
+		}
+		#endregion
+
+		#region Command handlers
+		/// <summary>
+		/// Regenerate all images that came directly from files that have changed, so
+		/// any saved changes will show up in place.
+		/// <p/>
+		/// New r_texturesize/r_texturedepth variables will take effect on reload.
+		/// </summary>
+		/// <param name="sender"></param>
+		/// <param name="e"></param>
+		private void Cmd_ReloadImages(object sender, CommandEventArgs e)
+		{
+			// this probably isn't necessary...
+			ChangeTextureFilter();
+
+			bool all = false;
+			bool checkPrecompressed = false; // if we are doing this as a vid_restart, look for precompressed like normal
+
+			if(e.Args.Length == 2)
+			{
+				if(e.Args.Get(1).ToLower() == "all")
+				{
+					all = true;
+				}
+				else if(e.Args.Get(1).ToLower() == "reload")
+				{
+					all = true;
+					checkPrecompressed = true;
+				}
+				else
+				{
+					idConsole.WriteLine("USAGE: reloadImages <all>");
+					return;
+				}
+			}
+
+			foreach(idImage image in _images)
+			{
+				image.Reload(checkPrecompressed, all);
+			}
 		}
 		#endregion
 		#endregion

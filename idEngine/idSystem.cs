@@ -216,6 +216,12 @@ namespace idTech4
 				// don't add startup commands if no CD key is present
 				if(AddStartupCommands() == false)
 				{
+
+					// TODO: remove this the next two braces, it's just to force ui to work while i port the rest of the code
+
+				}
+
+				{
 					// if the user didn't give any commands, run default action
 					idE.Session.StartMenu(true);
 				}

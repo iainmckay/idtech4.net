@@ -374,14 +374,16 @@ namespace idTech4
 					fileName += ".cfg";
 				}
 
-				string content = idE.FileSystem.ReadFile(fileName);
-
-				if(content == null)
+				byte[] data = idE.FileSystem.ReadFile(fileName);
+				
+				if(data == null)
 				{
 					idConsole.WriteLine("couldn't exec {0}", e.Args.Get(1));
 				}
 				else
 				{
+					string content = UTF8Encoding.UTF8.GetString(data);
+
 					idConsole.WriteLine("execing {0}", e.Args.Get(1));
 					idE.CmdSystem.BufferCommandText(Execute.Insert, content);
 				}

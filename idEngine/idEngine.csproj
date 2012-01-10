@@ -18,6 +18,7 @@
     <XnaOutputType>Game</XnaOutputType>
     <ApplicationIcon>doom.ico</ApplicationIcon>
     <Thumbnail>GameThumbnail.png</Thumbnail>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
     <PublishUrl>publish\</PublishUrl>
     <Install>true</Install>
     <InstallFrom>Disk</InstallFrom>
@@ -30,7 +31,6 @@
     <MapFileExtensions>true</MapFileExtensions>
     <ApplicationRevision>0</ApplicationRevision>
     <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
-    <IsWebBootstrapper>false</IsWebBootstrapper>
     <UseApplicationTrust>false</UseApplicationTrust>
     <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
@@ -89,6 +89,10 @@
     <Reference Include="System.Net">
       <Private>False</Private>
     </Reference>
+    <Reference Include="Tao.DevIl, Version=1.6.8.3, Culture=neutral, PublicKeyToken=7ec4053013524957, processorArchitecture=MSIL">
+      <SpecificVersion>False</SpecificVersion>
+      <HintPath>C:\Program Files (x86)\TaoFramework\bin\Tao.DevIl.dll</HintPath>
+    </Reference>
     <Reference Include="Tao.OpenGl, Version=2.1.0.12, Culture=neutral, PublicKeyToken=1ca010269a4501ef, processorArchitecture=MSIL">
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\TaoFramework\bin\Tao.OpenGl.dll</HintPath>
@@ -140,6 +144,7 @@
     <Compile Include="Text\Decl\idDeclEmail.cs" />
     <Compile Include="Text\Decl\idDeclTable.cs" />
     <Compile Include="Text\idDeclFile.cs" />
+    <Compile Include="Text\idImageProgramParser.cs" />
     <Compile Include="Text\idLexer.cs" />
     <Compile Include="Text\idScriptParser.cs" />
     <Compile Include="Text\idToken.cs" />

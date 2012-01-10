@@ -108,14 +108,15 @@ namespace idTech4.Text
 			// load the text
 			idConsole.DeveloperWriteLine("...loading '{0}'", this.FileName);
 
-			string content = idE.FileSystem.ReadFile(this.FileName);
-
-			if(content == null)
+			byte[] data = idE.FileSystem.ReadFile(this.FileName);
+			
+			if(data == null)
 			{
 				idConsole.FatalError("couldn't load {0}", this.FileName);
 				return 0;
 			}
-			
+
+			string content = UTF8Encoding.UTF8.GetString(data);
 			idLexer lexer = new idLexer();
 			lexer.Options = LexerOptions;
 

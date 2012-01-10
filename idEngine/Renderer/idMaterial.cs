@@ -70,6 +70,14 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Properties	
+		public float[] ConstantRegisters
+		{
+			get
+			{
+				return _constantRegisters;
+			}
+		}
+
 		/// <summary>
 		/// For interaction list linking and dmap flood filling.  The depth buffer will not be filled for translucent surfaces.
 		/// </summary>
@@ -349,6 +357,7 @@ namespace idTech4.Renderer
 						registers[op.C] = table.Lookup(registers[op.B]);
 						break;
 					case ExpressionOperationType.Sound:
+						idConsole.WriteLine("TODO: eoptype sound");
 						// TODO: OP_TYPE_SOUND:
 						/*if ( soundEmitter ) {
 							registers[op->c] = soundEmitter->CurrentAmplitude();
@@ -421,10 +430,11 @@ namespace idTech4.Renderer
 			_ambientStageCount = 0;
 			_registerCount = 0;
 
-			/*editorImage = NULL;
+			/*
 			lightFalloffImage = NULL;
-			shouldCreateBackSides = false;
 			entityGui = 0;*/
+			_shouldCreateBackSides = false;
+			_editorImageName = null;
 
 			_fogLight = false;
 			_blendLight = false;
@@ -439,7 +449,7 @@ namespace idTech4.Renderer
 			editorAlpha = 1.0;*/
 			_spectrum = 0;
 			/* refCount = 0;*/
-
+						
 			_polygonOffset = 0;
 			_suppressInSubview = false;
 			_portalSky = false;
@@ -1220,6 +1230,8 @@ namespace idTech4.Renderer
 		/// <returns></returns>
 		private bool CheckSurfaceParameter(idToken token)
 		{
+			idConsole.WriteLine("TODO: check surface parameter");
+			
 			// TODO: infoParms
 			/*for ( int i = 0 ; i < numInfoParms ; i++ ) {
 				if ( !token->Icmp( infoParms[i].name ) ) {
@@ -1335,8 +1347,8 @@ namespace idTech4.Renderer
 			NewMaterialStage newStage = new NewMaterialStage();
 			newStage.VertexParameters = new int[4, 4];
 
-			MaterialStage shaderStage = new MaterialStage();
-			shaderStage.Color.Registers = new int[4];
+			MaterialStage materialStage = new MaterialStage();
+			materialStage.Color.Registers = new int[4];
 
 			int[,] matrix = new int[2, 3];
 
@@ -1375,7 +1387,7 @@ namespace idTech4.Renderer
 				// image options.
 				else if(tokenLower == "blend")
 				{
-					ParseBlend(lexer, ref shaderStage);
+					ParseBlend(lexer, ref materialStage);
 				}
 				else if(tokenLower == "map")
 				{
@@ -1383,35 +1395,35 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "remoterendermap")
 				{
-					shaderStage.Texture.Dynamic = DynamicImageType.RemoteRender;
-					shaderStage.Texture.Width = lexer.ParseInt();
-					shaderStage.Texture.Height = lexer.ParseInt();
+					materialStage.Texture.Dynamic = DynamicImageType.RemoteRender;
+					materialStage.Texture.Width = lexer.ParseInt();
+					materialStage.Texture.Height = lexer.ParseInt();
 				}
 				else if(tokenLower == "mirrorrendermap")
 				{
-					shaderStage.Texture.Dynamic = DynamicImageType.MirrorRender;
-					shaderStage.Texture.Width = lexer.ParseInt();
-					shaderStage.Texture.Height = lexer.ParseInt();
-					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
+					materialStage.Texture.Dynamic = DynamicImageType.MirrorRender;
+					materialStage.Texture.Width = lexer.ParseInt();
+					materialStage.Texture.Height = lexer.ParseInt();
+					materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
 				else if(tokenLower == "xrayrendermap")
 				{
-					shaderStage.Texture.Dynamic = DynamicImageType.XRayRender;
-					shaderStage.Texture.Width = lexer.ParseInt();
-					shaderStage.Texture.Height = lexer.ParseInt();
-					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
+					materialStage.Texture.Dynamic = DynamicImageType.XRayRender;
+					materialStage.Texture.Width = lexer.ParseInt();
+					materialStage.Texture.Height = lexer.ParseInt();
+					materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
 				else if(tokenLower == "screen")
 				{
-					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
+					materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
 				else if(tokenLower == "screen2")
 				{
-					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
+					materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
 				else if(tokenLower == "glasswarp")
 				{
-					shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.GlassWarp;
+					materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.GlassWarp;
 				}
 				else if(tokenLower == "videomap")
 				{
@@ -1470,7 +1482,7 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "ignorealphatest")
 				{
-					shaderStage.IgnoreAlphaTest = true;
+					materialStage.IgnoreAlphaTest = true;
 				}
 				else if(tokenLower == "nearest")
 				{
@@ -1514,24 +1526,24 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "vertexcolor")
 				{
-					shaderStage.VertexColor = StageVertexColor.Modulate;
+					materialStage.VertexColor = StageVertexColor.Modulate;
 				}
 				else if(tokenLower == "inversevertexcolor")
 				{
-					shaderStage.VertexColor = StageVertexColor.InverseModulate;
+					materialStage.VertexColor = StageVertexColor.InverseModulate;
 				}
 				// privatePolygonOffset.
 				else if(tokenLower == "privatepolygonoffset")
 				{
 					if((token = lexer.ReadTokenOnLine()) == null)
 					{
-						shaderStage.PrivatePolygonOffset = 1;
+						materialStage.PrivatePolygonOffset = 1;
 					}
 					else
 					{
 						// explict larger (or negative) offset.
 						lexer.UnreadToken = token;
-						shaderStage.PrivatePolygonOffset = lexer.ParseFloat();
+						materialStage.PrivatePolygonOffset = lexer.ParseFloat();
 					}
 				}
 				// texture coordinate generation.
@@ -1543,19 +1555,19 @@ namespace idTech4.Renderer
 
 					if(tokenLower == "normal")
 					{
-						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.DiffuseCube;
+						materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.DiffuseCube;
 					}
 					else if(tokenLower == "reflect")
 					{
-						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.ReflectCube;
+						materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.ReflectCube;
 					}
 					else if(tokenLower == "skybox")
 					{
-						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.SkyboxCube;
+						materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.SkyboxCube;
 					}
 					else if(tokenLower == "wobblesky")
 					{
-						shaderStage.Texture.TextureCoordinates = TextureCoordinateGeneration.WobbleSkyCube;
+						materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.WobbleSkyCube;
 
 						_texGenRegisters = new int[4];
 						_texGenRegisters[0] = ParseExpression(lexer);
@@ -1583,7 +1595,7 @@ namespace idTech4.Renderer
 					matrix[1, 1] = GetExpressionConstant(1);
 					matrix[1, 2] = b;
 
-					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+					MultiplyTextureMatrix(ref materialStage.Texture, matrix);
 				}
 				else if(tokenLower == "scale")
 				{
@@ -1600,7 +1612,7 @@ namespace idTech4.Renderer
 					matrix[1, 1] = b;
 					matrix[1, 2] = GetExpressionConstant(0);
 
-					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+					MultiplyTextureMatrix(ref materialStage.Texture, matrix);
 				}
 				else if(tokenLower == "centerscale")
 				{
@@ -1617,7 +1629,7 @@ namespace idTech4.Renderer
 					matrix[1, 1] = b;
 					matrix[1, 2] = EmitOp(GetExpressionConstant(0.5f), EmitOp(GetExpressionConstant(0.5f), b, ExpressionOperationType.Multiply), ExpressionOperationType.Subtract);
 
-					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+					MultiplyTextureMatrix(ref materialStage.Texture, matrix);
 				}
 				else if(tokenLower == "shear")
 				{
@@ -1634,7 +1646,7 @@ namespace idTech4.Renderer
 					matrix[1, 1] = GetExpressionConstant(1);
 					matrix[1, 2] = EmitOp(GetExpressionConstant(-0.5f), b, ExpressionOperationType.Multiply);
 
-					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+					MultiplyTextureMatrix(ref materialStage.Texture, matrix);
 				}
 				else if(tokenLower == "rotate")
 				{
@@ -1680,90 +1692,90 @@ namespace idTech4.Renderer
 									EmitOp(GetExpressionConstant(-0.5f), cosReg, ExpressionOperationType.Multiply), ExpressionOperationType.Add),
 										GetExpressionConstant(0.5f), ExpressionOperationType.Add);
 
-					MultiplyTextureMatrix(ref shaderStage.Texture, matrix);
+					MultiplyTextureMatrix(ref materialStage.Texture, matrix);
 				}
 				// color mask options
 				else if(tokenLower == "maskred")
 				{
-					shaderStage.DrawStateBits |= MaterialStates.Red;
+					materialStage.DrawStateBits |= MaterialStates.Red;
 				}
 				else if(tokenLower == "maskgreen")
 				{
-					shaderStage.DrawStateBits |= MaterialStates.Green;
+					materialStage.DrawStateBits |= MaterialStates.Green;
 				}
 				else if(tokenLower == "maskblue")
 				{
-					shaderStage.DrawStateBits |= MaterialStates.Blue;
+					materialStage.DrawStateBits |= MaterialStates.Blue;
 				}
 				else if(tokenLower == "maskalpha")
 				{
-					shaderStage.DrawStateBits |= MaterialStates.Alpha;
+					materialStage.DrawStateBits |= MaterialStates.Alpha;
 				}
 				else if(tokenLower == "maskcolor")
 				{
-					shaderStage.DrawStateBits |= MaterialStates.Color;
+					materialStage.DrawStateBits |= MaterialStates.Color;
 				}
 				else if(tokenLower == "maskdepth")
 				{
-					shaderStage.DrawStateBits |= MaterialStates.Depth;
+					materialStage.DrawStateBits |= MaterialStates.Depth;
 				}
 				else if(tokenLower == "alphatest")
 				{
-					shaderStage.HasAlphaTest = true;
-					shaderStage.AlphaTestRegister = ParseExpression(lexer);
+					materialStage.HasAlphaTest = true;
+					materialStage.AlphaTestRegister = ParseExpression(lexer);
 
 					_coverage = MaterialCoverage.Perforated;
 				}
 				// shorthand for 2D modulated.
 				else if(tokenLower == "colored")
 				{
-					shaderStage.Color.Registers[0] = (int) ExpressionRegister.Parm0;
-					shaderStage.Color.Registers[1] = (int) ExpressionRegister.Parm1;
-					shaderStage.Color.Registers[2] = (int) ExpressionRegister.Parm2;
-					shaderStage.Color.Registers[3] = (int) ExpressionRegister.Parm3;
+					materialStage.Color.Registers[0] = (int) ExpressionRegister.Parm0;
+					materialStage.Color.Registers[1] = (int) ExpressionRegister.Parm1;
+					materialStage.Color.Registers[2] = (int) ExpressionRegister.Parm2;
+					materialStage.Color.Registers[3] = (int) ExpressionRegister.Parm3;
 
 					_parsingData.RegistersAreConstant = false;
 				}
 				else if(tokenLower == "color")
 				{
-					shaderStage.Color.Registers[0] = ParseExpression(lexer);
+					materialStage.Color.Registers[0] = ParseExpression(lexer);
 					MatchToken(lexer, ",");
 
-					shaderStage.Color.Registers[1] = ParseExpression(lexer);
+					materialStage.Color.Registers[1] = ParseExpression(lexer);
 					MatchToken(lexer, ",");
 
-					shaderStage.Color.Registers[2] = ParseExpression(lexer);
+					materialStage.Color.Registers[2] = ParseExpression(lexer);
 					MatchToken(lexer, ",");
 
-					shaderStage.Color.Registers[3] = ParseExpression(lexer);
+					materialStage.Color.Registers[3] = ParseExpression(lexer);
 				}
 				else if(tokenLower == "red")
 				{
-					shaderStage.Color.Registers[0] = ParseExpression(lexer);
+					materialStage.Color.Registers[0] = ParseExpression(lexer);
 				}
 				else if(tokenLower == "green")
 				{
-					shaderStage.Color.Registers[1] = ParseExpression(lexer);
+					materialStage.Color.Registers[1] = ParseExpression(lexer);
 				}
 				else if(tokenLower == "blue")
 				{
-					shaderStage.Color.Registers[2] = ParseExpression(lexer);
+					materialStage.Color.Registers[2] = ParseExpression(lexer);
 				}
 				else if(tokenLower == "alpha")
 				{
-					shaderStage.Color.Registers[3] = ParseExpression(lexer);
+					materialStage.Color.Registers[3] = ParseExpression(lexer);
 				}
 				else if(tokenLower == "rgb")
 				{
-					shaderStage.Color.Registers[0] = shaderStage.Color.Registers[1] = shaderStage.Color.Registers[2] = ParseExpression(lexer);
+					materialStage.Color.Registers[0] = materialStage.Color.Registers[1] = materialStage.Color.Registers[2] = ParseExpression(lexer);
 				}
 				else if(tokenLower == "rgba")
 				{
-					shaderStage.Color.Registers[0] = shaderStage.Color.Registers[1] = shaderStage.Color.Registers[2] = shaderStage.Color.Registers[3] = ParseExpression(lexer);
+					materialStage.Color.Registers[0] = materialStage.Color.Registers[1] = materialStage.Color.Registers[2] = materialStage.Color.Registers[3] = ParseExpression(lexer);
 				}
 				else if(tokenLower == "if")
 				{
-					shaderStage.ConditionRegister = ParseExpression(lexer);
+					materialStage.ConditionRegister = ParseExpression(lexer);
 				}
 				else if(tokenLower == "program")
 				{
@@ -1830,16 +1842,13 @@ namespace idTech4.Renderer
 			// if we are using newStage, allocate a copy of it.
 			if((newStage.FragmentProgram != 0) || (newStage.VertexProgram != 0))
 			{
-				shaderStage.NewStage = newStage;
+				materialStage.NewStage = newStage;
 			}
-
-			// successfully parsed a stage.
-			_parsingData.Stages.Add(shaderStage);
-
+			
 			// select a compressed depth based on what the stage is.
 			if(textureDepth == TextureDepth.Default)
 			{
-				switch(shaderStage.Lighting)
+				switch(materialStage.Lighting)
 				{
 					case StageLighting.Bump:
 						textureDepth = TextureDepth.Bump;
@@ -1856,16 +1865,23 @@ namespace idTech4.Renderer
 			}
 
 			// now load the image with all the parms we parsed
-			// TODO: image loading
-			/*if ( imageName[0] ) {
-				ts->image = globalImages->ImageFromFile( imageName, tf, allowPicmip, trp, td, cubeMap );
-				if ( !ts->image ) {
-					ts->image = globalImages->defaultImage;
+			if((imageName != null) && (imageName != string.Empty))
+			{
+				materialStage.Texture.Image = idE.ImageManager.ImageFromFile(imageName, textureFilter, allowPicmip, textureRepeat, textureDepth, cubeMap);
+		
+				if(materialStage.Texture.Image != null)
+				{
+					materialStage.Texture.Image = idE.ImageManager.DefaultImage;
 				}
-			} else if ( !ts->cinematic && !ts->dynamic && !ss->newStage ) {
-				common->Warning( "material '%s' had stage with no image", GetName() );
-				ts->image = globalImages->defaultImage;
-			}*/
+			} 
+			else if(/*TODO: !ts->cinematic &&*/ (materialStage.Texture.Dynamic == 0) && (materialStage.NewStage.IsEmpty == true))
+			{
+				idConsole.Warning("material '{0}' had stage with no image", this.Name);
+				materialStage.Texture.Image = idE.ImageManager.DefaultImage;
+			}
+			
+			// successfully parsed a stage.
+			_parsingData.Stages.Add(materialStage);
 		}
 
 		private void ParseBlend(idLexer lexer, ref MaterialStage stage)
@@ -2086,6 +2102,7 @@ namespace idTech4.Renderer
 			string image = ParsePastImageProgram(lexer);
 
 			// TODO: fragment program images.
+			idConsole.WriteLine("TODO: fragment program images");
 			/*
 			newStage->fragmentProgramImages[unit] = 
 				globalImages->ImageFromFile( str, tf, allowPicmip, trp, td, cubeMap );
@@ -2863,7 +2880,7 @@ namespace idTech4.Renderer
 		protected override bool GenerateDefaultText()
 		{
 			// if there exists an image with the same name
-			if(true) //fileSystem->ReadFile( GetName(), NULL ) != -1 ) {
+			if(idE.FileSystem.FileExists(this.Name) == true)
 			{
 				this.SourceText = "material " + this.Name + " // IMPLICITLY GENERATED\n"
 					+ "{\n{\nblend blend\n"
@@ -2877,34 +2894,12 @@ namespace idTech4.Renderer
 
 		protected override void ClearData()
 		{
-			// TODO
-			/*if ( stages ) {
-				// delete any idCinematic textures
-				for ( i = 0; i < numStages; i++ ) {
-					if ( stages[i].texture.cinematic != NULL ) {
-						delete stages[i].texture.cinematic;
-						stages[i].texture.cinematic = NULL;
-					}
-					if ( stages[i].newStage != NULL ) {
-						Mem_Free( stages[i].newStage );
-						stages[i].newStage = NULL;
-					}
-				}
-				R_StaticFree( stages );
-				stages = NULL;
-			}
-			if ( expressionRegisters != NULL ) {
-				R_StaticFree( expressionRegisters );
-				expressionRegisters = NULL;
-			}
-			if ( constantRegisters != NULL ) {
-				R_StaticFree( constantRegisters );
-				constantRegisters = NULL;
-			}
-			if ( ops != NULL ) {
-				R_StaticFree( ops );
-				ops = NULL;
-			}*/
+			idConsole.WriteLine("idMaterial.ClearData");
+
+			_stages = null;
+			_expressionRegisters = null;
+			_constantRegisters = null;
+			_ops = null;
 		}
 		#endregion
 	}

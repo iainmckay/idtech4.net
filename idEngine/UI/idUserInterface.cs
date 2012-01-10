@@ -149,6 +149,7 @@ namespace idTech4.UI
 
 		public void Draw(int time)
 		{
+			idConsole.WriteLine("DX");
 			if(idE.CvarSystem.GetInteger("r_skipGuiShaders") > 5)
 			{
 				return;
@@ -216,7 +217,8 @@ namespace idTech4.UI
 			_state.Set("text", "Test Text!");
 
 			// load the timestamp so reload guis will work correctly
-			string content = idE.FileSystem.ReadFile(path, out _timeStamp);
+			byte[] data = idE.FileSystem.ReadFile(path, out _timeStamp);
+			string content = UTF8Encoding.UTF8.GetString(data);
 			idScriptParser parser = null;
 
 			if(content != null)

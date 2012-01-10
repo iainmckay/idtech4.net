@@ -30,6 +30,7 @@ using System.IO;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using System.Threading;
 
 using ICSharpCode.SharpZipLib.Checksums;
 using ICSharpCode.SharpZipLib.Zip;
@@ -172,6 +173,9 @@ namespace idTech4.IO
 		#endregion
 
 		#region Members
+		private Thread _backgroundDownloadThread;
+		private Queue<BackgroundDownload> _backgroundDownloads = new Queue<BackgroundDownload>();
+
 		private List<SearchPath> _searchPaths = new List<SearchPath>();
 		private string _gameFolder; // this will be a single name without separators.
 
@@ -256,7 +260,7 @@ namespace idTech4.IO
 			Startup();
 
 			// spawn a thread to handle background file reads
-			// TODO: not interested in this right now. StartBackgroundDownloadThread();
+			StartBackgroundDownloadThread();
 
 			// if we can't find default.cfg, assume that the paths are
 			// busted and error out now, rather than getting an unreadable
@@ -346,8 +350,8 @@ namespace idTech4.IO
 
 		public bool FileExists(string relativePath, string basePath)
 		{
-			bool found;
 			Pack pack;
+			bool found;
 
 			if(basePath != null)
 			{
@@ -355,7 +359,11 @@ namespace idTech4.IO
 			}
 
 			Stream s = OpenFileRead(relativePath, true, out pack, null, FileSearch.SearchDirectories | FileSearch.SearchPaks, true, out found);
-			s.Dispose();
+
+			if(s != null)
+			{
+				s.Dispose();
+			}
 
 			return found;
 		}
@@ -366,7 +374,7 @@ namespace idTech4.IO
 			{
 				idConsole.FatalError("Filesystem call made without initialization");
 			}
-			
+
 			if(idE.CvarSystem.GetInteger("fs_debug") > 0)
 			{
 				idConsole.WriteLine("idFileSystem.OpenExplicitFileRead: {0}", osPath);
@@ -461,7 +469,7 @@ namespace idTech4.IO
 
 					string netPath = CreatePath(dir.Path, dir.GameDirectory, relativePath);
 					Stream file = null;
-					
+
 					if(File.Exists(netPath) == true)
 					{
 						try
@@ -727,7 +735,36 @@ namespace idTech4.IO
 			return null;
 		}
 
-		public string ReadFile(string relativePath)
+		public void QueueBackgroundLoad(BackgroundDownload backgroundDownload)
+		{
+			_backgroundDownloads.Enqueue(backgroundDownload);
+
+			// TODO: will we handle downloads differently to files?  they're all streams
+			// at the end of the day.
+			/*if ( bgl->opcode == DLTYPE_FILE ) {
+				if ( dynamic_cast<idFile_Permanent *>(bgl->f) ) {
+					// add the bgl to the background download list
+					Sys_EnterCriticalSection();
+					bgl->next = backgroundDownloads;
+					backgroundDownloads = bgl;
+					Sys_TriggerEvent();
+					Sys_LeaveCriticalSection();
+				} else {
+					// read zipped file directly
+					bgl->f->Seek( bgl->file.position, FS_SEEK_SET );
+					bgl->f->Read( bgl->file.buffer, bgl->file.length );
+					bgl->completed = true;
+				}
+			} else {
+				Sys_EnterCriticalSection();
+				bgl->next = backgroundDownloads;
+				backgroundDownloads = bgl;
+				Sys_TriggerEvent();
+				Sys_LeaveCriticalSection();
+			}*/
+		}
+
+		public byte[] ReadFile(string relativePath)
 		{
 			DateTime tmp;
 			return ReadFile(relativePath, out tmp);
@@ -739,7 +776,7 @@ namespace idTech4.IO
 		/// <param name="fileName"></param>
 		/// <param name="timeStamp"></param>
 		/// <returns>null if loading failed (file did not exist or other issue).</returns>
-		public string ReadFile(string relativePath, out DateTime timeStamp)
+		public byte[] ReadFile(string relativePath, out DateTime timeStamp)
 		{
 			if(_searchPaths.Count == 0)
 			{
@@ -812,12 +849,8 @@ namespace idTech4.IO
 			_loadCount++;
 			_loadStack++;
 
-			string content = string.Empty;
-
-			using(StreamReader reader = new StreamReader(s))
-			{
-				content = reader.ReadToEnd();
-			}
+			byte[] data = new byte[s.Length];
+			s.Read(data, 0, data.Length);
 
 			// TODO
 			// if we are journalling and it is a config file, write it to the journal file
@@ -828,8 +861,8 @@ namespace idTech4.IO
 				eventLoop->com_journalDataFile->Write(buf, len);
 				eventLoop->com_journalDataFile->Flush();
 			}*/
-			
-			return content;
+
+			return data;
 		}
 
 		public string RelativePathToOSPath(string relativePath, string basePath)
@@ -1025,6 +1058,14 @@ namespace idTech4.IO
 
 			idConsole.WriteLine("file system initialized.");
 			idConsole.WriteLine("--------------------------------------");
+		}
+
+		private void StartBackgroundDownloadThread()
+		{
+			ThreadStart threadStart = new ThreadStart(ProcessBackgroundDownloadThread);
+			_backgroundDownloadThread = new Thread(threadStart);
+			_backgroundDownloadThread.IsBackground = true;
+			_backgroundDownloadThread.Start();
 		}
 
 		/// <summary>
@@ -1475,7 +1516,7 @@ namespace idTech4.IO
 			}
 
 			caseSensitiveName = string.Empty;
-			
+
 			if((s == null) && (idE.CvarSystem.GetBool("fs_caseSensitiveOS") == true))
 			{
 				idConsole.WriteLine("UH OH, should really handle fs_caseSensitiveOS");
@@ -1513,6 +1554,121 @@ namespace idTech4.IO
 			caseSensitiveName = Path.GetFileName(name);
 
 			return s;
+		}
+
+		private void ProcessBackgroundDownloadThread()
+		{
+			while(true)
+			{
+				if(_backgroundDownloads.Count != 0)
+				{
+					BackgroundDownload backgroundDownload = _backgroundDownloads.Dequeue();
+
+					if(backgroundDownload.Type == DownloadType.File)
+					{
+						throw new Exception("X");
+						/*#if defined(WIN32)
+							_read( static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr()->_file, bgl->file.buffer, bgl->file.length );
+						#else
+							fread(  bgl->file.buffer, bgl->file.length, 1, static_cast<idFile_Permanent*>(bgl->f)->GetFilePtr() );
+						#endif*/
+
+						backgroundDownload.Completed = true;
+					}
+					else
+					{
+						/*#if ID_ENABLE_CURL
+									// DLTYPE_URL
+									// use a local buffer for curl error since the size define is local
+									char error_buf[ CURL_ERROR_SIZE ];
+									bgl->url.dlerror[ 0 ] = '\0';
+									CURL *session = curl_easy_init();
+									CURLcode ret;
+									if ( !session ) {
+										bgl->url.dlstatus = CURLE_FAILED_INIT;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									ret = curl_easy_setopt( session, CURLOPT_ERRORBUFFER, error_buf );
+									if ( ret ) {
+										bgl->url.dlstatus = ret;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									ret = curl_easy_setopt( session, CURLOPT_URL, bgl->url.url.c_str() );
+									if ( ret ) {
+										bgl->url.dlstatus = ret;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									ret = curl_easy_setopt( session, CURLOPT_FAILONERROR, 1 );
+									if ( ret ) {
+										bgl->url.dlstatus = ret;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									ret = curl_easy_setopt( session, CURLOPT_WRITEFUNCTION, idFileSystemLocal::CurlWriteFunction );
+									if ( ret ) {
+										bgl->url.dlstatus = ret;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									ret = curl_easy_setopt( session, CURLOPT_WRITEDATA, bgl );
+									if ( ret ) {
+										bgl->url.dlstatus = ret;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									ret = curl_easy_setopt( session, CURLOPT_NOPROGRESS, 0 );
+									if ( ret ) {
+										bgl->url.dlstatus = ret;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									ret = curl_easy_setopt( session, CURLOPT_PROGRESSFUNCTION, idFileSystemLocal::CurlProgressFunction );
+									if ( ret ) {
+										bgl->url.dlstatus = ret;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									ret = curl_easy_setopt( session, CURLOPT_PROGRESSDATA, bgl );
+									if ( ret ) {
+										bgl->url.dlstatus = ret;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									bgl->url.dlnow = 0;
+									bgl->url.dltotal = 0;
+									bgl->url.status = DL_INPROGRESS;
+									ret = curl_easy_perform( session );
+									if ( ret ) {
+										Sys_Printf( "curl_easy_perform failed: %s\n", error_buf );
+										idStr::Copynz( bgl->url.dlerror, error_buf, MAX_STRING_CHARS );
+										bgl->url.dlstatus = ret;
+										bgl->url.status = DL_FAILED;
+										bgl->completed = true;
+										continue;
+									}
+									bgl->url.status = DL_DONE;
+									bgl->completed = true;
+						#else
+									bgl->url.status = DL_FAILED;
+									bgl->completed = true;
+						#endif*/
+					}
+				}
+
+				Thread.Sleep(0);
+			}
 		}
 		#endregion
 
@@ -1570,6 +1726,25 @@ namespace idTech4.IO
 		Pure = (1 << 2),
 		BinaryOnly = (1 << 3),
 		SearchAddons = (1 << 4)
+	}
+
+	public enum DownloadType
+	{
+		Url,
+		File
+	}
+
+	public class BackgroundDownload
+	{
+		public DownloadType Type;
+		public Stream Stream;
+		/*typedef struct backgroundDownload_s {
+		struct backgroundDownload_s	*next;	// set by the fileSystem
+		fileDownload_t		file;
+		urlDownload_t		url;
+	} backgroundDownload_t;*/
+
+		public bool Completed;
 	}
 
 	public sealed class Pack

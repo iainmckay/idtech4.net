@@ -212,12 +212,12 @@ namespace idTech4
 
 		public static T[] Flatten<T>(T[,,] source)
 		{
-			int d1 = source.GetUpperBound(0);
-			int d2 = source.GetUpperBound(1);
-			int d3 = source.GetUpperBound(2);
+			int d1 = source.GetUpperBound(0) + 1;
+			int d2 = source.GetUpperBound(1) + 1;
+			int d3 = source.GetUpperBound(2) + 1;
 
 			T[] flat = new T[d1 * d2 * d3];
-
+			
 			for(int y = 0; y < d1; y++)
 			{
 				for(int x = 0; x < d2; x++)

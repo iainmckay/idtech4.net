@@ -131,7 +131,7 @@ namespace idTech4
 
 			if(cmd != string.Empty)
 			{
-				// TODO: DispatchCommand(guiActive, cmd);
+				idConsole.WriteLine("TODO: DispatchCommand(guiActive, cmd);");
 			}
 		}
 
@@ -220,7 +220,7 @@ namespace idTech4
 		{
 			_guiActive = ui;
 			// TODO: guiHandle = handle;
-
+			
 			/*TODO: if ( guiMsgRestore ) {
 				common->DPrintf( "idSessionLocal::SetGUI: cleared an active message box\n" );
 				guiMsgRestore = NULL;
