@@ -94,7 +94,7 @@ namespace idTech4.Renderer
 			{
 				return;
 			}
-
+			
 			// break the current surface if we are changing to a new material
 			if(material != _surface.Material)
 			{
@@ -192,12 +192,12 @@ namespace idTech4.Renderer
 		/// Creates a view that covers the screen and emit the surfaces.
 		/// </summary>
 		public void EmitFullScreen()
-		{
+		{			
 			if(_surfaces[0].VertexCount == 0)
 			{
 				return;
 			}
-
+			
 			View viewDef = new View();
 
 			// for gui editor

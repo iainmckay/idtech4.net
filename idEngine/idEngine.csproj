@@ -70,6 +70,8 @@
     <Reference Include="mscorlib">
       <Private>False</Private>
     </Reference>
+    <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL" />
+    <Reference Include="OpenTK.GLControl, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL" />
     <Reference Include="System">
       <Private>False</Private>
     </Reference>
@@ -93,14 +95,6 @@
       <SpecificVersion>False</SpecificVersion>
       <HintPath>C:\Program Files (x86)\TaoFramework\bin\Tao.DevIl.dll</HintPath>
     </Reference>
-    <Reference Include="Tao.OpenGl, Version=2.1.0.12, Culture=neutral, PublicKeyToken=1ca010269a4501ef, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\TaoFramework\bin\Tao.OpenGl.dll</HintPath>
-    </Reference>
-    <Reference Include="Tao.Platform.Windows, Version=1.0.0.5, Culture=neutral, PublicKeyToken=701104b2da67a104, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\TaoFramework\bin\Tao.Platform.Windows.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="idBounds.cs" />
@@ -114,6 +108,12 @@
     <Compile Include="Main.cs" />
     <Compile Include="Renderer\idRenderWorld.cs" />
     <Compile Include="Renderer\idScreenRect.cs" />
+    <Compile Include="Renderer\RenderForm.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Include="Renderer\RenderForm.Designer.cs">
+      <DependentUpon>RenderForm.cs</DependentUpon>
+    </Compile>
     <Compile Include="Sound\idSoundEmitter.cs" />
     <Compile Include="Text\Decl\idDeclParticle.cs" />
     <Compile Include="Text\Decl\idDeclSkin.cs" />
@@ -191,6 +191,9 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
+    <EmbeddedResource Include="Renderer\RenderForm.resx">
+      <DependentUpon>RenderForm.cs</DependentUpon>
+    </EmbeddedResource>
     <EmbeddedResource Include="SystemConsole.resx">
       <DependentUpon>SystemConsole.cs</DependentUpon>
     </EmbeddedResource>

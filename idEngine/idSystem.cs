@@ -961,7 +961,7 @@ namespace idTech4
 			// TODO: Sys_ShutdownInput();
 
 			idE.Quit = true;
-			Thread.CurrentThread.Abort();
+			Application.Exit();
 		}
 
 		private void Sys_Init()

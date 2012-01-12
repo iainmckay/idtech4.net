@@ -552,7 +552,7 @@ namespace idTech4.UI
 			{
 				return;
 			}
-
+			
 			CalculateClientRectangle(0, 0);
 			// TODO: SetFont();
 

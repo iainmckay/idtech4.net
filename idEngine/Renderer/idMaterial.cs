@@ -1348,7 +1348,13 @@ namespace idTech4.Renderer
 			newStage.VertexParameters = new int[4, 4];
 
 			MaterialStage materialStage = new MaterialStage();
-			materialStage.Color.Registers = new int[4];
+			materialStage.ConditionRegister = GetExpressionConstant(1);
+			materialStage.Color.Registers = new int[] {
+				GetExpressionConstant(1),
+				GetExpressionConstant(1),
+				GetExpressionConstant(1),
+				GetExpressionConstant(1)
+			};
 
 			int[,] matrix = new int[2, 3];
 

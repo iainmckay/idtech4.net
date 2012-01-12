@@ -218,13 +218,13 @@ namespace idTech4
 
 			T[] flat = new T[d1 * d2 * d3];
 			
-			for(int y = 0; y < d1; y++)
+			for(int x = 0; x < d1; x++)
 			{
-				for(int x = 0; x < d2; x++)
+				for(int y = 0; y < d2; y++)
 				{
 					for(int z = 0; z < d3; z++)
 					{
-						flat[((y * d1) * d3) + z] = source[y, x, z];
+						flat[y + d1 * (x + d2 * z)] = source[x, y, z];
 					}
 				}
 			}

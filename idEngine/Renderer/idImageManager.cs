@@ -36,7 +36,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 
 using Tao.DevIl;
-using Tao.OpenGl;
+using OpenTK.Graphics.OpenGL;
 
 using idTech4.IO;
 using idTech4.Text;
@@ -77,7 +77,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public int MaxTextureFilter
+		public TextureMagFilter MaxTextureFilter
 		{
 			get
 			{
@@ -85,7 +85,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public int MinTextureFilter
+		public TextureMinFilter MinTextureFilter
 		{
 			get
 			{
@@ -146,8 +146,8 @@ namespace idTech4.Renderer
 		private idImage _borderClampImage;				// white inside, black outside
 
 		// default filter modes for images
-		private int _textureMinFilter;
-		private int _textureMaxFilter;
+		private TextureMinFilter _textureMinFilter;
+		private TextureMagFilter _textureMaxFilter;
 		private float _textureAnisotropy;
 		private float _textureLODBias;
 
@@ -359,15 +359,15 @@ namespace idTech4.Renderer
 
 			if(unit.Type == TextureType.Cubic)
 			{
-				Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
+				GL.Disable(EnableCap.TextureCubeMap);
 			}
 			else if(unit.Type == TextureType.ThreeD)
 			{
-				Gl.glDisable(Gl.GL_TEXTURE_3D);
+				GL.Disable(EnableCap.Texture3DExt);
 			}
 			else if(unit.Type == TextureType.TwoD)
 			{
-				Gl.glDisable(Gl.GL_TEXTURE_2D);
+				GL.Disable(EnableCap.Texture2D);
 			}
 
 			unit.Type = TextureType.Disabled;
@@ -459,7 +459,7 @@ namespace idTech4.Renderer
 
 			// create built in images
 			_defaultImage = LoadFromCallback("_default", GenerateDefaultImage);
-			_whiteImage = LoadFromCallback("_white", GenerateWhiteImage);
+			/*_whiteImage = LoadFromCallback("_white", GenerateWhiteImage);
 			_blackImage = LoadFromCallback("_black", GenerateBlackImage);
 			_borderClampImage = LoadFromCallback("_borderClamp", GenerateBorderClampImage);
 			_flatNormalMap = LoadFromCallback("_flat", GenerateFlatNormalImage);
@@ -482,7 +482,7 @@ namespace idTech4.Renderer
 			_scratchImage = LoadFromCallback("_scratch", GenerateRGBA8Image);
 			_scratchImage2 = LoadFromCallback("_scratch2", GenerateRGBA8Image);
 			_accumImage = LoadFromCallback("_accum", GenerateRGBA8Image);
-			// TODO: _scratchCubeMapImage = LoadFromCallback("_scratchCubeMap", makeNormalizeVectorCubeMap);
+			// TODO: _scratchCubeMapImage = LoadFromCallback("_scratchCubeMap", makeNormalizeVectorCubeMap);*/
 			_currentRenderImage = LoadFromCallback("_currentRender", GenerateRGBA8Image);
 
 			// TODO: cmds
@@ -718,7 +718,7 @@ namespace idTech4.Renderer
 		{
 			// solid black texture
 			byte[] data = new byte[DefaultImageSize * DefaultImageSize * 4];
-			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
+			//image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
 		}
 
 		public static void GenerateBorderClampImage(idImage image)
@@ -763,7 +763,7 @@ namespace idTech4.Renderer
 					data[borderClampSize - 1, i, 3] = 0;
 			}
 
-			image.Generate(idHelper.Flatten<byte>(data), borderClampSize, borderClampSize, TextureFilter.Linear, false, TextureRepeat.ClampToBorder, TextureDepth.Default);
+			//image.Generate(idHelper.Flatten<byte>(data), borderClampSize, borderClampSize, TextureFilter.Linear, false, TextureRepeat.ClampToBorder, TextureDepth.Default);
 
 			if(idE.RenderSystem.IsRunning == false)
 			{
@@ -774,8 +774,7 @@ namespace idTech4.Renderer
 			// explicit zero border
 			float[] color = new float[4];
 
-			Gl.glTexParameterfv(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_BORDER_COLOR, color);
-		}
+			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBorderColor, color);		}
 
 		public static void GenerateDefaultImage(idImage image)
 		{
@@ -798,7 +797,7 @@ namespace idTech4.Renderer
 				data[0, i, alpha] = 255;
 			}
 
-			image.Generate(idHelper.Flatten<byte>(data), 2, 2, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), 2, 2, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.HighQuality);
 		}
 
 		public static void GenerateWhiteImage(idImage image)
@@ -811,7 +810,7 @@ namespace idTech4.Renderer
 				data[i] = 255;
 			}
 
-			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
+			//image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
 		}
 
 		public static void GenerateRGBA8Image(idImage image)
@@ -823,7 +822,7 @@ namespace idTech4.Renderer
 			data[0, 0, 2] = 48;
 			data[0, 0, 3] = 96;
 
-			image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
+			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
 		}
 
 		public static void GenerateRGB8Image(idImage image)
@@ -835,7 +834,7 @@ namespace idTech4.Renderer
 			data[0, 0, 2] = 48;
 			data[0, 0, 3] = 255;
 
-			image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
 		}
 
 		public static void GenerateAlphaNotchImage(idImage image)
@@ -848,7 +847,7 @@ namespace idTech4.Renderer
 			data[1, 0] = data[1, 1] = data[1, 2] = 255;
 			data[1, 3] = 255;
 
-			image.Generate(idHelper.Flatten<byte>(data), 2, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), 2, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -867,7 +866,7 @@ namespace idTech4.Renderer
 					data[x, 3] = (byte) x;
 			}
 
-			image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -900,7 +899,7 @@ namespace idTech4.Renderer
 					data[x, 3] = (byte) b;
 			}
 
-			image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -933,7 +932,7 @@ namespace idTech4.Renderer
 				}
 			}
 
-			image.Generate(idHelper.Flatten<byte>(data), 256, 256, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), 256, 256, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -952,7 +951,7 @@ namespace idTech4.Renderer
 				data[x, 3] = (byte) x;
 			}
 
-			image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		private static float FogFraction(float viewHeight, float targetHeight)
@@ -1059,7 +1058,7 @@ namespace idTech4.Renderer
 			}
 
 			// if mipmapped, acutely viewed surfaces fade wrong
-			image.Generate(idHelper.Flatten<byte>(data), FogEnterSize, FogEnterSize, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), FogEnterSize, FogEnterSize, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -1111,7 +1110,7 @@ namespace idTech4.Renderer
 				}
 			}
 
-			image.Generate(idHelper.Flatten<byte>(data), FogSize, FogSize, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), FogSize, FogSize, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		public static void GenerateQuadraticImage(idImage image)
@@ -1148,7 +1147,7 @@ namespace idTech4.Renderer
 				}
 			}
 
-			image.Generate(idHelper.Flatten<byte>(data), QuadraticWidth, QuadraticHeight, TextureFilter.Default, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), QuadraticWidth, QuadraticHeight, TextureFilter.Default, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -1170,7 +1169,7 @@ namespace idTech4.Renderer
 				}
 			}
 
-			image.Generate(idHelper.Flatten<byte>(data), FalloffTextureSize, 16, TextureFilter.Default, false, TextureRepeat.ClampToZero, TextureDepth.HighQuality);
+			//image.Generate(idHelper.Flatten<byte>(data), FalloffTextureSize, 16, TextureFilter.Default, false, TextureRepeat.ClampToZero, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -1350,12 +1349,12 @@ namespace idTech4.Renderer
 
 		private void InitFilters()
 		{
-			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", Gl.GL_LINEAR_MIPMAP_NEAREST, Gl.GL_LINEAR));
-			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", Gl.GL_LINEAR_MIPMAP_LINEAR, Gl.GL_LINEAR));
-			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", Gl.GL_NEAREST, Gl.GL_NEAREST));
-			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", Gl.GL_LINEAR, Gl.GL_LINEAR));
-			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", Gl.GL_NEAREST_MIPMAP_NEAREST, Gl.GL_NEAREST));
-			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", Gl.GL_NEAREST_MIPMAP_LINEAR, Gl.GL_NEAREST));
+			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", TextureMinFilter.LinearMipmapNearest, TextureMagFilter.Linear));
+			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", TextureMinFilter.LinearMipmapLinear, TextureMagFilter.Linear));
+			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", TextureMinFilter.Nearest, TextureMagFilter.Nearest));
+			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", TextureMinFilter.Linear, TextureMagFilter.Linear));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", TextureMinFilter.NearestMipmapNearest, TextureMagFilter.Nearest));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", TextureMinFilter.NearestMipmapLinear, TextureMagFilter.Nearest));
 		}
 
 		private byte[] LoadTGA(string name, ref int width, ref int height, ref DateTime timeStamp)
@@ -1437,10 +1436,10 @@ namespace idTech4.Renderer
 	public struct ImageFilter
 	{
 		public string Label;
-		public int Minimize;
-		public int Maximize;
+		public TextureMinFilter Minimize;
+		public TextureMagFilter Maximize;
 
-		public ImageFilter(string label, int min, int max)
+		public ImageFilter(string label, TextureMinFilter min, TextureMagFilter max)
 		{
 			this.Label = label;
 			this.Minimize = min;

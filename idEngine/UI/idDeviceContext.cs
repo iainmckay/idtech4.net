@@ -93,7 +93,7 @@ namespace idTech4.UI
 			{
 				return;
 			}
-			
+						
 			AdjustCoordinates(ref x, ref y, ref width, ref height);
 			DrawStretchPicture(x, y, width, height, 0, 0, 0, 0, _whiteImage);
 		}

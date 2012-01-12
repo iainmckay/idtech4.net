@@ -310,6 +310,16 @@ namespace idTech4
 			SetInternal(name, value.ToString(), flags);
 		}
 
+		public void SetModified(string name)
+		{
+			idCvar intern = FindInternal(name);
+
+			if(intern != null)
+			{
+				intern.Flags |= CvarFlags.Modified;
+			}
+		}
+
 		public string[] CommandCompletion(Predicate<string> filter)
 		{
 			return Array.FindAll(_cvarList.Keys.ToArray(), filter);
