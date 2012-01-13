@@ -400,7 +400,7 @@ namespace idTech4.Renderer
 		/// <returns></returns>
 		public bool TestMaterialFlag(MaterialFlags flag)
 		{
-			return ((_materialFlags & flag) != 0);
+			return _materialFlags.HasFlag(flag);
 		}
 		#endregion
 
@@ -1702,27 +1702,27 @@ namespace idTech4.Renderer
 				// color mask options
 				else if(tokenLower == "maskred")
 				{
-					materialStage.DrawStateBits |= MaterialStates.Red;
+					materialStage.DrawStateBits |= MaterialStates.RedMask;
 				}
 				else if(tokenLower == "maskgreen")
 				{
-					materialStage.DrawStateBits |= MaterialStates.Green;
+					materialStage.DrawStateBits |= MaterialStates.GreenMask;
 				}
 				else if(tokenLower == "maskblue")
 				{
-					materialStage.DrawStateBits |= MaterialStates.Blue;
+					materialStage.DrawStateBits |= MaterialStates.BlueMask;
 				}
 				else if(tokenLower == "maskalpha")
 				{
-					materialStage.DrawStateBits |= MaterialStates.Alpha;
+					materialStage.DrawStateBits |= MaterialStates.AlphaMask;
 				}
 				else if(tokenLower == "maskcolor")
 				{
-					materialStage.DrawStateBits |= MaterialStates.Color;
+					materialStage.DrawStateBits |= MaterialStates.ColorMask;
 				}
 				else if(tokenLower == "maskdepth")
 				{
-					materialStage.DrawStateBits |= MaterialStates.Depth;
+					materialStage.DrawStateBits |= MaterialStates.DepthMask;
 				}
 				else if(tokenLower == "alphatest")
 				{
@@ -1933,7 +1933,7 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				int sourceBlendMode = GetSourceBlendMode(tokenLower);
+				MaterialStates sourceBlendMode = GetSourceBlendMode(tokenLower);
 
 				MatchToken(lexer, ",");
 
@@ -1942,7 +1942,7 @@ namespace idTech4.Renderer
 					return;
 				}
 
-				int destinationBlendMode = GetDestinationBlendMode(tokenLower);
+				MaterialStates destinationBlendMode = GetDestinationBlendMode(tokenLower);
 
 				stage.DrawStateBits = sourceBlendMode | destinationBlendMode;
 			}
@@ -2254,7 +2254,7 @@ namespace idTech4.Renderer
 													old[1, 2], ExpressionOperationType.Add);
 		}
 
-		private int GetSourceBlendMode(string name)
+		private MaterialStates GetSourceBlendMode(string name)
 		{
 			name = name.ToUpper();
 
@@ -2301,7 +2301,7 @@ namespace idTech4.Renderer
 			return MaterialStates.SourceBlendOne;
 		}
 
-		private int GetDestinationBlendMode(string name)
+		private MaterialStates GetDestinationBlendMode(string name)
 		{
 			name = name.ToUpper();
 
@@ -2447,7 +2447,7 @@ namespace idTech4.Renderer
 				}
 				else
 				{
-					int drawStateBits = _parsingData.Stages[0].DrawStateBits;
+					MaterialStates drawStateBits = _parsingData.Stages[0].DrawStateBits;
 
 					if(((drawStateBits & MaterialStates.DestinationBlendBits) != MaterialStates.DestinationBlendZero)
 						|| ((drawStateBits & MaterialStates.SourceBlendBits) == MaterialStates.SourceBlendDestinationColor)
@@ -2545,13 +2545,13 @@ namespace idTech4.Renderer
 				else if((_coverage == MaterialCoverage.Translucent) || (stage.IgnoreAlphaTest == true))
 				{
 					// translucent surfaces can extend past the exactly marked depth buffer.
-					stage.DrawStateBits |= MaterialStates.DepthFunctionLess | MaterialStates.Depth;
+					stage.DrawStateBits |= MaterialStates.DepthFunctionLess | MaterialStates.DepthMask;
 				}
 				else
 				{
 					// opaque and perforated surfaces must exactly match the depth buffer,
 					// which gets alpha test correct.
-					stage.DrawStateBits |= MaterialStates.DepthFunctionEqual | MaterialStates.Depth;
+					stage.DrawStateBits |= MaterialStates.DepthFunctionEqual | MaterialStates.DepthMask;
 				}
 
 				_parsingData.Stages[i] = stage;
@@ -2575,7 +2575,7 @@ namespace idTech4.Renderer
 					_allowOverlays = false;
 				}
 
-				if((this.SurfaceFlags & SurfaceFlags.NoImpact) != 0)
+				if(this.SurfaceFlags.HasFlag(SurfaceFlags.NoImpact) == true)
 				{
 					_allowOverlays = false;
 				}
@@ -2765,7 +2765,7 @@ namespace idTech4.Renderer
 		public int ConditionRegister;				// if registers[conditionRegister] == 0, skip stage.
 		public StageLighting Lighting;				// determines which passes interact with lights.
 
-		public int DrawStateBits;
+		public MaterialStates DrawStateBits;
 		public ColorStage Color;
 		public bool HasAlphaTest;
 		public int AlphaTestRegister;
@@ -2844,46 +2844,49 @@ namespace idTech4.Renderer
 		Extra6
 	}
 
-	public class MaterialStates
+	[Flags]
+	public enum MaterialStates
 	{
-		public const int Depth = 0x00000100;
-		public const int Red = 0x00000200;
-		public const int Green = 0x0000040;
-		public const int Blue = 0x00000800;
-		public const int Alpha = 0x00001000;
-		public const int Color = Red | Green | Blue;
+		Invalid = - 1,
 
-		public const int SourceBlendZero = 0x00000001;
-		public const int SourceBlendOne = 0x0;
-		public const int SourceBlendDestinationColor = 0x00000003;
-		public const int SourceBlendOneMinusDestinationColor = 0x00000004;
-		public const int SourceBlendSourceAlpha = 0x00000005;
-		public const int SourceBlendOneMinusSourceAlpha = 0x00000006;
-		public const int SourceBlendDestinationAlpha = 0x00000007;
-		public const int SourceBlendOneMinusDestinationAlpha = 0x00000008;
-		public const int SourceBlendAlphaSaturate = 0x00000009;
-		public const int SourceBlendBits = 0x0000000F;
+		DepthMask = 0x00000100,
+		RedMask = 0x00000200,
+		GreenMask = 0x00000400,
+		BlueMask = 0x00000800,
+		AlphaMask = 0x00001000,
+		ColorMask = RedMask | GreenMask | BlueMask,
 
-		public const int DestinationBlendZero = 0x0;
-		public const int DestinationBlendOne = 0x00000020;
-		public const int DestinationBlendSourceColor = 0x00000030;
-		public const int DestinationBlendOneMinusSourceColor = 0x00000040;
-		public const int DestinationBlendSourceAlpha = 0x00000050;
-		public const int DestinationBlendOneMinusSourceAlpha = 0x00000060;
-		public const int DestinationBlendDestinationAlpha = 0x00000070;
-		public const int DestinationBlendOneMinusDestinationAlpha = 0x00000080;
-		public const int DestinationBlendBits = 0x000000F0;
+		SourceBlendZero = 0x00000001,
+		SourceBlendOne = 0x0,
+		SourceBlendDestinationColor = 0x00000003,
+		SourceBlendOneMinusDestinationColor = 0x00000004,
+		SourceBlendSourceAlpha = 0x00000005,
+		SourceBlendOneMinusSourceAlpha = 0x00000006,
+		SourceBlendDestinationAlpha = 0x00000007,
+		SourceBlendOneMinusDestinationAlpha = 0x00000008,
+		SourceBlendAlphaSaturate = 0x00000009,
+		SourceBlendBits = 0x0000000F,
 
-		public const int PolygonModeLine = 0x00002000;
+		DestinationBlendZero = 0x0,
+		DestinationBlendOne = 0x00000020,
+		DestinationBlendSourceColor = 0x00000030,
+		DestinationBlendOneMinusSourceColor = 0x00000040,
+		DestinationBlendSourceAlpha = 0x00000050,
+		DestinationBlendOneMinusSourceAlpha = 0x00000060,
+		DestinationBlendDestinationAlpha = 0x00000070,
+		DestinationBlendOneMinusDestinationAlpha = 0x00000080,
+		DestinationBlendBits = 0x000000F0,
 
-		public const int DepthFunctionAlways = 0x00010000;
-		public const int DepthFunctionEqual = 0x00020000;
-		public const int DepthFunctionLess = 0x0;
+		PolygonModeLine = 0x00002000,
 
-		public const int AlphaTestEqual255 = 0x10000000;
-		public const int AlphaTestLessThan128 = 0x20000000;
-		public const int AlphaTestGreaterOrEqual128 = 0x40000000;
-		public const int AlphaTestBits = 0x70000000;
+		DepthFunctionAlways = 0x00010000,
+		DepthFunctionEqual = 0x00020000,
+		DepthFunctionLess = 0x0,
+
+		AlphaTestEqual255 = 0x10000000,
+		AlphaTestLessThan128 = 0x20000000,
+		AlphaTestGreaterOrEqual128 = 0x40000000,
+		AlphaTestBits = 0x70000000
 	}
 
 	[Flags]

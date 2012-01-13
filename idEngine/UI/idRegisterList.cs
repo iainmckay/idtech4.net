@@ -111,9 +111,11 @@ namespace idTech4.UI
 
 		public idRegister FindRegister(string name)
 		{
-			if(_registerDict.ContainsKey(name) == true)
+			idRegister reg;
+
+			if(_registerDict.TryGetValue(name, out reg) == true)
 			{
-				return _registerDict[name];
+				return reg;
 			}
 
 			return null;

@@ -45,7 +45,7 @@ namespace idTech4
 		#region Methods
 		#region Initialization
 		private void Initialize(string[] args)
-		{			
+		{
 			// TODO
 			/*const HCURSOR hcurSave = ::SetCursor( LoadCursor( 0, IDC_WAIT ) );
 			Sys_SetPhysicalWorkMemory( 192 << 20, 1024 << 20 );

@@ -294,7 +294,7 @@ namespace idTech4.Text
 			}
 
 			// if the type matches
-			if((token.Type == type) && ((token.SubType & subType) == subType))
+			if((token.Type == type) && (token.SubType.HasFlag(subType) == true))
 			{
 				return token;
 			}
@@ -310,12 +310,12 @@ namespace idTech4.Text
 		{
 			_hadError = true;
 
-			if((_options & LexerOptions.NoErrors) != 0)
+			if(_options.HasFlag(LexerOptions.NoErrors) == true)
 			{
 				return;
 			}
 
-			if((_options & LexerOptions.NoFatalErrors) != 0)
+			if(_options.HasFlag(LexerOptions.NoFatalErrors) == true)
 			{
 				idConsole.Warning("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
 			}
@@ -375,7 +375,7 @@ namespace idTech4.Text
 			}
 			else if(token.Type == TokenType.Number)
 			{
-				if((token.SubType & subType) != subType)
+				if(token.SubType.HasFlag(subType) == false)
 				{
 					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), tokenValue);
 					return null;
@@ -383,7 +383,7 @@ namespace idTech4.Text
 			}
 			else if(token.Type == TokenType.Punctuation)
 			{
-				if(token.SubType != subType)
+				if(token.SubType.HasFlag(subType) == false)
 				{
 					Error("expected '{0}' but found '{1}'", GetPunctuationFromID(subType), tokenValue);
 					return null;
@@ -761,7 +761,7 @@ namespace idTech4.Text
 			char c = GetBufferCharacter(_scriptPosition);
 
 			// if we're keeping everything as whitespace deliminated strings
-			if((_options & LexerOptions.OnlyStrings) == LexerOptions.OnlyStrings)
+			if(_options.HasFlag(LexerOptions.OnlyStrings) == true)
 			{
 				// if there is a leading quote
 				if((c == '"') || (c == '\''))
@@ -785,7 +785,7 @@ namespace idTech4.Text
 				}
 
 				// if names are allowed to start with a number
-				if((_options & LexerOptions.AllowNumberNames) == LexerOptions.AllowNumberNames)
+				if(_options.HasFlag(LexerOptions.AllowNumberNames) == true)
 				{
 					c = GetBufferCharacter(_scriptPosition);
 
@@ -815,7 +815,7 @@ namespace idTech4.Text
 				}
 			}
 			// names may also start with a slash when pathnames are allowed
-			else if(((_options & LexerOptions.AllowPathNames) == LexerOptions.AllowPathNames) && ((c == '/') || (c == '\\') || (c == '.')))
+			else if((_options.HasFlag(LexerOptions.AllowPathNames) == true) && ((c == '/') || (c == '\\') || (c == '.')))
 			{
 				if(ReadName(token) == false)
 				{
@@ -855,7 +855,7 @@ namespace idTech4.Text
 
 		public void Warning(string format, params object[] args)
 		{
-			if((_options & LexerOptions.NoWarnings) != 0)
+			if(_options.HasFlag(LexerOptions.NoWarnings) == true)
 			{
 				return;
 			}
@@ -1058,9 +1058,9 @@ namespace idTech4.Text
 			|| ((c >= '0') && (c <= '9'))
 			|| (c == '_')
 				// if treating all tokens as strings, don't parse '-' as a seperate token
-			|| (((_options & LexerOptions.OnlyStrings) == LexerOptions.OnlyStrings) && (c == '-'))
+			|| ((_options.HasFlag(LexerOptions.OnlyStrings) == true) && (c == '-'))
 				// if special path name characters are allowed
-			|| (((_options & LexerOptions.AllowPathNames) == LexerOptions.AllowPathNames) && ((c == '/') || (c == '\\') || (c == ':') || (c == '.'))));
+			|| ((_options.HasFlag(LexerOptions.AllowPathNames) == true) && ((c == '/') || (c == '\\') || (c == ':') || (c == '.'))));
 
 			//the sub type is the length of the name
 			token.SubType = (TokenSubType) token.ToString().Length;
@@ -1215,7 +1215,7 @@ namespace idTech4.Text
 							c = GetBufferCharacter(++_scriptPosition);
 						}
 
-						if((_options & LexerOptions.AllowFloatExceptions) == 0)
+						if(_options.HasFlag(LexerOptions.AllowFloatExceptions) == false)
 						{
 							Error("parsed {0}", token);
 						}
@@ -1223,7 +1223,7 @@ namespace idTech4.Text
 				}
 				else if(dot > 1)
 				{
-					if((_options & LexerOptions.AllowIPAddresses) == 0)
+					if(_options.HasFlag(LexerOptions.AllowIPAddresses) == false)
 					{
 						Error("more than one dot in number");
 						return false;
@@ -1244,7 +1244,7 @@ namespace idTech4.Text
 				}
 			}
 
-			if((token.SubType & TokenSubType.Float) != 0)
+			if(token.SubType.HasFlag(TokenSubType.Float) == true)
 			{
 				if(c > ' ')
 				{
@@ -1271,7 +1271,7 @@ namespace idTech4.Text
 					token.SubType |= TokenSubType.DoublePrecision;
 				}
 			}
-			else if((token.SubType & TokenSubType.Integer) != 0)
+			else if(token.SubType.HasFlag(TokenSubType.Integer) == true)
 			{
 				if(c > ' ')
 				{
@@ -1298,7 +1298,7 @@ namespace idTech4.Text
 					}
 				}
 			}
-			else if((token.SubType & TokenSubType.IPAddress) != 0)
+			else if(token.SubType.HasFlag(TokenSubType.IPAddress) == true)
 			{
 				if(c == ':')
 				{
@@ -1388,7 +1388,7 @@ namespace idTech4.Text
 			while(true)
 			{
 				// if there is an escape character and escape characters are allowed.
-				if((GetBufferCharacter(_scriptPosition) == '\\') && ((_options & LexerOptions.NoStringEscapeCharacters) != LexerOptions.NoStringEscapeCharacters))
+				if((GetBufferCharacter(_scriptPosition) == '\\') && (_options.HasFlag(LexerOptions.NoStringEscapeCharacters) == false))
 				{
 					if(ReadEscapeCharacter(out ch) == false)
 					{
@@ -1404,7 +1404,7 @@ namespace idTech4.Text
 					_scriptPosition++;
 
 					// if consecutive strings should not be concatenated
-					if(((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringEscapeCharacters) && (((_options & LexerOptions.AllowBackslashStringConcatination) != LexerOptions.AllowBackslashStringConcatination) || (quote != '"')))
+					if((_options.HasFlag(LexerOptions.NoStringConcatination) == true) && ((_options.HasFlag(LexerOptions.AllowBackslashStringConcatination) == false) || (quote != '"')))
 					{
 						break;
 					}
@@ -1421,7 +1421,7 @@ namespace idTech4.Text
 						break;
 					}
 
-					if((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringConcatination)
+					if(_options.HasFlag(LexerOptions.NoStringConcatination) == true)
 					{
 						if(GetBufferCharacter(_scriptPosition) != '\\')
 						{
@@ -1473,7 +1473,7 @@ namespace idTech4.Text
 
 			if(token.Type == TokenType.Literal)
 			{
-				if((_options & LexerOptions.AllowMultiCharacterLiterals) != LexerOptions.AllowMultiCharacterLiterals)
+				if(_options.HasFlag(LexerOptions.AllowMultiCharacterLiterals) == false)
 				{
 					if(token.Length != 1)
 					{

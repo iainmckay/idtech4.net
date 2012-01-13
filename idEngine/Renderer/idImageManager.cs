@@ -195,10 +195,8 @@ namespace idTech4.Renderer
 			// see if the image is already loaded, unless we
 			// are in a reloadImages call
 			//
-			if(_imageDictionary.ContainsKey(name) == true)
+			if(_imageDictionary.TryGetValue(name, out image) == true)
 			{
-				image = _imageDictionary[name];
-
 				// the built in's, like _white and _flat always match the other options
 				if(name.StartsWith("_") == true)
 				{
@@ -384,15 +382,16 @@ namespace idTech4.Renderer
 			idE.CvarSystem.ClearModified("image_lodbias");
 
 			string str = idE.CvarSystem.GetString("image_filter");
+			ImageFilter filter;
 
-			if(idImageManager.ImageFilters.ContainsKey(str) == false)
+			if(idImageManager.ImageFilters.TryGetValue(str, out filter) == false)
 			{
 				idConsole.Warning("bad r_textureFilter: '{0}'", str);
 			}
 
 			// set the values for future images
-			_textureMinFilter = ImageFilters[str].Minimize;
-			_textureMaxFilter = ImageFilters[str].Maximize;
+			_textureMinFilter = filter.Minimize;
+			_textureMaxFilter = filter.Maximize;
 			_textureAnisotropy = idE.CvarSystem.GetFloat("image_anisotropy");
 
 			if(_textureAnisotropy < 1)
@@ -511,14 +510,16 @@ namespace idTech4.Renderer
 			name = name.Replace(".tga", "");
 			name = name.Replace("\\", "/");
 
+			idImage image;
+
 			// see if the image already exists
-			if(_imageDictionary.ContainsKey(name) == true)
+			if(_imageDictionary.TryGetValue(name, out image) == true)
 			{
-				return _imageDictionary[name];
+				return image;
 			}
 
 			// create the image and issue the callback
-			idImage image = CreateImage(name);
+			image = CreateImage(name);
 			image.Generator = generator;
 
 			if(idE.CvarSystem.GetBool("image_preload") == true)

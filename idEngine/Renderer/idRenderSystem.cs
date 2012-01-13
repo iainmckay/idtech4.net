@@ -633,8 +633,8 @@ namespace idTech4.Renderer
 		{
 			Rectangle renderCrop = _renderCrops[_currentRenderCrop];
 
-			float widthRatio = renderCrop.Width / idE.VirtualScreenWidth;
-			float heightRatio = renderCrop.Height / idE.VirtualScreenHeight;
+			float widthRatio = (float) renderCrop.Width / idE.VirtualScreenWidth;
+			float heightRatio = (float) renderCrop.Height / idE.VirtualScreenHeight;
 
 			idScreenRect viewPort = new idScreenRect();
 			viewPort.X1 = (int) (renderCrop.X + renderView.X * widthRatio);
@@ -1514,9 +1514,9 @@ namespace idTech4.Renderer
 		/// This routine is responsible for setting the most commonly changed state.
 		/// </summary>
 		/// <param name="state"></param>
-		private void GL_State(int state)
+		private void GL_State(MaterialStates state)
 		{
-			int diff;
+			MaterialStates diff;
 			BlendingFactorSrc srcFactor;
 			BlendingFactorDest dstFactor;
 
@@ -1524,7 +1524,7 @@ namespace idTech4.Renderer
 			{
 				// make sure everything is set all the time, so we
 				// can see if our delta checking is screwing up
-				diff = -1;
+				diff = MaterialStates.Invalid;
 				idE.Backend.GLState.ForceState = false;
 			}
 			else
@@ -1540,13 +1540,13 @@ namespace idTech4.Renderer
 			//
 			// check depthFunc bits
 			//
-			if((diff & (MaterialStates.DepthFunctionEqual | MaterialStates.DepthFunctionLess | MaterialStates.DepthFunctionAlways)) != 0)
+			if(diff.HasFlag(MaterialStates.DepthFunctionEqual | MaterialStates.DepthFunctionLess | MaterialStates.DepthFunctionAlways) == true)
 			{
-				if((state & MaterialStates.DepthFunctionEqual) != 0)
+				if(state.HasFlag(MaterialStates.DepthFunctionEqual) == true)
 				{
 					GL.DepthFunc(DepthFunction.Equal);
 				}
-				else if((state & MaterialStates.DepthFunctionAlways) != 0)
+				else if(state.HasFlag(MaterialStates.DepthFunctionAlways) == true)
 				{
 					GL.DepthFunc(DepthFunction.Always);
 				}
@@ -1559,7 +1559,7 @@ namespace idTech4.Renderer
 			//
 			// check blend bits
 			//
-			if((diff & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) != 0)
+			if(diff.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
 			{
 				switch(state & MaterialStates.SourceBlendBits)
 				{
@@ -1636,9 +1636,9 @@ namespace idTech4.Renderer
 			//
 			// check depthmask
 			//
-			if((diff & MaterialStates.Depth) != 0)
+			if(diff.HasFlag(MaterialStates.DepthMask) == true)
 			{
-				if((state & MaterialStates.Depth) != 0)
+				if(state.HasFlag(MaterialStates.DepthMask) == true)
 				{
 					GL.DepthMask(false);
 				}
@@ -1647,26 +1647,26 @@ namespace idTech4.Renderer
 					GL.DepthMask(true);
 				}
 			}
-
+			
 			//
 			// check colormask
 			//
-			if((diff & (MaterialStates.Red | MaterialStates.Green | MaterialStates.Blue | MaterialStates.Alpha)) != 0)
+			if(diff.HasFlag(MaterialStates.RedMask | MaterialStates.GreenMask | MaterialStates.BlueMask | MaterialStates.AlphaMask) == true)
 			{
-				bool r = (state & MaterialStates.Red) != 0;
-				bool g = (state & MaterialStates.Green) != 0;
-				bool b = (state & MaterialStates.Blue) != 0;
-				bool a = (state & MaterialStates.Alpha) != 0;
-
+				bool r = diff.HasFlag(MaterialStates.RedMask);
+				bool g = diff.HasFlag(MaterialStates.GreenMask);
+				bool b = diff.HasFlag(MaterialStates.BlueMask);
+				bool a = diff.HasFlag(MaterialStates.AlphaMask);
+				
 				GL.ColorMask(r, g, b, a);
 			}
 
 			//
 			// fill/line mode
 			//
-			if((diff & MaterialStates.PolygonModeLine) != 0)
+			if(diff.HasFlag(MaterialStates.PolygonModeLine) == true)
 			{
-				if((state & MaterialStates.PolygonModeLine) != 0)
+				if(state.HasFlag(MaterialStates.PolygonModeLine) == true)
 				{
 					GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
 				}
@@ -1679,7 +1679,7 @@ namespace idTech4.Renderer
 			//
 			// alpha test
 			//
-			if((diff & MaterialStates.AlphaTestBits) != 0)
+			if(diff.HasFlag(MaterialStates.AlphaTestBits) == true)
 			{
 				switch(state & MaterialStates.AlphaTestBits)
 				{
@@ -2438,7 +2438,7 @@ namespace idTech4.Renderer
 				}
 
 				// skip if the stage is ( GL_ZERO, GL_ONE ), which is used for some alpha masks
-				if((stage.DrawStateBits & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendZero | MaterialStates.DestinationBlendZero))
+				if(stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
 				{
 					continue;
 				}
@@ -2506,6 +2506,7 @@ namespace idTech4.Renderer
 						}
 					}
 
+					idConsole.Write("TODO: glBindProgramARB");
 					/*Gl.glBindProgramARB(Gl.GL_FRAGMENT_PROGRAM_ARB, newStage.FragmentProgram);
 					Gl.glEnable(Gl.GL_FRAGMENT_PROGRAM_ARB);*/
 
@@ -2528,6 +2529,7 @@ namespace idTech4.Renderer
 
 					GL_SelectTexture(0);
 
+					idConsole.Write("TODO: DISABLE");
 					/*Gl.glDisable(Gl.GL_VERTEX_PROGRAM_ARB);
 					Gl.glDisable(Gl.GL_FRAGMENT_PROGRAM_ARB);
 					// FIXME: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
@@ -2555,19 +2557,19 @@ namespace idTech4.Renderer
 				color[3] = registers[stage.Color.Registers[3]];
 
 				// skip the entire stage if an add would be black
-				if(((stage.DrawStateBits & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne))
+				if((stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
 					&& (color[0] <= 0) && (color[1] <= 0) && (color[2] <= 0))
 				{
 					continue;
 				}
 
 				// skip the entire stage if a blend would be completely transparent
-				if(((stage.DrawStateBits & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendSourceAlpha | MaterialStates.DestinationBlendOneMinusSourceAlpha))
+				if((stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
 					&& (color[3] <= 0))
 				{
 					continue;
 				}
-
+								
 				// select the vertex color source
 				if(stage.VertexColor == StageVertexColor.Ignore)
 				{
@@ -2581,10 +2583,10 @@ namespace idTech4.Renderer
 
 						for(int i = 0; i < ambientCacheData.Length; i++)
 						{
-							c[(i * 3)] = ambientCacheData[i].Color[0];
-							c[(i * 3) + 1] = ambientCacheData[i].Color[1];
-							c[(i * 3) + 2] = ambientCacheData[i].Color[2];
-							c[(i * 3) + 3] = ambientCacheData[i].Color[3];
+							c[(i * 4)] = ambientCacheData[i].Color[0];
+							c[(i * 4) + 1] = ambientCacheData[i].Color[1];
+							c[(i * 4) + 2] = ambientCacheData[i].Color[2];
+							c[(i * 4) + 3] = ambientCacheData[i].Color[3];
 						}
 						//fixed(byte* colorPtr = &ambientCacheData[0].Color[0])
 						GL.ColorPointer(4, ColorPointerType.UnsignedByte, 0, c);
@@ -3558,7 +3560,7 @@ namespace idTech4.Renderer
 		// for scissor clipping, local inside renderView viewport
 
 		/*viewLight_t *		vLight;*/
-		public int DepthFunction;				// GLS_DEPTHFUNC_EQUAL, or GLS_DEPTHFUNC_LESS for translucent
+		public MaterialStates DepthFunction;	// GLS_DEPTHFUNC_EQUAL, or GLS_DEPTHFUNC_LESS for translucent
 		/*float				lightTextureMatrix[16];	// only if lightStage->texture.hasMatrix
 		float				lightColor[4];		// evaluation of current light's color stage
 
@@ -3583,7 +3585,7 @@ namespace idTech4.Renderer
 		public int CurrentTextureUnit;
 
 		public CullType FaceCulling;
-		public int StateBits;
+		public MaterialStates StateBits;
 		public bool ForceState; // the next GL_State will ignore glStateBits and set everything.
 
 		public GLState()

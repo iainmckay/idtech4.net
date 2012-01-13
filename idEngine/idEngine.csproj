@@ -103,6 +103,7 @@
     <Compile Include="idCvarSystem.cs" />
     <Compile Include="idDict.cs" />
     <Compile Include="idGameConsole.cs" />
+    <Compile Include="idLangDict.cs" />
     <Compile Include="idMath.cs" />
     <Compile Include="idRotation.cs" />
     <Compile Include="Main.cs" />

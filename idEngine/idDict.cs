@@ -65,9 +65,11 @@ namespace idTech4
 
 		public bool GetBool(string key, bool defaultValue)
 		{
-			if(_dict.ContainsKey(key) == true)
+			object obj;
+
+			if(_dict.TryGetValue(key, out obj) == true)
 			{
-				return Convert.ToBoolean(_dict[key]);
+				return Convert.ToBoolean(obj);
 			}
 
 			return defaultValue;
@@ -80,9 +82,11 @@ namespace idTech4
 
 		public float GetFloat(string key, float defaultValue)
 		{
-			if(_dict.ContainsKey(key) == true)
+			object obj;
+
+			if(_dict.TryGetValue(key, out obj) == true)
 			{
-				return Convert.ToSingle(_dict[key]);
+				return Convert.ToSingle(obj);
 			}
 
 			return defaultValue;
@@ -95,9 +99,11 @@ namespace idTech4
 
 		public int GetInteger(string key, int defaultValue)
 		{
-			if(_dict.ContainsKey(key) == true)
+			object obj;
+
+			if(_dict.TryGetValue(key, out obj) == true)
 			{
-				return Convert.ToInt32(_dict[key]);
+				return Convert.ToInt32(obj);
 			}
 
 			return defaultValue;
@@ -110,9 +116,11 @@ namespace idTech4
 
 		public string GetString(string key, string defaultString)
 		{
-			if(_dict.ContainsKey(key) == true)
+			object obj;
+
+			if(_dict.TryGetValue(key, out obj) == true)
 			{
-				return _dict[key].ToString();
+				return obj.ToString();
 			}
 
 			return defaultString;
@@ -125,9 +133,11 @@ namespace idTech4
 
 		public Vector2 GetVector2(string key, Vector2 defaultValue)
 		{
-			if(_dict.ContainsKey(key) == true)
+			object obj;
+
+			if(_dict.TryGetValue(key, out obj) == true)
 			{
-				return idHelper.ParseVector2(_dict[key].ToString());
+				return idHelper.ParseVector2(obj.ToString());
 			}
 
 			return defaultValue;
@@ -140,9 +150,11 @@ namespace idTech4
 
 		public Vector3 GetVector3(string key, Vector3 defaultValue)
 		{
-			if(_dict.ContainsKey(key) == true)
+			object obj;
+
+			if(_dict.TryGetValue(key, out obj) == true)
 			{
-				return idHelper.ParseVector3(_dict[key].ToString());
+				return idHelper.ParseVector3(obj.ToString());
 			}
 
 			return defaultValue;
@@ -155,9 +167,11 @@ namespace idTech4
 
 		public Vector4 GetVector4(string key, Vector4 defaultValue)
 		{
-			if(_dict.ContainsKey(key) == true)
+			object obj;
+
+			if(_dict.TryGetValue(key, out obj) == true)
 			{
-				return idHelper.ParseVector4(_dict[key].ToString());
+				return idHelper.ParseVector4(obj.ToString());
 			}
 
 			return defaultValue;
@@ -170,9 +184,11 @@ namespace idTech4
 
 		public Rectangle GetRectangle(string key, Rectangle defaultValue)
 		{
-			if(_dict.ContainsKey(key) == true)
+			object obj;
+
+			if(_dict.TryGetValue(key, out obj) == true)
 			{
-				return idHelper.ParseRectangle(_dict[key].ToString());
+				return idHelper.ParseRectangle(obj.ToString());
 			}
 
 			return defaultValue;

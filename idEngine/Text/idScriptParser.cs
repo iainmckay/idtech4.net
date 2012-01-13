@@ -165,7 +165,7 @@ namespace idTech4.Text
 			}
 			else if(token.Type == TokenType.Number)
 			{
-				if((token.SubType & subType) != subType)
+				if(token.SubType.HasFlag(subType) == false)
 				{
 					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), token.ToString());
 					return null;
@@ -357,7 +357,7 @@ namespace idTech4.Text
 				}
 
 				// recursively concatenate strings that are behind each other still resolving defines
-				if((token.Type == TokenType.String) && ((_scriptStack.Peek().Options & LexerOptions.NoStringConcatination) == 0))
+				if((token.Type == TokenType.String) && (_scriptStack.Peek().Options.HasFlag(LexerOptions.NoStringConcatination) == false))
 				{
 					idToken newToken = ReadToken();
 
@@ -374,7 +374,7 @@ namespace idTech4.Text
 					}
 				}
 
-				if((_scriptStack.Peek().Options & LexerOptions.NoDollarPrecompilation) == 0)
+				if(_scriptStack.Peek().Options.HasFlag(LexerOptions.NoDollarPrecompilation) == false)
 				{
 					// check for special precompiler directives
 					if((token.Type == TokenType.Punctuation) && (token.ToString() == "$"))
@@ -388,11 +388,12 @@ namespace idTech4.Text
 				}
 
 				// if the token is a name
-				if((token.Type == TokenType.Name) && ((token.Flags & TokenFlags.RecursiveDefine) != 0))
+				if((token.Type == TokenType.Name) && (token.Flags.HasFlag(TokenFlags.RecursiveDefine) == true))
 				{
 					// check if the name is a define macro
 					if(_defineDict.ContainsKey(token.ToString()) == true)
 					{
+						idConsole.Write("TODO: expand defined macro");
 						// expand the defined macro
 						// TODO
 						/*if(ExpandDefineIntoSource(token, define) == false)
@@ -492,11 +493,9 @@ namespace idTech4.Text
 			}
 
 			// check if the define already exists
-			if(_defineDict.ContainsKey(token.ToString()) == true)
+			if(_defineDict.TryGetValue(token.ToString(), out define) == true)
 			{
-				define = _defineDict[token.ToString()];
-
-				if((define.Flags & DefineFlags.Fixed) == DefineFlags.Fixed)
+				if(define.Flags.HasFlag(DefineFlags.Fixed) == true)
 				{
 					Error("can't redefine '{0}'", token.ToString());
 					return false;
@@ -897,7 +896,7 @@ namespace idTech4.Text
 					Error("#include without file name between < >");
 					return false;
 				}
-				else if((_options & LexerOptions.NoBaseIncludes) == LexerOptions.NoBaseIncludes)
+				else if(_options.HasFlag(LexerOptions.NoBaseIncludes) == true)
 				{
 					return true;
 				}
@@ -1117,6 +1116,8 @@ namespace idTech4.Text
 							Warning("can't evaluate '{0}', not defined", token.ToString());
 							return false;
 						}
+
+						idConsole.Write("TODO: expanddefineintosource");
 						// TODO
 						/*else if(ExpandDefineIntoSource(token, define) == false)
 						{
@@ -1199,6 +1200,8 @@ namespace idTech4.Text
 							Error("can't evaluate '{0}', not defined", token.ToString());
 							return false;
 						}
+
+						idConsole.Write("TODO: expanddefineintosource");
 						// TODO
 						/*else if(ExpandDefineIntoSource(token, _defineDict[token.ToString()]) == false)
 						{

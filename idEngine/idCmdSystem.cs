@@ -252,12 +252,12 @@ namespace idTech4
 				return; // no tokens.
 			}
 
-			// check registered command functions.
-			if(_commands.ContainsKey(args.Get(0)) == true)
-			{
-				CommandDefinition cmd = _commands[args.Get(0)];
+			CommandDefinition cmd;
 
-				if(((cmd.Flags & (CommandFlags.Cheat | CommandFlags.Tool)) == (CommandFlags.Cheat | CommandFlags.Tool)) && (idE.Session.IsMultiplayer == true) && (idE.CvarSystem.GetBool("net_allowCheats") == false))
+			// check registered command functions.
+			if(_commands.TryGetValue(args.Get(0), out cmd) == true)
+			{
+				if((cmd.Flags.HasFlag(CommandFlags.Cheat | CommandFlags.Tool) == true) && (idE.Session.IsMultiplayer == true) && (idE.CvarSystem.GetBool("net_allowCheats") == false))
 				{
 					idConsole.WriteLine("Command '{0}' not valid in multiplayer mode.", cmd.Name);
 					return;
@@ -304,7 +304,7 @@ namespace idTech4
 
 			foreach(KeyValuePair<string, CommandDefinition> kvp in _commands)
 			{
-				if((kvp.Value.Flags & flags) == 0)
+				if(kvp.Value.Flags.HasFlag(flags) == false)
 				{
 					continue;
 				}

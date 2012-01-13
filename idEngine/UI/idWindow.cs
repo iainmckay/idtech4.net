@@ -178,7 +178,7 @@ namespace idTech4.UI
 				{
 					return false;
 				}
-				else if((_flags & (WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter)) != 0)
+				else if(_flags.HasFlag(WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter) == true)
 				{
 					return false;
 				}
@@ -525,7 +525,7 @@ namespace idTech4.UI
 
 			int time = _gui.Time;
 
-			if(((_flags & WindowFlags.Desktop) != 0) && (skipShaders != 3))
+			if((_flags.HasFlag(WindowFlags.Desktop) == true) && (skipShaders != 3))
 			{
 				// TODO: RunTimeEvents( time );
 			}
@@ -578,7 +578,7 @@ namespace idTech4.UI
 
 			// TODO: DrawBorderAndCaption(drawRect);
 
-			if((_flags & WindowFlags.NoClip) == 0)
+			if(_flags.HasFlag(WindowFlags.NoClip) == false)
 			{
 				_context.PushClipRectangle(_clientRect);
 			}
@@ -608,7 +608,7 @@ namespace idTech4.UI
 			// Put transforms back to what they were before the children were processed
 			_context.SetTransformInformation(oldOrigin, oldTransform);
 
-			if((_flags & WindowFlags.NoClip) == 0)
+			if(_flags.HasFlag(WindowFlags.NoClip) == false)
 			{
 				_context.PopClipRectangle();
 			}
@@ -709,7 +709,7 @@ namespace idTech4.UI
 				}
 			}
 
-			if((_flags & WindowFlags.Desktop) != 0)
+			if(_flags.HasFlag(WindowFlags.Desktop) == true)
 			{
 				CalculateRectangles(0, 0);
 			}
@@ -717,7 +717,7 @@ namespace idTech4.UI
 
 		public string HandleEvent(SystemEventArgs e)
 		{
-			if((_flags & WindowFlags.Desktop) != 0)
+			if(_flags.HasFlag(WindowFlags.Desktop) == true)
 			{
 				// TODO
 				/*actionDownRun = false;
@@ -1383,17 +1383,17 @@ namespace idTech4.UI
 		{
 			_drawRect = _rect.Data;
 
-			if((_flags & WindowFlags.InvertRectangle) != 0)
+			if(_flags.HasFlag(WindowFlags.InvertRectangle) == true)
 			{
 				_drawRect.X = (int) (_rect.X - _rect.Width);
 				_drawRect.Y = (int) (_rect.Y - _rect.Height);
 			}
 
-			if(((_flags & (WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter)) != 0) && (_parent != null))
+			if((_flags.HasFlag(WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter) == true) && (_parent != null))
 			{
 				// in this case treat xofs and yofs as absolute top left coords
 				// and ignore the original positioning
-				if((_flags & WindowFlags.HorizontalCenter) != 0)
+				if(_flags.HasFlag(WindowFlags.HorizontalCenter) == true)
 				{
 					_drawRect.X = (int) ((_parent.Rectangle.Width - _rect.Width) / 2);
 				}
@@ -1410,7 +1410,7 @@ namespace idTech4.UI
 
 			if((_rect.Height > 0.0f) && (_rect.Width > 0.0f))
 			{
-				if(((_flags & WindowFlags.Border) != 0) && (_borderSize != 0.0f))
+				if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize != 0.0f))
 				{
 					_clientRect.X += _borderSize;
 					_clientRect.Y += _borderSize;
@@ -1519,10 +1519,10 @@ namespace idTech4.UI
 				shadowRect.X += _textShadow;
 				shadowRect.Y += _textShadow;
 
-				// TODO: _context.DrawText(shadowText, _textScale, _textAlign, _colorBlack, shadowRect, (_flags & WindowFlags.NoWrap) == 0, -1);
+				// TODO: _context.DrawText(shadowText, _textScale, _textAlign, _colorBlack, shadowRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
 			}
 
-			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags & WindowFlags.NoWrap) == 0, -1);
+			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
 
 			// TODO: gui_edit
 			/*if ( gui_edit.GetBool() ) {
@@ -2282,10 +2282,12 @@ namespace idTech4.UI
 
 			if(var != null)
 			{
+				RegisterType regType;
+
 				// check builtins first
-				if(_builtInVariables.ContainsKey(work) == true)
+				if(_builtInVariables.TryGetValue(work, out regType) == true)
 				{
-					_regList.AddRegister(work, _builtInVariables[work], parser, this, var);
+					_regList.AddRegister(work, regType, parser, this, var);
 
 					return true;
 				}
@@ -2305,12 +2307,12 @@ namespace idTech4.UI
 				switch(token.Type)
 				{
 					case TokenType.Number:
-						if((token.SubType & TokenSubType.Integer) != 0)
+						if(token.SubType.HasFlag(TokenSubType.Integer) == true)
 						{
 							var = new idWinInteger(work);
 							var.Set(token.ToString());
 						}
-						else if((token.SubType & TokenSubType.Float) != 0)
+						else if(token.SubType.HasFlag(TokenSubType.Float) == true)
 						{
 							var = new idWinFloat(work);
 							var.Set(token.ToString());

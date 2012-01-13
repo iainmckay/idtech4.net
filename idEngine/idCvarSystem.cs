@@ -343,9 +343,11 @@ namespace idTech4
 		#region Private
 		private idInternalCvar FindInternal(string name)
 		{
-			if(_cvarList.ContainsKey(name) == true)
+			idInternalCvar var;
+
+			if(_cvarList.TryGetValue(name, out var) == true)
 			{
-				return _cvarList[name];
+				return var;
 			}
 
 			return null;
@@ -419,7 +421,7 @@ namespace idTech4
 			{
 				idInternalCvar cvar = kvp.Value;
 
-				if((cvar.Flags & flags) == 0)
+				if(cvar.Flags.HasFlag(flags) == false)
 				{
 					continue;
 				}
@@ -453,11 +455,11 @@ namespace idTech4
 				case ShowMode.Type:
 					foreach(idCvar cvar in list)
 					{
-						if((cvar.Flags & CvarFlags.Bool) != 0)
+						if(cvar.Flags.HasFlag(CvarFlags.Bool) == true)
 						{
 							idConsole.WriteLine("{0}{1}bool", cvar.Name.PadRight(32), idColorString.Cyan);
 						}
-						else if((cvar.Flags & CvarFlags.Integer) != 0)
+						else if(cvar.Flags.HasFlag(CvarFlags.Integer) == true)
 						{
 							if(cvar.MinValue < cvar.MaxValue)
 							{
@@ -468,7 +470,7 @@ namespace idTech4
 								idConsole.WriteLine("{0}{1}int", cvar.Name.PadRight(32), idColorString.Green);
 							}
 						}
-						else if((cvar.Flags & CvarFlags.Float) != 0)
+						else if(cvar.Flags.HasFlag(CvarFlags.Float) == true)
 						{
 							if(cvar.MinValue < cvar.MaxValue)
 							{
@@ -511,15 +513,15 @@ namespace idTech4
 
 						string str = string.Empty;
 
-						if((cvar.Flags & CvarFlags.Bool) != 0)
+						if(cvar.Flags.HasFlag(CvarFlags.Bool) == true)
 						{
 							str += string.Format("{0}B ", idColorString.Cyan);
 						}
-						else if((cvar.Flags & CvarFlags.Integer) != 0)
+						else if(cvar.Flags.HasFlag(CvarFlags.Integer) == true)
 						{
 							str += string.Format("{0}U ", idColorString.Green);
 						}
-						else if((cvar.Flags & CvarFlags.Float) != 0)
+						else if(cvar.Flags.HasFlag(CvarFlags.Float) == true)
 						{
 							str += string.Format("{0}F ", idColorString.Red);
 						}
@@ -528,27 +530,27 @@ namespace idTech4
 							str += string.Format("{0}S ", idColorString.White);
 						}
 
-						if((cvar.Flags & CvarFlags.System) != 0)
+						if(cvar.Flags.HasFlag(CvarFlags.System) == true)
 						{
 							str += string.Format("{0}SYS  ", idColorString.White);
 						}
-						else if((cvar.Flags & CvarFlags.Renderer) != 0)
+						else if(cvar.Flags.HasFlag(CvarFlags.Renderer) == true)
 						{
 							str += string.Format("{0}RNDR ", idColorString.White);
 						}
-						else if((cvar.Flags & CvarFlags.Sound) != 0)
+						else if(cvar.Flags.HasFlag(CvarFlags.Sound) == true)
 						{
 							str += string.Format("{0}SND  ", idColorString.White);
 						}
-						else if((cvar.Flags & CvarFlags.Gui) != 0)
+						else if(cvar.Flags.HasFlag(CvarFlags.Gui) == true)
 						{
 							str += string.Format("{0}GUI  ", idColorString.White);
 						}
-						else if((cvar.Flags & CvarFlags.Game) != 0)
+						else if(cvar.Flags.HasFlag(CvarFlags.Game) == true)
 						{
 							str += string.Format("{0}GAME ", idColorString.White);
 						}
-						else if((cvar.Flags & CvarFlags.Tool) != 0)
+						else if(cvar.Flags.HasFlag(CvarFlags.Tool) == true)
 						{
 							str += string.Format("{0}TOOL ", idColorString.White);
 						}
@@ -557,14 +559,14 @@ namespace idTech4
 							str += string.Format("{0}     ", idColorString.White);
 						}
 
-						str += ((cvar.Flags & CvarFlags.UserInfo) != 0) ? "UI " : "   ";
-						str += ((cvar.Flags & CvarFlags.ServerInfo) != 0) ? "SI " : "   ";
-						str += ((cvar.Flags & CvarFlags.Static) != 0) ? "ST " : "   ";
-						str += ((cvar.Flags & CvarFlags.Cheat) != 0) ? "CH " : "   ";
-						str += ((cvar.Flags & CvarFlags.Init) != 0) ? "IN " : "   ";
-						str += ((cvar.Flags & CvarFlags.ReadOnly) != 0) ? "RO " : "   ";
-						str += ((cvar.Flags & CvarFlags.Archive) != 0) ? "AR " : "   ";
-						str += ((cvar.Flags & CvarFlags.Modified) != 0) ? "MO " : "   ";
+						str += (cvar.Flags.HasFlag(CvarFlags.UserInfo) == true) ? "UI " : "   ";
+						str += (cvar.Flags.HasFlag(CvarFlags.ServerInfo) == true) ? "SI " : "   ";
+						str += (cvar.Flags.HasFlag(CvarFlags.Static) == true) ? "ST " : "   ";
+						str += (cvar.Flags.HasFlag(CvarFlags.Cheat) == true) ? "CH " : "   ";
+						str += (cvar.Flags.HasFlag(CvarFlags.Init) == true) ? "IN " : "   ";
+						str += (cvar.Flags.HasFlag(CvarFlags.ReadOnly) == true) ? "RO " : "   ";
+						str += (cvar.Flags.HasFlag(CvarFlags.Archive) == true) ? "AR " : "   ";
+						str += (cvar.Flags.HasFlag(CvarFlags.Modified) == true) ? "MO " : "   ";
 
 						idConsole.WriteLine(str);						
 					}
@@ -734,13 +736,13 @@ namespace idTech4
 				idInternalCvar cvar = kvp.Value;
 
 				// don't mess with rom values
-				if((cvar.Flags & (CvarFlags.ReadOnly | CvarFlags.Init)) != 0)
+				if(cvar.Flags.HasFlag(CvarFlags.ReadOnly | CvarFlags.Init) == true)
 				{
 					continue;
 				}
 
 				// throw out any variables the user created
-				if((cvar.Flags & CvarFlags.Static) == 0)
+				if(cvar.Flags.HasFlag(CvarFlags.Static) == false)
 				{
 					toRemove.Add(cvar.Name);
 				}

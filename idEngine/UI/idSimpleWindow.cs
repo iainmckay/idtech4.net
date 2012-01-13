@@ -224,7 +224,7 @@ namespace idTech4.UI
 
 			SetupTransforms(x, y);
 
-			if((_flags & WindowFlags.NoClip) != 0)
+			if(_flags.HasFlag(WindowFlags.NoClip) == true)
 			{
 				_context.ClippingEnabled = false;
 			}
@@ -250,7 +250,7 @@ namespace idTech4.UI
 
 			_context.SetTransformInformation(Vector3.Zero, Matrix.Identity);
 
-			if((_flags & WindowFlags.NoClip) != 0)
+			if(_flags.HasFlag(WindowFlags.NoClip) == true)
 			{
 				_context.ClippingEnabled = true;
 			}
@@ -323,7 +323,7 @@ namespace idTech4.UI
 		{
 			_drawRect = _rect.Data;
 
-			if((_flags & WindowFlags.InvertRectangle) != 0)
+			if(_flags.HasFlag(WindowFlags.InvertRectangle) == true)
 			{
 				_drawRect.X = (int) (_rect.X - _rect.Width);
 				_drawRect.Y = (int) (_rect.Y - _rect.Height);
@@ -336,7 +336,7 @@ namespace idTech4.UI
 
 			if((_rect.Height > 0.0f) && (_rect.Width > 0.0f))
 			{
-				if(((_flags & WindowFlags.Border) != 0) && (_borderSize != 0.0f))
+				if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize != 0.0f))
 				{
 					_clientRect.X += _borderSize;
 					_clientRect.Y += _borderSize;

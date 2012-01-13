@@ -94,6 +94,7 @@ namespace idTech4
 		public const int UserCommandHertz = 60;
 		public const int UserCommandMillseconds = 1000 / UserCommandHertz;
 
+		public static readonly idLangDict Language = new idLangDict();
 		public static readonly idSystem System = new idSystem();
 		public static readonly idSession Session = new idSession();
 		public static readonly idFileSystem FileSystem = new idFileSystem();

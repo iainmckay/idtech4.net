@@ -444,7 +444,7 @@ namespace idTech4.IO
 			//
 			foreach(SearchPath searchPath in _searchPaths)
 			{
-				if((searchPath.Directory != null) && ((searchFlags & FileSearch.SearchDirectories) != 0))
+				if((searchPath.Directory != null) && (searchFlags.HasFlag(FileSearch.SearchDirectories) == true))
 				{
 					// check a file in the directory tree.
 					// if we are running restricted, the only files we

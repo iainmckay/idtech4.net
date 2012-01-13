@@ -38,6 +38,7 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.IO;
 using idTech4.Net;
 
 namespace idTech4
@@ -569,11 +570,11 @@ namespace idTech4
 
 			// localization
 			cmdSystem->AddCommand( "localizeGuis", Com_LocalizeGuis_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "localize guis" );
-			cmdSystem->AddCommand( "localizeMaps", Com_LocalizeMaps_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "localize maps" );
-			cmdSystem->AddCommand( "reloadLanguage", Com_ReloadLanguage_f, CMD_FL_SYSTEM, "reload language dict" );
+			cmdSystem->AddCommand( "localizeMaps", Com_LocalizeMaps_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "localize maps" );*/
+			idE.CmdSystem.AddCommand("reloadLanguage", "reload language dictionary", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ReloadLanguage));
 
 			//D3XP Localization
-			cmdSystem->AddCommand( "localizeGuiParmsTest", Com_LocalizeGuiParmsTest_f, CMD_FL_SYSTEM, "Create test files that show gui parms localized and ignored." );
+			/*cmdSystem->AddCommand( "localizeGuiParmsTest", Com_LocalizeGuiParmsTest_f, CMD_FL_SYSTEM, "Create test files that show gui parms localized and ignored." );
 			cmdSystem->AddCommand( "localizeMapsTest", Com_LocalizeMapsTest_f, CMD_FL_SYSTEM, "Create test files that shows which strings will be localized." );
 
 			// build helpers
@@ -616,9 +617,9 @@ namespace idTech4
 			idE.RenderSystem.Init();
 
 			// initialize string database right off so we can use it for loading messages
-			/* TODO: InitLanguageDict();
+			InitLanguageDict();
 
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04344" ) );*/
+			//PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04344" ) );*/
 
 			// load the font, etc
 			idE.Console.LoadGraphics();
@@ -710,6 +711,43 @@ namespace idTech4
 				idE.CmdSystem.BufferCommandText(Execute.Now, "s_restart");
 				idE.CmdSystem.ExecuteCommandBuffer();
 			}
+		}
+
+		private void InitLanguageDict()
+		{
+			idE.Language.Clear();
+
+			// D3XP: Instead of just loading a single lang file for each language
+			// we are going to load all files that begin with the language name
+			// similar to the way pak files work. So you can place english001.lang
+			// to add new strings to the english language dictionary
+			idFileList files = idE.FileSystem.GetFiles("strings", ".lang", true);
+			string[] langFiles = files.Files;
+
+			// let it be set on the command line - this is needed because this init happens very early
+			StartupVariable("sys_lang", false);
+
+			string langName = idE.CvarSystem.GetString("sys_lang");
+
+			// loop through the list and filter
+			string[] currentLanguageList = langFiles.Where(c => c.StartsWith(langName)).ToArray();
+
+			if(currentLanguageList.Length == 0)
+			{
+				// reset cvar to default and try to load again
+				idE.CmdSystem.BufferCommandText(Execute.Now, "reset sys_lang");
+				
+				langName = idE.CvarSystem.GetString("sys_lang");
+				currentLanguageList = langFiles.Where(c => c.StartsWith(langName)).ToArray();
+			}
+
+			foreach(string lang in currentLanguageList)
+			{
+				idE.Language.Load(Path.Combine(files.BaseDirectory, lang), false);
+			}
+
+			idConsole.WriteLine("TODO: Sys_InitScanTable");
+			// TODO: Sys_InitScanTable();
 		}
 
 		private void InitRenderSystem()
@@ -1033,15 +1071,15 @@ namespace idTech4
 
 			string capabilities = string.Empty;
 
-			if((caps & CpuCapabilities.AMD) != 0)
+			if(caps.HasFlag(CpuCapabilities.AMD) == true)
 			{
 				capabilities += "AMD CPU";
 			}
-			else if((caps & CpuCapabilities.Intel) != 0)
+			else if(caps.HasFlag(CpuCapabilities.Intel) == true)
 			{
 				capabilities += "Intel CPU";
 			}
-			else if((caps & CpuCapabilities.Unsupported) != 0)
+			else if(caps.HasFlag(CpuCapabilities.Unsupported) == true)
 			{
 				capabilities += "unsupported CPU";
 			}
@@ -1111,6 +1149,11 @@ namespace idTech4
 		private void Cmd_Quit(object sender, CommandEventArgs e)
 		{
 			Quit();
+		}
+
+		private void Cmd_ReloadLanguage(object sender, CommandEventArgs e)
+		{
+			InitLanguageDict();
 		}
 
 		private void Cmd_ExecMachineSpec(object sender, CommandEventArgs e)
