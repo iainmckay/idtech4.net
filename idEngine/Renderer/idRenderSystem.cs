@@ -2285,6 +2285,10 @@ namespace idTech4.Renderer
 					idConsole.WriteLine("{0}:", progPath);
 					idConsole.WriteLine("GL_PROGRAM_ERROR_POSITION_ARB != -1 without error");
 				}
+				else
+				{
+					idConsole.WriteLine(progPath);
+				}
 			}
 		}
 
@@ -2945,20 +2949,38 @@ namespace idTech4.Renderer
 			// automatically enable this with several other debug tools
 			// that might leave unrendered portions of the screen
 
-			// TODO: r_clear
-			/*if ( r_clear.GetFloat() || idStr::Length( r_clear.GetString() ) != 1 || r_lockSurfaces.GetBool() || r_singleArea.GetBool() || r_showOverDraw.GetBool() ) {
-				float c[3];
-				if ( sscanf( r_clear.GetString(), "%f %f %f", &c[0], &c[1], &c[2] ) == 3 ) {
-					qglClearColor( c[0], c[1], c[2], 1 );
-				} else if ( r_clear.GetInteger() == 2 ) {
-					qglClearColor( 0.0f, 0.0f,  0.0f, 1.0f );
-				} else if ( r_showOverDraw.GetBool() ) {
-					qglClearColor( 1.0f, 1.0f, 1.0f, 1.0f );
-				} else {*/
-			GL.ClearColor(0.4f, 0.0f, 0.25f, 1.0f);
-			/*}*/
-			GL.Clear(ClearBufferMask.ColorBufferBit);
-			/*}*/
+			if((idE.CvarSystem.GetFloat("r_clear") > 0) 
+				|| (idE.CvarSystem.GetString("r_clear").Length != 1)
+				|| (idE.CvarSystem.GetBool("r_lockSurfaces") == true)
+				|| (idE.CvarSystem.GetBool("r_singleArea") == true)
+				|| (idE.CvarSystem.GetBool("r_showOverDraw") == true))
+			{
+				float[] color = new float[3];
+				string[] parts = idE.CvarSystem.GetString("r_clear").Split(' ');
+
+				if(parts.Length == 3)
+				{
+					float.TryParse(parts[0], out color[0]);
+					float.TryParse(parts[1], out color[1]);
+					float.TryParse(parts[2], out color[2]);
+
+					GL.ClearColor(color[0], color[1], color[2], 1.0f);
+				}
+				else if(idE.CvarSystem.GetInteger("r_clear") == 2)
+				{
+					GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+				}
+				else if(idE.CvarSystem.GetBool("r_showOverDraw") == true)
+				{
+					GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+				}
+				else
+				{
+					GL.ClearColor(0.4f, 0.0f, 0.25f, 1.0f);
+				}
+			
+				GL.Clear(ClearBufferMask.ColorBufferBit);
+			}
 		}
 
 		private void SetColorMappings()
@@ -3076,6 +3098,8 @@ namespace idTech4.Renderer
 		/// </summary>
 		private void ShowImages()
 		{
+			idConsole.WriteLine("TODO: ShowImages");
+
 			// TODO: showimages
 			/*GL_Set2D();
 			
@@ -3153,6 +3177,7 @@ namespace idTech4.Renderer
 					idE.CvarSystem.ClearModified("r_swapInterval");
 
 					idConsole.WriteLine("TODO: r_swapInterval");
+					
 					// Wgl.wglSwapIntervalEXT(idE.CvarSystem.GetInteger("r_swapInterval"));
 				}
 
@@ -3166,6 +3191,8 @@ namespace idTech4.Renderer
 			{
 				return;
 			}
+
+			// idConsole.WriteLine("TODO: ToggleSmpFrame");
 
 			// TODO
 			/*R_FreeDeferredTriSurfs( frameData );
@@ -3330,64 +3357,62 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				idConsole.WriteLine("TODO: NV20_BumpAndLightFragment");
-				/*// program the nvidia register combiners
-				Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 3);
+				// program the nvidia register combiners
+				GL.NV.CombinerParameter(NvRegisterCombiners.NumGeneralCombinersNv, 3);
 
 				// stage 0 rgb performs the dot product
 				// SPARE0 = TEXTURE0 dot TEXTURE1
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE1_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_TRUE, Gl.GL_FALSE, Gl.GL_FALSE);
-
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv, 
+					NvRegisterCombiners.Texture1Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv, 
+					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb,
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, true, false, false);
 
 				// stage 1 rgb multiplies texture 2 and 3 together
 				// SPARE1 = TEXTURE2 * TEXTURE3
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE2_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE3_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB,
-					Gl.GL_SPARE1_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, All.False, All.False, All.False);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv, 
+					(NvRegisterCombiners) All.Texture2Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv, 
+					(NvRegisterCombiners) All.Texture3Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb,
+					NvRegisterCombiners.Spare1Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
 
 				// stage 1 alpha does nohing
 
 				// stage 2 color multiplies spare0 * spare 1 just for debugging
 				// SPARE0 = SPARE0 * SPARE1
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_SPARE1_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
+					NvRegisterCombiners.Spare1Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb,
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
 
 				// stage 2 alpha multiples spare0 * spare 1
 				// SPARE0 = SPARE0 * SPARE1
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_ALPHA, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_BLUE);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_ALPHA, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_SPARE1_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_BLUE);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_ALPHA,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Alpha, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Blue);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Alpha, NvRegisterCombiners.VariableBNv,
+					NvRegisterCombiners.Spare1Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Blue);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Alpha,
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
 
 				// final combiner
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_SPARE0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_SPARE0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);*/
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableDNv, NvRegisterCombiners.Spare0Nv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableANv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableBNv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableCNv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableGNv, NvRegisterCombiners.Spare0Nv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Alpha);
 			}
 		}
 
@@ -3399,10 +3424,8 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				idConsole.WriteLine("TODO: NV20_DiffuseAndSpecularColorFragment");
-
 				// program the nvidia register combiners
-				/*Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 3);
+				GL.NV.CombinerParameter(NvRegisterCombiners.NumGeneralCombinersNv, 3);
 
 				// GL_CONSTANT_COLOR0_NV will be the diffuse color
 				// GL_CONSTANT_COLOR1_NV will be the specular color
@@ -3410,62 +3433,62 @@ namespace idTech4.Renderer
 				// stage 0 rgb performs the dot product
 				// GL_SECONDARY_COLOR_NV = ( TEXTURE0 dot TEXTURE1 - 0.5 ) * 2
 				// the scale and bias steepen the specular curve
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE1_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_TRUE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.Texture1Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
+					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb,
+					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					NvRegisterCombiners.ScaleByTwoNv, NvRegisterCombiners.BiasByNegativeOneHalfNv, true, false, false);
 
 				// stage 0 alpha does nothing
 
 				// stage 1 color takes bump * bump
 				// PRIMARY_COLOR = ( GL_SECONDARY_COLOR_NV * GL_SECONDARY_COLOR_NV - 0.5 ) * 2
 				// the scale and bias steepen the specular curve
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
+					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb,
+					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					NvRegisterCombiners.ScaleByTwoNv, NvRegisterCombiners.BiasByNegativeOneHalfNv, false, false, false);
 
 				// stage 1 alpha does nothing
 
 				// stage 2 color
 				// PRIMARY_COLOR = ( PRIMARY_COLOR * TEXTURE3 ) * 2
 				// SPARE0 = 1.0 * 1.0 (needed for final combiner)
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE3_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_C_NV,
-					Gl.GL_ZERO, Gl.GL_UNSIGNED_INVERT_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_D_NV,
-					Gl.GL_ZERO, Gl.GL_UNSIGNED_INVERT_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
+					(NvRegisterCombiners) All.Texture3Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableCNv,
+					(NvRegisterCombiners) All.Zero, NvRegisterCombiners.UnsignedInvertNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableDNv,
+					(NvRegisterCombiners) All.Zero, NvRegisterCombiners.UnsignedInvertNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb,
+					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv,
+					NvRegisterCombiners.ScaleByTwoNv, (NvRegisterCombiners) All.None, false, false, false);
 
 				// stage 2 alpha does nothing
 
 				// final combiner = TEXTURE2_ARB * CONSTANT_COLOR0_NV + PRIMARY_COLOR_NV * CONSTANT_COLOR1_NV
 				// alpha = GL_ZERO
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_CONSTANT_COLOR1_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_SECONDARY_COLOR_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_E_TIMES_F_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_E_NV, Gl.GL_TEXTURE2_ARB,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_F_NV, Gl.GL_CONSTANT_COLOR0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);*/
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableANv, NvRegisterCombiners.ConstantColor1Nv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableBNv, NvRegisterCombiners.SecondaryColorNv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableCNv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableDNv, NvRegisterCombiners.ETimesFNv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableENv, (NvRegisterCombiners) All.Texture2Arb,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableFNv, NvRegisterCombiners.ConstantColor0Nv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableGNv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Alpha);
 			}
 		}
 
@@ -3477,40 +3500,38 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				idConsole.WriteLine("TODO: NV20_DiffuseColorFragment");
-
 				// program the nvidia register combiners
-				/*Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 1);
+				GL.NV.CombinerParameter(NvRegisterCombiners.NumGeneralCombinersNv, 1);
 
 				// stage 0 is free, so we always do the multiply of the vertex color
 				// when the vertex color is inverted, Gl.glCombinerInputNV(GL_VARIABLE_B_NV) will be changed
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_PRIMARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
+					NvRegisterCombiners.PrimaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb,
+					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
 
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_ALPHA,
-					Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Alpha,
+					NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
+				
 				// for GL_CONSTANT_COLOR0_NV * TEXTURE0 * TEXTURE1
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_CONSTANT_COLOR0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_E_TIMES_F_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_E_NV, Gl.GL_TEXTURE0_ARB,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_F_NV, Gl.GL_TEXTURE1_ARB,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);*/
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableANv, NvRegisterCombiners.ConstantColor0Nv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableBNv, NvRegisterCombiners.ETimesFNv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableCNv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableDNv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableENv, NvRegisterCombiners.Texture0Arb,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableFNv, NvRegisterCombiners.Texture1Arb,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableGNv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Alpha);
 			}
 		}
 
@@ -3522,10 +3543,8 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				idConsole.WriteLine("TODO: NV20_SpecularColorFragment");
-
 				// program the nvidia register combiners
-				/*Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 4);
+				GL.NV.CombinerParameter(NvRegisterCombiners.NumGeneralCombinersNv, 4);
 
 				// we want GL_CONSTANT_COLOR1_NV * PRIMARY_COLOR * TEXTURE2 * TEXTURE3 * specular( TEXTURE0 * TEXTURE1 )
 
@@ -3533,73 +3552,72 @@ namespace idTech4.Renderer
 				// GL_SPARE0_NV = ( TEXTURE0 dot TEXTURE1 - 0.5 ) * 2
 				// TEXTURE2 = TEXTURE2 * PRIMARY_COLOR
 				// the scale and bias steepen the specular curve
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE1_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_TRUE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.Texture1Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
+					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, 
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					NvRegisterCombiners.ScaleByTwoNv, NvRegisterCombiners.BiasByNegativeOneHalfNv, true, false, false);
 
 				// stage 0 alpha does nothing
 
 				// stage 1 color takes bump * bump
 				// GL_SPARE0_NV = ( GL_SPARE0_NV * GL_SPARE0_NV - 0.5 ) * 2
 				// the scale and bias steepen the specular curve
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, 
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					NvRegisterCombiners.ScaleByTwoNv, NvRegisterCombiners.BiasByNegativeOneHalfNv, false, false, false);
 
 				// stage 1 alpha does nothing
 
 				// stage 2 color
 				// GL_SPARE0_NV = GL_SPARE0_NV * TEXTURE3
 				// SECONDARY_COLOR = CONSTANT_COLOR * TEXTURE2
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE3_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_C_NV,
-					Gl.GL_CONSTANT_COLOR1_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_D_NV,
-					Gl.GL_TEXTURE2_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
+					(NvRegisterCombiners) All.Texture3Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableCNv,
+					NvRegisterCombiners.ConstantColor1Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableDNv,
+					(NvRegisterCombiners) All.Texture2Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb,
+					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.DiscardNv,
+					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
 
 				// stage 2 alpha does nothing
 
-
 				// stage 3 scales the texture by the vertex color
-				Gl.glCombinerInputNV(Gl.GL_COMBINER3_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER3_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_PRIMARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER3_NV, Gl.GL_RGB,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner3Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
+					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerInput(NvRegisterCombiners.Combiner3Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
+					NvRegisterCombiners.PrimaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner3Nv, (NvRegisterCombiners) All.Rgb,
+					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
+					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
 
 				// stage 3 alpha does nothing
 
 				// final combiner = GL_SPARE0_NV * SECONDARY_COLOR + PRIMARY_COLOR * SECONDARY_COLOR
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_SPARE0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_SECONDARY_COLOR_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_E_TIMES_F_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_E_NV, Gl.GL_SPARE0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_F_NV, Gl.GL_SECONDARY_COLOR_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);*/
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableANv, NvRegisterCombiners.Spare0Nv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableBNv, NvRegisterCombiners.SecondaryColorNv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableCNv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableDNv, NvRegisterCombiners.ETimesFNv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableENv, NvRegisterCombiners.Spare0Nv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableFNv, NvRegisterCombiners.SecondaryColorNv,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
+				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableGNv, (NvRegisterCombiners) All.Zero,
+					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Alpha);
 			}
 		}
 		#endregion

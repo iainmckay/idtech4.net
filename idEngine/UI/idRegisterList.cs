@@ -65,9 +65,7 @@ namespace idTech4.UI
 					
 					if((token = parser.ReadToken()) != null)
 					{
-						idConsole.WriteLine("TODO: GetLanguageDict");
-						// tok = common->GetLanguageDict()->GetString( tok );
-						// var->Init( tok, win );
+						var.Init(idE.Language.Get(token.ToString()), window);
 					}
 				}
 				else

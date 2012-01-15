@@ -61,6 +61,11 @@ namespace idTech4
 		{
 			string val;
 
+			if(key.StartsWith("#str_") == false)
+			{
+				return key;
+			}
+
 			if(_elements.TryGetValue(key, out val) == true)
 			{
 				return val;

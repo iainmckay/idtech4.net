@@ -136,7 +136,7 @@ namespace idTech4.UI
 		{
 			string key = name;
 			int length = key.Length;
-			idConsole.WriteLine("Init({0}, {1})", name, win);
+		
 			_guiDict = null;
 
 			if((length > Prefix.Length) && (key.StartsWith(Prefix) == true))
