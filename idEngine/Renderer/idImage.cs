@@ -528,7 +528,7 @@ namespace idTech4.Renderer
 			{
 				if(textureUnit.Type == TextureType.Cubic)
 				{
-					GL.Disable(EnableCap.TextureCubeMap);
+					GL.Disable((EnableCap) All.TextureCubeMapExt);
 				}
 				else if(textureUnit.Type == TextureType.ThreeD)
 				{
@@ -541,7 +541,7 @@ namespace idTech4.Renderer
 
 				if(_type == TextureType.Cubic)
 				{
-					GL.Enable(EnableCap.TextureCubeMap);
+					GL.Enable((EnableCap) All.TextureCubeMapExt);
 				}
 				else if(_type == TextureType.ThreeD)
 				{
@@ -569,7 +569,7 @@ namespace idTech4.Renderer
 				if(textureUnit.CurrentCubeMap != _texNumber)
 				{
 					textureUnit.CurrentCubeMap = _texNumber;
-					GL.BindTexture(TextureTarget.TextureCubeMap, _texNumber);
+					GL.BindTexture((TextureTarget) All.TextureCubeMapExt, _texNumber);
 				}
 			}
 			else if(_type == TextureType.ThreeD)

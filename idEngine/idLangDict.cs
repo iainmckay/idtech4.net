@@ -121,7 +121,7 @@ namespace idTech4
 				}
 			}
 
-			idConsole.Write("{0} strings read from {1}", _elements.Count, fileName);
+			idConsole.WriteLine("{0} strings read from {1}", _elements.Count, fileName);
 
 			return true;
 		}

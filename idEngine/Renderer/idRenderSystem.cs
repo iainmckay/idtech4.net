@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text;
@@ -180,6 +181,35 @@ namespace idTech4.Renderer
 
 		// vertex cache
 		private List<VertexCache> _dynamicVertexCache = new List<VertexCache>();
+
+		// a single file can have both a vertex program and a fragment program
+		private GLProgram[] _programs = new GLProgram[] {
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramTest, "test.vfp"),
+			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramTest, "test.vfp"),
+
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramInteraction, "interaction.vfp"),
+			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramInteraction, "interaction.vfp"),
+
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramBumpyEnvironment, "bumpyEnvironment.vfp"),
+			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramBumpyEnvironment, "bumpyEnvironment.vfp"),
+
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramAmbient, "ambientLight.vfp"),
+			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramAmbient, "ambientLight.vfp"),
+
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramStencilShadow, "shadow.vp"),
+
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramR200Interaction, "R200_interaction.vp"),
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramNV20BumpAndLight, "nv20_bumpAndLight.vp"),
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramNV20DiffuseColor, "nv20_diffuseColor.vp"),
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramNV20SpecularColor, "nv20_diffuseAndSpecularColor.vp"),
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramNV20DiffuseAndSpecularColor, "nv20_diffuseAndSpecularColor.vp"),
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramEnvironment, "environment.vfp"),
+			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramEnvironment, "environment.vfp"),
+			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramGlassWarp, "arbVP_glasswarp.txt"),
+			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramGlassWarp, "arbFP_glasswarp.txt")
+
+			// additional programs can be dynamically specified in materials
+		};
 		#endregion
 
 		#region Constructor
@@ -910,7 +940,7 @@ namespace idTech4.Renderer
 				|| (idE.GLConfig.CubeMapAvailable == false)
 				|| (idE.GLConfig.EnvDot3Available == false))
 			{
-				// TODO: idConsole.Error(common->GetLanguageDict()->GetString( "#str_06780" ) );
+				idConsole.Error(6780);
 			}
 
 			idE.GLConfig.DepthBoundsTestAvailable = CheckExtension("EXT_depth_bounds_test");
@@ -1018,14 +1048,6 @@ namespace idTech4.Renderer
 
 			idConsole.WriteLine("...created window @ {0},{1} ({2}x{3})", x, y, width, height);
 
-			/*if(InitOpenGLDriver(width, height, fullscreen, refreshRate, multiSamples, stereoMode) == false)
-			{
-				_renderForm.Dispose();
-				_renderForm = null;
-
-				return false;
-			}*/
-
 			_renderForm.BringToFront();
 			_renderForm.Focus();
 
@@ -1066,7 +1088,7 @@ namespace idTech4.Renderer
 				{
 					UnbindIndex();
 				}
-				
+
 				GL.DrawElements(BeginMode.Triangles,
 					(idE.CvarSystem.GetBool("r_singleTriangle") == true) ? 3 : tri.Indexes.Length,
 					DrawElementsType.UnsignedInt,
@@ -1091,9 +1113,10 @@ namespace idTech4.Renderer
 
 			// if we are about to draw the first surface that needs
 			// the rendering in a texture, copy it over
-			// TODO
-			/*if ( drawSurfs[0]->material->GetSort() >= SS_POST_PROCESS ) {
-				if ( r_skipPostProcess.GetBool() ) {
+			if(surfaces[0].Material.Sort >= (float) MaterialSort.PostProcess)
+			{
+				idConsole.WriteLine("TODO: PostProcess");
+				/*if ( r_skipPostProcess.GetBool() ) {
 					return 0;
 				}
 
@@ -1103,8 +1126,8 @@ namespace idTech4.Renderer
 						backEnd.viewDef->viewport.y1,  backEnd.viewDef->viewport.x2 -  backEnd.viewDef->viewport.x1 + 1,
 						backEnd.viewDef->viewport.y2 -  backEnd.viewDef->viewport.y1 + 1, true );
 				}
-				backEnd.currentRenderCopied = true;
-			}*/
+				backEnd.currentRenderCopied = true;*/
+			}
 
 			GL_SelectTexture(1);
 			idE.ImageManager.BindNullTexture();
@@ -1138,10 +1161,10 @@ namespace idTech4.Renderer
 				*/
 
 				// we need to draw the post process shaders after we have drawn the fog lights
-				/*if ( drawSurfs[i]->material->GetSort() >= SS_POST_PROCESS
-					&& !backEnd.currentRenderCopied ) {
+				if((surface.Material.Sort >= (float) MaterialSort.PostProcess) && (idE.Backend.CurrentRenderCopied == false))
+				{
 					break;
-				}*/
+				}
 
 				RenderShaderPasses(surface);
 			}
@@ -1158,7 +1181,7 @@ namespace idTech4.Renderer
 
 			// we will need to do a new copyTexSubImage of the screen
 			// when a SS_POST_PROCESS material is used
-			// TODO: _currentRenderCopied = false;
+			idE.Backend.CurrentRenderCopied = false;
 
 			// if there aren't any drawsurfs, do nothing
 			if(idE.Backend.ViewDefinition.DrawSurfaces.Count == 0)
@@ -1214,7 +1237,7 @@ namespace idTech4.Renderer
 
 			// fill the depth buffer and clear color buffer to black except on
 			// subviews
-			// TODO: RB_STD_FillDepthBuffer( drawSurfs, numDrawSurfs );
+			// TODO: FillDepthBuffer(surfaces);
 
 			// main light renderer
 			/*switch( tr.backEndRenderer ) {
@@ -1647,7 +1670,7 @@ namespace idTech4.Renderer
 					GL.DepthMask(true);
 				}
 			}
-			
+
 			//
 			// check colormask
 			//
@@ -1657,7 +1680,7 @@ namespace idTech4.Renderer
 				bool g = diff.HasFlag(MaterialStates.GreenMask);
 				bool b = diff.HasFlag(MaterialStates.BlueMask);
 				bool a = diff.HasFlag(MaterialStates.AlphaMask);
-				
+
 				GL.ColorMask(r, g, b, a);
 			}
 
@@ -1736,6 +1759,8 @@ namespace idTech4.Renderer
 
 		private void InitCommands()
 		{
+			idE.CmdSystem.AddCommand("reloadARBPrograms", "reloads ARB programs", CommandFlags.Renderer, new EventHandler<CommandEventArgs>(Cmd_ReloadArbPrograms));
+
 			// TODO
 			/*cmdSystem->AddCommand( "MakeMegaTexture", idMegaTexture::MakeMegaTexture_f, CMD_FL_RENDERER|CMD_FL_CHEAT, "processes giant images" );
 			cmdSystem->AddCommand( "sizeUp", R_SizeUp_f, CMD_FL_RENDERER, "makes the rendered view larger" );
@@ -2036,9 +2061,7 @@ namespace idTech4.Renderer
 			InitR200();
 			InitARB2();
 
-			// TODO: cmdSystem->AddCommand( "reloadARBprograms", R_ReloadARBPrograms_f, CMD_FL_RENDERER, "reloads ARB programs" );
-			idConsole.WriteLine("TODO: R_ReloadARBPrograms");
-			// TODO: R_ReloadARBPrograms_f( idCmdArgs() );
+			Cmd_ReloadArbPrograms(this, new CommandEventArgs(new idCmdArgs()));
 
 			// allocate the vertex array range or vertex objects
 			// TODO: vertexCache.Init();*/
@@ -2143,6 +2166,126 @@ namespace idTech4.Renderer
 			}
 
 			ClearCommandChain();
+		}
+
+		private void LoadArbProgram(int index)
+		{
+			int startOffset = 0, endOffset = 0;
+			GLProgram prog = _programs[index];
+			string progPath = Path.Combine("glprogs", prog.Name);
+
+			// load the program even if we don't support it, so
+			// fs_copyfiles can generate cross-platform data dumps
+			byte[] data = idE.FileSystem.ReadFile(progPath);
+
+			if(data == null)
+			{
+				idConsole.WriteLine("{0}: File not found", progPath);
+			}
+			else
+			{
+				string buffer = Encoding.UTF8.GetString(data);
+
+				if(idE.GLConfig.IsInitialized == false)
+				{
+					return;
+				}
+
+				//
+				// submit the program string at start to GL
+				//
+				if(prog.Type == 0)
+				{
+					// allocate a new identifier for this program
+					_programs[index].Type = prog.Type = (int) GLProgramType.User + index;
+				}
+
+				// vertex and fragment programs can both be present in a single file, so
+				// scan for the proper header to be the start point, and stamp a 0 in after the end
+
+				if(prog.Target == (int) All.VertexProgramArb)
+				{
+					if(idE.GLConfig.ArbVertexProgramAvailable == false)
+					{
+						idConsole.WriteLine("{0}: GL_VERTEX_PROGRAM_ARB not available", progPath);
+						return;
+					}
+
+					startOffset = buffer.IndexOf("!!ARBvp");
+				}
+				else if(prog.Target == (int) All.FragmentProgramArb)
+				{
+					if(idE.GLConfig.ArbFragmentProgramAvailable == false)
+					{
+						idConsole.WriteLine("{0}: GL_FRAGMENT_PROGRAM_ARB not available", progPath);
+						return;
+					}
+
+					startOffset = buffer.IndexOf("!!ARBfp");
+				}
+
+				if(startOffset == -1)
+				{
+					idConsole.WriteLine("{0}: !!ARB not found", progPath);
+					return;
+				}
+
+				endOffset = buffer.IndexOf("END", startOffset);
+
+				if(endOffset == -1)
+				{
+					idConsole.WriteLine("{0}: END not found", progPath);
+					return;
+				}
+
+				endOffset += 3;
+
+				GL.Arb.BindProgram((AssemblyProgramTargetArb) prog.Target, prog.Type);
+				GL.GetError();
+
+				int progBufferLength = endOffset - startOffset;
+				byte[] progBuffer = new byte[progBufferLength];
+				Array.Copy(data, startOffset, progBuffer, 0, progBufferLength);
+
+				GL.Arb.ProgramString((AssemblyProgramTargetArb) prog.Target,
+					ArbVertexProgram.ProgramFormatAsciiArb, progBufferLength,
+					progBuffer);
+
+				ErrorCode error = GL.GetError();
+				int programErrorPosition;
+
+				GL.GetInteger((GetPName) All.ProgramErrorPositionArb, out programErrorPosition);
+
+				if(error == ErrorCode.InvalidOperation)
+				{
+					string errorString = GL.GetString((StringName) All.ProgramErrorStringArb);
+
+					idConsole.WriteLine("{0}:", progPath);
+					idConsole.WriteLine("GL_PROGRAM_ERROR_STRING_ARB: {0}", errorString);
+
+					if(programErrorPosition < 0)
+					{
+						idConsole.WriteLine("GL_PROGRAM_ERROR_POSITION_ARB < 0 with error");
+					}
+					else if(programErrorPosition >= progBufferLength)
+					{
+						idConsole.WriteLine("error at end of program");
+					}
+					else
+					{
+						idConsole.WriteLine("error at {0}:", progBufferLength);
+						idConsole.WriteLine(Encoding.UTF8.GetString(progBuffer).Substring(programErrorPosition));
+					}
+
+					return;
+				}
+
+				if(programErrorPosition != -1)
+				{
+					idConsole.WriteLine("{0}:", progPath);
+					idConsole.WriteLine("GL_PROGRAM_ERROR_POSITION_ARB != -1 without error");
+				}
+			}
 		}
 
 		private void PrepareStageTexturing(MaterialStage stage, DrawSurface surface, Vertex[] position)
@@ -2400,7 +2543,7 @@ namespace idTech4.Renderer
 
 			unsafe
 			{
-				// TODO: replace this, just a test instead of using unsafe code
+				// TODO: replace this with something permanent, just a test instead of using unsafe code
 				float[] v = new float[ambientCacheData.Length * 3];
 				float[] st = new float[ambientCacheData.Length * 2];
 
@@ -2493,8 +2636,7 @@ namespace idTech4.Renderer
 						parm[2] = registers[newStage.VertexParameters[i, 2]];
 						parm[3] = registers[newStage.VertexParameters[i, 3]];
 
-						idConsole.WriteLine("TODO: glProgramLocalParameter");
-						// Gl.glProgramLocalParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, i, parm);
+						GL.Arb.ProgramLocalParameter4(AssemblyProgramTargetArb.VertexProgram, i, parm);
 					}
 
 					for(int i = 0; i < newStage.FragmentProgramImages.Length; i++)
@@ -2507,8 +2649,8 @@ namespace idTech4.Renderer
 					}
 
 					idConsole.Write("TODO: glBindProgramARB");
-					/*Gl.glBindProgramARB(Gl.GL_FRAGMENT_PROGRAM_ARB, newStage.FragmentProgram);
-					Gl.glEnable(Gl.GL_FRAGMENT_PROGRAM_ARB);*/
+					GL.Arb.BindProgram(AssemblyProgramTargetArb.FragmentProgram, newStage.FragmentProgram);
+					GL.Enable((EnableCap) All.FragmentProgramArb);
 
 					// draw it
 					DrawElementsWithCounters(tri);
@@ -2529,16 +2671,15 @@ namespace idTech4.Renderer
 
 					GL_SelectTexture(0);
 
-					idConsole.Write("TODO: DISABLE");
-					/*Gl.glDisable(Gl.GL_VERTEX_PROGRAM_ARB);
-					Gl.glDisable(Gl.GL_FRAGMENT_PROGRAM_ARB);
+					GL.Disable((EnableCap) All.VertexProgramArb);
+					GL.Disable((EnableCap) All.FragmentProgramArb);
 					// FIXME: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
-					Gl.glBindProgramARB(Gl.GL_VERTEX_PROGRAM_ARB, 0);
+					GL.Arb.BindProgram(AssemblyProgramTargetArb.VertexProgram, 0);
 
-					Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
-					Gl.glDisableVertexAttribArrayARB(9);
-					Gl.glDisableVertexAttribArrayARB(10);
-					Gl.glDisableClientState(Gl.GL_NORMAL_ARRAY);*/
+					GL.DisableClientState(ArrayCap.ColorArray);
+					GL.Arb.DisableVertexAttribArray(9);
+					GL.Arb.DisableVertexAttribArray(10);
+					GL.DisableClientState(ArrayCap.NormalArray);
 
 					continue;
 				}
@@ -2569,7 +2710,7 @@ namespace idTech4.Renderer
 				{
 					continue;
 				}
-								
+
 				// select the vertex color source
 				if(stage.VertexColor == StageVertexColor.Ignore)
 				{
@@ -3531,6 +3672,20 @@ namespace idTech4.Renderer
 			}
 		}
 		#endregion
+
+		#region Command handlers
+		private void Cmd_ReloadArbPrograms(object sender, CommandEventArgs e)
+		{
+			idConsole.WriteLine("----- R_ReloadARBPrograms -----");
+
+			for(int i = 0; i < _programs.Length; i++)
+			{
+				LoadArbProgram(i);
+			}
+
+			idConsole.WriteLine("-------------------------------");
+		}
+		#endregion
 		#endregion
 	}
 
@@ -3569,9 +3724,9 @@ namespace idTech4.Renderer
 												// A card with high dynamic range will have this set to 1.0
 		float				overBright;			// The amount that all light interactions must be multiplied by
 												// with post processing to get the desired total light level.
-												// A high dynamic range card will have this set to 1.0.
+												// A high dynamic range card will have this set to 1.0.*/
 
-		bool				currentRenderCopied;	// true if any material has already referenced _currentRender*/
+		public bool CurrentRenderCopied;		// true if any material has already referenced CurrentRender
 
 		// our OpenGL state deltas.
 		public GLState GLState = new GLState();
@@ -4021,6 +4176,49 @@ namespace idTech4.Renderer
 		CopyRender,
 		SwapBuffers		// can't just assume swap at end of list because
 		// of forced list submission before syncs
+	}
+
+	public enum GLProgramType
+	{
+		None = -1,
+		Invalid = 0,
+
+		VertexProgramInteraction,
+		VertexProgramEnvironment,
+		VertexProgramBumpyEnvironment,
+		VertexProgramR200Interaction,
+		VertexProgramStencilShadow,
+		VertexProgramNV20BumpAndLight,
+		VertexProgramNV20DiffuseColor,
+		VertexProgramNV20SpecularColor,
+		VertexProgramNV20DiffuseAndSpecularColor,
+		VertexProgramTest,
+
+		FragmentProgramInteraction,
+		FragmentProgramEnvironment,
+		FragmentProgramBumpyEnvironment,
+		FragmentProgramTest,
+
+		VertexProgramAmbient,
+		FragmentProgramAmbient,
+		VertexProgramGlassWarp,
+		FragmentProgramGlassWarp,
+
+		User
+	}
+
+	public struct GLProgram
+	{
+		public int Target;
+		public int Type;
+		public string Name;
+
+		public GLProgram(int target, GLProgramType type, string name)
+		{
+			Target = target;
+			Type = (int) type;
+			Name = name;
+		}
 	}
 
 	internal abstract class RenderCommand

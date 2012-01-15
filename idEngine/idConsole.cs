@@ -87,6 +87,16 @@ namespace idTech4
 			idE.System.Error(format, args);
 		}
 
+		public static void Error(int localizationKey)
+		{
+			Error(idE.Language.Get(string.Format("#str_{0:00000}")));
+		}
+
+		public static void Error(int localizationKey, params object[] args)
+		{
+			Error(idE.Language.Get(string.Format("#str_{0:00000}")), args);
+		}
+
 		/// <summary>
 		/// Dump out of the game to a system dialog.
 		/// </summary>
