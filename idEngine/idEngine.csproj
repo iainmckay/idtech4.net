@@ -46,7 +46,7 @@
     <UseVSHostingProcess>false</UseVSHostingProcess>
     <PlatformTarget>x86</PlatformTarget>
     <XnaCompressContent>false</XnaCompressContent>
-    <AllowUnsafeBlocks>true</AllowUnsafeBlocks>
+    <AllowUnsafeBlocks>false</AllowUnsafeBlocks>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|x86' ">
     <DebugType>pdbonly</DebugType>
@@ -71,6 +71,7 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="OpenTK, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL" />
+    <Reference Include="OpenTK.Compatibility, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL" />
     <Reference Include="OpenTK.GLControl, Version=1.1.0.0, Culture=neutral, PublicKeyToken=bad199fe84eb3df4, processorArchitecture=MSIL" />
     <Reference Include="System">
       <Private>False</Private>
@@ -102,6 +103,7 @@
     <Compile Include="idCvar.cs" />
     <Compile Include="idCvarSystem.cs" />
     <Compile Include="idDict.cs" />
+    <Compile Include="idEventLoop.cs" />
     <Compile Include="idGameConsole.cs" />
     <Compile Include="idLangDict.cs" />
     <Compile Include="idMath.cs" />
@@ -192,9 +194,6 @@
     </BootstrapperPackage>
   </ItemGroup>
   <ItemGroup>
-    <EmbeddedResource Include="Renderer\RenderForm.resx">
-      <DependentUpon>RenderForm.cs</DependentUpon>
-    </EmbeddedResource>
     <EmbeddedResource Include="SystemConsole.resx">
       <DependentUpon>SystemConsole.cs</DependentUpon>
     </EmbeddedResource>

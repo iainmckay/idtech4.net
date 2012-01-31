@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -259,13 +260,11 @@ namespace idTech4.Text
 
 		public DeclType GetDeclTypeFromName(string name)
 		{
-			try
-			{
-				return (DeclType) Enum.Parse(typeof(DeclType), name, true);
-			}
-			catch
-			{
+			DeclType tmp;
 
+			if(Enum.TryParse<DeclType>(name, true, out tmp) == true)
+			{
+				return tmp;
 			}
 
 			return DeclType.Unknown;

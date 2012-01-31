@@ -104,10 +104,12 @@ namespace idTech4
 		public static readonly idRenderSystem RenderSystem = new idRenderSystem();
 		public static readonly idImageManager ImageManager = new idImageManager();
 		public static readonly idUserInterfaceManager UIManager = new idUserInterfaceManager();
+		public static readonly idEventLoop EventLoop = new idEventLoop();
 		#endregion
 
 		#region Internal
 		internal const string ConfigSpecification = "config.spec";
+		internal const string ConfigFile = "DoomConfig.cfg";
 
 		internal static idGameConsole Console = new idGameConsole();
 		internal static SystemConsole SystemConsole = new SystemConsole();

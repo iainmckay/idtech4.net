@@ -45,6 +45,10 @@ namespace idTech4.Net
 		}
 		#endregion
 
+		#region Members
+		private int _realTime;
+		#endregion
+
 		#region Constructor
 		public idAsyncNetwork()
 		{
@@ -81,6 +85,38 @@ namespace idTech4.Net
 			new idCvar("si_idleServer", "0", "game clients are idle", CvarFlags.System | CvarFlags.Bool | CvarFlags.Init | CvarFlags.ServerInfo);
 			new idCvar("net_clientDownload", "1", "client pk4 downloads policy: 0 - never, 1 - ask, 2 - always (will still prompt for binary code)", CvarFlags.System | CvarFlags.Integer | CvarFlags.Archive);
 		}
+		#endregion
+
+		#region Methods
+		#region Public
+		public void Init()
+		{
+			_realTime = 0;
+
+			// TODO: masters + cmds
+			/*memset( masters, 0, sizeof( masters ) );
+			masters[0].var = &master0;
+			masters[1].var = &master1;
+			masters[2].var = &master2;
+			masters[3].var = &master3;
+			masters[4].var = &master4;
+
+		#ifndef	ID_DEMO_BUILD
+			cmdSystem->AddCommand( "spawnServer", SpawnServer_f, CMD_FL_SYSTEM, "spawns a server", idCmdSystem::ArgCompletion_MapName );
+			cmdSystem->AddCommand( "nextMap", NextMap_f, CMD_FL_SYSTEM, "loads the next map on the server" );
+			cmdSystem->AddCommand( "connect", Connect_f, CMD_FL_SYSTEM, "connects to a server" );
+			cmdSystem->AddCommand( "reconnect", Reconnect_f, CMD_FL_SYSTEM, "reconnect to the last server we tried to connect to" );
+			cmdSystem->AddCommand( "serverInfo", GetServerInfo_f, CMD_FL_SYSTEM, "shows server info" );
+			cmdSystem->AddCommand( "LANScan", GetLANServers_f, CMD_FL_SYSTEM, "scans LAN for servers" );
+			cmdSystem->AddCommand( "listServers", ListServers_f, CMD_FL_SYSTEM, "lists scanned servers" );
+			cmdSystem->AddCommand( "rcon", RemoteConsole_f, CMD_FL_SYSTEM, "sends remote console command to server" );
+			cmdSystem->AddCommand( "heartbeat", Heartbeat_f, CMD_FL_SYSTEM, "send a heartbeat to the the master servers" );
+			cmdSystem->AddCommand( "kick", Kick_f, CMD_FL_SYSTEM, "kick a client by connection number" );
+			cmdSystem->AddCommand( "checkNewVersion", CheckNewVersion_f, CMD_FL_SYSTEM, "check if a new version of the game is available" );
+			cmdSystem->AddCommand( "updateUI", UpdateUI_f, CMD_FL_SYSTEM, "internal - cause a sync down of game-modified userinfo" );
+		#endif*/
+		}
+		#endregion
 		#endregion
 	}
 }

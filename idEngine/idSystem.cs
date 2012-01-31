@@ -594,7 +594,7 @@ namespace idTech4
 			// initialize the declaration manager
 			idE.DeclManager.Init();
 
-			bool sysDetect = idE.FileSystem.FileExists(idE.ConfigSpecification, "fs_savepath");
+			bool sysDetect = idE.FileSystem.FileExists(idE.ConfigSpecification, "fs_savepath") == false;
 
 			if(sysDetect == true)
 			{
@@ -619,25 +619,24 @@ namespace idTech4
 			// initialize string database right off so we can use it for loading messages
 			InitLanguageDict();
 
-			//PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04344" ) );*/
+			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04344\" ) );");
 
 			// load the font, etc
 			idE.Console.LoadGraphics();
 
 			// init journalling, etc
-			/* TODO: eventLoop->Init();
+			idE.EventLoop.Init();
 
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04345" ) );*/
+			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04345\" ) );");
 
 			// exec the startup scripts
 			idE.CmdSystem.BufferCommandText(Execute.Append, "exec editor.cfg");
 			idE.CmdSystem.BufferCommandText(Execute.Append, "exec default.cfg");
 
 			// skip the config file if "safe" is on the command line
-			// TODO
-			/*if ( !SafeMode() ) {
-				cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "exec " CONFIG_FILE "\n" );
-			}*/
+			/* TODO: if ( !SafeMode() ) {*/
+			idE.CmdSystem.BufferCommandText(Execute.Append, string.Format("exec {0}", idE.ConfigFile));
+			/*}*/
 
 			idE.CmdSystem.BufferCommandText(Execute.Append, "exec autoexec.cfg");
 
@@ -654,39 +653,46 @@ namespace idTech4
 			idE.CvarSystem.ModifiedFlags = CvarFlags.Archive;
 
 			// init the user command input code
-			/* TODO: usercmdGen->Init();
+			idConsole.WriteLine("TODO: usercmdGen->Init();");
 
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04346" ) );
+			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04346\" ) );");
 
 			// start the sound system, but don't do any hardware operations yet
-			// TODO soundSystem->Init();
+			idConsole.WriteLine("TODO: soundSystem->Init();");
 
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04347" ) );
-
+			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04347\" ) );");
+			
 			// init async network
-			idAsyncNetwork::Init();
+			idE.AsyncNetwork.Init();
 
-		#ifdef	ID_DEDICATED
-			idAsyncNetwork::server.InitPort();
-			cvarSystem->SetCVarBool( "s_noSound", true );
-		#else
-			if ( idAsyncNetwork::serverDedicated.GetInteger() == 1 ) {
-				idAsyncNetwork::server.InitPort();
-				cvarSystem->SetCVarBool( "s_noSound", true );
-			} else {*/
-			// init OpenGL, which will open a window and connect sound and input hardware
-			// TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04348" ) );
-			InitRenderSystem();
-			/*	}
-			#endif
 
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04349" ) );*/
+#if ID_DEDICATED
+			throw new NotImplementedException("don't do dedicated");
+			/*idAsyncNetwork::server.InitPort();*/
+			idE.CvarSystem.SetBool("s_noSound", true);
+#else
+			if(idE.CvarSystem.GetInteger("net_serverDedicated") == 1)
+			{
+				throw new NotImplementedException("don't do dedicated");
+
+				/*idAsyncNetwork::server.InitPort();*/
+				idE.CvarSystem.SetBool("s_noSound", true);
+			}
+			else
+			{
+				// init OpenGL, which will open a window and connect sound and input hardware
+				// TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04348" ) );
+				InitRenderSystem();
+			}
+#endif
+
+			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04349\" ) );");
 
 			// initialize the user interfaces
 			idE.UIManager.Init();
 
 			// startup the script debugger
-			// DebuggerServerInit();
+			idConsole.WriteLine("TODO: DebuggerServerInit();");
 
 			/*PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04350" ) );
 
@@ -736,7 +742,7 @@ namespace idTech4
 			{
 				// reset cvar to default and try to load again
 				idE.CmdSystem.BufferCommandText(Execute.Now, "reset sys_lang");
-				
+
 				langName = idE.CvarSystem.GetString("sys_lang");
 				currentLanguageList = langFiles.Where(c => c.StartsWith(langName)).ToArray();
 			}
@@ -747,7 +753,6 @@ namespace idTech4
 			}
 
 			idConsole.WriteLine("TODO: Sys_InitScanTable");
-			// TODO: Sys_InitScanTable();
 		}
 
 		private void InitRenderSystem()
@@ -1214,15 +1219,15 @@ namespace idTech4
 				cvarSystem->SetCVarBool( "g_projectileLights", false, CVAR_ARCHIVE );
 				cvarSystem->SetCVarBool( "g_doubleVision", false, CVAR_ARCHIVE );
 				cvarSystem->SetCVarBool( "g_muzzleFlash", false, CVAR_ARCHIVE );
-			} else {
-				cvarSystem->SetCVarBool( "g_decals", true, CVAR_ARCHIVE );
-				cvarSystem->SetCVarBool( "g_projectileLights", true, CVAR_ARCHIVE );
-				cvarSystem->SetCVarBool( "g_doubleVision", true, CVAR_ARCHIVE );
-				cvarSystem->SetCVarBool( "g_muzzleFlash", true, CVAR_ARCHIVE );
-			}
-			if ( nv10or20 ) {
-				idE.CvarSystem.SetInteger( "image_useNormalCompression", 1, CVAR_ARCHIVE );
-			}*/
+			} else {*/
+			idE.CvarSystem.SetBool("g_decals", true, CvarFlags.Archive);
+			idE.CvarSystem.SetBool("g_projectileLights", true, CvarFlags.Archive);
+			idE.CvarSystem.SetBool("g_doubleVision", true, CvarFlags.Archive);
+			idE.CvarSystem.SetBool("g_muzzleFlash", true, CvarFlags.Archive);
+			/*}
+			if ( nv10or20 ) {*/
+			idE.CvarSystem.SetInteger("image_useNormalCompression", 1, CvarFlags.Archive);
+			/*}*/
 
 #if MACOS_X
 			// TODO MACOS

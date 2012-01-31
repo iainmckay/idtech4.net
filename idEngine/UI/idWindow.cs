@@ -1881,7 +1881,7 @@ namespace idTech4.UI
 				if((fixup == true) && (name != "$"))
 				{
 					idConsole.WriteLine("TODO: idWindow.DisableRegister");
-					// TODO: DisableRegister(name);
+					// DisableRegister(name);
 				}
 
 				if(_parent != null)

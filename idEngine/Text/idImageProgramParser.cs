@@ -74,6 +74,17 @@ namespace idTech4.Text
 			}
 		}
 
+		private void MatchAndAppendToken(idLexer lexer, string match)
+		{
+			if(_lexer.ExpectTokenString(match) == false)
+			{
+				return;
+			}
+
+			// a matched token won't need a leading space
+			_builder.Append(match);
+		}
+
 		private byte[] ParseImageProgram(ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth, bool parseOnly)
 		{
 			idToken token = _lexer.ReadToken();			
@@ -267,28 +278,23 @@ namespace idTech4.Text
 			}
 			else if(tokenLower == "makeintensity")
 			{
-				idConsole.WriteLine("image program makeintensity");
-				/*int		i;
+				MatchAndAppendToken(_lexer, "(");
+				byte[] data = ParseImageProgram(ref width, ref height, ref timeStamp, ref depth, parseOnly);
 
-				MatchAndAppendToken( src, "(" );
+				if(parseOnly == false)
+				{
+					// copy red to green, blue, and alpha			
+					int c = width * height * 4;
 
-				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
-
-				// copy red to green, blue, and alpha
-				if ( pic ) {
-					int		c;
-					c = *width * *height * 4;
-					for ( i = 0 ; i < c ; i+=4 ) {
-						(*pic)[i+1] = 
-						(*pic)[i+2] = 
-						(*pic)[i+3] = (*pic)[i];
+					for(int i = 0; i < c; i += 4)
+					{
+						data[i + 1] = data[i + 2] = data[i + 3] = data[i];
 					}
 				}
 
-				MatchAndAppendToken( src, ")" );
-				return true;*/
+				MatchAndAppendToken(_lexer, ")");
 
-				return null;
+				return data;
 			}
 			else if(tokenLower == "makealpha")
 			{

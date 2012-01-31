@@ -71,8 +71,9 @@ namespace idTech4.UI
 				{
 					if((_guiDict != null) && (_name == "*"))
 					{
-						// TODO: check _name[1].  is this the correct porting behaviour?
-						return _guiDict.GetString(_name[1].ToString());
+						throw new Exception("What to do here?");
+						//return _guiDict.GetString(_name[1].ToString());
+						// return guiDict->GetString(&name[1]);
 					}
 
 					return _name;

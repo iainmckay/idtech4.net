@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 
@@ -67,9 +68,61 @@ namespace idTech4.Renderer
 		#region Constants
 		private const int TopPriority = 4;
 		private const int PredefinedRegisterCount = 21;
+		private readonly MaterialInfoParameter[] InfoParameters = new MaterialInfoParameter[] {
+			// game relevant attributes
+			new MaterialInfoParameter("solid",			false, SurfaceFlags.None, ContentFlags.Solid),		// may need to override a clearSolid
+			new MaterialInfoParameter("water",			true,	SurfaceFlags.None, ContentFlags.Water),		// used for water
+			new MaterialInfoParameter("playerclip",		false,	SurfaceFlags.None, ContentFlags.PlayerClip ),	// solid to players
+			new MaterialInfoParameter("monsterclip",	false,	SurfaceFlags.None, ContentFlags.MonsterClip),	// solid to monsters
+			new MaterialInfoParameter("moveableclip",	false,	SurfaceFlags.None, ContentFlags.MoveableClip),// solid to moveable entities
+			new MaterialInfoParameter("ikclip",			false,	SurfaceFlags.None,	ContentFlags.IkClip),		// solid to IK
+			new MaterialInfoParameter("blood",			false,	SurfaceFlags.None,	ContentFlags.Blood),		// used to detect blood decals
+			new MaterialInfoParameter("trigger",		false,	SurfaceFlags.None, ContentFlags.Trigger),		// used for triggers
+			new MaterialInfoParameter("aassolid",		false,	SurfaceFlags.None,	ContentFlags.AasSolid),	// solid for AAS
+			new MaterialInfoParameter("aasobstacle",	false,	SurfaceFlags.None, ContentFlags.AasObstacle),// used to compile an obstacle into AAS that can be enabled/disabled
+			new MaterialInfoParameter("flashlight_trigger",	false,	SurfaceFlags.None,	ContentFlags.FlashlightTrigger), // used for triggers that are activated by the flashlight
+			new MaterialInfoParameter("nonsolid",		true,	SurfaceFlags.None,	ContentFlags.None ),					// clears the solid flag
+			new MaterialInfoParameter("nullNormal",		false,	SurfaceFlags.NullNormal, ContentFlags.None ),		// renderbump will draw as 0x80 0x80 0x80
+
+			// utility relevant attributes
+			new MaterialInfoParameter("areaportal",		true,	SurfaceFlags.None,	ContentFlags.AreaPortal),	// divides areas
+			new MaterialInfoParameter("qer_nocarve",	true,	SurfaceFlags.None, ContentFlags.NoCsg),		// don't cut brushes in editor
+
+			new MaterialInfoParameter("discrete",		true,	SurfaceFlags.Discrete,	ContentFlags.None ),		// surfaces should not be automatically merged together or
+																													// clipped to the world,
+																													// because they represent discrete objects like gui shaders
+																													// mirrors, or autosprites
+			new MaterialInfoParameter("noFragment",		false,	SurfaceFlags.NoFragment,	ContentFlags.None ),
+
+			new MaterialInfoParameter("slick",			false,	SurfaceFlags.Slick,		ContentFlags.None ),
+			new MaterialInfoParameter("collision",		false,	SurfaceFlags.Collision,	ContentFlags.None ),
+			new MaterialInfoParameter("noimpact",		false,	SurfaceFlags.NoImpact,	ContentFlags.None ),		// don't make impact explosions or marks
+			new MaterialInfoParameter("nodamage",		false,	SurfaceFlags.NoDamage,	ContentFlags.None ),		// no falling damage when hitting
+			new MaterialInfoParameter("ladder",			false,	SurfaceFlags.Ladder,	ContentFlags.None ),		// climbable
+			new MaterialInfoParameter("nosteps",		false,	SurfaceFlags.NoSteps,	ContentFlags.None ),		// no footsteps
+
+			// material types for particle, sound, footstep feedback
+			new MaterialInfoParameter("metal",			false,  SurfaceFlags.Metal,		ContentFlags.None ),	// metal
+			new MaterialInfoParameter("stone",			false,  SurfaceFlags.Stone,		ContentFlags.None ),	// stone
+			new MaterialInfoParameter("flesh",			false,  SurfaceFlags.Flesh,		ContentFlags.None ),	// flesh
+			new MaterialInfoParameter("wood",			false,  SurfaceFlags.Wood,		ContentFlags.None ),	// wood
+			new MaterialInfoParameter("cardboard",		false,	SurfaceFlags.Cardboard,	ContentFlags.None ),	// cardboard
+			new MaterialInfoParameter("liquid",			false,	SurfaceFlags.Liquid,	ContentFlags.None ),	// liquid
+			new MaterialInfoParameter("glass",			false,	SurfaceFlags.Glass,		ContentFlags.None ),	// glass
+			new MaterialInfoParameter("plastic",		false,	SurfaceFlags.Plastic,	ContentFlags.None ),	// plastic
+			new MaterialInfoParameter("ricochet",		false,	SurfaceFlags.Ricochet,	ContentFlags.None ),	// behaves like metal but causes a ricochet sound
+
+			// unassigned surface types
+			new MaterialInfoParameter("surftype10",		false,	SurfaceFlags.T10,	ContentFlags.None ),
+			new MaterialInfoParameter("surftype11",		false,	SurfaceFlags.T11,	ContentFlags.None ),
+			new MaterialInfoParameter("surftype12",		false,	SurfaceFlags.T12,	ContentFlags.None ),
+			new MaterialInfoParameter("surftype13",		false,	SurfaceFlags.T13,	ContentFlags.None ),
+			new MaterialInfoParameter("surftype14",		false,	SurfaceFlags.T14,	ContentFlags.None ),
+			new MaterialInfoParameter("surftype15",		false,	SurfaceFlags.T15,	ContentFlags.None )
+		};
 		#endregion
 
-		#region Properties	
+		#region Properties
 		public float[] ConstantRegisters
 		{
 			get
@@ -218,12 +271,12 @@ namespace idTech4.Renderer
 			{
 				return _surfaceFlags;
 			}
-		} 
+		}
 		#endregion
 
-		#region members
-		private string _description;			// description.
-		private string _renderBump;				// renderbump command options, without the "renderbump" at the start.
+		#region Members
+		private string _description;			// description
+		private string _renderBump;				// renderbump command options, without the "renderbump" at the start
 
 		private ContentFlags _contentFlags;
 		private SurfaceFlags _surfaceFlags;
@@ -231,17 +284,19 @@ namespace idTech4.Renderer
 		private CullType _cullType;
 
 		private DeformType _deformType;
-		private idDecl _deformDecl;				// for surface emitted particle deforms and tables.
-		private int[] _deformRegisters;			// numeric parameter for deforms.
+		private idDecl _deformDecl;				// for surface emitted particle deforms and tables
+		private int[] _deformRegisters;			// numeric parameter for deforms
 
 		private DecalInfo _decalInfo;
 		private int[] _texGenRegisters;
 
 		private MaterialCoverage _coverage;
-		private float _sort;					// lower numbered shaders draw before higher numbered.
+		private float _sort;					// lower numbered shaders draw before higher numbered
 		private bool _shouldCreateBackSides;
 
-		// we defer loading of the editor image until it is asked for, so the game doesn't load up all the invisible and uncompressed images.
+		private idImage _lightFalloffImage;
+
+		// we defer loading of the editor image until it is asked for, so the game doesn't load up all the invisible and uncompressed images
 		// If editorImage is NULL, it will atempt to load editorImageName, and set editorImage to that or defaultImage
 		private string _editorImageName;
 
@@ -253,19 +308,19 @@ namespace idTech4.Renderer
 		private bool _unsmoothedTangents;
 		private bool _hasSubview;
 		private bool _allowOverlays;
-		private bool _noFog;					// surface does not create fog interactions.
+		private bool _noFog;					// surface does not create fog interactions
 
 		private int _stageCount;
 		private int _registerCount;
 		private int _ambientStageCount;
 
 		private float _polygonOffset;
-		private int _spectrum;					// for invisible writing, used for both lights and surfaces.
+		private int _spectrum;					// for invisible writing, used for both lights and surfaces
 
 		private MaterialStage[] _stages;
-		private ExpressionOperation[] _ops;		// evaluate to make _expressionRegisters.
+		private ExpressionOperation[] _ops;		// evaluate to make _expressionRegisters
 		private float[] _expressionRegisters;
-		private float[] _constantRegisters;		// null if _ops ever reference globalParms or entityParms.
+		private float[] _constantRegisters;		// null if _ops ever reference globalParms or entityParms
 
 		private MaterialParsingData _parsingData;
 		#endregion
@@ -273,7 +328,7 @@ namespace idTech4.Renderer
 		#region Constructor
 		public idMaterial()
 		{
-			Init();
+			Clear();
 		}
 		#endregion
 
@@ -405,7 +460,7 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Private
-		private void Init()
+		private void Clear()
 		{
 			_description = "<none>";
 			_renderBump = string.Empty;
@@ -430,9 +485,9 @@ namespace idTech4.Renderer
 			_ambientStageCount = 0;
 			_registerCount = 0;
 
-			/*
-			lightFalloffImage = NULL;
-			entityGui = 0;*/
+
+			_lightFalloffImage = null;
+			/*entityGui = 0;*/
 			_shouldCreateBackSides = false;
 			_editorImageName = null;
 
@@ -449,7 +504,7 @@ namespace idTech4.Renderer
 			editorAlpha = 1.0;*/
 			_spectrum = 0;
 			/* refCount = 0;*/
-						
+
 			_polygonOffset = 0;
 			_suppressInSubview = false;
 			_portalSky = false;
@@ -638,14 +693,7 @@ namespace idTech4.Renderer
 				// light volumes.
 				else if(tokenLower == "lightfalloffimage")
 				{
-					idConsole.Warning("TODO: idMaterial keyword lightFallOffImage");
-					/* TODO: lightFallOffImage
-					str = R_ParsePastImageProgram( src );
-					idStr	copy;
-
-					copy = str;	// so other things don't step on it
-					lightFalloffImage = globalImages->ImageFromFile( copy, TF_DEFAULT, false, TR_CLAMP /* TR_CLAMP_TO_ZERO */
-					/*, TD_DEFAULT );*/
+					_lightFalloffImage = idE.ImageManager.ImageFromFile(ParsePastImageProgram(lexer), TextureFilter.Default, false, TextureRepeat.Clamp, TextureDepth.Default);
 				}
 				// guisurf <guifile> | guisurf entity
 				// an entity guisurf must have an idUserInterface
@@ -655,7 +703,6 @@ namespace idTech4.Renderer
 					idConsole.Warning("TODO: idMaterial keyword guiSurf");
 					token = lexer.ReadTokenOnLine();
 
-					// TODO: guiSurf
 					/*if ( !token.Icmp( "entity" ) ) {
 						entityGui = 1;
 					} else if ( !token.Icmp( "entity2" ) ) {
@@ -694,7 +741,6 @@ namespace idTech4.Renderer
 				// diffusemap for stage shortcut.
 				else if(tokenLower == "diffusemap")
 				{
-					// TODO: diffuseMap
 					idConsole.Warning("TODO: idMaterial keyword diffuseMap");
 					/*str = R_ParsePastImageProgram( src );
 					idStr::snPrintf( buffer, sizeof( buffer ), "blend diffusemap\nmap %s\n}\n", str );
@@ -706,7 +752,6 @@ namespace idTech4.Renderer
 				// specularmap for stage shortcut.
 				else if(tokenLower == "specularmap")
 				{
-					// TODO: specularMap
 					idConsole.Warning("TODO: idMaterial keyword specularMap");
 					/*str = R_ParsePastImageProgram( src );
 					idStr::snPrintf( buffer, sizeof( buffer ), "blend specularmap\nmap %s\n}\n", str );
@@ -718,7 +763,6 @@ namespace idTech4.Renderer
 				// normalmap for stage shortcut.
 				else if(tokenLower == "bumpmap")
 				{
-					// TODO: bumpMap
 					idConsole.Warning("TODO: idMaterial keyword bumpMap");
 					/*str = R_ParsePastImageProgram( src );
 					idStr::snPrintf( buffer, sizeof( buffer ), "blend bumpmap\nmap %s\n}\n", str );
@@ -940,8 +984,9 @@ namespace idTech4.Renderer
 			{
 				_sort = (float) Enum.Parse(typeof(MaterialSort), token.ToString(), true);
 			}
-			catch
+			catch(Exception x)
 			{
+				Debug.Write(x.ToString());
 				float.TryParse(token.ToString(), out _sort);
 			}
 		}
@@ -1224,29 +1269,35 @@ namespace idTech4.Renderer
 		}
 
 		/// <summary>
-		/// See if the current token matches one of the surface parm bit flags.
+		/// See if the current token matches one of the surface parameter bit flags.
 		/// </summary>
 		/// <param name="token"></param>
 		/// <returns></returns>
 		private bool CheckSurfaceParameter(idToken token)
 		{
-			idConsole.WriteLine("TODO: check surface parameter");
-			
-			// TODO: infoParms
-			/*for ( int i = 0 ; i < numInfoParms ; i++ ) {
-				if ( !token->Icmp( infoParms[i].name ) ) {
-					if ( infoParms[i].surfaceFlags & SURF_TYPE_MASK ) {
+			string tokenLower = token.ToString().ToLower();
+
+			foreach(MaterialInfoParameter infoParameter in InfoParameters)
+			{
+				if(tokenLower == infoParameter.Name)
+				{
+					if(infoParameter.SurfaceFlags.HasFlag(SurfaceFlags.TypeMask) == true)
+					{
 						// ensure we only have one surface type set
-						surfaceFlags &= ~SURF_TYPE_MASK;
+						_surfaceFlags &= ~SurfaceFlags.TypeMask;
 					}
-					surfaceFlags |= infoParms[i].surfaceFlags;
-					contentFlags |= infoParms[i].contents;
-					if ( infoParms[i].clearSolid ) {
-						contentFlags &= ~CONTENTS_SOLID;
+
+					_surfaceFlags |= infoParameter.SurfaceFlags;
+					_contentFlags |= infoParameter.ContentFlags;
+
+					if(infoParameter.ClearSolid == true)
+					{
+						_contentFlags &= ~ContentFlags.Solid;
 					}
+
 					return true;
 				}
-			}*/
+			}
 
 			return false;
 		}
@@ -1278,9 +1329,9 @@ namespace idTech4.Renderer
 
 				return (int) reg;
 			}
-			catch
+			catch(Exception x)
 			{
-
+				Debug.Write(x.ToString());
 			}
 
 			if(tokenLower == "fragmentPrograms")
@@ -1849,7 +1900,7 @@ namespace idTech4.Renderer
 			{
 				materialStage.NewStage = newStage;
 			}
-			
+
 			// select a compressed depth based on what the stage is
 			if(textureDepth == TextureDepth.Default)
 			{
@@ -1873,18 +1924,18 @@ namespace idTech4.Renderer
 			if((imageName != null) && (imageName != string.Empty))
 			{
 				materialStage.Texture.Image = idE.ImageManager.ImageFromFile(imageName, textureFilter, allowPicmip, textureRepeat, textureDepth, cubeMap);
-		
+
 				if(materialStage.Texture.Image != null)
 				{
 					materialStage.Texture.Image = idE.ImageManager.DefaultImage;
 				}
-			} 
+			}
 			else if(/*TODO: !ts->cinematic &&*/ (materialStage.Texture.Dynamic == 0) && (materialStage.NewStage.IsEmpty == true))
 			{
 				idConsole.Warning("material '{0}' had stage with no image", this.Name);
 				materialStage.Texture.Image = idE.ImageManager.DefaultImage;
 			}
-			
+
 			// successfully parsed a stage.
 			_parsingData.Stages.Add(materialStage);
 		}
@@ -2117,7 +2168,7 @@ namespace idTech4.Renderer
 		}
 
 		private string ParsePastImageProgram(idLexer lexer)
-		{	
+		{
 			idImageProgramParser parser = new idImageProgramParser();
 			parser.ParseImageProgram(lexer);
 
@@ -2387,7 +2438,7 @@ namespace idTech4.Renderer
 			lexer.SkipUntilString("{");
 
 			// reset to the unparsed state.
-			Init();
+			Clear();
 
 			_parsingData = new MaterialParsingData(); // this is only valid during parsing.
 
@@ -2633,7 +2684,7 @@ namespace idTech4.Renderer
 		protected override bool GenerateDefaultText()
 		{
 			// if there exists an image with the same name
-			if(idE.FileSystem.FileExists(this.Name) == true)
+			if(true)
 			{
 				this.SourceText = "material " + this.Name + " // IMPLICITLY GENERATED\n"
 					+ "{\n{\nblend blend\n"
@@ -2716,7 +2767,9 @@ namespace idTech4.Renderer
 		/// <summary>Don't cut this brush with CSG operations in the editor.</summary>
 		NoCsg = 1 << 21,
 
-		RemoveUtil = ~(AreaPortal | NoCsg)
+		RemoveUtil = ~(AreaPortal | NoCsg),
+
+		None = 0
 	}
 
 	internal sealed class MaterialParsingData
@@ -2724,7 +2777,7 @@ namespace idTech4.Renderer
 		public bool[] RegisterIsTemporary = new bool[idE.MaxExpressionRegisters];
 		public float[] ShaderRegisters = new float[idE.MaxExpressionRegisters];
 
-		public List<ExpressionOperation>Operations = new List<ExpressionOperation>();
+		public List<ExpressionOperation> Operations = new List<ExpressionOperation>();
 		public List<MaterialStage> Stages = new List<MaterialStage>();
 
 		public bool RegistersAreConstant;
@@ -2847,7 +2900,7 @@ namespace idTech4.Renderer
 	[Flags]
 	public enum MaterialStates
 	{
-		Invalid = - 1,
+		Invalid = -1,
 
 		DepthMask = 0x00000100,
 		RedMask = 0x00000200,
@@ -2893,11 +2946,11 @@ namespace idTech4.Renderer
 	public enum SurfaceFlags
 	{
 		/// <summary>Encodes the material type (metal, flesh, concrete, etc.).</summary>
-		Bit0 = 1 << 0,
-		Bit1 = 1 << 1,
-		Bit2 = 1 << 2,
-		Bit3 = 1 << 3,
-		Mask = (1 << 4) - 1,
+		TypeBit0 = 1 << 0,
+		TypeBit1 = 1 << 1,
+		TypeBit2 = 1 << 2,
+		TypeBit3 = 1 << 3,
+		TypeMask = (1 << 4) - 1,
 
 		/// <summary>Nver give falling damage.</summary>
 		NoDamage = 1 << 4,
@@ -2918,7 +2971,24 @@ namespace idTech4.Renderer
 		/// <summary>Renderbump will draw this surface as 0x80 0x80 0x80, which won't collect light from any angle</summary>
 		NullNormal = 1 << 12,
 
-		None
+		None = 0,
+
+		// surface types
+		Metal,
+		Stone,
+		Flesh,
+		Wood,
+		Cardboard,
+		Liquid,
+		Glass,
+		Plastic,
+		Ricochet,
+		T10,
+		T11,
+		T12,
+		T13,
+		T14,
+		T15
 	}
 
 	internal enum ExpressionOperationType
@@ -3020,5 +3090,21 @@ namespace idTech4.Renderer
 		Particle,
 		Particle2,
 		Turbulent
+	}
+
+	public struct MaterialInfoParameter
+	{
+		public string Name;
+		public bool ClearSolid;
+		public SurfaceFlags SurfaceFlags;
+		public ContentFlags ContentFlags;
+
+		public MaterialInfoParameter(string name, bool clearSolid, SurfaceFlags surfaceFlags, ContentFlags contentFlags)
+		{
+			Name = name;
+			ClearSolid = clearSolid;
+			SurfaceFlags = surfaceFlags;
+			ContentFlags = contentFlags;
+		}
 	}
 }

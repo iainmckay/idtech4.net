@@ -32,7 +32,7 @@ using System.Linq;
 using System.Text;
 
 using Microsoft.Xna.Framework;
-using OpenTK.Graphics.OpenGL;
+using Tao.OpenGl;
 
 using idTech4.IO;
 using idTech4.Renderer;
@@ -256,7 +256,7 @@ namespace idTech4.Renderer
 
 				// should image be partial cached
 				string fileName = idE.ImageManager.ImageProgramStringToCompressedFileName(this.Name);
-				
+
 				using(Stream s = idE.FileSystem.OpenFileRead(fileName))
 				{
 					if(s == null)
@@ -288,7 +288,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public TextureDepth UploadDepth
+		public int UploadDepth
 		{
 			get
 			{
@@ -346,9 +346,9 @@ namespace idTech4.Renderer
 
 		private int _uploadWidth;
 		private int _uploadHeight;
-		private TextureDepth _uploadDepth;		// after power of two, downsample, and MAX_TEXTURE_SIZE
+		private int _uploadDepth;		// after power of two, downsample, and MAX_TEXTURE_SIZE
 
-		private PixelInternalFormat _internalFormat;
+		private int _internalFormat;
 
 		private int _classification;
 
@@ -390,11 +390,11 @@ namespace idTech4.Renderer
 				_generator(this);
 				return;
 			}
-						
+
 			// if we are a partial image, we are only going to load from a compressed file
-			if(_isPartialImage == true) 
+			if(_isPartialImage == true)
 			{
-				if(CheckPrecompressedImage(false) == true) 
+				if(CheckPrecompressedImage(false) == true)
 				{
 					return;
 				}
@@ -405,7 +405,7 @@ namespace idTech4.Renderer
 			//
 			// load the image from disk
 			//
-			else if (_cubeFiles != Renderer.CubeFiles.TwoD) 
+			else if(_cubeFiles != Renderer.CubeFiles.TwoD)
 			{
 				idConsole.WriteLine("TODO: cube files");
 				/*byte	*pics[6];
@@ -427,14 +427,14 @@ namespace idTech4.Renderer
 						R_StaticFree( pics[i] );
 					}
 				}*/
-			} 
-			else 
+			}
+			else
 			{
 				// see if we have a pre-generated image file that is
 				// already image processed and compressed
-				if((checkForPrecompressed == true) && (idE.CvarSystem.GetBool("image_usePrecompressedTextures") == true)) 
+				if((checkForPrecompressed == true) && (idE.CvarSystem.GetBool("image_usePrecompressedTextures") == true))
 				{
-					if(CheckPrecompressedImage(true) == true) 
+					if(CheckPrecompressedImage(true) == true)
 					{
 						// we got the precompressed image
 						return;
@@ -445,9 +445,9 @@ namespace idTech4.Renderer
 
 				int width = 0, height = 0;
 
-				/*byte[] data = idE.ImageManager.LoadImageProgram(this.Name, ref width, ref height, ref _timeStamp, ref _depth);
+				byte[] data = idE.ImageManager.LoadImageProgram(this.Name, ref width, ref height, ref _timeStamp, ref _depth);
 
-				if(data == null) 
+				if(data == null)
 				{
 					idConsole.Warning("Couldn't load image: {0}", this.Name);
 					MakeDefault();
@@ -459,8 +459,8 @@ namespace idTech4.Renderer
 				// NOTE: takes about 10% of image load times (SD)
 				// may not be strictly necessary, but some code uses it, so let's leave it in
 				// TODO: imageHash = MD4_BlockChecksum( pic, width * height * 4 );
-				Generate(data, width, height, _filter, _allowDownSize, _repeat, _depth );*/
-				
+				Generate(data, width, height, _filter, _allowDownSize, _repeat, _depth);
+
 				_precompressedFile = false;
 
 				// write out the precompressed version of this file if needed
@@ -528,28 +528,28 @@ namespace idTech4.Renderer
 			{
 				if(textureUnit.Type == TextureType.Cubic)
 				{
-					GL.Disable((EnableCap) All.TextureCubeMapExt);
+					Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
 				}
 				else if(textureUnit.Type == TextureType.ThreeD)
 				{
-					GL.Disable(EnableCap.Texture3DExt);
+					Gl.glDisable(Gl.GL_TEXTURE_3D);
 				}
 				else if(textureUnit.Type == TextureType.TwoD)
 				{
-					GL.Disable(EnableCap.Texture2D);
+					Gl.glDisable(Gl.GL_TEXTURE_2D);
 				}
 
 				if(_type == TextureType.Cubic)
 				{
-					GL.Enable((EnableCap) All.TextureCubeMapExt);
+					Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
 				}
 				else if(_type == TextureType.ThreeD)
 				{
-					GL.Enable(EnableCap.Texture3DExt);
+					Gl.glEnable(Gl.GL_TEXTURE_3D);
 				}
 				else if(_type == TextureType.TwoD)
 				{
-					GL.Enable(EnableCap.Texture2D);
+					Gl.glEnable(Gl.GL_TEXTURE_2D);
 				}
 
 				textureUnit.Type = _type;
@@ -561,7 +561,7 @@ namespace idTech4.Renderer
 				if(textureUnit.Current2DMap != _texNumber)
 				{
 					textureUnit.Current2DMap = _texNumber;
-					GL.BindTexture(TextureTarget.Texture2D, _texNumber);
+					Gl.glBindTexture(Gl.GL_TEXTURE_2D, _texNumber);
 				}
 			}
 			else if(_type == TextureType.Cubic)
@@ -569,7 +569,7 @@ namespace idTech4.Renderer
 				if(textureUnit.CurrentCubeMap != _texNumber)
 				{
 					textureUnit.CurrentCubeMap = _texNumber;
-					GL.BindTexture((TextureTarget) All.TextureCubeMapExt, _texNumber);
+					Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP_EXT, _texNumber);
 				}
 			}
 			else if(_type == TextureType.ThreeD)
@@ -577,7 +577,7 @@ namespace idTech4.Renderer
 				if(textureUnit.Current3DMap != _texNumber)
 				{
 					textureUnit.Current3DMap = _texNumber;
-					GL.BindTexture(TextureTarget.Texture3D, _texNumber);
+					Gl.glBindTexture(Gl.GL_TEXTURE_3D, _texNumber);
 				}
 			}
 
@@ -585,7 +585,7 @@ namespace idTech4.Renderer
 			{
 				float priority = 1.0f;
 
-				GL.PrioritizeTextures(1, ref _texNumber, ref priority);
+				Gl.glPrioritizeTextures(1, ref _texNumber, ref priority);
 			}
 		}
 
@@ -615,7 +615,7 @@ namespace idTech4.Renderer
 		/// <param name="allowDownSize"></param>
 		/// <param name="repeat"></param>
 		/// <param name="depth"></param>
-		public void Generate(byte[,,] data, int width, int height, TextureFilter filter, bool allowDownSize, TextureRepeat repeat, TextureDepth depth)
+		public void Generate(byte[] data, int width, int height, TextureFilter filter, bool allowDownSize, TextureRepeat repeat, TextureDepth depth)
 		{
 			// FIXME: should we implement cinematics this way, instead of with explicit calls?
 			Purge();
@@ -646,16 +646,19 @@ namespace idTech4.Renderer
 				idConsole.Error("Image.Generate: not a power of 2 image.");
 			}
 
-			// Optionally modify our width/height based on options/hardware
-			// TODO: GetDownsize( scaled_width, scaled_height );
+			// Optionally modify our width/height based on options/hardware			
+			GetDownSize(ref scaledWidth, ref scaledHeight);
 
-			byte[,,] scaledBuffer = null;
-
-			_texNumber = GL.GenTexture();
+			byte[] scaledBuffer = null;
+			idE.RenderSystem.CheckOpenGLErrors();
+			uint[] tex = new uint[1];
+			Gl.glGenTextures(1, tex);
+			_texNumber = (int) tex[0];
+			idE.RenderSystem.CheckOpenGLErrors();
 			_loaded = true;
 
 			// select proper internal format before we resample
-			_internalFormat = PixelInternalFormat.Rgb8; // SelectInternalFormat(data, 1, width, height, depth, out _isMonochrome);
+			_internalFormat = Gl.GL_RGB8;  // SelectInternalFormat(data, 1, width, height, depth, out _isMonochrome);
 
 			// copy or resample data as appropriate for first MIP level.
 			if((scaledWidth == width) && (scaledHeight == height))
@@ -667,7 +670,7 @@ namespace idTech4.Renderer
 			else
 			{
 				idConsole.WriteLine("TODO: DONT SUPPORT MIMAP RIGHT NOW");
-				// TODO: resample
+
 				// resample down as needed (FIXME: this doesn't seem like it resamples anymore!)
 				// scaledBuffer = R_ResampleTexture( pic, width, height, width >>= 1, height >>= 1 );
 				/*scaledBuffer = R_MipMap( pic, width, height, preserveBorder );
@@ -709,12 +712,12 @@ namespace idTech4.Renderer
 			if(repeat == TextureRepeat.ClampToZero)
 			{
 				byte[] rgba = new byte[4] { 0, 0, 0, 255 };
-				idConsole.WriteLine("TODO: R_SetBorderTexels( (byte *)scaledBuffer, width, height, rgba);");
+				SetBorderTexels(scaledBuffer, width, height, rgba);
 			}
 			else if(repeat == TextureRepeat.ClampToZeroAlpha)
 			{
 				byte[] rgba = new byte[4] { 255, 255, 255, 0 };
-				idConsole.WriteLine("TODO: R_SetBorderTexels( (byte *)scaledBuffer, width, height, rgba);");
+				SetBorderTexels(scaledBuffer, width, height, rgba);
 			}
 
 			if((_generator == null) && ((_depth == TextureDepth.Bump) && (idE.CvarSystem.GetBool("image_writeNormalTGA") == true) || (_depth != TextureDepth.Bump) && (idE.CvarSystem.GetBool("image_writeTGA") == true)))
@@ -758,61 +761,64 @@ namespace idTech4.Renderer
 			{
 				for(int i = 0; i < scaledWidth * scaledHeight * 4; i += 4)
 				{
-					//scaledBuffer[i + 3] = scaledBuffer[i];
-					//scaledBuffer[i] = 0;
+					scaledBuffer[i + 3] = scaledBuffer[i];
+					scaledBuffer[i] = 0;
 				}
 			}
 
 			// upload the main image level
 			Bind();
 
-			// TODO: GL_COLOR_INDEX8_EXT
-			/*if(_internalFormat == PixelInternalFormat.index Gl.GL_COLOR_INDEX8_EXT)
+			if(_internalFormat == Gl.GL_COLOR_INDEX8_EXT)
 			{
 				idConsole.WriteLine("TODO: UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, 0 );");
 			}
-			else*/
+			else
 			{
-				GL.TexImage2D(TextureTarget.Texture2D, 0, _internalFormat, scaledWidth, scaledHeight, 0, PixelFormat.Rgba, PixelType.UnsignedByte, scaledBuffer);
+				Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, _internalFormat, scaledWidth, scaledHeight, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, scaledBuffer);
 			}
 
 			// create and upload the mip map levels, which we do in all cases, even if we don't think they are needed
 			int miplevel = 0;
 
-			// TODO MIP MAP
-			idConsole.WriteLine("TODO: while ( scaled_width > 1 || scaled_height > 1 ) ");
-			/*while ( scaled_width > 1 || scaled_height > 1 ) {
+			while((scaledWidth > 1) || (scaledHeight > 1))
+			{
 				// preserve the border after mip map unless repeating
-				shrunk = R_MipMap( scaledBuffer, scaled_width, scaled_height, preserveBorder );
-				R_StaticFree( scaledBuffer );
-				scaledBuffer = shrunk;
+				scaledBuffer = MipMap(scaledBuffer, scaledWidth, scaledHeight, preserveBorder);
+				scaledWidth >>= 1;
+				scaledHeight >>= 1;
 
-				scaled_width >>= 1;
-				scaled_height >>= 1;
-				if ( scaled_width < 1 ) {
-					scaled_width = 1;
+				if(scaledWidth < 1)
+				{
+					scaledWidth = 1;
 				}
-				if ( scaled_height < 1 ) {
-					scaled_height = 1;
+
+				if(scaledHeight < 1)
+				{
+					scaledHeight = 1;
 				}
+
 				miplevel++;
 
 				// this is a visualization tool that shades each mip map
 				// level with a different color so you can see the
 				// rasterizer's texture level selection algorithm
 				// Changing the color doesn't help with lumminance/alpha/intensity formats...
-				if ( depth == TD_DIFFUSE && globalImages->image_colorMipLevels.GetBool() ) {
+				// TODO
+				/*if ( depth == TD_DIFFUSE && globalImages->image_colorMipLevels.GetBool() ) {
 					R_BlendOverTexture( (byte *)scaledBuffer, scaled_width * scaled_height, mipBlendColors[miplevel] );
-				}
+				}*/
 
 				// upload the mip map
-				if ( internalFormat == GL_COLOR_INDEX8_EXT ) {
-					UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, miplevel );
-				} else {
-					qglTexImage2D( GL_TEXTURE_2D, miplevel, internalFormat, scaled_width, scaled_height, 
-						0, GL_RGBA, GL_UNSIGNED_BYTE, scaledBuffer );
+				if(_internalFormat == Gl.GL_COLOR_INDEX8_EXT)
+				{
+					idConsole.WriteLine("TODO: UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, miplevel );");
 				}
-			}*/
+				else
+				{
+					Gl.glTexImage2D(Gl.GL_TEXTURE_2D, miplevel, _internalFormat, scaledWidth, scaledHeight, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, scaledBuffer);
+				}
+			}
 
 			SetImageFilterAndRepeat();
 
@@ -866,7 +872,7 @@ namespace idTech4.Renderer
 				// completely black.
 			}
 
-			Generate(data, idImageManager.DefaultImageSize, idImageManager.DefaultImageSize, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.Default);
+			Generate(idHelper.Flatten<byte>(data), idImageManager.DefaultImageSize, idImageManager.DefaultImageSize, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.Default);
 
 			_defaulted = true;
 		}
@@ -878,7 +884,7 @@ namespace idTech4.Renderer
 		{
 			if(_loaded == true)
 			{
-				GL.DeleteTexture(_texNumber);
+				Gl.glDeleteTextures(1, ref _texNumber);
 				_loaded = false;
 			}
 
@@ -947,13 +953,13 @@ namespace idTech4.Renderer
 			{
 				return false;
 			}
-			
-/*#if 1 // ( _D3XP had disabled ) - Allow grabbing of DDS's from original Doom pak files
-	// if we are doing a copyFiles, make sure the original images are referenced
-	if ( fileSystem->PerformingCopyFiles() ) {
-		return false;
-	}
-#endif*/
+
+			/*#if 1 // ( _D3XP had disabled ) - Allow grabbing of DDS's from original Doom pak files
+				// if we are doing a copyFiles, make sure the original images are referenced
+				if ( fileSystem->PerformingCopyFiles() ) {
+					return false;
+				}
+			#endif*/
 
 			if((_depth == TextureDepth.Bump) && (idE.CvarSystem.GetInteger("image_useNormalCompression") != 2))
 			{
@@ -969,79 +975,251 @@ namespace idTech4.Renderer
 			idConsole.WriteLine("TODO: CheckPrecompressedImage");
 
 
-	/*char filename[MAX_IMAGE_NAME];
-	ImageProgramStringToCompressedFileName( imgName, filename );
+			/*char filename[MAX_IMAGE_NAME];
+			ImageProgramStringToCompressedFileName( imgName, filename );
 
-	// get the file timestamp
-	ID_TIME_T precompTimestamp;
-	fileSystem->ReadFile( filename, NULL, &precompTimestamp );
+			// get the file timestamp
+			ID_TIME_T precompTimestamp;
+			fileSystem->ReadFile( filename, NULL, &precompTimestamp );
 
 
-	if ( precompTimestamp == FILE_NOT_FOUND_TIMESTAMP ) {
-		return false;
-	}
+			if ( precompTimestamp == FILE_NOT_FOUND_TIMESTAMP ) {
+				return false;
+			}
 
-	if ( !generatorFunction && timestamp != FILE_NOT_FOUND_TIMESTAMP ) {
-		if ( precompTimestamp < timestamp ) {
-			// The image has changed after being precompressed
+			if ( !generatorFunction && timestamp != FILE_NOT_FOUND_TIMESTAMP ) {
+				if ( precompTimestamp < timestamp ) {
+					// The image has changed after being precompressed
+					return false;
+				}
+			}
+
+			timestamp = precompTimestamp;
+
+			// open it and just read the header
+			idFile *f;
+
+			f = fileSystem->OpenFileRead( filename );
+			if ( !f ) {
+				return false;
+			}
+
+			int	len = f->Length();
+			if ( len < sizeof( ddsFileHeader_t ) ) {
+				fileSystem->CloseFile( f );
+				return false;
+			}
+
+			if ( !fullLoad && len > globalImages->image_cacheMinK.GetInteger() * 1024 ) {
+				len = globalImages->image_cacheMinK.GetInteger() * 1024;
+			}
+
+			byte *data = (byte *)R_StaticAlloc( len );
+
+			f->Read( data, len );
+
+			fileSystem->CloseFile( f );
+
+			unsigned long magic = LittleLong( *(unsigned long *)data );
+			ddsFileHeader_t	*_header = (ddsFileHeader_t *)(data + 4);
+			int ddspf_dwFlags = LittleLong( _header->ddspf.dwFlags );
+
+			if ( magic != DDS_MAKEFOURCC('D', 'D', 'S', ' ')) {
+				common->Printf( "CheckPrecompressedImage( %s ): magic != 'DDS '\n", imgName.c_str() );
+				R_StaticFree( data );
+				return false;
+			}
+
+			// if we don't support color index textures, we must load the full image
+			// should we just expand the 256 color image to 32 bit for upload?
+			if ( ddspf_dwFlags & DDSF_ID_INDEXCOLOR && !glConfig.sharedTexturePaletteAvailable ) {
+				R_StaticFree( data );
+				return false;
+			}
+
+			// upload all the levels
+			UploadPrecompressedImage( data, len );
+
+			R_StaticFree( data );
+
+			return true;*/
+
 			return false;
 		}
-	}
 
-	timestamp = precompTimestamp;
+		/// <summary>
+		/// Helper function that takes the current width/height and might make them smaller.
+		/// </summary>
+		/// <param name="scaledWidth"></param>
+		/// <param name="scaledHeight"></param>
+		private void GetDownSize(ref int scaledWidth, ref int scaledHeight)
+		{
+			int size = 0;
 
-	// open it and just read the header
-	idFile *f;
+			// perform optional picmip operation to save texture memory
+			if((_depth == TextureDepth.Specular) && (idE.CvarSystem.GetInteger("image_downSizeSpecular") > 0))
+			{
+				size = idE.CvarSystem.GetInteger("image_downSizeSpecular");
 
-	f = fileSystem->OpenFileRead( filename );
-	if ( !f ) {
-		return false;
-	}
+				if(size == 0)
+				{
+					size = 64;
+				}
+			}
+			else if((_depth == TextureDepth.Bump) && (idE.CvarSystem.GetInteger("image_downSizeBump") > 0))
+			{
+				size = idE.CvarSystem.GetInteger("image_downSizeBump");
 
-	int	len = f->Length();
-	if ( len < sizeof( ddsFileHeader_t ) ) {
-		fileSystem->CloseFile( f );
-		return false;
-	}
+				if(size == 0)
+				{
+					size = 64;
+				}
+			}
+			else if(((_allowDownSize == true) || (idE.CvarSystem.GetBool("image_forceDownSize") == true)) && (idE.CvarSystem.GetInteger("image_downSize") > 0))
+			{
+				size = idE.CvarSystem.GetInteger("image_downSizeLimit");
 
-	if ( !fullLoad && len > globalImages->image_cacheMinK.GetInteger() * 1024 ) {
-		len = globalImages->image_cacheMinK.GetInteger() * 1024;
-	}
+				if(size == 0)
+				{
+					size = 256;
+				}
+			}
 
-	byte *data = (byte *)R_StaticAlloc( len );
+			if(size > 0)
+			{
+				while((scaledWidth > size) || (scaledHeight > size))
+				{
+					if(scaledWidth > 1)
+					{
+						scaledWidth >>= 1;
+					}
 
-	f->Read( data, len );
+					if(scaledHeight > 1)
+					{
+						scaledHeight >>= 1;
+					}
+				}
+			}
 
-	fileSystem->CloseFile( f );
+			// clamp to minimum size
+			if(scaledWidth < 1)
+			{
+				scaledWidth = 1;
+			}
 
-	unsigned long magic = LittleLong( *(unsigned long *)data );
-	ddsFileHeader_t	*_header = (ddsFileHeader_t *)(data + 4);
-	int ddspf_dwFlags = LittleLong( _header->ddspf.dwFlags );
+			if(scaledHeight < 1)
+			{
+				scaledHeight = 1;
+			}
 
-	if ( magic != DDS_MAKEFOURCC('D', 'D', 'S', ' ')) {
-		common->Printf( "CheckPrecompressedImage( %s ): magic != 'DDS '\n", imgName.c_str() );
-		R_StaticFree( data );
-		return false;
-	}
-
-	// if we don't support color index textures, we must load the full image
-	// should we just expand the 256 color image to 32 bit for upload?
-	if ( ddspf_dwFlags & DDSF_ID_INDEXCOLOR && !glConfig.sharedTexturePaletteAvailable ) {
-		R_StaticFree( data );
-		return false;
-	}
-
-	// upload all the levels
-	UploadPrecompressedImage( data, len );
-
-	R_StaticFree( data );
-
-	return true;*/
-
-			return false;
+			// clamp size to the hardware specific upper limit
+			// scale both axis down equally so we don't have to
+			// deal with a half mip resampling
+			// This causes a 512*256 texture to sample down to
+			// 256*128 on a voodoo3, even though it could be 256*256
+			while((scaledWidth > idE.GLConfig.MaxTextureSize) || (scaledHeight > idE.GLConfig.MaxTextureSize))
+			{
+				scaledWidth >>= 1;
+				scaledHeight >>= 1;
+			}
 		}
 
-		private PixelInternalFormat SelectInternalFormat(byte[] data, int dataSize, int width, int height, TextureDepth minimumDepth, out bool isMonochrome)
+		/// <summary>
+		/// Returns a new copy of the texture, quartered in size and filtered.
+		/// </summary>
+		/// <remarks>
+		/// If a texture is intended to be used in GL_CLAMP or GL_CLAMP_TO_EDGE mode with
+		/// a completely transparent border, we must prevent any blurring into the outer
+		/// ring of texels by filling it with the border from the previous level.  This
+		/// will result in a slight shrinking of the texture as it mips, but better than
+		/// smeared clamps...
+		/// </remarks>
+		/// <param name="data"></param>
+		/// <param name="width"></param>
+		/// <param name="height"></param>
+		/// <param name="preserveBorder"></param>
+		/// <returns></returns>
+		private byte[] MipMap(byte[] data, int width, int height, bool preserveBorder)
+		{
+			if((width < 1) || (height < 1) || ((width + height) == 2))
+			{
+				idConsole.FatalError("MipMap called with size {0},{1}", width, height);
+			}
+
+			byte[] border = new byte[] {
+				data[0], data[1], data[2], data[3]
+			};
+
+			int row = width * 4;
+			int newWidth = width >> 1;
+			int newHeight = height >> 1;
+
+			if(newWidth == 0)
+			{
+				newWidth = 1;
+			}
+
+			if(newHeight == 0)
+			{
+				newHeight = 1;
+			}
+
+			byte[] newData = new byte[newWidth * newHeight * 4];
+			int dataOffset = 0;
+			int newDataOffset = 0;
+
+			width >>= 1;
+			height >>= 1;
+
+			if((width == 0) || (height == 0))
+			{
+				width += height;	// get largest
+
+				if(preserveBorder == true)
+				{
+					for(int i = 0; i < width; i++, newDataOffset += 4)
+					{
+						newData[newDataOffset] = border[0];
+						newData[newDataOffset + 1] = border[1];
+						newData[newDataOffset + 2] = border[2];
+						newData[newDataOffset + 3] = border[3];
+					}
+				}
+				else
+				{
+					for(int i = 0; i < width; i++, newDataOffset += 4, dataOffset += 8)
+					{
+						newData[newDataOffset] = (byte) ((data[dataOffset] + data[dataOffset + 4]) >> 1);
+						newData[newDataOffset + 1] = (byte) ((data[dataOffset + 1] + data[dataOffset + 5]) >> 1);
+						newData[newDataOffset + 2] = (byte) ((data[dataOffset + 2] + data[dataOffset + 6]) >> 1);
+						newData[newDataOffset + 3] = (byte) ((data[dataOffset + 3] + data[dataOffset + 7]) >> 1);
+					}
+				}
+
+				return newData;
+			}
+
+			for(int i = 0; i < height; i++, dataOffset += row)
+			{
+				for(int j = 0; j < width; j++, newDataOffset += 4, dataOffset += 8)
+				{
+					newData[newDataOffset] = (byte) ((data[dataOffset] + data[dataOffset + 4] + data[dataOffset + row] + data[dataOffset + row + 4]) >> 2);
+					newData[newDataOffset + 1] = (byte) ((data[dataOffset + 1] + data[dataOffset + 5] + data[dataOffset + row + 1] + data[dataOffset + row + 5]) >> 2);
+					newData[newDataOffset + 2] = (byte) ((data[dataOffset + 2] + data[dataOffset + 6] + data[dataOffset + row + 2] + data[dataOffset + row + 6]) >> 2);
+					newData[newDataOffset + 3] = (byte) ((data[dataOffset + 3] + data[dataOffset + 7] + data[dataOffset + row + 3] + data[dataOffset + row + 7]) >> 2);
+				}
+			}
+
+			// copy the old border texel back around if desired
+			if(preserveBorder == true)
+			{
+				SetBorderTexels(newData, width, height, border);
+			}
+
+			return newData;
+		}
+
+		private int SelectInternalFormat(byte[] data, int dataSize, int width, int height, TextureDepth minimumDepth, out bool isMonochrome)
 		{
 			int offset = 0;
 			int scanOffset = 0;
@@ -1053,7 +1231,7 @@ namespace idTech4.Renderer
 			int rgbDiffer = 0;
 			int rgbaDiffer = 0;
 			int rgbOr = 0;
-			int rgbAnd = 0;
+			int rgbAnd = -1;
 			int aOr = 0;
 			int aAnd = -1;
 
@@ -1083,13 +1261,10 @@ namespace idTech4.Renderer
 					// our "isMonochrome" test is more lax than rgbDiffer,
 					// allowing the values to be off by several units and
 					// still use the NV20 mono path
-					if(isMonochrome == true)
+					if((Math.Abs(data[offset] - data[offset + 1]) > 16)
+						|| (Math.Abs(data[offset] - data[offset + 2]) > 16))
 					{
-						if((Math.Abs(data[offset] - data[offset + 1]) > 16)
-							|| (Math.Abs(data[offset] - data[offset + 2]) > 16))
-						{
-							isMonochrome = false;
-						}
+						isMonochrome = false;
 					}
 
 					rgbOr |= cOr;
@@ -1114,18 +1289,17 @@ namespace idTech4.Renderer
 				if((idE.CvarSystem.GetBool("image_useCompression") == true) && (idE.CvarSystem.GetInteger("image_useNormalCompression") == 1) && idE.GLConfig.SharedTexturePaletteAvailable)
 				{
 					// image_useNormalCompression should only be set to 1 on nv_10 and nv_20 paths.
-					//return Gl.GL_COLOR_INDEX8_EXT;
-					throw new NotImplementedException();
+					return Gl.GL_COLOR_INDEX8_EXT;
 				}
 				else if((idE.CvarSystem.GetBool("image_useCompression") == true) && (idE.CvarSystem.GetInteger("image_useNormalCompression") > 0) && idE.GLConfig.TextureCompressionAvailable)
 				{
 					// image_useNormalCompression == 2 uses rxgb format which produces really good quality for medium settings.
-					return PixelInternalFormat.CompressedRgbaS3tcDxt5Ext;
+					return Gl.GL_COMPRESSED_RGBA_S3TC_DXT5_EXT;
 				}
 				else
 				{
 					// we always need the alpha channel for bump maps for swizzling
-					return PixelInternalFormat.Rgba8;
+					return Gl.GL_RGBA8;
 				}
 			}
 
@@ -1140,11 +1314,11 @@ namespace idTech4.Renderer
 				// we are assuming that any alpha channel is unintentional
 				if(idE.GLConfig.TextureCompressionAvailable == true)
 				{
-					return PixelInternalFormat.CompressedRgbS3tcDxt1Ext;
+					return Gl.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
 				}
 				else
 				{
-					return PixelInternalFormat.Rgb5;
+					return Gl.GL_RGB5;
 				}
 			}
 			else if(minimumDepth == TextureDepth.Diffuse)
@@ -1154,20 +1328,20 @@ namespace idTech4.Renderer
 				{
 					if(needAlpha == false)
 					{
-						return PixelInternalFormat.CompressedRgbS3tcDxt1Ext;
+						return Gl.GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
 					}
 					else
 					{
-						return PixelInternalFormat.CompressedRgbaS3tcDxt3Ext;
+						return Gl.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 					}
 				}
 				else if((aAnd == 255) || (aOr == 0))
 				{
-					return PixelInternalFormat.Rgb5;
+					return Gl.GL_RGB5;
 				}
 				else
 				{
-					return PixelInternalFormat.Rgba4;
+					return Gl.GL_RGBA4;
 				}
 			}
 
@@ -1188,15 +1362,15 @@ namespace idTech4.Renderer
 			{
 				if(minimumDepth == TextureDepth.HighQuality)
 				{
-					return PixelInternalFormat.Rgb8; // four bytes.
+					return Gl.GL_RGB8; // four bytes
 				}
 
 				if(idE.GLConfig.TextureCompressionAvailable == true)
 				{
-					return PixelInternalFormat.CompressedRgbS3tcDxt1Ext;	// half byte.
+					return Gl.GL_COMPRESSED_RGB_S3TC_DXT1_EXT; // half byte
 				}
 
-				return PixelInternalFormat.Rgb5; // two bytes.
+				return Gl.GL_RGB5; // two bytes
 			}
 
 			// cases with alpha.
@@ -1204,28 +1378,71 @@ namespace idTech4.Renderer
 			{
 				if((minimumDepth != TextureDepth.HighQuality) && (idE.GLConfig.TextureCompressionAvailable == true))
 				{
-					return PixelInternalFormat.CompressedRgbaS3tcDxt3Ext; // one byte.
+					return Gl.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT; // one byte
 				}
 
-				return PixelInternalFormat.Intensity8; // single byte for all channels.
+				return Gl.GL_INTENSITY8; // single byte for all channels
 			}
 
 			if(minimumDepth == TextureDepth.HighQuality)
 			{
-				return PixelInternalFormat.Rgba8; // four bytes.
+				return Gl.GL_RGBA8; // four bytes
 			}
 
 			if(idE.GLConfig.TextureCompressionAvailable == true)
 			{
-				return PixelInternalFormat.CompressedRgbaS3tcDxt3Ext; // one byte
+				return Gl.GL_COMPRESSED_RGBA_S3TC_DXT3_EXT; // one byte
 			}
 
 			if(rgbDiffer == 0)
 			{
-				return PixelInternalFormat.Luminance8Alpha8; // two bytes, max quality.
+				return Gl.GL_LUMINANCE8_ALPHA8; // two bytes, max quality
 			}
 
-			return PixelInternalFormat.Rgba4;	// two bytes.
+			return Gl.GL_RGBA4;	// two bytes.
+		}
+
+		private void SetBorderTexels(byte[] data, int width, int height, byte[] border)
+		{
+			int offset = 0;
+
+			for(int i = 0; i < height; i++, offset += (width * 4))
+			{
+				data[offset] = border[0];
+				data[offset + 1] = border[1];
+				data[offset + 2] = border[2];
+				data[offset + 3] = border[3];
+			}
+
+			offset = (width - 1) * 4;
+
+			for(int i = 0; i < height; i++, offset += (width * 4))
+			{
+				data[offset] = border[0];
+				data[offset + 1] = border[1];
+				data[offset + 2] = border[2];
+				data[offset + 3] = border[3];
+			}
+
+			offset = 0;
+
+			for(int i = 0; i < width; i++, offset += 4)
+			{
+				data[offset] = border[0];
+				data[offset + 1] = border[1];
+				data[offset + 2] = border[2];
+				data[offset + 3] = border[3];
+			}
+
+			offset = width * 4 * (height - 1);
+
+			for(int i = 0; i < width; i++, offset += 4)
+			{
+				data[offset] = border[0];
+				data[offset + 1] = border[1];
+				data[offset + 2] = border[2];
+				data[offset + 3] = border[3];
+			}
 		}
 
 		private void SetImageFilterAndRepeat()
@@ -1234,18 +1451,18 @@ namespace idTech4.Renderer
 			switch(_filter)
 			{
 				case TextureFilter.Default:
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int) idE.ImageManager.MinTextureFilter);
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int) idE.ImageManager.MaxTextureFilter);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, idE.ImageManager.MinTextureFilter);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, idE.ImageManager.MaxTextureFilter);
 					break;
 
 				case TextureFilter.Linear:
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Linear);
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Linear);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
 					break;
 
 				case TextureFilter.Nearest:
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMinFilter, (int) TextureMinFilter.Nearest);
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureMagFilter, (int) TextureMagFilter.Nearest);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_NEAREST);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_NEAREST);
 					break;
 			}
 
@@ -1254,37 +1471,37 @@ namespace idTech4.Renderer
 				// only do aniso filtering on mip mapped images.
 				if(_filter == TextureFilter.Default)
 				{
-					GL.TexParameter(TextureTarget.Texture2D, (TextureParameterName) ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, idE.ImageManager.TextureAnisotropy);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, idE.ImageManager.TextureAnisotropy);
 				}
 				else
 				{
-					GL.TexParameter(TextureTarget.Texture2D, (TextureParameterName) ExtTextureFilterAnisotropic.TextureMaxAnisotropyExt, 1);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
 				}
 			}
 
 			if(idE.GLConfig.TextureLodBiasAvailable == true)
 			{
-				GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureLodBias, idE.ImageManager.TextureLodBias);
+				Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_LOD_BIAS_EXT, idE.ImageManager.TextureLodBias);
 			}
 
 			// set the wrap/clamp modes.
 			switch(_repeat)
 			{
 				case TextureRepeat.Repeat:
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.Repeat);
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.Repeat);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_REPEAT);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_REPEAT);
 					break;
 
 				case TextureRepeat.ClampToBorder:
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.ClampToBorder);
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.ClampToBorder);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_BORDER);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_BORDER);
 					break;
 
 				case TextureRepeat.ClampToZero:
 				case TextureRepeat.ClampToZeroAlpha:
 				case TextureRepeat.Clamp:
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapS, (int) TextureWrapMode.ClampToEdge);
-					GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureWrapT, (int) TextureWrapMode.ClampToBorder);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
+					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
 					break;
 			}
 		}

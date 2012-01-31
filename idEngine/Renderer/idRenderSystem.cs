@@ -35,8 +35,11 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
+using OpenTK.Graphics;
+
 using Tao.DevIl;
-using OpenTK.Graphics.OpenGL;
+using Tao.OpenGl;
+using Tao.Platform.Windows;
 
 namespace idTech4.Renderer
 {
@@ -164,8 +167,8 @@ namespace idTech4.Renderer
 		private int _currentRenderCrop;
 		private Rectangle[] _renderCrops = new Rectangle[idE.MaxRenderCrops];
 
-		private StencilOp _stencilIncrement;
-		private StencilOp _stencilDecrement;
+		private int _stencilIncrement;
+		private int _stencilDecrement;
 
 		private int _fragmentDisplayListBase;								// FPROG_NUM_FRAGMENT_PROGRAMS lists
 
@@ -177,36 +180,37 @@ namespace idTech4.Renderer
 		private FrameData _frameData = new FrameData();
 		private float _frameShaderTime;										// shader time for all non-world 2D rendering
 
-		private RenderForm _renderForm;
+		private Form _renderForm;
+		private OpenTK.GLControl _renderControl;
 
 		// vertex cache
 		private List<VertexCache> _dynamicVertexCache = new List<VertexCache>();
 
 		// a single file can have both a vertex program and a fragment program
 		private GLProgram[] _programs = new GLProgram[] {
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramTest, "test.vfp"),
-			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramTest, "test.vfp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramTest, "test.vfp"),
+			new GLProgram(Gl.GL_FRAGMENT_PROGRAM_ARB, GLProgramType.FragmentProgramTest, "test.vfp"),
 
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramInteraction, "interaction.vfp"),
-			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramInteraction, "interaction.vfp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramInteraction, "interaction.vfp"),
+			new GLProgram(Gl.GL_FRAGMENT_PROGRAM_ARB, GLProgramType.FragmentProgramInteraction, "interaction.vfp"),
 
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramBumpyEnvironment, "bumpyEnvironment.vfp"),
-			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramBumpyEnvironment, "bumpyEnvironment.vfp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramBumpyEnvironment, "bumpyEnvironment.vfp"),
+			new GLProgram(Gl.GL_FRAGMENT_PROGRAM_ARB, GLProgramType.FragmentProgramBumpyEnvironment, "bumpyEnvironment.vfp"),
 
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramAmbient, "ambientLight.vfp"),
-			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramAmbient, "ambientLight.vfp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramAmbient, "ambientLight.vfp"),
+			new GLProgram(Gl.GL_FRAGMENT_PROGRAM_ARB, GLProgramType.FragmentProgramAmbient, "ambientLight.vfp"),
 
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramStencilShadow, "shadow.vp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramStencilShadow, "shadow.vp"),
 
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramR200Interaction, "R200_interaction.vp"),
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramNV20BumpAndLight, "nv20_bumpAndLight.vp"),
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramNV20DiffuseColor, "nv20_diffuseColor.vp"),
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramNV20SpecularColor, "nv20_diffuseAndSpecularColor.vp"),
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramNV20DiffuseAndSpecularColor, "nv20_diffuseAndSpecularColor.vp"),
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramEnvironment, "environment.vfp"),
-			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramEnvironment, "environment.vfp"),
-			new GLProgram((int) All.VertexProgramArb, GLProgramType.VertexProgramGlassWarp, "arbVP_glasswarp.txt"),
-			new GLProgram((int) All.FragmentProgramArb, GLProgramType.FragmentProgramGlassWarp, "arbFP_glasswarp.txt")
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramR200Interaction, "R200_interaction.vp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramNV20BumpAndLight, "nv20_bumpAndLight.vp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramNV20DiffuseColor, "nv20_diffuseColor.vp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramNV20SpecularColor, "nv20_diffuseAndSpecularColor.vp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramNV20DiffuseAndSpecularColor, "nv20_diffuseAndSpecularColor.vp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramEnvironment, "environment.vfp"),
+			new GLProgram(Gl.GL_FRAGMENT_PROGRAM_ARB, GLProgramType.FragmentProgramEnvironment, "environment.vfp"),
+			new GLProgram(Gl.GL_VERTEX_PROGRAM_ARB, GLProgramType.VertexProgramGlassWarp, "arbVP_glasswarp.txt"),
+			new GLProgram(Gl.GL_FRAGMENT_PROGRAM_ARB, GLProgramType.FragmentProgramGlassWarp, "arbFP_glasswarp.txt")
 
 			// additional programs can be dynamically specified in materials
 		};
@@ -288,7 +292,7 @@ namespace idTech4.Renderer
 
 				material.EvaluateRegisters(ref drawSurface.MaterialRegisters, materialParameters, idE.RenderSystem.ViewDefinition /* TODO: ,renderEntity->referenceSound*/);
 
-				// tODO: entityDef
+				// TODO: entityDef
 				/*if ( space->entityDef && space->entityDef->parms.timeGroup ) {
 					tr.viewDef->floatTime = oldFloatTime;
 					tr.viewDef->renderView.time = oldTime;
@@ -436,11 +440,11 @@ namespace idTech4.Renderer
 
 			if(idE.CvarSystem.GetBool("r_frontBuffer") == true)
 			{
-				cmd.Buffer = DrawBufferMode.Front;
+				cmd.Buffer = Gl.GL_FRONT;
 			}
 			else
 			{
-				cmd.Buffer = DrawBufferMode.Back;
+				cmd.Buffer = Gl.GL_BACK;
 			}
 
 			_frameData.Commands.Enqueue(cmd);
@@ -453,36 +457,36 @@ namespace idTech4.Renderer
 			// check for up to 10 errors pending
 			for(int i = 0; i < 10; i++)
 			{
-				ErrorCode error = GL.GetError();
+				int error = Gl.glGetError();
 
-				if(error == ErrorCode.NoError)
+				if(error == Gl.GL_NO_ERROR)
 				{
 					return;
 				}
 
 				switch(error)
 				{
-					case ErrorCode.InvalidEnum:
+					case Gl.GL_INVALID_ENUM:
 						errors.Add("GL_INVALID_ENUM");
 						break;
 
-					case ErrorCode.InvalidValue:
+					case Gl.GL_INVALID_VALUE:
 						errors.Add("GL_INVALID_VALUE");
 						break;
 
-					case ErrorCode.InvalidOperation:
+					case Gl.GL_INVALID_OPERATION:
 						errors.Add("GL_INVALID_OPERATION");
 						break;
 
-					case ErrorCode.StackOverflow:
+					case Gl.GL_STACK_OVERFLOW:
 						errors.Add("GL_STACK_OVERFLOW");
 						break;
 
-					case ErrorCode.StackUnderflow:
+					case Gl.GL_STACK_UNDERFLOW:
 						errors.Add("GL_STACK_UNDERFLOW");
 						break;
 
-					case ErrorCode.OutOfMemory:
+					case Gl.GL_OUT_OF_MEMORY:
 						errors.Add("GL_OUT_OF_MEMORY");
 						break;
 
@@ -646,9 +650,9 @@ namespace idTech4.Renderer
 			InitOpenGL();
 			idE.ImageManager.ReloadImages();
 
-			ErrorCode error = GL.GetError();
+			int error = Gl.glGetError();
 
-			if(error != ErrorCode.NoError)
+			if(error != Gl.GL_NO_ERROR)
 			{
 				idConsole.WriteLine("glGetError() = 0x{0:X}", error);
 			}
@@ -729,19 +733,20 @@ namespace idTech4.Renderer
 			};
 
 			// set the modelview matrix for the viewer
-			GL.MatrixMode(MatrixMode.Projection);
-			GL.LoadMatrix(tmpProjMatrix);
-			GL.MatrixMode(MatrixMode.Modelview);
+			Gl.glMatrixMode(Gl.GL_PROJECTION);
+			Gl.glLoadMatrixf(tmpProjMatrix);
+			Gl.glMatrixMode(Gl.GL_MODELVIEW);
+
 
 			// set the window clipping
-			GL.Viewport((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1,
+			Gl.glViewport((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1,
 				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1,
 				idE.Backend.ViewDefinition.ViewPort.X2 + 1 - idE.Backend.ViewDefinition.ViewPort.X1,
 				idE.Backend.ViewDefinition.ViewPort.Y2 + 1 - idE.Backend.ViewDefinition.ViewPort.Y1);
 
 
 			// the scissor may be smaller than the viewport for subviews
-			GL.Scissor((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.ViewDefinition.Scissor.X1,
+			Gl.glScissor((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.ViewDefinition.Scissor.X1,
 				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.ViewDefinition.Scissor.Y1,
 				idE.Backend.ViewDefinition.Scissor.X2 + 1 - idE.Backend.ViewDefinition.Scissor.X1,
 				idE.Backend.ViewDefinition.Scissor.Y2 + 1 - idE.Backend.ViewDefinition.Scissor.Y1);
@@ -762,8 +767,8 @@ namespace idTech4.Renderer
 				Gl.glEnable(Gl.GL_DEPTH_TEST);
 			} else */
 			{
-				GL.Disable(EnableCap.DepthTest);
-				GL.Disable(EnableCap.StencilTest);
+				Gl.glDisable(Gl.GL_DEPTH_TEST);
+				Gl.glDisable(Gl.GL_STENCIL_TEST);
 			}
 
 			idE.Backend.GLState.FaceCulling = CullType.None; // force face culling to set next time
@@ -829,15 +834,15 @@ namespace idTech4.Renderer
 
 			if(idE.GLConfig.MultiTextureAvailable == true)
 			{
-				GL.GetInteger(GetPName.MaxTextureUnits, out idE.GLConfig.MaxTextureUnits);
+				Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_UNITS_ARB, out idE.GLConfig.MaxTextureUnits);
 
 				if(idE.GLConfig.MaxTextureUnits < 2)
 				{
 					idE.GLConfig.MultiTextureAvailable = false; // shouldn't ever happen
 				}
 
-				GL.GetInteger(GetPName.MaxTextureCoords, out idE.GLConfig.MaxTextureCoordinates);
-				GL.GetInteger(GetPName.MaxTextureImageUnits, out idE.GLConfig.MaxTextureImageUnits);
+				Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_COORDS_ARB, out idE.GLConfig.MaxTextureCoordinates);
+				Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_IMAGE_UNITS_ARB, out idE.GLConfig.MaxTextureImageUnits);
 			}
 
 			idE.GLConfig.TextureEnvCombineAvailable = CheckExtension("GL_ARB_texture_env_combine");
@@ -861,7 +866,7 @@ namespace idTech4.Renderer
 
 			if(idE.GLConfig.AnisotropicAvailable == true)
 			{
-				GL.GetFloat((GetPName) ExtTextureFilterAnisotropic.MaxTextureMaxAnisotropyExt, out idE.GLConfig.MaxTextureAnisotropy);
+				Gl.glGetFloatv(Gl.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, out idE.GLConfig.MaxTextureAnisotropy);
 
 				idConsole.WriteLine("   maxTextureAnisotropy: {0}", idE.GLConfig.MaxTextureAnisotropy);
 			}
@@ -896,13 +901,13 @@ namespace idTech4.Renderer
 			// serialization of clamping.
 			if(CheckExtension("GL_EXT_stencil_wrap") == true)
 			{
-				_stencilIncrement = StencilOp.IncrWrap;
-				_stencilDecrement = StencilOp.DecrWrap;
+				_stencilIncrement = Gl.GL_INCR_WRAP_EXT;
+				_stencilDecrement = Gl.GL_DECR_WRAP_EXT;
 			}
 			else
 			{
-				_stencilIncrement = StencilOp.Incr;
-				_stencilDecrement = StencilOp.Decr;
+				_stencilIncrement = Gl.GL_INCR_WRAP;
+				_stencilDecrement = Gl.GL_DECR_WRAP;
 			}
 
 			idE.GLConfig.RegisterCombinersAvailable = CheckExtension("GL_NV_register_combiners");
@@ -1042,15 +1047,34 @@ namespace idTech4.Renderer
 				}*/
 			}
 
-			_renderForm = new RenderForm(width, height, fullscreen, refreshRate, multiSamples, stereoMode);
+			_renderForm = new RenderForm();
+			_renderForm.Size = new System.Drawing.Size(width, height);
 			_renderForm.Location = new System.Drawing.Point(x, y);
 			_renderForm.Show();
-
-			idConsole.WriteLine("...created window @ {0},{1} ({2}x{3})", x, y, width, height);
-
 			_renderForm.BringToFront();
 			_renderForm.Focus();
 
+			idConsole.WriteLine("...created window @ {0},{1} ({2}x{3})", x, y, width, height);
+			idConsole.WriteLine("Initializing OpenGL driver");
+
+			idE.GLConfig.StencilBits = 8;
+			idE.GLConfig.ColorBits = 32;
+			idE.GLConfig.DepthBits = 24;
+
+			GraphicsMode mode = new GraphicsMode(idE.GLConfig.ColorBits, idE.GLConfig.DepthBits, idE.GLConfig.StencilBits, multiSamples, 8, 2, stereoMode);
+			
+			_renderControl = new OpenTK.GLControl(mode, 1, 1, GraphicsContextFlags.ForwardCompatible);			
+			_renderControl.Dock = DockStyle.Fill;
+			_renderControl.CreateControl();
+			
+			_renderForm.Controls.Add(_renderControl);
+			
+			idConsole.Write("...making context current: ");
+
+			_renderControl.MakeCurrent();
+			
+			idConsole.WriteLine("succeeded");
+			
 			idE.GLConfig.IsFullscreen = fullscreen;
 
 			return true;
@@ -1089,9 +1113,9 @@ namespace idTech4.Renderer
 					UnbindIndex();
 				}
 
-				GL.DrawElements(BeginMode.Triangles,
+				Gl.glDrawElements(Gl.GL_TRIANGLES,
 					(idE.CvarSystem.GetBool("r_singleTriangle") == true) ? 3 : tri.Indexes.Length,
-					DrawElementsType.UnsignedInt,
+					Gl.GL_UNSIGNED_INT,
 					tri.Indexes);
 			}
 		}
@@ -1133,7 +1157,7 @@ namespace idTech4.Renderer
 			idE.ImageManager.BindNullTexture();
 
 			GL_SelectTexture(0);
-			GL.EnableClientState(ArrayCap.TextureCoordArray);
+			Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
 			SetProgramEnvironment();
 
@@ -1170,7 +1194,7 @@ namespace idTech4.Renderer
 			}
 
 			GL_Cull(CullType.TwoSided);
-			GL.Color3(1, 1, 1);
+			Gl.glColor3f(1, 1, 1);
 
 			return i;
 		}
@@ -1259,7 +1283,7 @@ namespace idTech4.Renderer
 			}*/
 
 			// disable stencil shadow test
-			GL.StencilFunc(StencilFunction.Always, 128, 255);
+			Gl.glStencilFunc(Gl.GL_ALWAYS, 128, 255);
 
 			// uplight the entire screen to crutch up not having better blending range
 			// TODO: RB_STD_LightScale();
@@ -1351,7 +1375,7 @@ namespace idTech4.Renderer
 			// unset privatePolygonOffset if necessary
 			if((stage.PrivatePolygonOffset > 0) && (surface.Material.TestMaterialFlag(MaterialFlags.PolygonOffset) == false))
 			{
-				GL.Disable(EnableCap.PolygonOffsetFill);
+				Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
 			}
 
 			if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
@@ -1362,15 +1386,15 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
 			{
-				GL.Disable(EnableCap.TextureGenS);
-				GL.Disable(EnableCap.TextureGenT);
-				GL.Disable(EnableCap.TextureGenQ);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2)
 			{
-				GL.Disable(EnableCap.TextureGenS);
-				GL.Disable(EnableCap.TextureGenT);
-				GL.Disable(EnableCap.TextureGenQ);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+				Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
 			{
@@ -1432,9 +1456,9 @@ namespace idTech4.Renderer
 
 			if(stage.Texture.HasMatrix == true)
 			{
-				GL.MatrixMode(MatrixMode.Texture);
-				GL.LoadIdentity();
-				GL.MatrixMode(MatrixMode.Modelview);
+				Gl.glMatrixMode(Gl.GL_TEXTURE);
+				Gl.glLoadIdentity();
+				Gl.glMatrixMode(Gl.GL_MODELVIEW);
 			}
 		}
 
@@ -1462,6 +1486,18 @@ namespace idTech4.Renderer
 			return true;
 		}
 
+		private void GetWGLExtensionsWithFakeWindow()
+		{
+			/*Form tmpForm = new Form();
+
+			IntPtr hDC = GetDC(hWnd);
+			IntPtr gRC = wglCreateContext(hDC);
+			wglMakeCurrent(hDC, gRC);
+			GLW_CheckWGLExtensions(hDC);
+			wglDeleteContext(gRC);
+			ReleaseDC(hWnd, hDC);*/
+		}
+
 		/// <summary>
 		/// This handles the flipping needed when the view being rendered is a mirored view.
 		/// </summary>
@@ -1475,35 +1511,35 @@ namespace idTech4.Renderer
 
 			if(type == CullType.TwoSided)
 			{
-				GL.Disable(EnableCap.CullFace);
+				Gl.glDisable(Gl.GL_CULL_FACE);
 			}
 			else
 			{
 				if(idE.Backend.GLState.FaceCulling == CullType.TwoSided)
 				{
-					GL.Disable(EnableCap.CullFace);
+					Gl.glDisable(Gl.GL_CULL_FACE);
 				}
 
 				if(type == CullType.TwoSided)
 				{
 					if(idE.Backend.ViewDefinition.IsMirror == true)
 					{
-						GL.CullFace(CullFaceMode.Front);
+						Gl.glCullFace(Gl.GL_FRONT);
 					}
 					else
 					{
-						GL.CullFace(CullFaceMode.Back);
+						Gl.glCullFace(Gl.GL_BACK);
 					}
 				}
 				else
 				{
 					if(idE.Backend.ViewDefinition.IsMirror == true)
 					{
-						GL.CullFace(CullFaceMode.Back);
+						Gl.glCullFace(Gl.GL_BACK);
 					}
 					else
 					{
-						GL.CullFace(CullFaceMode.Front);
+						Gl.glCullFace(Gl.GL_FRONT);
 					}
 				}
 			}
@@ -1524,8 +1560,8 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				GL.ActiveTexture(OpenTK.Graphics.OpenGL.TextureUnit.Texture0 + unit);
-				GL.ClientActiveTexture(OpenTK.Graphics.OpenGL.TextureUnit.Texture0 + unit);
+				Gl.glActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
+				Gl.glClientActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
 
 				// TODO: RB_LogComment("glActiveTextureARB( %i );\nglClientActiveTextureARB( %i );\n", unit, unit);
 
@@ -1540,8 +1576,8 @@ namespace idTech4.Renderer
 		private void GL_State(MaterialStates state)
 		{
 			MaterialStates diff;
-			BlendingFactorSrc srcFactor;
-			BlendingFactorDest dstFactor;
+			int srcFactor;
+			int dstFactor;
 
 			if((idE.CvarSystem.GetBool("r_useStateCaching") == false) || (idE.Backend.GLState.ForceState == true))
 			{
@@ -1567,15 +1603,15 @@ namespace idTech4.Renderer
 			{
 				if(state.HasFlag(MaterialStates.DepthFunctionEqual) == true)
 				{
-					GL.DepthFunc(DepthFunction.Equal);
+					Gl.glDepthFunc(Gl.GL_EQUAL);
 				}
 				else if(state.HasFlag(MaterialStates.DepthFunctionAlways) == true)
 				{
-					GL.DepthFunc(DepthFunction.Always);
+					Gl.glDepthFunc(Gl.GL_ALWAYS);
 				}
 				else
 				{
-					GL.DepthFunc(DepthFunction.Lequal);
+					Gl.glDepthFunc(Gl.GL_LEQUAL);
 				}
 			}
 
@@ -1587,34 +1623,34 @@ namespace idTech4.Renderer
 				switch(state & MaterialStates.SourceBlendBits)
 				{
 					case MaterialStates.SourceBlendZero:
-						srcFactor = BlendingFactorSrc.Zero;
+						srcFactor = Gl.GL_ZERO;
 						break;
 					case MaterialStates.SourceBlendOne:
-						srcFactor = BlendingFactorSrc.One;
+						srcFactor = Gl.GL_ONE;
 						break;
 					case MaterialStates.SourceBlendDestinationColor:
-						srcFactor = BlendingFactorSrc.DstColor;
+						srcFactor = Gl.GL_DST_COLOR;
 						break;
 					case MaterialStates.SourceBlendOneMinusDestinationColor:
-						srcFactor = BlendingFactorSrc.OneMinusDstColor;
+						srcFactor = Gl.GL_ONE_MINUS_DST_COLOR;
 						break;
 					case MaterialStates.SourceBlendSourceAlpha:
-						srcFactor = BlendingFactorSrc.SrcAlpha;
+						srcFactor = Gl.GL_SRC_ALPHA;
 						break;
 					case MaterialStates.SourceBlendOneMinusSourceAlpha:
-						srcFactor = BlendingFactorSrc.OneMinusSrcAlpha;
+						srcFactor = Gl.GL_ONE_MINUS_SRC_ALPHA;
 						break;
 					case MaterialStates.SourceBlendDestinationAlpha:
-						srcFactor = BlendingFactorSrc.DstAlpha;
+						srcFactor = Gl.GL_DST_ALPHA;
 						break;
 					case MaterialStates.SourceBlendOneMinusDestinationAlpha:
-						srcFactor = BlendingFactorSrc.OneMinusDstAlpha;
+						srcFactor = Gl.GL_ONE_MINUS_DST_ALPHA;
 						break;
 					case MaterialStates.SourceBlendAlphaSaturate:
-						srcFactor = BlendingFactorSrc.SrcAlphaSaturate;
+						srcFactor = Gl.GL_SRC_ALPHA_SATURATE;
 						break;
 					default:
-						srcFactor = BlendingFactorSrc.One; // to get warning to shut up
+						srcFactor = Gl.GL_ONE; // to get warning to shut up
 
 						idConsole.Error("GL_State: invalid src blend state bits");
 						break;
@@ -1623,37 +1659,37 @@ namespace idTech4.Renderer
 				switch(state & MaterialStates.DestinationBlendBits)
 				{
 					case MaterialStates.DestinationBlendZero:
-						dstFactor = BlendingFactorDest.Zero;
+						dstFactor = Gl.GL_ZERO;
 						break;
 					case MaterialStates.DestinationBlendOne:
-						dstFactor = BlendingFactorDest.One;
+						dstFactor = Gl.GL_ONE;
 						break;
 					case MaterialStates.DestinationBlendSourceColor:
-						dstFactor = BlendingFactorDest.SrcColor;
+						dstFactor = Gl.GL_SRC_COLOR;
 						break;
 					case MaterialStates.DestinationBlendOneMinusSourceColor:
-						dstFactor = BlendingFactorDest.OneMinusSrcColor;
+						dstFactor = Gl.GL_ONE_MINUS_SRC_COLOR;
 						break;
 					case MaterialStates.DestinationBlendSourceAlpha:
-						dstFactor = BlendingFactorDest.SrcAlpha;
+						dstFactor = Gl.GL_SRC_ALPHA;
 						break;
 					case MaterialStates.DestinationBlendOneMinusSourceAlpha:
-						dstFactor = BlendingFactorDest.OneMinusSrcAlpha;
+						dstFactor = Gl.GL_ONE_MINUS_SRC_ALPHA;
 						break;
 					case MaterialStates.DestinationBlendDestinationAlpha:
-						dstFactor = BlendingFactorDest.DstAlpha;
+						dstFactor = Gl.GL_DST_ALPHA;
 						break;
 					case MaterialStates.DestinationBlendOneMinusDestinationAlpha:
-						dstFactor = BlendingFactorDest.OneMinusDstAlpha;
+						dstFactor = Gl.GL_ONE_MINUS_DST_ALPHA;
 						break;
 					default:
-						dstFactor = BlendingFactorDest.One; // to get warning to shut up
+						dstFactor = Gl.GL_ONE; // to get warning to shut up
 
 						idConsole.Error("GL_State: invalid dst blend state bits");
 						break;
 				}
 
-				GL.BlendFunc(srcFactor, dstFactor);
+				Gl.glBlendFunc(srcFactor, dstFactor);
 			}
 
 			//
@@ -1663,11 +1699,11 @@ namespace idTech4.Renderer
 			{
 				if(state.HasFlag(MaterialStates.DepthMask) == true)
 				{
-					GL.DepthMask(false);
+					Gl.glDepthMask(Gl.GL_FALSE);
 				}
 				else
 				{
-					GL.DepthMask(true);
+					Gl.glDepthMask(Gl.GL_TRUE);
 				}
 			}
 
@@ -1676,12 +1712,12 @@ namespace idTech4.Renderer
 			//
 			if(diff.HasFlag(MaterialStates.RedMask | MaterialStates.GreenMask | MaterialStates.BlueMask | MaterialStates.AlphaMask) == true)
 			{
-				bool r = diff.HasFlag(MaterialStates.RedMask);
-				bool g = diff.HasFlag(MaterialStates.GreenMask);
-				bool b = diff.HasFlag(MaterialStates.BlueMask);
-				bool a = diff.HasFlag(MaterialStates.AlphaMask);
+				int r = (diff.HasFlag(MaterialStates.RedMask) == true) ? 1 : 0;
+				int g = (diff.HasFlag(MaterialStates.GreenMask) == true) ? 1 : 0;
+				int b = (diff.HasFlag(MaterialStates.BlueMask) == true) ? 1 : 0;
+				int a = (diff.HasFlag(MaterialStates.AlphaMask) == true) ? 1 : 0;
 
-				GL.ColorMask(r, g, b, a);
+				Gl.glColorMask(r, g, b, a);
 			}
 
 			//
@@ -1691,11 +1727,11 @@ namespace idTech4.Renderer
 			{
 				if(state.HasFlag(MaterialStates.PolygonModeLine) == true)
 				{
-					GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Line);
+					Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE);					
 				}
 				else
 				{
-					GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
+					Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
 				}
 			}
 
@@ -1707,22 +1743,22 @@ namespace idTech4.Renderer
 				switch(state & MaterialStates.AlphaTestBits)
 				{
 					case 0:
-						GL.Disable(EnableCap.AlphaTest);
+						Gl.glDisable(Gl.GL_ALPHA_TEST);
 						break;
 
 					case MaterialStates.AlphaTestEqual255:
-						GL.Enable(EnableCap.AlphaTest);
-						GL.AlphaFunc(AlphaFunction.Equal, 1.0f);
+						Gl.glEnable(Gl.GL_ALPHA_TEST);
+						Gl.glAlphaFunc(Gl.GL_EQUAL, 1.0f);
 						break;
 
 					case MaterialStates.AlphaTestLessThan128:
-						GL.Enable(EnableCap.AlphaTest);
-						GL.AlphaFunc(AlphaFunction.Less, 0.5f);
+						Gl.glEnable(Gl.GL_ALPHA_TEST);
+						Gl.glAlphaFunc(Gl.GL_LESS, 0.5f);
 						break;
 
 					case MaterialStates.AlphaTestGreaterOrEqual128:
-						GL.Enable(EnableCap.AlphaTest);
-						GL.AlphaFunc(AlphaFunction.Gequal, 0.5f);
+						Gl.glEnable(Gl.GL_ALPHA_TEST);
+						Gl.glAlphaFunc(Gl.GL_GEQUAL, 0.5f);
 						break;
 
 					default:
@@ -1744,12 +1780,12 @@ namespace idTech4.Renderer
 
 			switch(env)
 			{
-				case (int) All.CombineExt:
-				case (int) All.Modulate:
-				case (int) All.Replace:
-				case (int) All.Decal:
-				case (int) All.Add:
-					GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.TextureEnvMode, env);
+				case Gl.GL_COMBINE_EXT:
+				case Gl.GL_MODULATE:
+				case Gl.GL_REPLACE:
+				case Gl.GL_DECAL:
+				case Gl.GL_ADD:
+					Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, env);
 					break;
 				default:
 					idConsole.Error("GL_TexEnv: invalid env '{0}' passed\n", env);
@@ -2034,14 +2070,14 @@ namespace idTech4.Renderer
 			// TODO: soundSystem->InitHW();
 
 			// get our config strings
-			idE.GLConfig.Vendor = GL.GetString(StringName.Vendor);
-			idE.GLConfig.Renderer = GL.GetString(StringName.Renderer);
-			idE.GLConfig.Version = GL.GetString(StringName.Version);
+			idE.GLConfig.Vendor = Gl.glGetString(Gl.GL_VENDOR);
+			idE.GLConfig.Renderer = Gl.glGetString(Gl.GL_RENDERER);
+			idE.GLConfig.Version = Gl.glGetString(Gl.GL_VERSION);
 			idE.GLConfig.VersionF = new Version(idE.GLConfig.Version);
-			idE.GLConfig.Extensions = GL.GetString(StringName.Extensions);
+			idE.GLConfig.Extensions = Gl.glGetString(Gl.GL_EXTENSIONS);
 
 			// OpenGL driver constants
-			GL.GetInteger(GetPName.MaxTextureSize, out idE.GLConfig.MaxTextureSize);
+			Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_SIZE, out idE.GLConfig.MaxTextureSize);
 
 			// stubbed or broken drivers may have reported 0...
 			if(idE.GLConfig.MaxTextureSize <= 0)
@@ -2103,28 +2139,38 @@ namespace idTech4.Renderer
 		{
 			idConsole.WriteLine("Initializing OpenGL subsystem");
 
+			// check our desktop attributes
 			// TODO
-			/* = GetDC( GetDesktopWindow() );
-			win32.desktopBitsPixel = GetDeviceCaps( hDC, BITSPIXEL );
-			win32.desktopWidth = GetDeviceCaps( hDC, HORZRES );
-			win32.desktopHeight = GetDeviceCaps( hDC, VERTRES );
-			ReleaseDC( GetDesktopWindow(), hDC );
+			/*hDC = GetDC(GetDesktopWindow());
+			win32.desktopBitsPixel = GetDeviceCaps(hDC, BITSPIXEL);
+			win32.desktopWidth = GetDeviceCaps(hDC, HORZRES);
+			win32.desktopHeight = GetDeviceCaps(hDC, VERTRES);
+			ReleaseDC(GetDesktopWindow(), hDC);
 
 			// we can't run in a window unless it is 32 bpp
-			if ( win32.desktopBitsPixel < 32 && !parms.fullScreen ) {
+			if(win32.desktopBitsPixel < 32 && !parms.fullScreen)
+			{
 				common->Printf("^3Windowed mode requires 32 bit desktop depth^0\n");
 				return false;
-			}*/
+			}
 
 			// save the hardware gamma so it can be
 			// restored on exit
-			// TODO: GLimp_SaveGamma();*/
+			GLimp_SaveGamma();
 
-			idE.CvarSystem.SetModified("r_swapInterval");
+			// create our window classes if we haven't already
+			GLW_CreateWindowClasses();*/
 
+			// getting the wgl extensions involves creating a fake window to get a context,
+			// which is pretty disgusting, and seems to mess with the AGP VAR allocation
+			GetWGLExtensionsWithFakeWindow();
+
+			// TODO: fullscreen
 			// try to change to fullscreen
-			/* TODO: if ( parms.fullScreen ) {
-				if ( !GLW_SetFullScreen( parms ) ) {
+			/*if(parms.fullScreen)
+			{
+				if(!GLW_SetFullScreen(parms))
+				{
 					GLimp_Shutdown();
 					return false;
 				}
@@ -2134,12 +2180,14 @@ namespace idTech4.Renderer
 			// and init the renderer context
 			if(CreateOpenGLWindow(width, height, fullscreen, refreshRate, multiSamples, stereoMode) == false)
 			{
-				// TODO: ShutdownOpenGL();
+				// TODO: GLimp_Shutdown();
 				return false;
 			}
 
+			idE.CvarSystem.SetModified("r_swapInterval");
+
 			// check logging
-			// TODO: GLimp_EnableLogging( ( r_logFile.GetInteger() != 0 ) );*/
+			// TODO: GLimp_EnableLogging((r_logFile.GetInteger() != 0));
 
 			return true;
 		}
@@ -2203,7 +2251,7 @@ namespace idTech4.Renderer
 				// vertex and fragment programs can both be present in a single file, so
 				// scan for the proper header to be the start point, and stamp a 0 in after the end
 
-				if(prog.Target == (int) All.VertexProgramArb)
+				if(prog.Target == Gl.GL_VERTEX_PROGRAM_ARB)
 				{
 					if(idE.GLConfig.ArbVertexProgramAvailable == false)
 					{
@@ -2213,7 +2261,7 @@ namespace idTech4.Renderer
 
 					startOffset = buffer.IndexOf("!!ARBvp");
 				}
-				else if(prog.Target == (int) All.FragmentProgramArb)
+				else if(prog.Target == Gl.GL_FRAGMENT_PROGRAM_ARB)
 				{
 					if(idE.GLConfig.ArbFragmentProgramAvailable == false)
 					{
@@ -2240,25 +2288,23 @@ namespace idTech4.Renderer
 
 				endOffset += 3;
 
-				GL.Arb.BindProgram((AssemblyProgramTargetArb) prog.Target, prog.Type);
-				GL.GetError();
+				Gl.glBindProgramARB(prog.Target, prog.Type);
+				Gl.glGetError();
 
 				int progBufferLength = endOffset - startOffset;
 				byte[] progBuffer = new byte[progBufferLength];
 				Array.Copy(data, startOffset, progBuffer, 0, progBufferLength);
 
-				GL.Arb.ProgramString((AssemblyProgramTargetArb) prog.Target,
-					ArbVertexProgram.ProgramFormatAsciiArb, progBufferLength,
-					progBuffer);
+				Gl.glProgramStringARB(prog.Target, Gl.GL_PROGRAM_FORMAT_ASCII_ARB, progBufferLength, progBuffer);
 
-				ErrorCode error = GL.GetError();
+				int error = Gl.glGetError();
 				int programErrorPosition;
 
-				GL.GetInteger((GetPName) All.ProgramErrorPositionArb, out programErrorPosition);
+				Gl.glGetIntegerv(Gl.GL_PROGRAM_ERROR_POSITION_ARB, out programErrorPosition);
 
-				if(error == ErrorCode.InvalidOperation)
+				if(error == Gl.GL_INVALID_OPERATION)
 				{
-					string errorString = GL.GetString((StringName) All.ProgramErrorStringArb);
+					string errorString = Gl.glGetString(Gl.GL_PROGRAM_ERROR_STRING_ARB);
 
 					idConsole.WriteLine("{0}:", progPath);
 					idConsole.WriteLine("GL_PROGRAM_ERROR_STRING_ARB: {0}", errorString);
@@ -2297,8 +2343,8 @@ namespace idTech4.Renderer
 			// set privatePolygonOffset if necessary
 			if(stage.PrivatePolygonOffset > 0)
 			{
-				GL.Enable(EnableCap.PolygonOffsetFill);
-				GL.PolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * stage.PrivatePolygonOffset);
+				Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
+				Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * stage.PrivatePolygonOffset);
 			}
 
 			// set the texture matrix if needed
@@ -2503,7 +2549,7 @@ namespace idTech4.Renderer
 			{
 				idE.Backend.CurrentScissor = surface.ScissorRectangle;
 
-				GL.Scissor(idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
+				Gl.glScissor(idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
 					idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.CurrentScissor.Y1,
 					idE.Backend.CurrentScissor.X2 + 1 - idE.Backend.CurrentScissor.X1,
 					idE.Backend.CurrentScissor.Y2 + 1 - idE.Backend.CurrentScissor.Y1);
@@ -2530,8 +2576,8 @@ namespace idTech4.Renderer
 			// set polygon offset if necessary
 			if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
 			{
-				GL.Enable(EnableCap.PolygonOffsetFill);
-				GL.PolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * material.PolygonOffset);
+				Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
+				Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * material.PolygonOffset);
 			}
 
 			// TODO: weapon depth hack
@@ -2545,30 +2591,28 @@ namespace idTech4.Renderer
 
 			Vertex[] ambientCacheData = tri.AmbientCache.Data;
 
-			unsafe
+			// TODO: replace this with something permanent, just a test instead of using unsafe code
+			float[] v = new float[ambientCacheData.Length * 3];
+			float[] st = new float[ambientCacheData.Length * 2];
+
+			for(int i = 0; i < ambientCacheData.Length; i++)
 			{
-				// TODO: replace this with something permanent, just a test instead of using unsafe code
-				float[] v = new float[ambientCacheData.Length * 3];
-				float[] st = new float[ambientCacheData.Length * 2];
-
-				for(int i = 0; i < ambientCacheData.Length; i++)
-				{
-					v[(i * 3)] = ambientCacheData[i].Position[0];
-					v[(i * 3) + 1] = ambientCacheData[i].Position[1];
-					v[(i * 3) + 2] = ambientCacheData[i].Position[2];
-				}
-
-				for(int i = 0; i < ambientCacheData.Length; i++)
-				{
-					st[(i * 2)] = ambientCacheData[i].TextureCoordinates[0];
-					st[(i * 2) + 1] = ambientCacheData[i].TextureCoordinates[1];
-				}
-
-				//fixed(float* positionPtr = &ambientCacheData[0].Position[0])
-				GL.VertexPointer(3, VertexPointerType.Float, 0, v);
-				//fixed(float* uvPtr = &ambientCacheData[0].TextureCoordinates[0])
-				GL.TexCoordPointer(2, TexCoordPointerType.Float, 0, st);
+				v[(i * 3)] = ambientCacheData[i].Position[0];
+				v[(i * 3) + 1] = ambientCacheData[i].Position[1];
+				v[(i * 3) + 2] = ambientCacheData[i].Position[2];
 			}
+
+			for(int i = 0; i < ambientCacheData.Length; i++)
+			{
+				st[(i * 2)] = ambientCacheData[i].TextureCoordinates[0];
+				st[(i * 2) + 1] = ambientCacheData[i].TextureCoordinates[1];
+			}
+
+			//fixed(float* positionPtr = &ambientCacheData[0].Position[0])
+			Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, v);
+			//fixed(float* uvPtr = &ambientCacheData[0].TextureCoordinates[0])
+			Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, st);
+		
 
 			foreach(MaterialStage stage in material.Stages)
 			{
@@ -2612,10 +2656,10 @@ namespace idTech4.Renderer
 					Gl.glVertexAttribPointerARB(10, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[1].ToFloatPtr());
 					Gl.glNormalPointer(Gl.GL_FLOAT, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->normal.ToFloatPtr());*/
 
-					GL.EnableClientState(ArrayCap.ColorArray);
-					GL.EnableVertexAttribArray(9);
-					GL.EnableVertexAttribArray(10);
-					GL.EnableClientState(ArrayCap.NormalArray);
+					Gl.glEnableClientState(Gl.GL_COLOR_ARRAY);
+					Gl.glEnableVertexAttribArray(9);
+					Gl.glEnableVertexAttribArray(10);
+					Gl.glEnableClientState(Gl.GL_NORMAL_ARRAY);
 
 					GL_State(stage.DrawStateBits);
 
@@ -2640,7 +2684,7 @@ namespace idTech4.Renderer
 						parm[2] = registers[newStage.VertexParameters[i, 2]];
 						parm[3] = registers[newStage.VertexParameters[i, 3]];
 
-						GL.Arb.ProgramLocalParameter4(AssemblyProgramTargetArb.VertexProgram, i, parm);
+						Gl.glProgramLocalParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, i, parm);
 					}
 
 					for(int i = 0; i < newStage.FragmentProgramImages.Length; i++)
@@ -2652,9 +2696,8 @@ namespace idTech4.Renderer
 						}
 					}
 
-					idConsole.Write("TODO: glBindProgramARB");
-					GL.Arb.BindProgram(AssemblyProgramTargetArb.FragmentProgram, newStage.FragmentProgram);
-					GL.Enable((EnableCap) All.FragmentProgramArb);
+					Gl.glBindProgramARB(Gl.GL_FRAGMENT_PROGRAM_ARB, newStage.FragmentProgram);
+					Gl.glEnable(Gl.GL_FRAGMENT_PROGRAM_ARB);
 
 					// draw it
 					DrawElementsWithCounters(tri);
@@ -2675,15 +2718,15 @@ namespace idTech4.Renderer
 
 					GL_SelectTexture(0);
 
-					GL.Disable((EnableCap) All.VertexProgramArb);
-					GL.Disable((EnableCap) All.FragmentProgramArb);
-					// FIXME: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
-					GL.Arb.BindProgram(AssemblyProgramTargetArb.VertexProgram, 0);
+					Gl.glDisable(Gl.GL_VERTEX_PROGRAM_ARB);
+					Gl.glDisable(Gl.GL_FRAGMENT_PROGRAM_ARB);
+					// Fixme: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
+					Gl.glBindProgramARB(Gl.GL_VERTEX_PROGRAM_ARB, 0);
 
-					GL.DisableClientState(ArrayCap.ColorArray);
-					GL.Arb.DisableVertexAttribArray(9);
-					GL.Arb.DisableVertexAttribArray(10);
-					GL.DisableClientState(ArrayCap.NormalArray);
+					Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
+					Gl.glDisableVertexAttribArrayARB(9);
+					Gl.glDisableVertexAttribArrayARB(10);
+					Gl.glDisableClientState(Gl.GL_NORMAL_ARRAY);
 
 					continue;
 				}
@@ -2718,26 +2761,23 @@ namespace idTech4.Renderer
 				// select the vertex color source
 				if(stage.VertexColor == StageVertexColor.Ignore)
 				{
-					GL.Color4(color);
+					Gl.glColor4fv(color);
 				}
 				else
 				{
-					unsafe
+					byte[] c = new byte[ambientCacheData.Length * 4];
+
+					for(int i = 0; i < ambientCacheData.Length; i++)
 					{
-						byte[] c = new byte[ambientCacheData.Length * 4];
-
-						for(int i = 0; i < ambientCacheData.Length; i++)
-						{
-							c[(i * 4)] = ambientCacheData[i].Color[0];
-							c[(i * 4) + 1] = ambientCacheData[i].Color[1];
-							c[(i * 4) + 2] = ambientCacheData[i].Color[2];
-							c[(i * 4) + 3] = ambientCacheData[i].Color[3];
-						}
-						//fixed(byte* colorPtr = &ambientCacheData[0].Color[0])
-						GL.ColorPointer(4, ColorPointerType.UnsignedByte, 0, c);
+						c[(i * 4)] = ambientCacheData[i].Color[0];
+						c[(i * 4) + 1] = ambientCacheData[i].Color[1];
+						c[(i * 4) + 2] = ambientCacheData[i].Color[2];
+						c[(i * 4) + 3] = ambientCacheData[i].Color[3];
 					}
-
-					GL.EnableClientState(ArrayCap.ColorArray);
+					
+					//fixed(byte* colorPtr = &ambientCacheData[0].Color[0])
+					Gl.glColorPointer(4, Gl.GL_UNSIGNED_BYTE, 0, c);
+					Gl.glEnableClientState(Gl.GL_COLOR_ARRAY);
 
 					if(stage.VertexColor == StageVertexColor.InverseModulate)
 					{
@@ -2811,7 +2851,7 @@ namespace idTech4.Renderer
 			// reset polygon offset
 			if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
 			{
-				GL.Disable(EnableCap.PolygonOffsetFill);
+				Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
 			}
 
 			// TODO: weapon depth hack
@@ -2943,13 +2983,13 @@ namespace idTech4.Renderer
 			// see which draw buffer we want to render the frame to
 			idE.Backend.FrameCount = cmd.FrameCount;
 
-			GL.DrawBuffer(cmd.Buffer);
+			Gl.glDrawBuffer(cmd.Buffer);
 
 			// clear screen for debugging
 			// automatically enable this with several other debug tools
 			// that might leave unrendered portions of the screen
 
-			if((idE.CvarSystem.GetFloat("r_clear") > 0) 
+			if((idE.CvarSystem.GetFloat("r_clear") > 0)
 				|| (idE.CvarSystem.GetString("r_clear").Length != 1)
 				|| (idE.CvarSystem.GetBool("r_lockSurfaces") == true)
 				|| (idE.CvarSystem.GetBool("r_singleArea") == true)
@@ -2964,22 +3004,22 @@ namespace idTech4.Renderer
 					float.TryParse(parts[1], out color[1]);
 					float.TryParse(parts[2], out color[2]);
 
-					GL.ClearColor(color[0], color[1], color[2], 1.0f);
+					Gl.glClearColor(color[0], color[1], color[2], 1);
 				}
 				else if(idE.CvarSystem.GetInteger("r_clear") == 2)
 				{
-					GL.ClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+					Gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 				}
 				else if(idE.CvarSystem.GetBool("r_showOverDraw") == true)
 				{
-					GL.ClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+					Gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
 				}
 				else
 				{
-					GL.ClearColor(0.4f, 0.0f, 0.25f, 1.0f);
+					Gl.glClearColor(0.4f, 0.0f, 0.25f, 1.0f);
 				}
-			
-				GL.Clear(ClearBufferMask.ColorBufferBit);
+
+				Gl.glClear(Gl.GL_COLOR_BUFFER_BIT);
 			}
 		}
 
@@ -3031,13 +3071,13 @@ namespace idTech4.Renderer
 		{
 			// TODO: RB_LogComment("--- R_SetDefaultGLState ---\n");
 
-			GL.ClearDepth(1.0f);
-			GL.Color4(1, 1, 1, 1);
+			Gl.glClearDepth(1.0f);
+			Gl.glColor4f(1, 1, 1, 1);
 
 			// the vertex array is always enabled
-			GL.EnableClientState(ArrayCap.VertexArray);
-			GL.EnableClientState(ArrayCap.TextureCoordArray);
-			GL.DisableClientState(ArrayCap.ColorArray);
+			Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+			Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+			Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
 
 			//
 			// make sure our GL state vector is set correctly
@@ -3045,26 +3085,26 @@ namespace idTech4.Renderer
 			idE.Backend.GLState = new GLState();
 			idE.Backend.GLState.ForceState = true;
 
-			GL.ColorMask(true, true, true, true);
+			Gl.glColorMask(1, 1, 1, 1);
 
-			GL.Enable(EnableCap.DepthTest);
-			GL.Enable(EnableCap.Blend);
-			GL.Enable(EnableCap.ScissorTest);
-			GL.Enable(EnableCap.CullFace);
-			GL.Disable(EnableCap.Lighting);
-			GL.Disable(EnableCap.LineStipple);
-			GL.Disable(EnableCap.StencilTest);
+			Gl.glEnable(Gl.GL_DEPTH_TEST);
+			Gl.glEnable(Gl.GL_BLEND);
+			Gl.glEnable(Gl.GL_SCISSOR_TEST);
+			Gl.glEnable(Gl.GL_CULL_FACE);
+			Gl.glDisable(Gl.GL_LIGHTING);
+			Gl.glDisable(Gl.GL_LINE_STIPPLE);
+			Gl.glDisable(Gl.GL_STENCIL_TEST);
 
-			GL.PolygonMode(MaterialFace.FrontAndBack, PolygonMode.Fill);
-			GL.DepthMask(true);
-			GL.DepthFunc(DepthFunction.Always);
+			Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
+			Gl.glDepthMask(Gl.GL_TRUE);
+			Gl.glDepthFunc(Gl.GL_ALWAYS);
 
-			GL.CullFace(CullFaceMode.FrontAndBack);
-			GL.ShadeModel(ShadingModel.Smooth);
+			Gl.glCullFace(Gl.GL_FRONT_AND_BACK);
+			Gl.glShadeModel(Gl.GL_SMOOTH);
 
 			if(idE.CvarSystem.GetBool("r_useScissor") == true)
 			{
-				GL.Scissor(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
+				Gl.glScissor(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
 			}
 
 			for(int i = idE.GLConfig.MaxTextureUnits - 1; i >= 0; i--)
@@ -3072,22 +3112,22 @@ namespace idTech4.Renderer
 				GL_SelectTexture(i);
 
 				// object linear texgen is our default
-				GL.TexGen(TextureCoordName.S, TextureGenParameter.TextureGenMode, (int) All.ObjectLinear);
-				GL.TexGen(TextureCoordName.T, TextureGenParameter.TextureGenMode, (int) All.ObjectLinear);
-				GL.TexGen(TextureCoordName.R, TextureGenParameter.TextureGenMode, (int) All.ObjectLinear);
-				GL.TexGen(TextureCoordName.Q, TextureGenParameter.TextureGenMode, (int) All.ObjectLinear);
+				Gl.glTexGenf(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				Gl.glTexGenf(Gl.GL_T, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				Gl.glTexGenf(Gl.GL_R, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				Gl.glTexGenf(Gl.GL_Q, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
 
-				GL_TextureEnvironment((int) All.Modulate);
-				GL.Disable(EnableCap.Texture2D);
+				GL_TextureEnvironment(Gl.GL_MODULATE);
+				Gl.glDisable(Gl.GL_TEXTURE_2D);
 
 				if(idE.GLConfig.Texture3DAvailable == true)
 				{
-					GL.Disable(EnableCap.Texture3DExt);
+					Gl.glDisable(Gl.GL_TEXTURE_3D);
 				}
 
 				if(idE.GLConfig.CubeMapAvailable == true)
 				{
-					GL.Disable(EnableCap.TextureCubeMap);
+					Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
 				}
 			}
 		}
@@ -3160,7 +3200,7 @@ namespace idTech4.Renderer
 			// force a gl sync if requested
 			if(idE.CvarSystem.GetBool("r_finish") == true)
 			{
-				GL.Finish();
+				Gl.glFinish();
 			}
 
 			// TODO: RB_LogComment("***************** RB_SwapBuffers *****************\n\n\n");
@@ -3177,11 +3217,11 @@ namespace idTech4.Renderer
 					idE.CvarSystem.ClearModified("r_swapInterval");
 
 					idConsole.WriteLine("TODO: r_swapInterval");
-					
+
 					// Wgl.wglSwapIntervalEXT(idE.CvarSystem.GetInteger("r_swapInterval"));
 				}
 
-				_renderForm.SwapBuffers();
+				_renderControl.SwapBuffers();
 			}
 		}
 
@@ -3219,7 +3259,7 @@ namespace idTech4.Renderer
 
 		private void UnbindIndex()
 		{
-			GL.BindBuffer(BufferTarget.ArrayBuffer, 0);
+			Gl.glBindBufferARB(Gl.GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 		}
 		#endregion
 
@@ -3241,7 +3281,7 @@ namespace idTech4.Renderer
 				table[2, i] = blue[i];
 			}
 
-			// TODO: SetDeviceGammaRamp
+			idConsole.WriteLine("TODO: SetDeviceGammaRamp");
 			/*if ( !SetDeviceGammaRamp( win32.hDC, table ) ) {
 				common->Printf( "WARNING: SetDeviceGammaRamp failed.\n" );
 			}*/
@@ -3273,8 +3313,8 @@ namespace idTech4.Renderer
 			parameters[2] = 0;
 			parameters[3] = 1;
 
-			GL.Arb.ProgramEnvParameter4(AssemblyProgramTargetArb.VertexProgram, 0, parameters);
-			GL.Arb.ProgramEnvParameter4(AssemblyProgramTargetArb.FragmentProgram, 0, parameters);
+			Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 0, parameters);
+			Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 0, parameters);
 
 			// window coord to 0.0 to 1.0 conversion
 			parameters[0] = 1.0f / width;
@@ -3282,7 +3322,7 @@ namespace idTech4.Renderer
 			parameters[2] = 0;
 			parameters[3] = 1;
 
-			GL.Arb.ProgramEnvParameter4(AssemblyProgramTargetArb.FragmentProgram, 1, parameters);
+			Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 1, parameters);
 
 			//
 			// set eye position in global space
@@ -3292,7 +3332,7 @@ namespace idTech4.Renderer
 			parameters[2] = idE.Backend.ViewDefinition.RenderView.ViewOrigin.Z;
 			parameters[3] = 1.0f;
 
-			GL.Arb.ProgramEnvParameter4(AssemblyProgramTargetArb.VertexProgram, 1, parameters);
+			Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 1, parameters);
 		}
 		#endregion
 
@@ -3319,27 +3359,27 @@ namespace idTech4.Renderer
 				CheckOpenGLErrors();
 
 				// create our "fragment program" display lists
-				_fragmentDisplayListBase = GL.GenLists((int) FragmentProgram.Count);
+				_fragmentDisplayListBase = Gl.glGenLists((int) FragmentProgram.Count);
 
 				// force them to issue commands to build the list
 				bool temp = idE.CvarSystem.GetBool("r_useCombinerDisplayLists");
 				idE.CvarSystem.SetBool("r_useCombinerDisplayLists", false);
 
-				GL.NewList(_fragmentDisplayListBase + (int) FragmentProgram.BumpAndLight, ListMode.Compile);
+				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.BumpAndLight, Gl.GL_COMPILE);
 				NV20_BumpAndLightFragment();
-				GL.EndList();
+				Gl.glEndList();
 
-				GL.NewList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseColor, ListMode.Compile);
+				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseColor, Gl.GL_COMPILE);
 				NV20_DiffuseColorFragment();
-				GL.EndList();
+				Gl.glEndList();
 
-				GL.NewList(_fragmentDisplayListBase + (int) FragmentProgram.SpecularColor, ListMode.Compile);
+				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.SpecularColor, Gl.GL_COMPILE);
 				NV20_SpecularColorFragment();
-				GL.EndList();
+				Gl.glEndList();
 
-				GL.NewList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseAndSpecularColor, ListMode.Compile);
+				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseAndSpecularColor, Gl.GL_COMPILE);
 				NV20_DiffuseAndSpecularColorFragment();
-				GL.EndList();
+				Gl.glEndList();
 
 				idE.CvarSystem.SetBool("r_useCombinerDisplayLists", temp);
 
@@ -3353,66 +3393,67 @@ namespace idTech4.Renderer
 		{
 			if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
 			{
-				GL.CallList(_fragmentDisplayListBase + (int) FragmentProgram.BumpAndLight);
+				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.BumpAndLight);
 			}
 			else
 			{
 				// program the nvidia register combiners
-				GL.NV.CombinerParameter(NvRegisterCombiners.NumGeneralCombinersNv, 3);
+				Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 3);
 
 				// stage 0 rgb performs the dot product
 				// SPARE0 = TEXTURE0 dot TEXTURE1
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv, 
-					NvRegisterCombiners.Texture1Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv, 
-					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb,
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, true, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_TEXTURE1_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_TEXTURE0_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
+					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_TRUE, Gl.GL_FALSE, Gl.GL_FALSE);
+
 
 				// stage 1 rgb multiplies texture 2 and 3 together
 				// SPARE1 = TEXTURE2 * TEXTURE3
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv, 
-					(NvRegisterCombiners) All.Texture2Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv, 
-					(NvRegisterCombiners) All.Texture3Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb,
-					NvRegisterCombiners.Spare1Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_TEXTURE2_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_TEXTURE3_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB,
+					Gl.GL_SPARE1_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// stage 1 alpha does nohing
 
 				// stage 2 color multiplies spare0 * spare 1 just for debugging
 				// SPARE0 = SPARE0 * SPARE1
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
-					NvRegisterCombiners.Spare1Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb,
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_SPARE1_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB,
+					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// stage 2 alpha multiples spare0 * spare 1
 				// SPARE0 = SPARE0 * SPARE1
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Alpha, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Blue);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Alpha, NvRegisterCombiners.VariableBNv,
-					NvRegisterCombiners.Spare1Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Blue);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Alpha,
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_ALPHA, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_BLUE);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_ALPHA, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_SPARE1_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_BLUE);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_ALPHA,
+					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// final combiner
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableDNv, NvRegisterCombiners.Spare0Nv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableANv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableBNv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableCNv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableGNv, NvRegisterCombiners.Spare0Nv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Alpha);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_SPARE0_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_SPARE0_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
 			}
 		}
 
@@ -3420,12 +3461,12 @@ namespace idTech4.Renderer
 		{
 			if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
 			{
-				GL.CallList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseAndSpecularColor);
+				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseAndSpecularColor);
 			}
 			else
 			{
 				// program the nvidia register combiners
-				GL.NV.CombinerParameter(NvRegisterCombiners.NumGeneralCombinersNv, 3);
+				Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 3);
 
 				// GL_CONSTANT_COLOR0_NV will be the diffuse color
 				// GL_CONSTANT_COLOR1_NV will be the specular color
@@ -3433,62 +3474,62 @@ namespace idTech4.Renderer
 				// stage 0 rgb performs the dot product
 				// GL_SECONDARY_COLOR_NV = ( TEXTURE0 dot TEXTURE1 - 0.5 ) * 2
 				// the scale and bias steepen the specular curve
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.Texture1Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
-					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb,
-					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					NvRegisterCombiners.ScaleByTwoNv, NvRegisterCombiners.BiasByNegativeOneHalfNv, true, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_TEXTURE1_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_TEXTURE0_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
+					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_TRUE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// stage 0 alpha does nothing
 
 				// stage 1 color takes bump * bump
 				// PRIMARY_COLOR = ( GL_SECONDARY_COLOR_NV * GL_SECONDARY_COLOR_NV - 0.5 ) * 2
 				// the scale and bias steepen the specular curve
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
-					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb,
-					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					NvRegisterCombiners.ScaleByTwoNv, NvRegisterCombiners.BiasByNegativeOneHalfNv, false, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB,
+					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// stage 1 alpha does nothing
 
 				// stage 2 color
 				// PRIMARY_COLOR = ( PRIMARY_COLOR * TEXTURE3 ) * 2
 				// SPARE0 = 1.0 * 1.0 (needed for final combiner)
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
-					(NvRegisterCombiners) All.Texture3Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableCNv,
-					(NvRegisterCombiners) All.Zero, NvRegisterCombiners.UnsignedInvertNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableDNv,
-					(NvRegisterCombiners) All.Zero, NvRegisterCombiners.UnsignedInvertNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb,
-					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv,
-					NvRegisterCombiners.ScaleByTwoNv, (NvRegisterCombiners) All.None, false, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_TEXTURE3_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_C_NV,
+					Gl.GL_ZERO, Gl.GL_UNSIGNED_INVERT_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_D_NV,
+					Gl.GL_ZERO, Gl.GL_UNSIGNED_INVERT_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB,
+					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// stage 2 alpha does nothing
 
 				// final combiner = TEXTURE2_ARB * CONSTANT_COLOR0_NV + PRIMARY_COLOR_NV * CONSTANT_COLOR1_NV
 				// alpha = GL_ZERO
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableANv, NvRegisterCombiners.ConstantColor1Nv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableBNv, NvRegisterCombiners.SecondaryColorNv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableCNv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableDNv, NvRegisterCombiners.ETimesFNv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableENv, (NvRegisterCombiners) All.Texture2Arb,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableFNv, NvRegisterCombiners.ConstantColor0Nv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableGNv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Alpha);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_CONSTANT_COLOR1_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_SECONDARY_COLOR_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_E_TIMES_F_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_E_NV, Gl.GL_TEXTURE2_ARB,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_F_NV, Gl.GL_CONSTANT_COLOR0_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
 			}
 		}
 
@@ -3496,42 +3537,42 @@ namespace idTech4.Renderer
 		{
 			if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
 			{
-				GL.CallList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseColor);
+				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseColor);
 			}
 			else
 			{
 				// program the nvidia register combiners
-				GL.NV.CombinerParameter(NvRegisterCombiners.NumGeneralCombinersNv, 1);
+				Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 1);
 
 				// stage 0 is free, so we always do the multiply of the vertex color
 				// when the vertex color is inverted, Gl.glCombinerInputNV(GL_VARIABLE_B_NV) will be changed
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
-					NvRegisterCombiners.PrimaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb,
-					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_TEXTURE0_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_PRIMARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
+					Gl.GL_TEXTURE0_ARB, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Alpha,
-					NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
-				
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_ALPHA,
+					Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
+
 				// for GL_CONSTANT_COLOR0_NV * TEXTURE0 * TEXTURE1
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableANv, NvRegisterCombiners.ConstantColor0Nv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableBNv, NvRegisterCombiners.ETimesFNv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableCNv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableDNv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableENv, NvRegisterCombiners.Texture0Arb,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableFNv, NvRegisterCombiners.Texture1Arb,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableGNv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Alpha);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_CONSTANT_COLOR0_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_E_TIMES_F_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_E_NV, Gl.GL_TEXTURE0_ARB,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_F_NV, Gl.GL_TEXTURE1_ARB,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
 			}
 		}
 
@@ -3539,12 +3580,12 @@ namespace idTech4.Renderer
 		{
 			if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
 			{
-				GL.CallList(_fragmentDisplayListBase + (int) FragmentProgram.SpecularColor);
+				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.SpecularColor);
 			}
 			else
 			{
 				// program the nvidia register combiners
-				GL.NV.CombinerParameter(NvRegisterCombiners.NumGeneralCombinersNv, 4);
+				Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 4);
 
 				// we want GL_CONSTANT_COLOR1_NV * PRIMARY_COLOR * TEXTURE2 * TEXTURE3 * specular( TEXTURE0 * TEXTURE1 )
 
@@ -3552,72 +3593,73 @@ namespace idTech4.Renderer
 				// GL_SPARE0_NV = ( TEXTURE0 dot TEXTURE1 - 0.5 ) * 2
 				// TEXTURE2 = TEXTURE2 * PRIMARY_COLOR
 				// the scale and bias steepen the specular curve
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.Texture1Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
-					NvRegisterCombiners.Texture0Arb, NvRegisterCombiners.ExpandNormalNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner0Nv, (NvRegisterCombiners) All.Rgb, 
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					NvRegisterCombiners.ScaleByTwoNv, NvRegisterCombiners.BiasByNegativeOneHalfNv, true, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_TEXTURE1_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_TEXTURE0_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
+					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_TRUE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// stage 0 alpha does nothing
 
 				// stage 1 color takes bump * bump
 				// GL_SPARE0_NV = ( GL_SPARE0_NV * GL_SPARE0_NV - 0.5 ) * 2
 				// the scale and bias steepen the specular curve
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner1Nv, (NvRegisterCombiners) All.Rgb, 
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					NvRegisterCombiners.ScaleByTwoNv, NvRegisterCombiners.BiasByNegativeOneHalfNv, false, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB,
+					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// stage 1 alpha does nothing
 
 				// stage 2 color
 				// GL_SPARE0_NV = GL_SPARE0_NV * TEXTURE3
 				// SECONDARY_COLOR = CONSTANT_COLOR * TEXTURE2
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
-					(NvRegisterCombiners) All.Texture3Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableCNv,
-					NvRegisterCombiners.ConstantColor1Nv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableDNv,
-					(NvRegisterCombiners) All.Texture2Arb, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner2Nv, (NvRegisterCombiners) All.Rgb,
-					NvRegisterCombiners.Spare0Nv, NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.DiscardNv,
-					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_TEXTURE3_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_C_NV,
+					Gl.GL_CONSTANT_COLOR1_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_D_NV,
+					Gl.GL_TEXTURE2_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB,
+					Gl.GL_SPARE0_NV, Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// stage 2 alpha does nothing
 
+
 				// stage 3 scales the texture by the vertex color
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner3Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableANv,
-					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerInput(NvRegisterCombiners.Combiner3Nv, (NvRegisterCombiners) All.Rgb, NvRegisterCombiners.VariableBNv,
-					NvRegisterCombiners.PrimaryColorNv, NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.CombinerOutput(NvRegisterCombiners.Combiner3Nv, (NvRegisterCombiners) All.Rgb,
-					NvRegisterCombiners.SecondaryColorNv, NvRegisterCombiners.DiscardNv, NvRegisterCombiners.DiscardNv,
-					(NvRegisterCombiners) All.None, (NvRegisterCombiners) All.None, false, false, false);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER3_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
+					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerInputNV(Gl.GL_COMBINER3_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
+					Gl.GL_PRIMARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glCombinerOutputNV(Gl.GL_COMBINER3_NV, Gl.GL_RGB,
+					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
+					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
 
 				// stage 3 alpha does nothing
 
 				// final combiner = GL_SPARE0_NV * SECONDARY_COLOR + PRIMARY_COLOR * SECONDARY_COLOR
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableANv, NvRegisterCombiners.Spare0Nv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableBNv, NvRegisterCombiners.SecondaryColorNv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableCNv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableDNv, NvRegisterCombiners.ETimesFNv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableENv, NvRegisterCombiners.Spare0Nv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableFNv, NvRegisterCombiners.SecondaryColorNv,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Rgb);
-				GL.NV.FinalCombinerInput(NvRegisterCombiners.VariableGNv, (NvRegisterCombiners) All.Zero,
-					NvRegisterCombiners.UnsignedIdentityNv, (NvRegisterCombiners) All.Alpha);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_SPARE0_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_SECONDARY_COLOR_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_E_TIMES_F_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_E_NV, Gl.GL_SPARE0_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_F_NV, Gl.GL_SECONDARY_COLOR_NV,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
+				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
+					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
 			}
 		}
 		#endregion
@@ -4302,7 +4344,7 @@ namespace idTech4.Renderer
 
 	internal sealed class SetBufferRenderCommand : RenderCommand
 	{
-		public DrawBufferMode Buffer;
+		public int Buffer;
 		public int FrameCount;
 
 		#region Constructor

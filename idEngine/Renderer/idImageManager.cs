@@ -36,7 +36,7 @@ using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 
 using Tao.DevIl;
-using OpenTK.Graphics.OpenGL;
+using Tao.OpenGl;
 
 using idTech4.IO;
 using idTech4.Text;
@@ -77,7 +77,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public TextureMagFilter MaxTextureFilter
+		public int MaxTextureFilter
 		{
 			get
 			{
@@ -85,7 +85,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public TextureMinFilter MinTextureFilter
+		public int MinTextureFilter
 		{
 			get
 			{
@@ -146,8 +146,8 @@ namespace idTech4.Renderer
 		private idImage _borderClampImage;				// white inside, black outside
 
 		// default filter modes for images
-		private TextureMinFilter _textureMinFilter;
-		private TextureMagFilter _textureMaxFilter;
+		private int _textureMinFilter;
+		private int _textureMaxFilter;
 		private float _textureAnisotropy;
 		private float _textureLODBias;
 
@@ -164,6 +164,21 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region Public
+		/// <summary>
+		/// Finds or loads the given image, always returning a valid image pointer.
+		/// Loading of the image may be deferred for dynamic loading.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="filter"></param>
+		/// <param name="allowDownSize"></param>
+		/// <param name="repeat"></param>
+		/// <param name="depth"></param>
+		/// <returns></returns>
+		public idImage ImageFromFile(string name, TextureFilter filter, bool allowDownSize, TextureRepeat repeat, TextureDepth depth)
+		{
+			return ImageFromFile(name, filter, allowDownSize, repeat, depth, CubeFiles.TwoD);
+		}
+
 		/// <summary>
 		/// Finds or loads the given image, always returning a valid image pointer.
 		/// Loading of the image may be deferred for dynamic loading.
@@ -254,7 +269,7 @@ namespace idTech4.Renderer
 					}
 
 					image.AllowDownSize = allowDownSize;
-					image.UploadDepth = depth;
+					image.Depth = depth;
 					image.LevelLoadReferenced = true;
 
 					if(image.PartialImage != null)
@@ -357,15 +372,15 @@ namespace idTech4.Renderer
 
 			if(unit.Type == TextureType.Cubic)
 			{
-				GL.Disable(EnableCap.TextureCubeMap);
+				Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
 			}
 			else if(unit.Type == TextureType.ThreeD)
 			{
-				GL.Disable(EnableCap.Texture3DExt);
+				Gl.glDisable(Gl.GL_TEXTURE_3D);
 			}
 			else if(unit.Type == TextureType.TwoD)
 			{
-				GL.Disable(EnableCap.Texture2D);
+				Gl.glDisable(Gl.GL_TEXTURE_2D);
 			}
 
 			unit.Type = TextureType.Disabled;
@@ -404,6 +419,51 @@ namespace idTech4.Renderer
 			}
 
 			_textureLODBias = idE.CvarSystem.GetFloat("image_lodbias");
+
+			// change all the existing mipmap texture objects with default filtering
+			foreach(idImage image in _images)
+			{
+				int texEnum = Gl.GL_TEXTURE_2D;
+
+				switch(image.Type)
+				{
+					case TextureType.TwoD:
+						texEnum = Gl.GL_TEXTURE_2D;
+						break;
+
+					case TextureType.ThreeD:
+						texEnum = Gl.GL_TEXTURE_3D;
+						break;
+
+					case TextureType.Cubic:
+						texEnum = Gl.GL_TEXTURE_CUBE_MAP_EXT;
+						break;
+				}
+
+				// make sure we don't start a background load
+				if(image.IsLoaded == false)
+				{
+					continue;
+				}
+
+				image.Bind();
+
+				if(image.Filter == TextureFilter.Default)
+				{
+					Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MIN_FILTER, _textureMinFilter);
+					Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MAG_FILTER, _textureMaxFilter);
+				}
+
+				if(idE.GLConfig.AnisotropicAvailable == true)
+				{
+					Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, this.TextureAnisotropy);
+				}
+
+				if(idE.GLConfig.TextureLodBiasAvailable == true)
+				{
+					Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_LOD_BIAS_EXT, this.TextureLodBias);
+				}
+			}
 		}
 
 		public void CompleteBackgroundLoading()
@@ -423,7 +483,7 @@ namespace idTech4.Renderer
 					backgroundDownload.Stream = null;
 
 					// upload the image
-					idConsole.Write("image.UploadPrecompressedImage");
+					idConsole.Write("TODO: image.UploadPrecompressedImage");
 					/*image->UploadPrecompressedImage( (byte *)image->bgl.file.buffer, image->bgl.file.length );
 					R_StaticFree( image->bgl.file.buffer );*/
 
@@ -458,11 +518,11 @@ namespace idTech4.Renderer
 
 			// create built in images
 			_defaultImage = LoadFromCallback("_default", GenerateDefaultImage);
-			/*_whiteImage = LoadFromCallback("_white", GenerateWhiteImage);
+			_whiteImage = LoadFromCallback("_white", GenerateWhiteImage);
 			_blackImage = LoadFromCallback("_black", GenerateBlackImage);
 			_borderClampImage = LoadFromCallback("_borderClamp", GenerateBorderClampImage);
-			_flatNormalMap = LoadFromCallback("_flat", GenerateFlatNormalImage);
-			_ambientNormalMap = LoadFromCallback("_ambient", GenerateAmbientNormalImage);
+			// TODO: _flatNormalMap = LoadFromCallback("_flat", GenerateFlatNormalImage);
+			// TODO: _ambientNormalMap = LoadFromCallback("_ambient", GenerateAmbientNormalImage);
 			_specularTableImage = LoadFromCallback("_specularTable", GenerateSpecularTableImage);
 			_specular2DTableImage = LoadFromCallback("_specular2DTable", GenerateSpecular2DTableImage);
 			_rampImage = LoadFromCallback("_ramp", GenerateRampImage);
@@ -470,7 +530,7 @@ namespace idTech4.Renderer
 			_alphaNotchImage = LoadFromCallback("_alphaNotch", GenerateAlphaNotchImage);
 			_fogImage = LoadFromCallback("_fog", GenerateFogImage);
 			_fogEnterImage = LoadFromCallback("_fogEnter", GenerateFogEnterImage);
-			// TODO: _normalCubeMapImage = LoadFromCallback("_normalCubeMap", makeNormalizeVectorCubeMap);
+			// TODO: _normalCubeMapImage = LoadFromCallback("_normalCubeMap", makeNormalizeVectorCubeMap);*/
 			_noFalloffImage = LoadFromCallback("_noFalloff", GenerateNoFalloffImage);
 
 			LoadFromCallback("_quadratic", GenerateQuadraticImage);
@@ -600,8 +660,7 @@ namespace idTech4.Renderer
 		public void ReloadImages()
 		{
 			// build the compressed normal map palette
-			idConsole.WriteLine("TODO: SetNormalPalette();");
-
+			SetNormalPalette();
 			Cmd_ReloadImages(this, new CommandEventArgs(new idCmdArgs("reloadImages reload", false)));
 		}
 
@@ -647,7 +706,7 @@ namespace idTech4.Renderer
 			int rowOffset, rowOffset2;
 			int resampledOffset = 0;
 
-			for(int i = 0;  i < scaledWidth; i++)
+			for(int i = 0; i < scaledWidth; i++)
 			{
 				p1[i] = 4 * (frac >> 16);
 				frac += fracStep;
@@ -680,7 +739,7 @@ namespace idTech4.Renderer
 					resampledData[resampledOffset + (j * 4 + 3)] = (byte) ((data[pix1 + 3] + data[pix2 + 3] + data[pix3 + 3] + data[pix4 + 3]) >> 2);
 				}
 			}
-			
+
 			return resampledData;
 		}
 		#endregion
@@ -708,7 +767,10 @@ namespace idTech4.Renderer
 
 			for(int i = 0; i < 6; i++)
 			{
-				// TODO: pics[i] = data[0, 0];
+				pics[i, 0] = data[0, 0, 0];
+				pics[i, 1] = data[0, 0, 1];
+				pics[i, 2] = data[0, 0, 2];
+				pics[i, 3] = data[0, 0, 3];
 			}
 
 			// this must be a cube map for fragment programs to simply substitute for the normalization cube map
@@ -764,7 +826,7 @@ namespace idTech4.Renderer
 					data[borderClampSize - 1, i, 3] = 0;
 			}
 
-			//image.Generate(idHelper.Flatten<byte>(data), borderClampSize, borderClampSize, TextureFilter.Linear, false, TextureRepeat.ClampToBorder, TextureDepth.Default);
+			image.Generate(idHelper.Flatten<byte>(data), borderClampSize, borderClampSize, TextureFilter.Linear, false, TextureRepeat.ClampToBorder, TextureDepth.Default);
 
 			if(idE.RenderSystem.IsRunning == false)
 			{
@@ -775,7 +837,125 @@ namespace idTech4.Renderer
 			// explicit zero border
 			float[] color = new float[4];
 
-			GL.TexParameter(TextureTarget.Texture2D, TextureParameterName.TextureBorderColor, color);		}
+
+			Gl.glTexParameterfv(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_BORDER_COLOR, color);
+		}
+
+		/*/// <summary>
+		/// Non-square cube sides are not allowed.
+		/// </summary>
+		/// <param name="image"></param>
+		/// <param name="?"></param>
+		/// <param name="filter"></param>
+		/// <param name="allowDownSize"></param>
+		/// <param name="depth"></param>
+		public void GenerateCubeImage(idImage image, byte[][,,], TextureFilter filter, bool allowDownSize, TextureDepth depth)
+		{
+			image.Purge();
+		
+			image.Filter = filter;
+			image.AllowDownSize = allowDownSize;
+			image.Depth = depth;
+			image.Type = TextureType.Cubic;
+
+			// if we don't have a rendering context, just return after we
+			// have filled in the parms.  We must have the values set, or
+			// an image match from a shader before OpenGL starts would miss
+			// the generated texture
+			if(idE.GLConfig.IsInitialized == false)
+			{
+				return;
+			}
+
+			if(idE.GLConfig.CubeMapAvailable == false)
+			{
+				return;
+			}
+
+			
+	width = height = size;
+
+	// generate the texture number
+	qglGenTextures( 1, &texnum );
+
+	// select proper internal format before we resample
+	internalFormat = SelectInternalFormat( pic, 6, width, height, depth, &isMonochrome );
+
+	// don't bother with downsample for now
+	scaled_width = width;
+	scaled_height = height;
+
+	uploadHeight = scaled_height;
+	uploadWidth = scaled_width;
+
+	Bind();
+
+	// no other clamp mode makes sense
+	qglTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	qglTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	// set the minimize / maximize filtering
+	switch( filter ) {
+	case TF_DEFAULT:
+		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, globalImages->textureMinFilter );
+		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, globalImages->textureMaxFilter );
+		break;
+	case TF_LINEAR:
+		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		break;
+	case TF_NEAREST:
+		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+		break;
+	default:
+		common->FatalError( "R_CreateImage: bad texture filter" );
+	}
+
+	// upload the base level
+	// FIXME: support GL_COLOR_INDEX8_EXT?
+	for ( i = 0 ; i < 6 ; i++ ) {
+		qglTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+i, 0, internalFormat, scaled_width, scaled_height, 0, 
+			GL_RGBA, GL_UNSIGNED_BYTE, pic[i] );
+	}
+
+
+	// create and upload the mip map levels
+	int		miplevel;
+	byte	*shrunk[6];
+
+	for ( i = 0 ; i < 6 ; i++ ) {
+		shrunk[i] = R_MipMap( pic[i], scaled_width, scaled_height, false );
+	}
+
+	miplevel = 1;
+	while ( scaled_width > 1 ) {
+		for ( i = 0 ; i < 6 ; i++ ) {
+			byte	*shrunken;
+
+			qglTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+i, miplevel, internalFormat, 
+				scaled_width / 2, scaled_height / 2, 0, 
+				GL_RGBA, GL_UNSIGNED_BYTE, shrunk[i] );
+
+			if ( scaled_width > 2 ) {
+				shrunken = R_MipMap( shrunk[i], scaled_width/2, scaled_height/2, false );
+			} else {
+				shrunken = NULL;
+			}
+
+			R_StaticFree( shrunk[i] );
+			shrunk[i] = shrunken;
+		}
+
+		scaled_width >>= 1;
+		scaled_height >>= 1;
+		miplevel++;
+	}
+
+	// see if we messed anything up
+	GL_CheckErrors();
+}*/
+
 
 		public static void GenerateDefaultImage(idImage image)
 		{
@@ -798,7 +978,7 @@ namespace idTech4.Renderer
 				data[0, i, alpha] = 255;
 			}
 
-			//image.Generate(idHelper.Flatten<byte>(data), 2, 2, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), 2, 2, TextureFilter.Default, true, TextureRepeat.Repeat, TextureDepth.HighQuality);
 		}
 
 		public static void GenerateWhiteImage(idImage image)
@@ -811,7 +991,7 @@ namespace idTech4.Renderer
 				data[i] = 255;
 			}
 
-			//image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
+			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
 		}
 
 		public static void GenerateRGBA8Image(idImage image)
@@ -823,7 +1003,7 @@ namespace idTech4.Renderer
 			data[0, 0, 2] = 48;
 			data[0, 0, 3] = 96;
 
-			image.Generate(data, DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
 		}
 
 		public static void GenerateRGB8Image(idImage image)
@@ -835,7 +1015,7 @@ namespace idTech4.Renderer
 			data[0, 0, 2] = 48;
 			data[0, 0, 3] = 255;
 
-			//image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), DefaultImageSize, DefaultImageSize, TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
 		}
 
 		public static void GenerateAlphaNotchImage(idImage image)
@@ -848,7 +1028,7 @@ namespace idTech4.Renderer
 			data[1, 0] = data[1, 1] = data[1, 2] = 255;
 			data[1, 3] = 255;
 
-			//image.Generate(idHelper.Flatten<byte>(data), 2, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), 2, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -867,7 +1047,7 @@ namespace idTech4.Renderer
 					data[x, 3] = (byte) x;
 			}
 
-			//image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -900,7 +1080,7 @@ namespace idTech4.Renderer
 					data[x, 3] = (byte) b;
 			}
 
-			//image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -933,7 +1113,7 @@ namespace idTech4.Renderer
 				}
 			}
 
-			//image.Generate(idHelper.Flatten<byte>(data), 256, 256, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), 256, 256, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -952,7 +1132,7 @@ namespace idTech4.Renderer
 				data[x, 3] = (byte) x;
 			}
 
-			//image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), 256, 1, TextureFilter.Nearest, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		private static float FogFraction(float viewHeight, float targetHeight)
@@ -1111,7 +1291,7 @@ namespace idTech4.Renderer
 				}
 			}
 
-			//image.Generate(idHelper.Flatten<byte>(data), FogSize, FogSize, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), FogSize, FogSize, TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		public static void GenerateQuadraticImage(idImage image)
@@ -1148,7 +1328,7 @@ namespace idTech4.Renderer
 				}
 			}
 
-			//image.Generate(idHelper.Flatten<byte>(data), QuadraticWidth, QuadraticHeight, TextureFilter.Default, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), QuadraticWidth, QuadraticHeight, TextureFilter.Default, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -1170,7 +1350,7 @@ namespace idTech4.Renderer
 				}
 			}
 
-			//image.Generate(idHelper.Flatten<byte>(data), FalloffTextureSize, 16, TextureFilter.Default, false, TextureRepeat.ClampToZero, TextureDepth.HighQuality);
+			image.Generate(idHelper.Flatten<byte>(data), FalloffTextureSize, 16, TextureFilter.Default, false, TextureRepeat.ClampToZero, TextureDepth.HighQuality);
 		}
 
 		/// <summary>
@@ -1287,7 +1467,7 @@ namespace idTech4.Renderer
 
 			return data;
 		}
-		
+
 		/// <summary>
 		/// If data is NULL, the timestamps will be filled in, but no image will be generated
 		/// If both data and timeStamp are NULL, it will just advance past it, which can be
@@ -1316,7 +1496,7 @@ namespace idTech4.Renderer
 
 			return image;
 		}
-		
+
 		private void InitCvars()
 		{
 			new idCvar("image_filter", "GL_LINEAR_MIPMAP_LINEAR", ImageFilters.Keys.ToArray(), "changes texture filtering on mipmapped images", new ArgCompletion_String(ImageFilters.Keys.ToArray()), CvarFlags.Renderer | CvarFlags.Archive);
@@ -1350,12 +1530,12 @@ namespace idTech4.Renderer
 
 		private void InitFilters()
 		{
-			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", TextureMinFilter.LinearMipmapNearest, TextureMagFilter.Linear));
-			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", TextureMinFilter.LinearMipmapLinear, TextureMagFilter.Linear));
-			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", TextureMinFilter.Nearest, TextureMagFilter.Nearest));
-			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", TextureMinFilter.Linear, TextureMagFilter.Linear));
-			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", TextureMinFilter.NearestMipmapNearest, TextureMagFilter.Nearest));
-			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", TextureMinFilter.NearestMipmapLinear, TextureMagFilter.Nearest));
+			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", Gl.GL_LINEAR_MIPMAP_NEAREST, Gl.GL_LINEAR));
+			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", Gl.GL_LINEAR_MIPMAP_LINEAR, Gl.GL_LINEAR));
+			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", Gl.GL_NEAREST, Gl.GL_NEAREST));
+			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", Gl.GL_LINEAR, Gl.GL_LINEAR));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", Gl.GL_NEAREST_MIPMAP_NEAREST, Gl.GL_NEAREST));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", Gl.GL_NEAREST_MIPMAP_LINEAR, Gl.GL_NEAREST));
 		}
 
 		private byte[] LoadTGA(string name, ref int width, ref int height, ref DateTime timeStamp)
@@ -1374,17 +1554,135 @@ namespace idTech4.Renderer
 
 			if(Il.ilLoadL(Il.IL_TGA, data, data.Length) == true)
 			{
-				int bitsPerPixel = Il.ilGetInteger(Il.IL_IMAGE_BITS_PER_PIXEL);
+				int bitsPerPixel = Il.ilGetInteger(Il.IL_IMAGE_BYTES_PER_PIXEL);
 
-				retData = new byte[width * height * bitsPerPixel];
+				width = Il.ilGetInteger(Il.IL_IMAGE_WIDTH);
+				height = Il.ilGetInteger(Il.IL_IMAGE_HEIGHT);
+				byte[] tmp = new byte[width * height * bitsPerPixel];
 
 				IntPtr ptr = Il.ilGetData();
-				Marshal.Copy(ptr, retData, 0, retData.Length);
-			}			
+				Marshal.Copy(ptr, tmp, 0, tmp.Length);		
+		
+				// if this is only 3 bytes per pixel, copy to 4 bytes
+				if(bitsPerPixel == 3)
+				{
+					retData = new byte[width * height * 4];
+
+					for(int i = 0, j = 0; i < tmp.Length; i += 3, j += 4)
+					{
+						retData[j] = tmp[i];
+						retData[j + 1] = tmp[i + 1];
+						retData[j + 2] = tmp[i + 2];
+						retData[j + 3] = 0;
+					}
+				}
+				else
+				{
+					retData = tmp;
+				}
+			}
 
 			Il.ilDeleteImages(1, ref image);
 
 			return retData;
+		}
+
+		private void SetNormalPalette()
+		{
+			idConsole.WriteLine("TODO: SetNormalPalette");
+			/*int		i, j;
+			idVec3	v;
+			float	t;
+			//byte temptable[768];
+			byte	*temptable = compressedPalette;
+			int		compressedToOriginal[16];
+
+			// make an ad-hoc separable compression mapping scheme
+			for ( i = 0 ; i < 8 ; i++ ) {
+				float	f, y;
+
+				f = ( i + 1 ) / 8.5;
+				y = idMath::Sqrt( 1.0 - f * f );
+				y = 1.0 - y;
+
+				compressedToOriginal[7-i] = 127 - (int)( y * 127 + 0.5 );
+				compressedToOriginal[8+i] = 128 + (int)( y * 127 + 0.5 );
+			}
+
+			for ( i = 0 ; i < 256 ; i++ ) {
+				if ( i <= compressedToOriginal[0] ) {
+					originalToCompressed[i] = 0;
+				} else if ( i >= compressedToOriginal[15] ) {
+					originalToCompressed[i] = 15;
+				} else {
+					for ( j = 0 ; j < 14 ; j++ ) {
+						if ( i <= compressedToOriginal[j+1] ) {
+							break;
+						}
+					}
+					if ( i - compressedToOriginal[j] < compressedToOriginal[j+1] - i ) {
+						originalToCompressed[i] = j;
+					} else {
+						originalToCompressed[i] = j + 1;
+					}
+				}
+			}
+
+		#if 0
+			for ( i = 0; i < 16; i++ ) {
+				for ( j = 0 ; j < 16 ; j++ ) {
+
+					v[0] = ( i - 7.5 ) / 8;
+					v[1] = ( j - 7.5 ) / 8;
+
+					t = 1.0 - ( v[0]*v[0] + v[1]*v[1] );
+					if ( t < 0 ) {
+						t = 0;
+					}
+					v[2] = idMath::Sqrt( t );
+
+					temptable[(i*16+j)*3+0] = 128 + floor( 127 * v[0] + 0.5 );
+					temptable[(i*16+j)*3+1] = 128 + floor( 127 * v[1] );
+					temptable[(i*16+j)*3+2] = 128 + floor( 127 * v[2] );
+				}
+			}
+		#else
+			for ( i = 0; i < 16; i++ ) {
+				for ( j = 0 ; j < 16 ; j++ ) {
+
+					v[0] = ( compressedToOriginal[i] - 127.5 ) / 128;
+					v[1] = ( compressedToOriginal[j] - 127.5 ) / 128;
+
+					t = 1.0 - ( v[0]*v[0] + v[1]*v[1] );
+					if ( t < 0 ) {
+						t = 0;
+					}
+					v[2] = idMath::Sqrt( t );
+
+					temptable[(i*16+j)*3+0] = (byte)(128 + floor( 127 * v[0] + 0.5 ));
+					temptable[(i*16+j)*3+1] = (byte)(128 + floor( 127 * v[1] ));
+					temptable[(i*16+j)*3+2] = (byte)(128 + floor( 127 * v[2] ));
+				}
+			}
+		#endif
+
+			// color 255 will be the "nullnormal" color for no reflection
+			temptable[255*3+0] =
+			temptable[255*3+1] =
+			temptable[255*3+2] = 128;
+
+			if ( !glConfig.sharedTexturePaletteAvailable ) {
+				return;
+			}
+
+			qglColorTableEXT( GL_SHARED_TEXTURE_PALETTE_EXT,
+							   GL_RGB,
+							   256,
+							   GL_RGB,
+							   GL_UNSIGNED_BYTE,
+							   temptable );
+
+			qglEnable( GL_SHARED_TEXTURE_PALETTE_EXT );*/
 		}
 		#endregion
 
@@ -1437,10 +1735,10 @@ namespace idTech4.Renderer
 	public struct ImageFilter
 	{
 		public string Label;
-		public TextureMinFilter Minimize;
-		public TextureMagFilter Maximize;
+		public int Minimize;
+		public int Maximize;
 
-		public ImageFilter(string label, TextureMinFilter min, TextureMagFilter max)
+		public ImageFilter(string label, int min, int max)
 		{
 			this.Label = label;
 			this.Minimize = min;

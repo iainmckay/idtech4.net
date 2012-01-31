@@ -64,7 +64,10 @@ namespace idTech4.UI
 		#region Constructor
 		public idUserInterfaceManager()
 		{
-
+			new idCvar("gui_debug", "0", "", CvarFlags.Gui | CvarFlags.Bool);
+			new idCvar("gui_edit", "0", "", CvarFlags.Gui | CvarFlags.Bool);
+			new idCvar("gui_smallFontLimit", "0.30", "", CvarFlags.Gui | CvarFlags.Archive);
+			new idCvar("gui_mediumFontLimit", "0.60", "", CvarFlags.Gui | CvarFlags.Archive);
 		}
 		#endregion
 
@@ -75,12 +78,7 @@ namespace idTech4.UI
 			_screenRect = new Rectangle(0, 0, 640, 480);
 
 			_deviceContext = new idDeviceContext();
-			_deviceContext.Init();
-
-			new idCvar("gui_debug", "0", "", CvarFlags.Gui | CvarFlags.Bool);
-			new idCvar("gui_edit", "0", "", CvarFlags.Gui | CvarFlags.Bool);
-			new idCvar("gui_smallFontLimit", "0.30", "", CvarFlags.Gui | CvarFlags.Archive);
-			new idCvar("gui_mediumFontLimit", "0.60", "", CvarFlags.Gui | CvarFlags.Archive);
+			_deviceContext.Init();			
 		}
 
 		public idUserInterface FindInterface(string path)

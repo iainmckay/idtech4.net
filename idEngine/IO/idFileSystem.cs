@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.IO;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading;
@@ -1225,8 +1226,10 @@ namespace idTech4.IO
 						{
 							tmp = Directory.GetFiles(netPath, extensionPattern, SearchOption.TopDirectoryOnly);
 						}
-						catch
+						catch(Exception x)
 						{
+							Debug.Write(x.ToString());
+
 							tmp = new string[] { };
 						}
 					}

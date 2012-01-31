@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
@@ -279,9 +280,9 @@ namespace idTech4
 						int.Parse(parts[3]));
 				}
 			}
-			catch
+			catch(Exception x)
 			{
-
+				Debug.Write(x.ToString());
 			}
 
 			return Rectangle.Empty;
@@ -300,9 +301,9 @@ namespace idTech4
 						float.Parse(parts[1]));
 				}
 			}
-			catch
+			catch(Exception x)
 			{
-
+				Debug.Write(x.ToString());
 			}
 
 			return Vector2.Zero;
@@ -322,9 +323,9 @@ namespace idTech4
 						float.Parse(parts[2]));
 				}
 			}
-			catch
+			catch(Exception x)
 			{
-
+				Debug.Write(x.ToString());
 			}
 
 			return Vector3.Zero;
@@ -345,9 +346,9 @@ namespace idTech4
 						float.Parse(parts[3]));
 				}
 			}
-			catch
+			catch(Exception x)
 			{
-
+				Debug.Write(x.ToString());
 			}
 
 			return Vector4.Zero;

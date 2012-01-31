@@ -33,6 +33,19 @@ using System.Windows.Forms;
 
 namespace idTech4
 {
+	class DebugTraceListener : System.Diagnostics.TraceListener
+	{
+		public override void Write(string message)
+		{
+			idConsole.Write(message);
+		}
+
+		public override void WriteLine(string message)
+		{
+			idConsole.WriteLine(message);
+		}
+	}
+
 	public sealed class Main
 	{
 		#region Constructor
@@ -54,6 +67,9 @@ namespace idTech4
 			// done before Com/Sys_Init since we need this for error output
 			CreateConsole();
 
+			System.Diagnostics.Debug.Listeners.Add(new DebugTraceListener());
+			System.Diagnostics.Debug.AutoFlush = true;
+			
 			idE.System.Init(args);
 
 			/*
