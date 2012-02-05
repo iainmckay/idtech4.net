@@ -121,6 +121,7 @@ namespace idTech4.Text.Decl
 		public override bool Parse(string text)
 		{
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
+			lexer.LoadMemory(text, this.FileName, this.LineNumber);
 			lexer.SkipUntilString("{");
 
 			idToken token;

@@ -94,8 +94,8 @@ namespace idTech4
 		public const int UserCommandHertz = 60;
 		public const int UserCommandMillseconds = 1000 / UserCommandHertz;
 
+		public static idSystem System;
 		public static readonly idLangDict Language = new idLangDict();
-		public static readonly idSystem System = new idSystem();
 		public static readonly idSession Session = new idSession();
 		public static readonly idFileSystem FileSystem = new idFileSystem();
 		public static readonly idCvarSystem CvarSystem = new idCvarSystem();
@@ -117,8 +117,6 @@ namespace idTech4
 
 		internal static BackEndState Backend = new BackEndState(); // TODO: refactor in to render library so we can support XNA more easily.
 		internal static GLConfig GLConfig = new GLConfig();
-
-		internal static bool Quit = false; // cheap flag to quit the main loop.
 		#endregion
 	}
 }

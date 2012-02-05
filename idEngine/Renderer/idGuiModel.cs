@@ -37,7 +37,7 @@ namespace idTech4.Renderer
 	public sealed class idGuiModel
 	{
 		#region Properties
-		public Color Color
+		public Vector4 Color
 		{
 			set
 			{
@@ -235,22 +235,10 @@ namespace idTech4.Renderer
 
 			viewDef.FloatTime = idE.RenderSystem.FrameShaderTime;
 
-			// qglOrtho( 0, 640, 480, 0, 0, 1 );		// always assume 640x480 virtual coordinates
-			viewDef.ProjectionMatrix = new Matrix();
-			viewDef.ProjectionMatrix.M11 = 2.0f / 640.0f;
-			viewDef.ProjectionMatrix.M22 = -2.0f / 480.0f;
-			viewDef.ProjectionMatrix.M33 = -2.0f / 1.0f;
-			viewDef.ProjectionMatrix.M41 = -1.0f;
-			viewDef.ProjectionMatrix.M42 = 1.0f;
-			viewDef.ProjectionMatrix.M43 = -1.0f;
-			viewDef.ProjectionMatrix.M44 = 1.0f;
+			Vector2 center = new Vector2(idE.RenderSystem.ScreenWidth * 0.5f, idE.RenderSystem.ScreenHeight * 0.5f);
 
-			viewDef.WorldSpace.ModelViewMatrix.M11 = 1.0f;
-			viewDef.WorldSpace.ModelViewMatrix.M22 = 1.0f;
-			viewDef.WorldSpace.ModelViewMatrix.M33 = 1.0f;
-			viewDef.WorldSpace.ModelViewMatrix.M44 = 1.0f;
-
-			viewDef.DrawSurfaces.Clear();
+			viewDef.ProjectionMatrix = Matrix.CreateOrthographic(idE.RenderSystem.ScreenWidth, idE.RenderSystem.ScreenHeight, -0.5f, 1);
+			viewDef.WorldSpace.ModelViewMatrix = Matrix.CreateLookAt(new Vector3(center, 0), new Vector3(center, 1), new Vector3(0, -1, 0));
 
 			View oldView = idE.RenderSystem.ViewDefinition;
 			idE.RenderSystem.ViewDefinition = viewDef;
@@ -280,7 +268,7 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				s.Color = new Color(1, 1, 1, 1);
+				s.Color = new Vector4(1, 1, 1, 1);
 				s.Material = idE.RenderSystem.DefaultMaterial;
 			}
 
@@ -299,7 +287,7 @@ namespace idTech4.Renderer
 			{
 				return;	// nothing in the surface
 			}
-
+			
 			// copy verts and indexes
 			Surface tri = new Surface();
 			tri.Indexes = new int[surface.IndexCount];
@@ -323,10 +311,10 @@ namespace idTech4.Renderer
 
 			RenderEntity renderEntity = new RenderEntity();
 			renderEntity.Init();
-			renderEntity.MaterialParameters[0] = surface.Color.R;
-			renderEntity.MaterialParameters[1] = surface.Color.G;
-			renderEntity.MaterialParameters[2] = surface.Color.B;
-			renderEntity.MaterialParameters[3] = surface.Color.A;
+			renderEntity.MaterialParameters[0] = surface.Color.X;
+			renderEntity.MaterialParameters[1] = surface.Color.Y;
+			renderEntity.MaterialParameters[2] = surface.Color.Z;
+			renderEntity.MaterialParameters[3] = surface.Color.W;
 
 			ViewEntity guiSpace = new ViewEntity();
 			guiSpace.ModelMatrix = modelMatrix;
@@ -343,7 +331,7 @@ namespace idTech4.Renderer
 	internal class GuiModelSurface
 	{
 		public idMaterial Material;
-		public Color Color;
+		public Vector4 Color;
 
 		public int FirstVertex;
 		public int VertexCount;

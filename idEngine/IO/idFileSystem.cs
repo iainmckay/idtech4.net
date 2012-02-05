@@ -1228,7 +1228,7 @@ namespace idTech4.IO
 						}
 						catch(Exception x)
 						{
-							Debug.Write(x.ToString());
+							idConsole.Write(x.ToString());
 
 							tmp = new string[] { };
 						}

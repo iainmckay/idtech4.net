@@ -1,5 +1,0 @@
-G:\Projects\idtech4.net\Test\bin\Debug\Test.exe
-G:\Projects\idtech4.net\Test\bin\Debug\Test.pdb
-G:\Projects\idtech4.net\Test\obj\x86\Debug\ResolveAssemblyReference.cache
-G:\Projects\idtech4.net\Test\obj\x86\Debug\Test.exe
-G:\Projects\idtech4.net\Test\obj\x86\Debug\Test.pdb

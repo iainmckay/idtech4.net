@@ -34,6 +34,7 @@ using System.Text;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using OpenTK.Graphics;
 
@@ -71,7 +72,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public Color Color
+		public Vector4 Color
 		{
 			set
 			{
@@ -105,7 +106,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return idE.GLConfig.IsInitialized;
+				return _graphicsInitialized;
 			}
 		}
 
@@ -140,6 +141,10 @@ namespace idTech4.Renderer
 
 		#region Members
 		private bool _registered;
+		private bool _graphicsInitialized;
+
+		private GraphicsDevice _graphicsDevice;
+		private GraphicsDeviceManager _graphicsDeviceManager;
 
 		private int _frameCount;											// incremented every frame
 		private int _viewCount;												// incremented every view (twice a scene if subviewed) and every R_MarkFragments call
@@ -179,9 +184,6 @@ namespace idTech4.Renderer
 
 		private FrameData _frameData = new FrameData();
 		private float _frameShaderTime;										// shader time for all non-world 2D rendering
-
-		private Form _renderForm;
-		private OpenTK.GLControl _renderControl;
 
 		// vertex cache
 		private List<VertexCache> _dynamicVertexCache = new List<VertexCache>();
@@ -382,15 +384,23 @@ namespace idTech4.Renderer
 			// TODO: R_ViewStatistics(parms);
 		}
 
+		private BasicEffect _basicEffect;
+
 		public void BeginFrame(int windowWidth, int windowHeight)
 		{
-			if(idE.GLConfig.IsInitialized == false)
+			if(this.IsRunning == false)
 			{
 				return;
 			}
 
-			// determine which back end we will use
-			SetBackEndRenderer();
+			if(_basicEffect == null)
+			{
+				_basicEffect = new BasicEffect(_graphicsDevice);
+				_basicEffect.FogEnabled = false;
+				_basicEffect.LightingEnabled = false;
+				_basicEffect.TextureEnabled = true;
+				_basicEffect.VertexColorEnabled = false;
+			}
 
 			_guiModel.Clear();
 
@@ -450,58 +460,6 @@ namespace idTech4.Renderer
 			_frameData.Commands.Enqueue(cmd);
 		}
 
-		public void CheckOpenGLErrors()
-		{
-			List<string> errors = new List<string>();
-
-			// check for up to 10 errors pending
-			for(int i = 0; i < 10; i++)
-			{
-				int error = Gl.glGetError();
-
-				if(error == Gl.GL_NO_ERROR)
-				{
-					return;
-				}
-
-				switch(error)
-				{
-					case Gl.GL_INVALID_ENUM:
-						errors.Add("GL_INVALID_ENUM");
-						break;
-
-					case Gl.GL_INVALID_VALUE:
-						errors.Add("GL_INVALID_VALUE");
-						break;
-
-					case Gl.GL_INVALID_OPERATION:
-						errors.Add("GL_INVALID_OPERATION");
-						break;
-
-					case Gl.GL_STACK_OVERFLOW:
-						errors.Add("GL_STACK_OVERFLOW");
-						break;
-
-					case Gl.GL_STACK_UNDERFLOW:
-						errors.Add("GL_STACK_UNDERFLOW");
-						break;
-
-					case Gl.GL_OUT_OF_MEMORY:
-						errors.Add("GL_OUT_OF_MEMORY");
-						break;
-
-					default:
-						errors.Add(error.ToString("X"));
-						break;
-				}
-			}
-
-			if(idE.CvarSystem.GetBool("r_ignoreGLErrors") == false)
-			{
-				idConsole.WriteLine("GL_CheckErrors: {0}", String.Join(",", errors));
-			}
-		}
-
 		/// <summary>
 		/// Creates a new renderWorld to be used for drawing.
 		/// </summary>
@@ -541,7 +499,7 @@ namespace idTech4.Renderer
 			frontendTime = 0;
 			backendTime = 0;
 
-			if(idE.GLConfig.IsInitialized == false)
+			if(this.IsRunning == false)
 			{
 				return;
 			}
@@ -565,12 +523,8 @@ namespace idTech4.Renderer
 			// check for dynamic changes that require some initialization
 			// TODO: CheckCvars();
 
-			// check for errors
-			CheckOpenGLErrors();
-
 			// add the swapbuffers command
-			SwapBuffersRenderCommand cmd = new SwapBuffersRenderCommand();
-			_frameData.Commands.Enqueue(cmd);
+			_frameData.Commands.Enqueue(new SwapBuffersRenderCommand());
 
 			// start the back end up again with the new command list
 			IssueRenderCommands();
@@ -592,7 +546,7 @@ namespace idTech4.Renderer
 			}*/
 		}
 
-		public void Init()
+		public void Init(GraphicsDeviceManager graphicsDeviceManager)
 		{
 			idConsole.WriteLine("------- Initializing renderSystem --------");
 
@@ -608,6 +562,22 @@ namespace idTech4.Renderer
 
 			_guiModel = new idGuiModel();
 			_demoGuiModel = new idGuiModel();
+
+			_graphicsDeviceManager = graphicsDeviceManager;
+
+			GetModeInfo(ref idE.GLConfig.VideoWidth, ref idE.GLConfig.VideoHeight, idE.CvarSystem.GetInteger("r_mode"));
+
+			_graphicsDeviceManager.PreferredBackBufferWidth = idE.GLConfig.VideoWidth;
+			_graphicsDeviceManager.PreferredBackBufferHeight = idE.GLConfig.VideoHeight;
+			_graphicsDeviceManager.PreferMultiSampling = idE.CvarSystem.GetInteger("r_multiSamples") > 1;
+			_graphicsDeviceManager.IsFullScreen = idE.CvarSystem.GetBool("r_fullscreen");
+			_graphicsDeviceManager.SupportedOrientations = DisplayOrientation.Default;
+			_graphicsDeviceManager.ApplyChanges();
+
+			idE.GLConfig.StencilBits = 8;
+			idE.GLConfig.ColorBits = 32;
+			idE.GLConfig.DepthBits = 24;
+			idE.GLConfig.IsFullscreen = _graphicsDeviceManager.IsFullScreen;
 
 			// TODO: R_InitTriSurfData();
 
@@ -631,31 +601,89 @@ namespace idTech4.Renderer
 			_identitySpace.ModelMatrix.M21 = 1.0f;
 			_identitySpace.ModelMatrix.M31 = 1.0f;
 
-			// determine which back end we will use
-			// ??? this is invalid here as there is not enough information to set it up correctly
-			SetBackEndRenderer();
-
 			idConsole.WriteLine("renderSystem initialized.");
 			idConsole.WriteLine("--------------------------------------");
 		}
 
-		public void InitGraphics()
+		public void InitGraphics(GraphicsDevice graphicsDevice)
 		{
-			// if OpenGL isn't started, start it now
-			if(idE.GLConfig.IsInitialized == true)
+			// start renderer now if it hasn't been started already
+			if(this.IsRunning == true)
 			{
 				return;
 			}
 
-			InitOpenGL();
-			idE.ImageManager.ReloadImages();
+			idConsole.WriteLine("----- R_InitGraphics -----");
 
-			int error = Gl.glGetError();
+			_graphicsDevice = graphicsDevice;
 
-			if(error != Gl.GL_NO_ERROR)
+			// in case we had an error while doing a tiled rendering
+			_viewPortOffset = Vector2.Zero;
+
+			//
+			// initialize OS specific portions of the renderSystem
+			//
+			/*for(int i = 0; i < 2; i++)
 			{
-				idConsole.WriteLine("glGetError() = 0x{0:X}", error);
+				// set the parameters we are trying
+				GetModeInfo(ref idE.GLConfig.VideoWidth, ref idE.GLConfig.VideoHeight, idE.CvarSystem.GetInteger("r_mode"));
+
+				if(InitOpenGLContext(
+					idE.GLConfig.VideoWidth,
+					idE.GLConfig.VideoHeight,
+					idE.CvarSystem.GetBool("r_fullscreen"),
+					idE.CvarSystem.GetInteger("r_displayRefresh"),
+					idE.CvarSystem.GetInteger("r_multiSamples"),
+					false) == true)
+				{
+					break;
+				}
+
+				if(i == 1)
+				{
+					idConsole.FatalError("Unable to initialize OpenGL");
+				}
+
+				// if we failed, set everything back to "safe mode" and try again
+				idE.CvarSystem.SetInteger("r_mode", 3);
+				idE.CvarSystem.SetInteger("r_fullscreen", 0);
+				idE.CvarSystem.SetInteger("r_displayRefresh", 0);
+				idE.CvarSystem.SetInteger("r_multiSamples", 0);
+			}*/
+
+			// input and sound systems need to be tied to the new window
+			// TODO: Sys_InitInput();
+			// TODO: soundSystem->InitHW();
+
+			// get our config strings
+			/*idE.GLConfig.Vendor = Gl.glGetString(Gl.GL_VENDOR);
+			idE.GLConfig.Renderer = Gl.glGetString(Gl.GL_RENDERER);
+			idE.GLConfig.Version = Gl.glGetString(Gl.GL_VERSION);
+			idE.GLConfig.VersionF = new Version(idE.GLConfig.Version);
+			idE.GLConfig.Extensions = Gl.glGetString(Gl.GL_EXTENSIONS);
+
+			// OpenGL driver constants
+			Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_SIZE, out idE.GLConfig.MaxTextureSize);*/
+
+			// stubbed or broken drivers may have reported 0...
+			if(idE.GLConfig.MaxTextureSize <= 0)
+			{
+				idE.GLConfig.MaxTextureSize = 256;
 			}
+
+			_graphicsInitialized = true;
+
+			// recheck all the extensions (FIXME: this might be dangerous)
+			CheckPortableExtensions();
+
+
+			// allocate the vertex array range or vertex objects
+			/*// TODO: vertexCache.Init();*/
+
+			ToggleSmpFrame();
+
+			// reset our gamma
+			/*SetColorMappings();*/
 		}
 
 		/// <summary>
@@ -703,6 +731,9 @@ namespace idTech4.Renderer
 
 			// this data is just going on the shared dynamic list
 
+			// TODO: i think we could have one massive vertex buffer for temporary frame data.  
+			// save having all these creations and destructions of buffers
+
 			// move it from the freeDynamicHeaders list to the dynamicHeaders list
 			_dynamicVertexCache.Add(cache);
 
@@ -733,23 +764,23 @@ namespace idTech4.Renderer
 			};
 
 			// set the modelview matrix for the viewer
-			Gl.glMatrixMode(Gl.GL_PROJECTION);
-			Gl.glLoadMatrixf(tmpProjMatrix);
-			Gl.glMatrixMode(Gl.GL_MODELVIEW);
+			//Gl.glMatrixMode(Gl.GL_PROJECTION);
+			//Gl.glLoadMatrixf(tmpProjMatrix);
+			//Gl.glMatrixMode(Gl.GL_MODELVIEW);
 
 
 			// set the window clipping
-			Gl.glViewport((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1,
+			/*Gl.glViewport((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1,
 				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1,
 				idE.Backend.ViewDefinition.ViewPort.X2 + 1 - idE.Backend.ViewDefinition.ViewPort.X1,
-				idE.Backend.ViewDefinition.ViewPort.Y2 + 1 - idE.Backend.ViewDefinition.ViewPort.Y1);
+				idE.Backend.ViewDefinition.ViewPort.Y2 + 1 - idE.Backend.ViewDefinition.ViewPort.Y1);*/
 
 
 			// the scissor may be smaller than the viewport for subviews
-			Gl.glScissor((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.ViewDefinition.Scissor.X1,
+			/*Gl.glScissor((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.ViewDefinition.Scissor.X1,
 				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.ViewDefinition.Scissor.Y1,
 				idE.Backend.ViewDefinition.Scissor.X2 + 1 - idE.Backend.ViewDefinition.Scissor.X1,
-				idE.Backend.ViewDefinition.Scissor.Y2 + 1 - idE.Backend.ViewDefinition.Scissor.Y1);
+				idE.Backend.ViewDefinition.Scissor.Y2 + 1 - idE.Backend.ViewDefinition.Scissor.Y1);*/
 
 			idE.Backend.CurrentScissor = idE.Backend.ViewDefinition.Scissor;
 
@@ -767,8 +798,11 @@ namespace idTech4.Renderer
 				Gl.glEnable(Gl.GL_DEPTH_TEST);
 			} else */
 			{
-				Gl.glDisable(Gl.GL_DEPTH_TEST);
-				Gl.glDisable(Gl.GL_STENCIL_TEST);
+				DepthStencilState s = new DepthStencilState();
+				s.DepthBufferEnable = false;
+				s.StencilEnable = false;
+
+				_graphicsDevice.DepthStencilState = s;
 			}
 
 			idE.Backend.GLState.FaceCulling = CullType.None; // force face culling to set next time
@@ -817,6 +851,7 @@ namespace idTech4.Renderer
 
 		private bool CheckExtension(string name)
 		{
+			return true;
 			if(idE.GLConfig.Extensions.Contains(name) == true)
 			{
 				idConsole.WriteLine("...using {0}", name);
@@ -830,19 +865,24 @@ namespace idTech4.Renderer
 
 		private void CheckPortableExtensions()
 		{
-			idE.GLConfig.MultiTextureAvailable = CheckExtension("GL_ARB_multitexture");
+			idE.GLConfig.MultiTextureAvailable = true;
 
 			if(idE.GLConfig.MultiTextureAvailable == true)
 			{
-				Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_UNITS_ARB, out idE.GLConfig.MaxTextureUnits);
+				//Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_UNITS_ARB, out idE.GLConfig.MaxTextureUnits);
+				idE.GLConfig.MaxTextureCoordinates = 4096;
+				idE.GLConfig.MaxTextureUnits = 8;
+				idE.GLConfig.MaxTextureImageUnits = 8;
 
 				if(idE.GLConfig.MaxTextureUnits < 2)
 				{
 					idE.GLConfig.MultiTextureAvailable = false; // shouldn't ever happen
 				}
 
-				Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_COORDS_ARB, out idE.GLConfig.MaxTextureCoordinates);
-				Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_IMAGE_UNITS_ARB, out idE.GLConfig.MaxTextureImageUnits);
+				//Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_COORDS_ARB, out idE.GLConfig.MaxTextureCoordinates);
+				//Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_IMAGE_UNITS_ARB, out idE.GLConfig.MaxTextureImageUnits);
+
+				
 			}
 
 			idE.GLConfig.TextureEnvCombineAvailable = CheckExtension("GL_ARB_texture_env_combine");
@@ -866,7 +906,7 @@ namespace idTech4.Renderer
 
 			if(idE.GLConfig.AnisotropicAvailable == true)
 			{
-				Gl.glGetFloatv(Gl.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, out idE.GLConfig.MaxTextureAnisotropy);
+				//Gl.glGetFloatv(Gl.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, out idE.GLConfig.MaxTextureAnisotropy);
 
 				idConsole.WriteLine("   maxTextureAnisotropy: {0}", idE.GLConfig.MaxTextureAnisotropy);
 			}
@@ -878,16 +918,16 @@ namespace idTech4.Renderer
 			// GL_EXT_texture_lod_bias
 			// The actual extension is broken as specificed, storing the state in the texture unit instead
 			// of the texture object.  The behavior in GL 1.4 is the behavior we use.
-			if((((idE.GLConfig.VersionF.Major <= 1) && (idE.GLConfig.VersionF.Minor < 4)) == false) || (CheckExtension("GL_EXT_texture_lod") == true))
-			{
+			/*if((((idE.GLConfig.VersionF.Major <= 1) && (idE.GLConfig.VersionF.Minor < 4)) == false) || (CheckExtension("GL_EXT_texture_lod") == true))
+			{*/
 				idConsole.WriteLine("...using {0}", "GL_1.4_texture_lod_bias");
 				idE.GLConfig.TextureLodBiasAvailable = true;
-			}
+			/*}
 			else
 			{
 				idConsole.WriteLine("X..{0} not found\n", "GL_1.4_texture_lod_bias");
 				idE.GLConfig.TextureLodBiasAvailable = false;
-			}
+			}*/
 
 			// GL_EXT_shared_texture_palette
 			idE.GLConfig.SharedTexturePaletteAvailable = CheckExtension("GL_EXT_shared_texture_palette");
@@ -1009,77 +1049,6 @@ namespace idTech4.Renderer
 			_frameData.Commands.Enqueue(new NoOperationRenderCommand());
 		}
 
-		private bool CreateOpenGLWindow(int width, int height, bool fullscreen, int refreshRate, int multiSamples, bool stereoMode)
-		{
-			int x = 0, y = 0;
-			//
-			// compute width and height
-			//
-			// TODO
-			/*if ( parms.fullScreen ) {
-				exstyle = WS_EX_TOPMOST;
-				stylebits = WS_POPUP|WS_VISIBLE|WS_SYSMENU;
-
-				x = 0;
-				y = 0;
-				w = parms.width;
-				h = parms.height;
-			} else */
-			{
-				// adjust width and height for window border
-				Rectangle r = new Rectangle(0, 0, width, height);
-				x = idE.CvarSystem.GetInteger("win_xpos");
-				y = idE.CvarSystem.GetInteger("win_ypos");
-
-				// adjust window coordinates if necessary 
-				// so that the window is completely on screen
-				/*if ( x + w > win32.desktopWidth ) {
-					x = ( win32.desktopWidth - w );
-				}
-				if ( y + h > win32.desktopHeight ) {
-					y = ( win32.desktopHeight - h );
-				}
-				if ( x < 0 ) {
-					x = 0;
-				}
-				if ( y < 0 ) {
-					y = 0;
-				}*/
-			}
-
-			_renderForm = new RenderForm();
-			_renderForm.Size = new System.Drawing.Size(width, height);
-			_renderForm.Location = new System.Drawing.Point(x, y);
-			_renderForm.Show();
-			_renderForm.BringToFront();
-			_renderForm.Focus();
-
-			idConsole.WriteLine("...created window @ {0},{1} ({2}x{3})", x, y, width, height);
-			idConsole.WriteLine("Initializing OpenGL driver");
-
-			idE.GLConfig.StencilBits = 8;
-			idE.GLConfig.ColorBits = 32;
-			idE.GLConfig.DepthBits = 24;
-
-			GraphicsMode mode = new GraphicsMode(idE.GLConfig.ColorBits, idE.GLConfig.DepthBits, idE.GLConfig.StencilBits, multiSamples, 8, 2, stereoMode);
-			
-			_renderControl = new OpenTK.GLControl(mode, 1, 1, GraphicsContextFlags.ForwardCompatible);			
-			_renderControl.Dock = DockStyle.Fill;
-			_renderControl.CreateControl();
-			
-			_renderForm.Controls.Add(_renderControl);
-			
-			idConsole.Write("...making context current: ");
-
-			_renderControl.MakeCurrent();
-			
-			idConsole.WriteLine("succeeded");
-			
-			idE.GLConfig.IsFullscreen = fullscreen;
-
-			return true;
-		}
-
 		private void DrawElementsWithCounters(Surface tri)
 		{
 			// TODO: performance counters
@@ -1113,10 +1082,31 @@ namespace idTech4.Renderer
 					UnbindIndex();
 				}
 
-				Gl.glDrawElements(Gl.GL_TRIANGLES,
-					(idE.CvarSystem.GetBool("r_singleTriangle") == true) ? 3 : tri.Indexes.Length,
-					Gl.GL_UNSIGNED_INT,
-					tri.Indexes);
+				Texture texture = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].Current2DMap;
+
+				if(texture != null)
+				{
+					_basicEffect.Texture = (Texture2D) texture;
+					_basicEffect.TextureEnabled = false;
+				}
+				else
+				{
+					_basicEffect.TextureEnabled = false;
+				}
+								
+				_basicEffect.View = idE.Backend.ViewDefinition.WorldSpace.ModelViewMatrix;
+				_basicEffect.Projection = idE.Backend.ViewDefinition.ProjectionMatrix;
+				_basicEffect.World = Matrix.Identity;
+				
+				foreach(EffectPass p in _basicEffect.CurrentTechnique.Passes)
+				{
+					p.Apply();
+
+					_graphicsDevice.DrawUserIndexedPrimitives<Vertex>(PrimitiveType.TriangleList, 
+						tri.AmbientCache.Data, 0, 
+						tri.AmbientCache.Data.Length, 
+						tri.Indexes, 0, tri.Indexes.Length / 3);				
+				}
 			}
 		}
 
@@ -1157,7 +1147,7 @@ namespace idTech4.Renderer
 			idE.ImageManager.BindNullTexture();
 
 			GL_SelectTexture(0);
-			Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+			//Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 
 			SetProgramEnvironment();
 
@@ -1194,7 +1184,7 @@ namespace idTech4.Renderer
 			}
 
 			GL_Cull(CullType.TwoSided);
-			Gl.glColor3f(1, 1, 1);
+			//Gl.glColor3f(1, 1, 1);
 
 			return i;
 		}
@@ -1282,8 +1272,8 @@ namespace idTech4.Renderer
 				break;
 			}*/
 
-			// disable stencil shadow test
-			Gl.glStencilFunc(Gl.GL_ALWAYS, 128, 255);
+			// disable stencil shadow test			
+			//Gl.glStencilFunc(Gl.GL_ALWAYS, 128, 255);
 
 			// uplight the entire screen to crutch up not having better blending range
 			// TODO: RB_STD_LightScale();
@@ -1375,7 +1365,7 @@ namespace idTech4.Renderer
 			// unset privatePolygonOffset if necessary
 			if((stage.PrivatePolygonOffset > 0) && (surface.Material.TestMaterialFlag(MaterialFlags.PolygonOffset) == false))
 			{
-				Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
+				//Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
 			}
 
 			if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
@@ -1386,15 +1376,15 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
 			{
-				Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
-				Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
-				Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
+				//Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+				//Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+				//Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2)
 			{
-				Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
-				Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
-				Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
+				//Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+				//Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+				//Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
 			{
@@ -1456,9 +1446,9 @@ namespace idTech4.Renderer
 
 			if(stage.Texture.HasMatrix == true)
 			{
-				Gl.glMatrixMode(Gl.GL_TEXTURE);
-				Gl.glLoadIdentity();
-				Gl.glMatrixMode(Gl.GL_MODELVIEW);
+				//Gl.glMatrixMode(Gl.GL_TEXTURE);
+				//Gl.glLoadIdentity();
+				//Gl.glMatrixMode(Gl.GL_MODELVIEW);
 			}
 		}
 
@@ -1486,18 +1476,6 @@ namespace idTech4.Renderer
 			return true;
 		}
 
-		private void GetWGLExtensionsWithFakeWindow()
-		{
-			/*Form tmpForm = new Form();
-
-			IntPtr hDC = GetDC(hWnd);
-			IntPtr gRC = wglCreateContext(hDC);
-			wglMakeCurrent(hDC, gRC);
-			GLW_CheckWGLExtensions(hDC);
-			wglDeleteContext(gRC);
-			ReleaseDC(hWnd, hDC);*/
-		}
-
 		/// <summary>
 		/// This handles the flipping needed when the view being rendered is a mirored view.
 		/// </summary>
@@ -1511,35 +1489,35 @@ namespace idTech4.Renderer
 
 			if(type == CullType.TwoSided)
 			{
-				Gl.glDisable(Gl.GL_CULL_FACE);
+				//Gl.glDisable(Gl.GL_CULL_FACE);
 			}
 			else
 			{
 				if(idE.Backend.GLState.FaceCulling == CullType.TwoSided)
 				{
-					Gl.glDisable(Gl.GL_CULL_FACE);
+					//Gl.glDisable(Gl.GL_CULL_FACE);
 				}
 
 				if(type == CullType.TwoSided)
 				{
 					if(idE.Backend.ViewDefinition.IsMirror == true)
 					{
-						Gl.glCullFace(Gl.GL_FRONT);
+						//Gl.glCullFace(Gl.GL_FRONT);
 					}
 					else
 					{
-						Gl.glCullFace(Gl.GL_BACK);
+						//Gl.glCullFace(Gl.GL_BACK);
 					}
 				}
 				else
 				{
 					if(idE.Backend.ViewDefinition.IsMirror == true)
 					{
-						Gl.glCullFace(Gl.GL_BACK);
+						//Gl.glCullFace(Gl.GL_BACK);
 					}
 					else
 					{
-						Gl.glCullFace(Gl.GL_FRONT);
+						//Gl.glCullFace(Gl.GL_FRONT);
 					}
 				}
 			}
@@ -1560,8 +1538,8 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				Gl.glActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
-				Gl.glClientActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
+				//Gl.glActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
+				//Gl.glClientActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
 
 				// TODO: RB_LogComment("glActiveTextureARB( %i );\nglClientActiveTextureARB( %i );\n", unit, unit);
 
@@ -1603,15 +1581,15 @@ namespace idTech4.Renderer
 			{
 				if(state.HasFlag(MaterialStates.DepthFunctionEqual) == true)
 				{
-					Gl.glDepthFunc(Gl.GL_EQUAL);
+					//Gl.glDepthFunc(Gl.GL_EQUAL);
 				}
 				else if(state.HasFlag(MaterialStates.DepthFunctionAlways) == true)
 				{
-					Gl.glDepthFunc(Gl.GL_ALWAYS);
+					//Gl.glDepthFunc(Gl.GL_ALWAYS);
 				}
 				else
 				{
-					Gl.glDepthFunc(Gl.GL_LEQUAL);
+					//Gl.glDepthFunc(Gl.GL_LEQUAL);
 				}
 			}
 
@@ -1689,7 +1667,7 @@ namespace idTech4.Renderer
 						break;
 				}
 
-				Gl.glBlendFunc(srcFactor, dstFactor);
+				//Gl.glBlendFunc(srcFactor, dstFactor);
 			}
 
 			//
@@ -1699,11 +1677,11 @@ namespace idTech4.Renderer
 			{
 				if(state.HasFlag(MaterialStates.DepthMask) == true)
 				{
-					Gl.glDepthMask(Gl.GL_FALSE);
+					//Gl.glDepthMask(Gl.GL_FALSE);
 				}
 				else
 				{
-					Gl.glDepthMask(Gl.GL_TRUE);
+					//Gl.glDepthMask(Gl.GL_TRUE);
 				}
 			}
 
@@ -1717,7 +1695,7 @@ namespace idTech4.Renderer
 				int b = (diff.HasFlag(MaterialStates.BlueMask) == true) ? 1 : 0;
 				int a = (diff.HasFlag(MaterialStates.AlphaMask) == true) ? 1 : 0;
 
-				Gl.glColorMask(r, g, b, a);
+				//Gl.glColorMask(r, g, b, a);
 			}
 
 			//
@@ -1727,11 +1705,11 @@ namespace idTech4.Renderer
 			{
 				if(state.HasFlag(MaterialStates.PolygonModeLine) == true)
 				{
-					Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE);					
+					//Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE);					
 				}
 				else
 				{
-					Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
+					//Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
 				}
 			}
 
@@ -1743,22 +1721,22 @@ namespace idTech4.Renderer
 				switch(state & MaterialStates.AlphaTestBits)
 				{
 					case 0:
-						Gl.glDisable(Gl.GL_ALPHA_TEST);
+						////Gl.glDisable(Gl.GL_ALPHA_TEST);
 						break;
 
 					case MaterialStates.AlphaTestEqual255:
-						Gl.glEnable(Gl.GL_ALPHA_TEST);
-						Gl.glAlphaFunc(Gl.GL_EQUAL, 1.0f);
+						//Gl.glEnable(Gl.GL_ALPHA_TEST);
+						//Gl.glAlphaFunc(Gl.GL_EQUAL, 1.0f);
 						break;
 
 					case MaterialStates.AlphaTestLessThan128:
-						Gl.glEnable(Gl.GL_ALPHA_TEST);
-						Gl.glAlphaFunc(Gl.GL_LESS, 0.5f);
+						//Gl.glEnable(Gl.GL_ALPHA_TEST);
+						//Gl.glAlphaFunc(Gl.GL_LESS, 0.5f);
 						break;
 
 					case MaterialStates.AlphaTestGreaterOrEqual128:
-						Gl.glEnable(Gl.GL_ALPHA_TEST);
-						Gl.glAlphaFunc(Gl.GL_GEQUAL, 0.5f);
+						//Gl.glEnable(Gl.GL_ALPHA_TEST);
+						//Gl.glAlphaFunc(Gl.GL_GEQUAL, 0.5f);
 						break;
 
 					default:
@@ -1785,7 +1763,7 @@ namespace idTech4.Renderer
 				case Gl.GL_REPLACE:
 				case Gl.GL_DECAL:
 				case Gl.GL_ADD:
-					Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, env);
+					//Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, env);
 					break;
 				default:
 					idConsole.Error("GL_TexEnv: invalid env '{0}' passed\n", env);
@@ -1861,9 +1839,6 @@ namespace idTech4.Renderer
 			new idCvar("r_useInfiniteFarZ", "1", "use the no-far-clip-plane trick", CvarFlags.ReadOnly | CvarFlags.Bool);
 
 			new idCvar("r_znear", "3", 0.001f, 200.0f, "near Z clip plane distance", CvarFlags.Renderer | CvarFlags.Float);
-
-			new idCvar("r_ignoreGLErrors", "1", "ignore GL errors", CvarFlags.ReadOnly | CvarFlags.Bool);
-			new idCvar("r_finish", "0", "force a call to glFinish() every frame", CvarFlags.ReadOnly | CvarFlags.Bool);
 			new idCvar("r_swapInterval", "0", "changes wglSwapIntarval", CvarFlags.ReadOnly | CvarFlags.Archive | CvarFlags.Integer);
 
 			new idCvar("r_gamma", "1", 0.5f, 3.0f, "changes gamma tables", CvarFlags.Renderer | CvarFlags.Archive | CvarFlags.Float);
@@ -2022,176 +1997,6 @@ namespace idTech4.Renderer
 			idE.DeclManager.FindMaterial("lights/defaultProjectedLight");
 		}
 
-		private void InitOpenGL()
-		{
-			idConsole.WriteLine("----- R_InitOpenGL -----");
-
-			if(idE.GLConfig.IsInitialized == true)
-			{
-				idConsole.FatalError("R_InitOpenGL called while active");
-			}
-
-			// in case we had an error while doing a tiled rendering
-			_viewPortOffset = Vector2.Zero;
-
-			//
-			// initialize OS specific portions of the renderSystem
-			//
-			for(int i = 0; i < 2; i++)
-			{
-				// set the parameters we are trying
-				GetModeInfo(ref idE.GLConfig.VideoWidth, ref idE.GLConfig.VideoHeight, idE.CvarSystem.GetInteger("r_mode"));
-
-				if(InitOpenGLContext(
-					idE.GLConfig.VideoWidth,
-					idE.GLConfig.VideoHeight,
-					idE.CvarSystem.GetBool("r_fullscreen"),
-					idE.CvarSystem.GetInteger("r_displayRefresh"),
-					idE.CvarSystem.GetInteger("r_multiSamples"),
-					false) == true)
-				{
-					break;
-				}
-
-				if(i == 1)
-				{
-					idConsole.FatalError("Unable to initialize OpenGL");
-				}
-
-				// if we failed, set everything back to "safe mode" and try again
-				idE.CvarSystem.SetInteger("r_mode", 3);
-				idE.CvarSystem.SetInteger("r_fullscreen", 0);
-				idE.CvarSystem.SetInteger("r_displayRefresh", 0);
-				idE.CvarSystem.SetInteger("r_multiSamples", 0);
-			}
-
-			// input and sound systems need to be tied to the new window
-			// TODO: Sys_InitInput();
-			// TODO: soundSystem->InitHW();
-
-			// get our config strings
-			idE.GLConfig.Vendor = Gl.glGetString(Gl.GL_VENDOR);
-			idE.GLConfig.Renderer = Gl.glGetString(Gl.GL_RENDERER);
-			idE.GLConfig.Version = Gl.glGetString(Gl.GL_VERSION);
-			idE.GLConfig.VersionF = new Version(idE.GLConfig.Version);
-			idE.GLConfig.Extensions = Gl.glGetString(Gl.GL_EXTENSIONS);
-
-			// OpenGL driver constants
-			Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_SIZE, out idE.GLConfig.MaxTextureSize);
-
-			// stubbed or broken drivers may have reported 0...
-			if(idE.GLConfig.MaxTextureSize <= 0)
-			{
-				idE.GLConfig.MaxTextureSize = 256;
-			}
-
-			idE.GLConfig.IsInitialized = true;
-
-			// recheck all the extensions (FIXME: this might be dangerous)
-			CheckPortableExtensions();
-
-			// parse our vertex and fragment programs, possibly disably support for
-			// one of the paths if there was an error
-			InitNV10();
-			InitNV20();
-			InitR200();
-			InitARB2();
-
-			Cmd_ReloadArbPrograms(this, new CommandEventArgs(new idCmdArgs()));
-
-			// allocate the vertex array range or vertex objects
-			// TODO: vertexCache.Init();*/
-
-			// select which renderSystem we are going to use
-			idE.CvarSystem.SetModified("r_renderer");
-			SetBackEndRenderer();
-
-			ToggleSmpFrame();
-
-			// Reset our gamma
-			SetColorMappings();
-
-			// TODO: ogl error
-			/*#ifdef _WIN32
-				static bool glCheck = false;
-				if ( !glCheck && win32.osversion.dwMajorVersion == 6 ) {
-					glCheck = true;
-					if ( !idStr::Icmp( glConfig.vendor_string, "Microsoft" ) && idStr::FindText( glConfig.renderer_string, "OpenGL-D3D" ) != -1 ) {
-						if ( cvarSystem->GetCVarBool( "r_fullscreen" ) ) {
-							cmdSystem->BufferCommandText( CMD_EXEC_NOW, "vid_restart partial windowed\n" );
-							Sys_GrabMouseCursor( false );
-						}
-						int ret = MessageBox( NULL, "Please install OpenGL drivers from your graphics hardware vendor to run " GAME_NAME ".\nYour OpenGL functionality is limited.",
-							"Insufficient OpenGL capabilities", MB_OKCANCEL | MB_ICONWARNING | MB_TASKMODAL );
-						if ( ret == IDCANCEL ) {
-							cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "quit\n" );
-							cmdSystem->ExecuteCommandBuffer();
-						}
-						if ( cvarSystem->GetCVarBool( "r_fullscreen" ) ) {
-							cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "vid_restart\n" );
-						}
-					}
-				}
-			#endif*/
-		}
-
-		private bool InitOpenGLContext(int width, int height, bool fullscreen, int refreshRate, int multiSamples, bool stereoMode)
-		{
-			idConsole.WriteLine("Initializing OpenGL subsystem");
-
-			// check our desktop attributes
-			// TODO
-			/*hDC = GetDC(GetDesktopWindow());
-			win32.desktopBitsPixel = GetDeviceCaps(hDC, BITSPIXEL);
-			win32.desktopWidth = GetDeviceCaps(hDC, HORZRES);
-			win32.desktopHeight = GetDeviceCaps(hDC, VERTRES);
-			ReleaseDC(GetDesktopWindow(), hDC);
-
-			// we can't run in a window unless it is 32 bpp
-			if(win32.desktopBitsPixel < 32 && !parms.fullScreen)
-			{
-				common->Printf("^3Windowed mode requires 32 bit desktop depth^0\n");
-				return false;
-			}
-
-			// save the hardware gamma so it can be
-			// restored on exit
-			GLimp_SaveGamma();
-
-			// create our window classes if we haven't already
-			GLW_CreateWindowClasses();*/
-
-			// getting the wgl extensions involves creating a fake window to get a context,
-			// which is pretty disgusting, and seems to mess with the AGP VAR allocation
-			GetWGLExtensionsWithFakeWindow();
-
-			// TODO: fullscreen
-			// try to change to fullscreen
-			/*if(parms.fullScreen)
-			{
-				if(!GLW_SetFullScreen(parms))
-				{
-					GLimp_Shutdown();
-					return false;
-				}
-			}*/
-
-			// try to create a window with the correct pixel format
-			// and init the renderer context
-			if(CreateOpenGLWindow(width, height, fullscreen, refreshRate, multiSamples, stereoMode) == false)
-			{
-				// TODO: GLimp_Shutdown();
-				return false;
-			}
-
-			idE.CvarSystem.SetModified("r_swapInterval");
-
-			// check logging
-			// TODO: GLimp_EnableLogging((r_logFile.GetInteger() != 0));
-
-			return true;
-		}
-
 		private void IssueRenderCommands()
 		{
 			if((_frameData.Commands.Peek().CommandID == RenderCommandType.Nop) && (_frameData.Commands.Count == 1))
@@ -2234,7 +2039,7 @@ namespace idTech4.Renderer
 			{
 				string buffer = Encoding.UTF8.GetString(data);
 
-				if(idE.GLConfig.IsInitialized == false)
+				if(idE.RenderSystem.IsRunning == false)
 				{
 					return;
 				}
@@ -2288,19 +2093,19 @@ namespace idTech4.Renderer
 
 				endOffset += 3;
 
-				Gl.glBindProgramARB(prog.Target, prog.Type);
-				Gl.glGetError();
+				//Gl.glBindProgramARB(prog.Target, prog.Type);
+				//Gl.glGetError();
 
 				int progBufferLength = endOffset - startOffset;
 				byte[] progBuffer = new byte[progBufferLength];
 				Array.Copy(data, startOffset, progBuffer, 0, progBufferLength);
 
-				Gl.glProgramStringARB(prog.Target, Gl.GL_PROGRAM_FORMAT_ASCII_ARB, progBufferLength, progBuffer);
+				//Gl.glProgramStringARB(prog.Target, Gl.GL_PROGRAM_FORMAT_ASCII_ARB, progBufferLength, progBuffer);
 
-				int error = Gl.glGetError();
-				int programErrorPosition;
+				int error = 0;//Gl.glGetError();
+				int programErrorPosition = 0;
 
-				Gl.glGetIntegerv(Gl.GL_PROGRAM_ERROR_POSITION_ARB, out programErrorPosition);
+				//Gl.glGetIntegerv(Gl.GL_PROGRAM_ERROR_POSITION_ARB, out programErrorPosition);
 
 				if(error == Gl.GL_INVALID_OPERATION)
 				{
@@ -2343,8 +2148,8 @@ namespace idTech4.Renderer
 			// set privatePolygonOffset if necessary
 			if(stage.PrivatePolygonOffset > 0)
 			{
-				Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
-				Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * stage.PrivatePolygonOffset);
+				//Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
+				//Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * stage.PrivatePolygonOffset);
 			}
 
 			// set the texture matrix if needed
@@ -2549,10 +2354,10 @@ namespace idTech4.Renderer
 			{
 				idE.Backend.CurrentScissor = surface.ScissorRectangle;
 
-				Gl.glScissor(idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
+				/*//Gl.glScissor(idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
 					idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.CurrentScissor.Y1,
 					idE.Backend.CurrentScissor.X2 + 1 - idE.Backend.CurrentScissor.X1,
-					idE.Backend.CurrentScissor.Y2 + 1 - idE.Backend.CurrentScissor.Y1);
+					idE.Backend.CurrentScissor.Y2 + 1 - idE.Backend.CurrentScissor.Y1);*/
 			}
 
 			// some deforms may disable themselves by setting numIndexes = 0
@@ -2576,8 +2381,9 @@ namespace idTech4.Renderer
 			// set polygon offset if necessary
 			if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
 			{
-				Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
-				Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * material.PolygonOffset);
+				idConsole.WriteLine("TODO: polygon offset fill");
+				//Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
+				//Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * material.PolygonOffset);
 			}
 
 			// TODO: weapon depth hack
@@ -2588,31 +2394,6 @@ namespace idTech4.Renderer
 			if ( surf->space->modelDepthHack != 0.0f ) {
 				RB_EnterModelDepthHack( surf->space->modelDepthHack );
 			}*/
-
-			Vertex[] ambientCacheData = tri.AmbientCache.Data;
-
-			// TODO: replace this with something permanent, just a test instead of using unsafe code
-			float[] v = new float[ambientCacheData.Length * 3];
-			float[] st = new float[ambientCacheData.Length * 2];
-
-			for(int i = 0; i < ambientCacheData.Length; i++)
-			{
-				v[(i * 3)] = ambientCacheData[i].Position[0];
-				v[(i * 3) + 1] = ambientCacheData[i].Position[1];
-				v[(i * 3) + 2] = ambientCacheData[i].Position[2];
-			}
-
-			for(int i = 0; i < ambientCacheData.Length; i++)
-			{
-				st[(i * 2)] = ambientCacheData[i].TextureCoordinates[0];
-				st[(i * 2) + 1] = ambientCacheData[i].TextureCoordinates[1];
-			}
-
-			//fixed(float* positionPtr = &ambientCacheData[0].Position[0])
-			Gl.glVertexPointer(3, Gl.GL_FLOAT, 0, v);
-			//fixed(float* uvPtr = &ambientCacheData[0].TextureCoordinates[0])
-			Gl.glTexCoordPointer(2, Gl.GL_FLOAT, 0, st);
-		
 
 			foreach(MaterialStage stage in material.Stages)
 			{
@@ -2639,6 +2420,7 @@ namespace idTech4.Renderer
 
 				if(newStage.IsEmpty == false)
 				{
+					throw new Exception("THIS MIGHT NOT WORK!!!");
 					//--------------------------
 					//
 					// new style stages
@@ -2656,10 +2438,10 @@ namespace idTech4.Renderer
 					Gl.glVertexAttribPointerARB(10, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[1].ToFloatPtr());
 					Gl.glNormalPointer(Gl.GL_FLOAT, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->normal.ToFloatPtr());*/
 
-					Gl.glEnableClientState(Gl.GL_COLOR_ARRAY);
-					Gl.glEnableVertexAttribArray(9);
-					Gl.glEnableVertexAttribArray(10);
-					Gl.glEnableClientState(Gl.GL_NORMAL_ARRAY);
+					//Gl.glEnableClientState(Gl.GL_COLOR_ARRAY);
+					//Gl.glEnableVertexAttribArray(9);
+					//Gl.glEnableVertexAttribArray(10);
+					//Gl.glEnableClientState(Gl.GL_NORMAL_ARRAY);
 
 					GL_State(stage.DrawStateBits);
 
@@ -2684,7 +2466,7 @@ namespace idTech4.Renderer
 						parm[2] = registers[newStage.VertexParameters[i, 2]];
 						parm[3] = registers[newStage.VertexParameters[i, 3]];
 
-						Gl.glProgramLocalParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, i, parm);
+						//Gl.glProgramLocalParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, i, parm);
 					}
 
 					for(int i = 0; i < newStage.FragmentProgramImages.Length; i++)
@@ -2696,8 +2478,8 @@ namespace idTech4.Renderer
 						}
 					}
 
-					Gl.glBindProgramARB(Gl.GL_FRAGMENT_PROGRAM_ARB, newStage.FragmentProgram);
-					Gl.glEnable(Gl.GL_FRAGMENT_PROGRAM_ARB);
+					//Gl.glBindProgramARB(Gl.GL_FRAGMENT_PROGRAM_ARB, newStage.FragmentProgram);
+					//Gl.glEnable(Gl.GL_FRAGMENT_PROGRAM_ARB);
 
 					// draw it
 					DrawElementsWithCounters(tri);
@@ -2718,146 +2500,135 @@ namespace idTech4.Renderer
 
 					GL_SelectTexture(0);
 
-					Gl.glDisable(Gl.GL_VERTEX_PROGRAM_ARB);
-					Gl.glDisable(Gl.GL_FRAGMENT_PROGRAM_ARB);
+					//Gl.glDisable(Gl.GL_VERTEX_PROGRAM_ARB);
+					//Gl.glDisable(Gl.GL_FRAGMENT_PROGRAM_ARB);
 					// Fixme: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
-					Gl.glBindProgramARB(Gl.GL_VERTEX_PROGRAM_ARB, 0);
+					//Gl.glBindProgramARB(Gl.GL_VERTEX_PROGRAM_ARB, 0);
 
-					Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
-					Gl.glDisableVertexAttribArrayARB(9);
-					Gl.glDisableVertexAttribArrayARB(10);
-					Gl.glDisableClientState(Gl.GL_NORMAL_ARRAY);
+					//Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
+					//Gl.glDisableVertexAttribArrayARB(9);
+					//Gl.glDisableVertexAttribArrayARB(10);
+					//Gl.glDisableClientState(Gl.GL_NORMAL_ARRAY);
 
 					continue;
-				}
-
-				//--------------------------
-				//
-				// old style stages
-				//
-				//--------------------------
-
-				// set the color
-				float[] color = new float[4];
-				color[0] = registers[stage.Color.Registers[0]];
-				color[1] = registers[stage.Color.Registers[1]];
-				color[2] = registers[stage.Color.Registers[2]];
-				color[3] = registers[stage.Color.Registers[3]];
-
-				// skip the entire stage if an add would be black
-				if((stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
-					&& (color[0] <= 0) && (color[1] <= 0) && (color[2] <= 0))
-				{
-					continue;
-				}
-
-				// skip the entire stage if a blend would be completely transparent
-				if((stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
-					&& (color[3] <= 0))
-				{
-					continue;
-				}
-
-				// select the vertex color source
-				if(stage.VertexColor == StageVertexColor.Ignore)
-				{
-					Gl.glColor4fv(color);
 				}
 				else
 				{
-					byte[] c = new byte[ambientCacheData.Length * 4];
+					//--------------------------
+					//
+					// old style stages
+					//
+					//--------------------------
 
-					for(int i = 0; i < ambientCacheData.Length; i++)
+					// set the color
+					float[] color = new float[4];
+					color[0] = registers[stage.Color.Registers[0]];
+					color[1] = registers[stage.Color.Registers[1]];
+					color[2] = registers[stage.Color.Registers[2]];
+					color[3] = registers[stage.Color.Registers[3]];
+
+					// skip the entire stage if an add would be black
+					if((stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
+						&& (color[0] <= 0) && (color[1] <= 0) && (color[2] <= 0))
 					{
-						c[(i * 4)] = ambientCacheData[i].Color[0];
-						c[(i * 4) + 1] = ambientCacheData[i].Color[1];
-						c[(i * 4) + 2] = ambientCacheData[i].Color[2];
-						c[(i * 4) + 3] = ambientCacheData[i].Color[3];
-					}
-					
-					//fixed(byte* colorPtr = &ambientCacheData[0].Color[0])
-					Gl.glColorPointer(4, Gl.GL_UNSIGNED_BYTE, 0, c);
-					Gl.glEnableClientState(Gl.GL_COLOR_ARRAY);
-
-					if(stage.VertexColor == StageVertexColor.InverseModulate)
-					{
-						idConsole.WriteLine("TODO: InverseModulate");
-						//GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
-
-						/*GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.CombineRgb, (int) All.Modulate);
-						GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.Source0Rgb, (int) All.Texture);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB_ARB, Gl.GL_PRIMARY_COLOR_ARB);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB_ARB, Gl.GL_SRC_COLOR);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB_ARB, Gl.GL_ONE_MINUS_SRC_COLOR);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE_ARB, 1);*/
+						continue;
 					}
 
-					// for vertex color and modulated color, we need to enable a second texture stage
-					if(color[0] != 1 || color[1] != 1 || color[2] != 1 || color[3] != 1)
+					// skip the entire stage if a blend would be completely transparent
+					if((stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
+						&& (color[3] <= 0))
 					{
+						continue;
+					}
+
+					// select the vertex color source
+					if(stage.VertexColor == StageVertexColor.Ignore)
+					{
+						_basicEffect.DiffuseColor = new Vector3(color[0], color[1], color[2]);
+						_basicEffect.Alpha = color[3];						
+					}
+					else
+					{
+						if(stage.VertexColor == StageVertexColor.InverseModulate)
+						{
+							idConsole.WriteLine("TODO: InverseModulate");
+							//GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
+
+							/*GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.CombineRgb, (int) All.Modulate);
+							GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.Source0Rgb, (int) All.Texture);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB_ARB, Gl.GL_PRIMARY_COLOR_ARB);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB_ARB, Gl.GL_SRC_COLOR);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB_ARB, Gl.GL_ONE_MINUS_SRC_COLOR);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE_ARB, 1);*/
+						}
+
+						// for vertex color and modulated color, we need to enable a second texture stage
+						if(color[0] != 1 || color[1] != 1 || color[2] != 1 || color[3] != 1)
+						{
+							GL_SelectTexture(1);
+							idE.ImageManager.WhiteImage.Bind();
+							idConsole.WriteLine("TODO: vertex color");
+							// GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
+
+							/*Gl.glTexEnvfv(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_COLOR, color);
+
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_RGB_ARB, Gl.GL_MODULATE);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_RGB_ARB, Gl.GL_PREVIOUS_ARB);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB_ARB, Gl.GL_CONSTANT_ARB);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB_ARB, Gl.GL_SRC_COLOR);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB_ARB, Gl.GL_SRC_COLOR);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE_ARB, 1);
+
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_ALPHA_ARB, Gl.GL_MODULATE);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_ALPHA_ARB, Gl.GL_PREVIOUS_ARB);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_ALPHA_ARB, Gl.GL_CONSTANT_ARB);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_ALPHA_ARB, Gl.GL_SRC_ALPHA);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_ALPHA_ARB, Gl.GL_SRC_ALPHA);
+							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_ALPHA_SCALE, 1);
+
+							GL_SelectTexture(0);*/
+						}
+					}
+
+					// bind the texture
+					BindVariableStageImage(stage.Texture, registers);
+
+					// set the state
+					GL_State(stage.DrawStateBits);
+
+					PrepareStageTexturing(stage, surface, tri.AmbientCache.Data);
+
+					// draw it
+					DrawElementsWithCounters(tri);
+
+					FinishStageTexturing(stage, surface, tri.AmbientCache.Data);
+
+					if(stage.VertexColor != StageVertexColor.Ignore)
+					{
+						idConsole.WriteLine("TODO: SVC ignore");
+						/*GL.DisableClientState(ArrayCap.ColorArray);
+
 						GL_SelectTexture(1);
-						idE.ImageManager.WhiteImage.Bind();
-						idConsole.WriteLine("TODO: vertex color");
-						// GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
+						GL_TextureEnvironment(Gl.GL_MODULATE);
 
-						/*Gl.glTexEnvfv(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_COLOR, color);
+						idE.ImageManager.BindNullTexture();
 
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_RGB_ARB, Gl.GL_MODULATE);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_RGB_ARB, Gl.GL_PREVIOUS_ARB);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB_ARB, Gl.GL_CONSTANT_ARB);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB_ARB, Gl.GL_SRC_COLOR);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB_ARB, Gl.GL_SRC_COLOR);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE_ARB, 1);
-
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_ALPHA_ARB, Gl.GL_MODULATE);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_ALPHA_ARB, Gl.GL_PREVIOUS_ARB);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_ALPHA_ARB, Gl.GL_CONSTANT_ARB);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_ALPHA_ARB, Gl.GL_SRC_ALPHA);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_ALPHA_ARB, Gl.GL_SRC_ALPHA);
-						Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_ALPHA_SCALE, 1);
-
-						GL_SelectTexture(0);*/
+						GL_SelectTexture(0);
+						GL_TextureEnvironment(Gl.GL_MODULATE);*/
 					}
 				}
 
-				// bind the texture
-				BindVariableStageImage(stage.Texture, registers);
-
-				// set the state
-				GL_State(stage.DrawStateBits);
-
-				PrepareStageTexturing(stage, surface, ambientCacheData);
-
-				// draw it
-				DrawElementsWithCounters(tri);
-
-				FinishStageTexturing(stage, surface, ambientCacheData);
-
-				if(stage.VertexColor != StageVertexColor.Ignore)
+				// reset polygon offset
+				if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
 				{
-					idConsole.WriteLine("TODO: SVC ignore");
-					/*GL.DisableClientState(ArrayCap.ColorArray);
-
-					GL_SelectTexture(1);
-					GL_TextureEnvironment(Gl.GL_MODULATE);
-
-					idE.ImageManager.BindNullTexture();
-
-					GL_SelectTexture(0);
-					GL_TextureEnvironment(Gl.GL_MODULATE);*/
+					//Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
 				}
-			}
 
-			// reset polygon offset
-			if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
-			{
-				Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
+				// TODO: weapon depth hack
+				/*if ( surf->space->weaponDepthHack || surf->space->modelDepthHack != 0.0f ) {
+					RB_LeaveDepthHack();
+				}*/
 			}
-
-			// TODO: weapon depth hack
-			/*if ( surf->space->weaponDepthHack || surf->space->modelDepthHack != 0.0f ) {
-				RB_LeaveDepthHack();
-			}*/
 		}
 
 		/// <summary>
@@ -2983,43 +2754,41 @@ namespace idTech4.Renderer
 			// see which draw buffer we want to render the frame to
 			idE.Backend.FrameCount = cmd.FrameCount;
 
-			Gl.glDrawBuffer(cmd.Buffer);
-
 			// clear screen for debugging
 			// automatically enable this with several other debug tools
 			// that might leave unrendered portions of the screen
-
 			if((idE.CvarSystem.GetFloat("r_clear") > 0)
 				|| (idE.CvarSystem.GetString("r_clear").Length != 1)
 				|| (idE.CvarSystem.GetBool("r_lockSurfaces") == true)
 				|| (idE.CvarSystem.GetBool("r_singleArea") == true)
 				|| (idE.CvarSystem.GetBool("r_showOverDraw") == true))
 			{
-				float[] color = new float[3];
+				Color color = Microsoft.Xna.Framework.Color.Gold;
 				string[] parts = idE.CvarSystem.GetString("r_clear").Split(' ');
 
-				if(parts.Length == 3)
+				// TODO: clear color
+				/*if(parts.Length == 3)
 				{
 					float.TryParse(parts[0], out color[0]);
 					float.TryParse(parts[1], out color[1]);
 					float.TryParse(parts[2], out color[2]);
 
-					Gl.glClearColor(color[0], color[1], color[2], 1);
+					color = Color.FromNonPremultiplied(color[0], color[1], color[2], 1);
 				}
 				else if(idE.CvarSystem.GetInteger("r_clear") == 2)
 				{
-					Gl.glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+					color = Color.FromNonPremultiplied(0.0f, 0.0f, 0.0f, 1.0f);
 				}
 				else if(idE.CvarSystem.GetBool("r_showOverDraw") == true)
 				{
-					Gl.glClearColor(1.0f, 1.0f, 1.0f, 1.0f);
+					color = Color.FromNonPremultiplied(1.0f, 1.0f, 1.0f, 1.0f);
 				}
 				else
 				{
-					Gl.glClearColor(0.4f, 0.0f, 0.25f, 1.0f);
-				}
+					color = Color.FromNonPremultiplied(0.4f, 0.0f, 0.25f, 1.0f);
+				}*/
 
-				Gl.glClear(Gl.GL_COLOR_BUFFER_BIT);
+				_graphicsDevice.Clear(color);
 			}
 		}
 
@@ -3071,13 +2840,13 @@ namespace idTech4.Renderer
 		{
 			// TODO: RB_LogComment("--- R_SetDefaultGLState ---\n");
 
-			Gl.glClearDepth(1.0f);
-			Gl.glColor4f(1, 1, 1, 1);
+			//Gl.glClearDepth(1.0f);
+			//Gl.glColor4f(1, 1, 1, 1);
 
 			// the vertex array is always enabled
-			Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-			Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-			Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
+			//Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
+			//Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
+			//Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
 
 			//
 			// make sure our GL state vector is set correctly
@@ -3085,49 +2854,49 @@ namespace idTech4.Renderer
 			idE.Backend.GLState = new GLState();
 			idE.Backend.GLState.ForceState = true;
 
-			Gl.glColorMask(1, 1, 1, 1);
+			//Gl.glColorMask(1, 1, 1, 1);
 
-			Gl.glEnable(Gl.GL_DEPTH_TEST);
-			Gl.glEnable(Gl.GL_BLEND);
-			Gl.glEnable(Gl.GL_SCISSOR_TEST);
-			Gl.glEnable(Gl.GL_CULL_FACE);
-			Gl.glDisable(Gl.GL_LIGHTING);
-			Gl.glDisable(Gl.GL_LINE_STIPPLE);
-			Gl.glDisable(Gl.GL_STENCIL_TEST);
+			//Gl.glEnable(Gl.GL_DEPTH_TEST);
+			//Gl.glEnable(Gl.GL_BLEND);
+			//Gl.glEnable(Gl.GL_SCISSOR_TEST);
+			//Gl.glEnable(Gl.GL_CULL_FACE);
+			//Gl.glDisable(Gl.GL_LIGHTING);
+			//Gl.glDisable(Gl.GL_LINE_STIPPLE);
+			//Gl.glDisable(Gl.GL_STENCIL_TEST);
 
-			Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
-			Gl.glDepthMask(Gl.GL_TRUE);
-			Gl.glDepthFunc(Gl.GL_ALWAYS);
+			//Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
+			//Gl.glDepthMask(Gl.GL_TRUE);
+			//Gl.glDepthFunc(Gl.GL_ALWAYS);
 
-			Gl.glCullFace(Gl.GL_FRONT_AND_BACK);
-			Gl.glShadeModel(Gl.GL_SMOOTH);
+			//Gl.glCullFace(Gl.GL_FRONT_AND_BACK);
+			//Gl.glShadeModel(Gl.GL_SMOOTH);
 
 			if(idE.CvarSystem.GetBool("r_useScissor") == true)
 			{
-				Gl.glScissor(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
+				//	_graphicsDevice.ScissorRectangle = new Rectangle(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
 			}
 
 			for(int i = idE.GLConfig.MaxTextureUnits - 1; i >= 0; i--)
 			{
-				GL_SelectTexture(i);
+				//GL_SelectTexture(i);
 
 				// object linear texgen is our default
-				Gl.glTexGenf(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-				Gl.glTexGenf(Gl.GL_T, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-				Gl.glTexGenf(Gl.GL_R, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-				Gl.glTexGenf(Gl.GL_Q, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				//Gl.glTexGenf(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				//Gl.glTexGenf(Gl.GL_T, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				//Gl.glTexGenf(Gl.GL_R, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				//Gl.glTexGenf(Gl.GL_Q, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
 
-				GL_TextureEnvironment(Gl.GL_MODULATE);
-				Gl.glDisable(Gl.GL_TEXTURE_2D);
+				//GL_TextureEnvironment(Gl.GL_MODULATE);
+				//Gl.glDisable(Gl.GL_TEXTURE_2D);
 
 				if(idE.GLConfig.Texture3DAvailable == true)
 				{
-					Gl.glDisable(Gl.GL_TEXTURE_3D);
+					//Gl.glDisable(Gl.GL_TEXTURE_3D);
 				}
 
 				if(idE.GLConfig.CubeMapAvailable == true)
 				{
-					Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
+					//Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
 				}
 			}
 		}
@@ -3143,7 +2912,7 @@ namespace idTech4.Renderer
 			// TODO: showimages
 			/*GL_Set2D();
 			
-			Gl.glFinish();
+			//Gl.glFinish();
 
 			int x, y, w, h;
 			int start = idE.System.Time;
@@ -3197,12 +2966,6 @@ namespace idTech4.Renderer
 				ShowImages();
 			}
 
-			// force a gl sync if requested
-			if(idE.CvarSystem.GetBool("r_finish") == true)
-			{
-				Gl.glFinish();
-			}
-
 			// TODO: RB_LogComment("***************** RB_SwapBuffers *****************\n\n\n");
 
 			// don't flip if drawing to front buffer
@@ -3220,8 +2983,6 @@ namespace idTech4.Renderer
 
 					// Wgl.wglSwapIntervalEXT(idE.CvarSystem.GetInteger("r_swapInterval"));
 				}
-
-				_renderControl.SwapBuffers();
 			}
 		}
 
@@ -3259,7 +3020,7 @@ namespace idTech4.Renderer
 
 		private void UnbindIndex()
 		{
-			Gl.glBindBufferARB(Gl.GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
+			//Gl.glBindBufferARB(Gl.GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
 		}
 		#endregion
 
@@ -3313,8 +3074,8 @@ namespace idTech4.Renderer
 			parameters[2] = 0;
 			parameters[3] = 1;
 
-			Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 0, parameters);
-			Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 0, parameters);
+			//Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 0, parameters);
+			//Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 0, parameters);
 
 			// window coord to 0.0 to 1.0 conversion
 			parameters[0] = 1.0f / width;
@@ -3322,7 +3083,7 @@ namespace idTech4.Renderer
 			parameters[2] = 0;
 			parameters[3] = 1;
 
-			Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 1, parameters);
+			//Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 1, parameters);
 
 			//
 			// set eye position in global space
@@ -3332,7 +3093,7 @@ namespace idTech4.Renderer
 			parameters[2] = idE.Backend.ViewDefinition.RenderView.ViewOrigin.Z;
 			parameters[3] = 1.0f;
 
-			Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 1, parameters);
+			//Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 1, parameters);
 		}
 		#endregion
 
@@ -3356,18 +3117,18 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				CheckOpenGLErrors();
+				//CheckOpenGLErrors();
 
 				// create our "fragment program" display lists
-				_fragmentDisplayListBase = Gl.glGenLists((int) FragmentProgram.Count);
+				//_fragmentDisplayListBase = Gl.glGenLists((int) FragmentProgram.Count);
 
 				// force them to issue commands to build the list
 				bool temp = idE.CvarSystem.GetBool("r_useCombinerDisplayLists");
 				idE.CvarSystem.SetBool("r_useCombinerDisplayLists", false);
 
-				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.BumpAndLight, Gl.GL_COMPILE);
+				/*//Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.BumpAndLight, Gl.GL_COMPILE);
 				NV20_BumpAndLightFragment();
-				Gl.glEndList();
+				//Gl.glEndList();
 
 				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseColor, Gl.GL_COMPILE);
 				NV20_DiffuseColorFragment();
@@ -3379,7 +3140,7 @@ namespace idTech4.Renderer
 
 				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseAndSpecularColor, Gl.GL_COMPILE);
 				NV20_DiffuseAndSpecularColorFragment();
-				Gl.glEndList();
+				Gl.glEndList();*/
 
 				idE.CvarSystem.SetBool("r_useCombinerDisplayLists", temp);
 
@@ -3669,7 +3430,6 @@ namespace idTech4.Renderer
 		{
 			idE.GLConfig.AllowR200Path = false;
 
-			CheckOpenGLErrors();
 			idConsole.WriteLine("----------- R200_Init -----------");
 
 			if((idE.GLConfig.AtiFragmentShaderAvailable == false) || (idE.GLConfig.ArbFragmentProgramAvailable == false) || (idE.GLConfig.ArbVertexBufferObjectAvailable == false))
@@ -3678,8 +3438,6 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				CheckOpenGLErrors();
-
 				idConsole.WriteLine("TODO: R200_Init");
 				// TODO: R200
 				/*Gl.glGetIntegerv( Gl.GL_NUM_FRAGMENT_REGISTERS_ATI, &fsi.numFragmentRegisters );
@@ -3714,8 +3472,6 @@ namespace idTech4.Renderer
 		private void InitARB2()
 		{
 			idE.GLConfig.AllowArb2Path = false;
-
-			CheckOpenGLErrors();
 
 			idConsole.WriteLine("---------- R_ARB2_Init ----------");
 
@@ -3869,13 +3625,11 @@ namespace idTech4.Renderer
 		public bool AllowNV10Path;
 		public bool AllowR200Path;
 		public bool AllowArb2Path;
-
-		public bool IsInitialized;
 	}
 
 	internal class TextureUnit
 	{
-		public int Current2DMap;
+		public Texture Current2DMap;
 		public int Current3DMap;
 		public int CurrentCubeMap;
 		public int TexEnv;
@@ -4149,20 +3903,52 @@ namespace idTech4.Renderer
 
 		// data in vertex object space, not directly readable by the CPU*/
 
-		public VertexCache IndexCache;						// int
-		public VertexCache AmbientCache;					// idDrawVert
+		public VertexCache IndexCache;
+		public VertexCache AmbientCache;
 		/*struct vertCache_s *		lightingCache;			// lightingCache_t
 		struct vertCache_s *		shadowCache;			// shadowCache_t
 	*/
 	}
 
-	public struct Vertex
+	public struct Z : IVertexType
 	{
-		public float[] Position;
-		public float[] TextureCoordinates;
-		public float[] Normal;
-		public float[,] Tangents;
-		public byte[] Color;
+		#region IVertexType Members
+
+		VertexDeclaration IVertexType.VertexDeclaration
+		{
+			get { throw new NotImplementedException(); }
+		}
+
+		#endregion
+	}
+
+	public struct Vertex : IVertexType
+	{
+		#region Vertex declaration
+		public VertexDeclaration VertexDeclaration
+		{
+			get
+			{
+				return new VertexDeclaration(
+					new VertexElement[] {
+						new VertexElement(0, VertexElementFormat.Vector3, VertexElementUsage.Position, 0),
+						new VertexElement(12, VertexElementFormat.Vector2, VertexElementUsage.TextureCoordinate, 0),
+						new VertexElement(20, VertexElementFormat.Vector3, VertexElementUsage.Normal, 0),
+						//new VertexElement(32, VertexElementFormat.Vector3, VertexElementUsage.Tangent, 0),
+						new VertexElement(32, VertexElementFormat.Color, VertexElementUsage.Color, 0)
+					}
+				);
+			}
+		}
+		#endregion
+
+		#region Fields
+		public Vector3 Position;
+		public Vector2 TextureCoordinates;
+		public Vector3 Normal;
+		//public Vector3[] Tangents;
+		public Color Color;
+		#endregion
 	}
 
 	public abstract class BaseVertexCache

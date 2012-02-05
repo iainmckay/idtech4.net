@@ -86,24 +86,31 @@ namespace idTech4.UI
 			}
 			else
 			{
-				idConsole.WriteLine("TODO: non-null reg");
-				/*int regCount = _regCount[(int) type];
+				int regCount = idRegister.RegisterTypeCount[(int) type];
 
-				int numRegs = idRegister::REGCOUNT[type];
-				reg->var = var;
-				if ( type == idRegister::STRING ) {
-					idToken tok;
-					if ( src->ReadToken( &tok ) ) {
-						var->Init( tok, win );
+				register.Variable = var;
+
+				if(type == RegisterType.String)
+				{
+					idToken token = parser.ReadToken();
+
+					if(token != null)
+					{
+						var.Init(token.ToString(), window);
 					}
-				} else {
-					for ( int i = 0; i < numRegs; i++ ) {
-						reg->regs[i] = win->ParseExpression( src, NULL );
-						if ( i < numRegs-1 ) {
-							src->ExpectTokenString(",");
+				}
+				else
+				{
+					for(int i = 0; i < regCount; i++)
+					{
+						register.Indexes[i] = window.ParseExpression(parser);
+
+						if(i < (regCount - 1))
+						{
+							parser.ExpectTokenString(",");
 						}
 					}
-				}*/
+				}
 			}
 		}
 

@@ -510,7 +510,6 @@ namespace idTech4.UI
 
 		public void AddUpdateVariable(idWindowVariable var)
 		{
-			idConsole.WriteLine("AddUpdateVariable: {0}", var.Name);
 			_updateVariables.Add(var);
 		}
 
@@ -552,7 +551,7 @@ namespace idTech4.UI
 			{
 				return;
 			}
-			
+
 			CalculateClientRectangle(0, 0);
 			// TODO: SetFont();
 
@@ -575,8 +574,7 @@ namespace idTech4.UI
 			SetupTransforms(x, y);
 
 			DrawBackground(_drawRect);
-
-			// TODO: DrawBorderAndCaption(drawRect);
+			DrawBorderAndCaption(_drawRect);
 
 			if(_flags.HasFlag(WindowFlags.NoClip) == false)
 			{
@@ -693,7 +691,7 @@ namespace idTech4.UI
 			}*/
 
 			int count = _ops.Count;
-			
+
 			for(int i = 0; i < count; i++)
 			{
 				if(_ops[i].B == -2)
@@ -715,11 +713,11 @@ namespace idTech4.UI
 			}
 		}
 
-		public string HandleEvent(SystemEventArgs e)
+		public string HandleEvent(SystemEvent e)
 		{
 			if(_flags.HasFlag(WindowFlags.Desktop) == true)
 			{
-				// TODO
+				// TODO: actionup/down
 				/*actionDownRun = false;
 				actionUpRun = false;*/
 
@@ -1214,6 +1212,7 @@ namespace idTech4.UI
 				else if(token.ToString() == "onTime")
 				{
 					idConsole.WriteLine("TODO: onTime");
+
 					/*idTimeLineEvent *ev = new idTimeLineEvent;
 
 					if ( !src->ReadToken(&token) ) {
@@ -1272,20 +1271,18 @@ namespace idTech4.UI
 				}
 				else if(token.ToString() == "float")
 				{
-					idConsole.WriteLine("TODO: float");
-					/*src->ReadToken(&token);
-					work = token;
-					work.ToLower();
-					idWinFloat *varf = new idWinFloat();
-					varf->SetName(work);
-					definedVars.Append(varf);
+					token = parser.ReadToken();
+					string tokenLower = token.ToString().ToLower();
+
+					idWinFloat var = new idWinFloat(tokenLower);
+					_definedVariables.Add(var);
 
 					// add the float to the editors wrapper dict
 					// set the marker to after the float name
-					src->SetMarker ( );
+					parser.SetMarker();
 
 					// Parse the float
-					regList.AddReg(work, idRegister::FLOAT, src, this, varf);*/
+					_regList.AddRegister(tokenLower, RegisterType.Float, parser, this, var);
 				}
 				// TODO
 				/*else if (ParseScriptEntry(token, src)) 
@@ -1314,7 +1311,7 @@ namespace idTech4.UI
 			{
 				EvaluateRegisters(-1, true);
 			}
-			
+
 			SetupFromState();
 			PostParse();
 
@@ -1480,6 +1477,16 @@ namespace idTech4.UI
 			Init();
 		}
 
+		private void DisableRegister(string name)
+		{
+			idRegister reg = _regList.FindRegister(name);
+
+			if(reg != null)
+			{
+				reg.Enabled = false;
+			}
+		}
+
 		private void DrawBackground(Rectangle drawRect)
 		{
 			if(_backColor.W != 0)
@@ -1489,19 +1496,31 @@ namespace idTech4.UI
 
 			if((_background != null) && (_materialColor.W != 0))
 			{
-				idConsole.WriteLine("TODO: DrawMaterial");
+				if((_background != null) && (_materialColor.W > 0))
+				{
+					float scaleX, scaleY;
 
-				/*if ( background && matColor.w() ) {
-					float scalex, scaley;
-					if ( flags & WIN_NATURALMAT ) {
-						scalex = drawRect.w / background->GetImageWidth();
-						scaley = drawRect.h / background->GetImageHeight();
-					} else {
-						scalex = matScalex;
-						scaley = matScaley;
+					if(_flags.HasFlag(WindowFlags.NaturalMaterial) == true)
+					{
+						scaleX = _drawRect.Width / _background.ImageWidth;
+						scaleY = _drawRect.Height / _background.ImageHeight;
 					}
-					dc->DrawMaterial(drawRect.x, drawRect.y, drawRect.w, drawRect.h, background, matColor, scalex, scaley);
-				}*/
+					else
+					{
+						scaleX = _materialScaleX;
+						scaleY = _materialScaleY;
+					}
+
+					_context.DrawMaterial(_drawRect.X, _drawRect.Y, _drawRect.Width, _drawRect.Height, _background, _materialColor, scaleX, scaleY);
+				}
+			}
+		}
+
+		private void DrawBorderAndCaption(Rectangle drawRect)
+		{
+			if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize > 0) && (_borderColor.W > 0))
+			{
+				_context.DrawRectangle(drawRect.X, drawRect.Y, drawRect.Width, drawRect.Height, _borderSize, _borderColor);
 			}
 		}
 
@@ -1533,13 +1552,13 @@ namespace idTech4.UI
 			}*/
 		}
 
-		private int EmitOperation(int a, int b, WindowExpressionOperationType opType)
+		private int EmitOperation(object a, int b, WindowExpressionOperationType opType)
 		{
 			WindowExpressionOperation op;
 			return EmitOperation(a, b, opType, out op);
 		}
 
-		private int EmitOperation(int a, int b, WindowExpressionOperationType opType, out WindowExpressionOperation op)
+		private int EmitOperation(object a, int b, WindowExpressionOperationType opType, out WindowExpressionOperation op)
 		{
 			int i = _expressionRegisters.Count;
 			_registerIsTemporary[i] = true;
@@ -1689,61 +1708,69 @@ namespace idTech4.UI
 						break;
 
 					case WindowExpressionOperationType.Var:
-						idConsole.WriteLine("TODO: WindowExpressionOperationType.Var");
-						/*if(op.A == null)
+						if(op.A == null)
 						{
 							registers[op.C] = 0.0f;
 							break;
 						}
 						else if((op.B >= 0) && (registers[op.B] >= 0) && (registers[op.B] < 4))
 						{
+							throw new Exception("WTF?");
 							// grabs vector components
-							idWinVector4 var = (idWinVector4) op.A;
-							registers[op.C] = 
+							/*idWinVector4 var = (idWinVector4) op.A;
+							registers[op.C] = var.
 							idWinVec4 *var = (idWinVec4 *)( op->a );
-							registers[op->c] = ((idVec4&)var)[registers[op->b]];
-						} else {
-							registers[op->c] = ((idWinVar*)(op->a))->x();
-						}*/
+							registers[op->c] = ((idVec4&)var)[registers[op->b]];*/
+						}
+						else
+						{
+							registers[op.C] = ((idWindowVariable) op.A).X;
+						}
 						break;
 					case WindowExpressionOperationType.VarS:
-						idConsole.WriteLine("TODO: WindowExpressionOperationType.VarS");
-
-						/*if (op->a) {
-							idWinStr *var = (idWinStr*)(op->a);
-							registers[op->c] = atof(var->c_str());
-						} else {
-							registers[op->c] = 0;
-						}*/
+						if(op.A != null)
+						{
+							float.TryParse(((idWinString) op.A), out registers[op.C]);
+						}
+						else
+						{
+							registers[op.C] = 0;
+						}
 						break;
 
 					case WindowExpressionOperationType.VarF:
 						idConsole.WriteLine("TODO: WindowExpressionOperationType.VarF");
 
-						/**if (op->a) {
-							idWinFloat *var = (idWinFloat*)(op->a);
-							registers[op->c] = *var;
-						} else {
-							registers[op->c] = 0;
-						}*/
+						if(op.A != null)
+						{
+							registers[op.C] = ((idWinFloat) op.A).X;
+						}
+						else
+						{
+							registers[op.C] = 0;
+						}
 						break;
 
 					case WindowExpressionOperationType.VarI:
-						/*if (op->a) {
-							idWinInt *var = (idWinInt*)(op->a);
-							registers[op->c] = *var;
-						} else {
-							registers[op->c] = 0;
-						}*/
+						if(op.A != null)
+						{
+							registers[op.C] = ((idWinInteger) op.A).X;
+						}
+						else
+						{
+							registers[op.C] = 0;
+						}
 						break;
 
 					case WindowExpressionOperationType.VarB:
-						/*if (op->a) {
-							idWinBool *var = (idWinBool*)(op->a);
-							registers[op->c] = *var;
-						} else {
-							registers[op->c] = 0;
-						}*/
+						if(op.A != null)
+						{
+							registers[op.C] = ((idWinBool) op.A).X;
+						}
+						else
+						{
+							registers[op.C] = 0;
+						}
 						break;
 				}
 			}
@@ -1880,8 +1907,7 @@ namespace idTech4.UI
 			{
 				if((fixup == true) && (name != "$"))
 				{
-					idConsole.WriteLine("TODO: idWindow.DisableRegister");
-					// DisableRegister(name);
+					DisableRegister(name);
 				}
 
 				if(_parent != null)
@@ -2360,6 +2386,7 @@ namespace idTech4.UI
 		private int ParseTerm(idScriptParser parser, idWindowVariable var, int component)
 		{
 			int a, b;
+			object tmp;
 
 			idToken token = parser.ReadToken();
 			string tokenValue = token.ToString().ToLower();
@@ -2417,44 +2444,55 @@ namespace idTech4.UI
 
 			if(var != null)
 			{
-				idConsole.WriteLine("TODO: ParseTerm var");
-				/*a = (int)var;
-				//assert(dynamic_cast<idWinVec4*>(var));
-				var->Init(token, this);
+				var.Init(tokenValue, this);
+
+				tmp = var;
 				b = component;
-				if (dynamic_cast<idWinVec4*>(var)) {
-					if (src->ReadToken(&token)) {
-						if (token == "[") {
-							b = ParseExpression(src);
-							src->ExpectTokenString("]");
-						} else {
-							src->UnreadToken(&token);
+
+				if(var is idWinVector4)
+				{
+					if((token = parser.ReadToken()) != null)
+					{
+						if(token.ToString() == "[")
+						{
+							b = ParseExpression(parser);
+							parser.ExpectTokenString("]");
+						}
+						else
+						{
+							parser.UnreadToken(token);
 						}
 					}
-					return EmitOp(a, b, WOP_TYPE_VAR);
-				} else if (dynamic_cast<idWinFloat*>(var)) {
-					return EmitOp(a, b, WOP_TYPE_VARF);
-				} else if (dynamic_cast<idWinInt*>(var)) {
-					return EmitOp(a, b, WOP_TYPE_VARI);
-				} else if (dynamic_cast<idWinBool*>(var)) {
-					return EmitOp(a, b, WOP_TYPE_VARB);
-				} else if (dynamic_cast<idWinStr*>(var)) {
-					return EmitOp(a, b, WOP_TYPE_VARS);
-				} else {
-					src->Warning("Var expression not vec4, float or int '%s'", token.c_str());
-				}*/
+
+					return EmitOperation(tmp, b, WindowExpressionOperationType.Var);
+				}
+				else if(var is idWinFloat)
+				{
+					return EmitOperation(tmp, b, WindowExpressionOperationType.VarF);
+				}
+				else if(var is idWinInteger)
+				{
+					return EmitOperation(tmp, b, WindowExpressionOperationType.VarI);
+				}
+				else if(var is idWinBool)
+				{
+					return EmitOperation(tmp, b, WindowExpressionOperationType.VarB);
+				}
+				else if(var is idWinString)
+				{
+					return EmitOperation(tmp, b, WindowExpressionOperationType.VarS);
+				}
+				else
+				{
+					parser.Warning("Variable expression not vec4, float or int '{0}'", token.ToString());
+				}
+
 				return 0;
 			}
 			else
 			{
 				// ugly but used for post parsing to fixup named vars
-				idConsole.WriteLine("TODO: ParseTerm str");
-
-				/*char *p = new char[token.Length()+1];
-				strcpy(p, token);
-				a = (int)p;
-				b = -2;
-				return EmitOp(a, b, WOP_TYPE_VAR);*/
+				EmitOperation(token.ToString(), -2, WindowExpressionOperationType.Var);
 			}
 
 			return 0;

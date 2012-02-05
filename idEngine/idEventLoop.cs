@@ -85,6 +85,135 @@ namespace idTech4
 				idConsole.WriteLine("Couldn't open journal files");
 			}
 		}
+
+		public bool RunEventLoop()
+		{
+			return RunEventLoop(true);
+		}
+
+		public bool RunEventLoop(bool commandExecution)
+		{
+			SystemEvent ev;
+
+			while(true)
+			{
+				if(commandExecution == true)
+				{
+					// execute any bound commands before processing another event
+					idE.CmdSystem.ExecuteCommandBuffer();
+				}
+
+				ev = GetEvent();
+
+				// if no more events are available
+				if(ev.Type == SystemEventType.None)
+				{
+					return false;
+				}
+
+				ProcessEvent(ev);
+			}
+
+			return false;	// never reached
+		}
+		#endregion
+
+		#region Private
+		private SystemEvent GetEvent()
+		{
+			// TODO: pushed events
+			/*if(com_pushedEventsHead > com_pushedEventsTail)
+			{
+				com_pushedEventsTail++;
+				return com_pushedEvents[(com_pushedEventsTail - 1) & (MAX_PUSHED_EVENTS - 1)];
+			}*/
+
+			return GetRealEvent();
+		}
+
+		private SystemEvent GetRealEvent()
+		{
+			SystemEvent ev;
+
+			// either get an event from the system or the journal file
+			// TODO: journalling
+			/*if(com_journal.GetInteger() == 2)
+			{
+				r = com_journalFile->Read(&ev, sizeof(ev));
+				if(r != sizeof(ev))
+				{
+					common->FatalError("Error reading from journal file");
+				}
+				if(ev.evPtrLength)
+				{
+					ev.evPtr = Mem_ClearedAlloc(ev.evPtrLength);
+					r = com_journalFile->Read(ev.evPtr, ev.evPtrLength);
+					if(r != ev.evPtrLength)
+					{
+						common->FatalError("Error reading from journal file");
+					}
+				}
+			}
+			else*/
+			{
+				// return if we have data
+				// TODO: event queue
+				/*if(eventHead > eventTail)
+				{
+					eventTail++;
+					return eventQue[(eventTail - 1) & MASK_QUED_EVENTS];
+				}
+				 else */
+				{
+					// return the empty event 
+					ev = new SystemEvent(SystemEventType.None);
+				}
+
+				// write the journal value out if needed
+				// TODO: journalling
+				/*if(com_journal.GetInteger() == 1)
+				{
+					r = com_journalFile->Write(&ev, sizeof(ev));
+					if(r != sizeof(ev))
+					{
+						common->FatalError("Error writing to journal file");
+					}
+					if(ev.evPtrLength)
+					{
+						r = com_journalFile->Write(ev.evPtr, ev.evPtrLength);
+						if(r != ev.evPtrLength)
+						{
+							common->FatalError("Error writing to journal file");
+						}
+					}
+				}*/
+			}
+
+			return ev;
+		}
+
+		private void ProcessEvent(SystemEvent ev)
+		{
+			// TODO: process event
+			// track key up / down states
+			/*if ( ev.evType == SE_KEY ) {
+				idKeyInput::PreliminaryKeyEvent( ev.evValue, ( ev.evValue2 != 0 ) );
+			}
+
+			if ( ev.evType == SE_CONSOLE ) {
+				// from a text console outside the game window
+				cmdSystem->BufferCommandText( CMD_EXEC_APPEND, (char *)ev.evPtr );
+				cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "\n" );
+			} else */
+			{
+				idE.Session.ProcessEvent(ev);
+			}
+
+			// free any block data
+			/*if ( ev.evPtr ) {
+				Mem_Free( ev.evPtr );
+			}*/
+		}
 		#endregion
 		#endregion
 	}

@@ -95,7 +95,7 @@ namespace idTech4
 		#region Event handlers
 		private void OnQuitClicked(object sender, EventArgs e)
 		{
-			idE.System.Quit();
+			idE.System.Exit();
 		}
 
 		private void OnInputKeyDown(object sender, KeyEventArgs e)
@@ -130,7 +130,7 @@ namespace idTech4
 		{
 			base.OnClosed(e);
 
-			idE.System.Quit();
+			idE.System.Exit();
 		}
 		#endregion	
 

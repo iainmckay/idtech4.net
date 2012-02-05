@@ -226,7 +226,8 @@ namespace idTech4.Renderer
 				if((image.Filter != filter) || (image.Repeat != repeat))
 				{
 					// we might want to have the system reset these parameters on every bind and
-					// share the image data					
+					// share the image data		
+					return image;
 				}
 				else
 				{
@@ -372,15 +373,15 @@ namespace idTech4.Renderer
 
 			if(unit.Type == TextureType.Cubic)
 			{
-				Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
+				//Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
 			}
 			else if(unit.Type == TextureType.ThreeD)
 			{
-				Gl.glDisable(Gl.GL_TEXTURE_3D);
+				//Gl.glDisable(Gl.GL_TEXTURE_3D);
 			}
 			else if(unit.Type == TextureType.TwoD)
 			{
-				Gl.glDisable(Gl.GL_TEXTURE_2D);
+				//Gl.glDisable(Gl.GL_TEXTURE_2D);
 			}
 
 			unit.Type = TextureType.Disabled;
@@ -450,18 +451,18 @@ namespace idTech4.Renderer
 
 				if(image.Filter == TextureFilter.Default)
 				{
-					Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MIN_FILTER, _textureMinFilter);
-					Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MAG_FILTER, _textureMaxFilter);
+					//Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MIN_FILTER, _textureMinFilter);
+					//Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MAG_FILTER, _textureMaxFilter);
 				}
 
 				if(idE.GLConfig.AnisotropicAvailable == true)
 				{
-					Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, this.TextureAnisotropy);
+					//Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, this.TextureAnisotropy);
 				}
 
 				if(idE.GLConfig.TextureLodBiasAvailable == true)
 				{
-					Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_LOD_BIAS_EXT, this.TextureLodBias);
+					//Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_LOD_BIAS_EXT, this.TextureLodBias);
 				}
 			}
 		}
@@ -838,7 +839,7 @@ namespace idTech4.Renderer
 			float[] color = new float[4];
 
 
-			Gl.glTexParameterfv(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_BORDER_COLOR, color);
+			//Gl.glTexParameterfv(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_BORDER_COLOR, color);
 		}
 
 		/*/// <summary>

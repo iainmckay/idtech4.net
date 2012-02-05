@@ -80,9 +80,9 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public void DrawFilledRectangle(float x, float y, float width, float height, Color color)
+		public void DrawFilledRectangle(float x, float y, float width, float height, Vector4 color)
 		{
-			if(color.A == 0.0f)
+			if(color.W == 0.0f)
 			{
 				return;
 			}
@@ -98,49 +98,127 @@ namespace idTech4.UI
 			DrawStretchPicture(x, y, width, height, 0, 0, 0, 0, _whiteImage);
 		}
 
-		public void DrawStretchPicture(float x, float y, float width, float height, float s, float t, float s2, float t2, idMaterial shader)
+		public void DrawMaterial(float x, float y, float width, float height, idMaterial material, Vector4 color, float scaleX, float scaleY)
+		{
+			idE.RenderSystem.Color = color;
+
+			float s0, s1, t0, t1;
+
+			// 
+			//  handle negative scales as well	
+			if(scaleX < 0)
+			{
+				width *= -1;
+				scaleX *= -1;
+			}
+
+			if(scaleY < 0)
+			{
+				height *= -1;
+				scaleY *= -1;
+			}
+
+			// 
+			if(width < 0)
+			{
+				// flip about vertical
+				width = -width;
+				s0 = 1 * scaleX;
+				s1 = 0;
+			}
+			else
+			{
+				s0 = 0;
+				s1 = 1 * scaleX;
+			}
+
+			if(height < 0)
+			{
+				// flip about horizontal
+				height = -height;
+				t0 = 1 * scaleY;
+				t1 = 0;
+			}
+			else
+			{
+				t0 = 0;
+				t1 = 1 * scaleY;
+			}
+
+			if(ClipCoordinates(ref x, ref y, ref width, ref height) == true)
+			{
+				return;
+			}
+
+			AdjustCoordinates(ref x, ref y, ref width, ref height);
+			DrawStretchPicture(x, y, width, height, s0, t0, s1, t1, material);
+		}
+
+		public void DrawRectangle(float x, float y, float width, float height, float size, Vector4 color)
+		{
+			if(color.W == 0.0f)
+			{
+				return;
+			}
+
+			idE.RenderSystem.Color = color;
+
+			if(ClipCoordinates(ref x, ref y, ref width, ref height) == true)
+			{
+				return;
+			}
+
+			AdjustCoordinates(ref x, ref y, ref width, ref height);
+
+			DrawStretchPicture(x, y, size, height, 0, 0, 0, 0, _whiteImage);
+			DrawStretchPicture(x + width - size, y, size, height, 0, 0, 0, 0, _whiteImage);
+			DrawStretchPicture(x, y, width, size, 0, 0, 0, 0, _whiteImage);
+			DrawStretchPicture(x, y + height - size, width, size, 0, 0, 0, 0, _whiteImage);
+		}
+
+		public void DrawStretchPicture(float x, float y, float width, float height, float s, float t, float s2, float t2, idMaterial material)
 		{
 			Vertex[] verts = new Vertex[4];
 			int[] indexes = new int[6];
 
-			indexes[0] = 3;
-			indexes[1] = 0;
+			indexes[0] = 0;
+			indexes[1] = 1;
 			indexes[2] = 2;
-			indexes[3] = 2;
-			indexes[4] = 0;
-			indexes[5] = 1;
+			indexes[3] = 0;
+			indexes[4] = 2;
+			indexes[5] = 3;
 
-			verts[0].Position = new float[] { x, y, 0 };
-			verts[0].TextureCoordinates = new float[] { s, t };
-			verts[0].Normal = new float[] { 0, 0, 1 };
-			verts[0].Tangents = new float[,] {
-				{ 1, 0, 0 },
-				{ 0, 1, 0 }
-			};
+			verts[0].Position = new Vector3(x, y, 0);
+			verts[0].TextureCoordinates = new Vector2(s, t);
+			verts[0].Normal = new Vector3(0, 0, 1);
+			/*verts[0].Tangents = new Vector3[] {
+				new Vector3(1, 0, 0),
+				new Vector3(0, 1, 0)
+			};*/
 
-			verts[1].Position = new float[] { x + width, y, 0 };
-			verts[1].TextureCoordinates = new float[] { s2, t };
-			verts[1].Normal = new float[] { 0, 0, 1 };
-			verts[1].Tangents = new float[,] {
-				{ 1, 0, 0 },
-				{ 0, 1, 0 }
-			};
+			verts[1].Position = new Vector3(x + width, y, 0);
+			verts[1].TextureCoordinates = new Vector2(s2, t);
+			verts[1].Normal = new Vector3(0, 0, 1);
+			/*verts[1].Tangents = new Vector3[] {
+				new Vector3(1, 0, 0),
+				new Vector3(0, 1, 0)
+			};*/
 
-			verts[2].Position = new float[] { x + width, y + height, 0 };
-			verts[2].TextureCoordinates = new float[] { s2, t2 };
-			verts[2].Normal = new float[] { 0, 0, 1 };
-			verts[2].Tangents = new float[,] {
-				{ 1, 0, 0 },
-				{ 0, 1, 0 }
-			};
+			verts[2].Position = new Vector3(x + width, y + height, 0);
+			verts[2].TextureCoordinates = new Vector2(s2, t2);
+			verts[2].Normal = new Vector3(0, 0, 1);
+			/*verts[2].Tangents = new Vector3[] {
+				new Vector3(1, 0, 0),
+				new Vector3(0, 1, 0)
+			};*/
 
-			verts[3].Position = new float[] { x, y + height, 0 };
-			verts[3].TextureCoordinates = new float[] { s, t };
-			verts[3].Normal = new float[] { 0, 0, 1 };
-			verts[3].Tangents = new float[,] {
-				{ 1, 0, 0 },
-				{ 0, 1, 0 }
-			};
+			verts[3].Position = new Vector3(x, y + height, 0);
+			verts[3].TextureCoordinates = new Vector2(s, t);
+			verts[3].Normal = new Vector3(0, 0, 1);
+			/*verts[3].Tangents = new Vector3[] {
+				new Vector3(1, 0, 0),
+				new Vector3(0, 1, 0)
+			};*/
 
 			bool ident = _matrix != Matrix.Identity;
 
@@ -161,20 +239,20 @@ namespace idTech4.UI
 				verts[3].Position += _origin;*/
 			}
 
-			idE.RenderSystem.DrawStretchPicture(verts.ToArray(), indexes.ToArray(), shader, ident);
+			idE.RenderSystem.DrawStretchPicture(verts.ToArray(), indexes.ToArray(), material, ident);
 		}
 
-		public int DrawText(string text, float textScale, TextAlign textAlign, Color color, Rectangle rectDraw, bool wrap)
+		public int DrawText(string text, float textScale, TextAlign textAlign, Vector4 color, Rectangle rectDraw, bool wrap)
 		{
 			return DrawText(text, textScale, textAlign, color, rectDraw, wrap, -1, false, null, 0);
 		}
 
-		public int DrawText(string text, float textScale, TextAlign textAlign, Color color, Rectangle rectDraw, bool wrap, int cursor)
+		public int DrawText(string text, float textScale, TextAlign textAlign, Vector4 color, Rectangle rectDraw, bool wrap, int cursor)
 		{
 			return DrawText(text, textScale, textAlign, color, rectDraw, wrap, cursor, false, null, 0);
 		}
 
-		public int DrawText(string text, float textScale, TextAlign textAlign, Color color, Rectangle rectDraw, bool wrap, int cursor, bool calcOnly, int[] breaks, int limit)
+		public int DrawText(string text, float textScale, TextAlign textAlign, Vector4 color, Rectangle rectDraw, bool wrap, int cursor, bool calcOnly, int[] breaks, int limit)
 		{
 			SetFontByScale(textScale);
 
@@ -572,7 +650,7 @@ namespace idTech4.UI
 			return ((width == 0) || (height == 0));
 		}
 
-		private int DrawText(float x, float y, float scale, Color color, string text, float adjust, int limit, int style, int cursor)
+		private int DrawText(float x, float y, float scale, Vector4 color, string text, float adjust, int limit, int style, int cursor)
 		{
 			SetFontByScale(scale);
 
@@ -581,12 +659,12 @@ namespace idTech4.UI
 
 			// TODO: Glyph glyph;
 
-			if((text != string.Empty) && (color.A != 0.0f))
+			if((text != string.Empty) && (color.W != 0.0f))
 			{
 				char c, c2;
 				int textPosition = 0;
 				int length = text.Length;
-				Color newColor = color;
+				Vector4 newColor = color;
 
 				idE.RenderSystem.Color = color;
 

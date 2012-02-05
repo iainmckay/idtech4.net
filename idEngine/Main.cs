@@ -33,19 +33,6 @@ using System.Windows.Forms;
 
 namespace idTech4
 {
-	class DebugTraceListener : System.Diagnostics.TraceListener
-	{
-		public override void Write(string message)
-		{
-			idConsole.Write(message);
-		}
-
-		public override void WriteLine(string message)
-		{
-			idConsole.WriteLine(message);
-		}
-	}
-
 	public sealed class Main
 	{
 		#region Constructor
@@ -59,32 +46,14 @@ namespace idTech4
 		#region Initialization
 		private void Initialize(string[] args)
 		{
-			// TODO
-			/*const HCURSOR hcurSave = ::SetCursor( LoadCursor( 0, IDC_WAIT ) );
-			Sys_SetPhysicalWorkMemory( 192 << 20, 1024 << 20 );
-			Sys_GetCurrentMemoryStatus( exeLaunchMemoryStats );*/
-
 			// done before Com/Sys_Init since we need this for error output
 			CreateConsole();
 
-			System.Diagnostics.Debug.Listeners.Add(new DebugTraceListener());
-			System.Diagnostics.Debug.AutoFlush = true;
-			
-			idE.System.Init(args);
+			//idE.System.Init(args);
 
 			/*
 			Sys_StartAsyncThread();*/
-
-			// hide or show the early console as necessary
-			if((idE.CvarSystem.GetInteger("win_viewlog") > 0) || (idE.CvarSystem.GetBool("com_skipRenderer") == true) /* TODO: || idAsyncNetwork::serverDedicated.GetInteger()*/) 
-			{
-				idE.SystemConsole.Show(1, true);
-			}
-			else
-			{
-				idE.SystemConsole.Show(0, false);
-			}
-
+						
 			/*#ifdef SET_THREAD_AFFINITY 
 				// give the main thread an affinity for the first cpu
 				SetThreadAffinityMask( GetCurrentThread(), 1 );
@@ -99,14 +68,7 @@ namespace idTech4
 
 		private void CreateConsole()
 		{
-			// don't show it now that we have a splash screen up
-			if(idE.CvarSystem.GetBool("win32_viewlog") == true)
-			{
-				idE.SystemConsole.Show();
-				idE.SystemConsole.FocusInput();
-			}
-
-			idConsole.ClearInputHistory();
+			
 		}
 
 		private void InitializeSystem()
@@ -119,12 +81,12 @@ namespace idTech4
 		{
 			Initialize(args);
 
-			while(idE.Quit == false)
+			/*while(idE.Quit == false)
 			{
 				// if "viewlog" has been modified, show or hide the log console
 				if(idE.CvarSystem.IsModified("win_viewlog") == true)
 				{
-					if((idE.CvarSystem.GetBool("com_skipRenderer") == false) /* TODO: && idAsyncNetwork::serverDedicated.GetInteger() != 1)*/)
+					if((idE.CvarSystem.GetBool("com_skipRenderer") == false) /* TODO: && idAsyncNetwork::serverDedicated.GetInteger() != 1)*//*)
 					{
 						idE.SystemConsole.Show(idE.CvarSystem.GetInteger("win_viewlog"), false);
 					}
@@ -138,10 +100,10 @@ namespace idTech4
 				#endif
 				*/
 
-				idE.System.Frame();
+				/*idE.System.Frame();
 				Application.DoEvents();
 				Thread.Sleep(0);
-			}
+			}*/
 		}
 		#endregion
 	}

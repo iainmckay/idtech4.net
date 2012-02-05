@@ -127,7 +127,7 @@ namespace idTech4
 				return;
 			}
 
-			string cmd = gui.HandleEvent(new SystemEventArgs(SystemEventType.None), idE.System.FrameTime);
+			string cmd = gui.HandleEvent(new SystemEvent(SystemEventType.None), idE.System.FrameTime);
 
 			if(cmd != string.Empty)
 			{
@@ -216,11 +216,77 @@ namespace idTech4
 			idConsole.WriteLine("--------------------------------------");
 		}
 
+		public bool ProcessEvent(SystemEvent ev)
+		{
+			// hitting escape anywhere brings up the menu
+			// TODO: process event
+			/*if ( !guiActive && event->evType == SE_KEY && event->evValue2 == 1 && event->evValue == K_ESCAPE ) {
+				console->Close();
+				if ( game ) {
+					idUserInterface	*gui = NULL;
+					escReply_t		op;
+					op = game->HandleESC( &gui );
+					if ( op == ESC_IGNORE ) {
+						return true;
+					} else if ( op == ESC_GUI ) {
+						SetGUI( gui, NULL );
+						return true;
+					}
+				}
+				StartMenu();
+				return true;
+			}
+
+			// let the pull-down console take it if desired
+			if ( console->ProcessEvent( event, false ) ) {
+				return true;
+			}
+
+			// if we are testing a GUI, send all events to it
+			if ( guiTest ) {
+				// hitting escape exits the testgui
+				if ( event->evType == SE_KEY && event->evValue2 == 1 && event->evValue == K_ESCAPE ) {
+					guiTest = NULL;
+					return true;
+				}
+		
+				static const char *cmd;
+				cmd = guiTest->HandleEvent( event, com_frameTime );
+				if ( cmd && cmd[0] ) {
+					common->Printf( "testGui event returned: '%s'\n", cmd );
+				}
+				return true;
+			}*/
+
+			// menus / etc
+			if(_guiActive != null)
+			{
+				ProcessMenuEvent(ev);
+				return true;
+			}
+
+			// if we aren't in a game, force the console to take it
+			/*if ( !mapSpawned ) {
+				console->ProcessEvent( event, true );
+				return true;
+			}
+
+			// in game, exec bindings for all key downs
+			if ( event->evType == SE_KEY && event->evValue2 == 1 ) {
+				idKeyInput::ExecKeyBinding( event->evValue );
+				return true;
+			}
+
+			return false;*/
+
+			return false;
+		}
+
 		public void SetUserInterface(idUserInterface ui, /* TODO: HandleGuiCommand_t*/ object handle)
 		{
 			_guiActive = ui;
 			// TODO: guiHandle = handle;
-			
+
 			/*TODO: if ( guiMsgRestore ) {
 				common->DPrintf( "idSessionLocal::SetGUI: cleared an active message box\n" );
 				guiMsgRestore = NULL;
@@ -242,7 +308,7 @@ namespace idTech4
 				SetSaveGameGuiVars();
 			}*/
 
-			_guiActive.HandleEvent(new SystemEventArgs(SystemEventType.None), idE.System.FrameTime);
+			_guiActive.HandleEvent(new SystemEvent(SystemEventType.None), idE.System.FrameTime);
 			_guiActive.Activate(true, idE.System.FrameTime);
 		}
 
@@ -323,6 +389,59 @@ namespace idTech4
 		#endregion
 
 		#region Private
+		private void DispatchCommand(idUserInterface gui, string menuCommand)
+		{
+			DispatchCommand(gui, menuCommand, true);
+		}
+
+		private void DispatchCommand(idUserInterface gui, string menuCommand, bool doIngame)
+		{
+			if(gui == null)
+			{
+				gui = _guiActive;
+			}
+
+			if(gui == _guiMainMenu)
+			{
+				// TODO: HandleMainMenuCommands(menuCommand);
+			}
+
+			// TODO: other menus
+			/*else if ( gui == guiIntro) {
+				HandleIntroMenuCommands( menuCommand );
+			} else if ( gui == guiMsg ) {
+				HandleMsgCommands( menuCommand );
+			} else if ( gui == guiTakeNotes ) {
+				HandleNoteCommands( menuCommand );
+			} else if ( gui == guiRestartMenu ) {
+				HandleRestartMenuCommands( menuCommand );
+			} else if ( game && guiActive && guiActive->State().GetBool( "gameDraw" ) ) {
+				const char *cmd = game->HandleGuiCommands( menuCommand );
+				if ( !cmd ) {
+					guiActive = NULL;
+				} else if ( idStr::Icmp( cmd, "main" ) == 0 ) {
+					StartMenu();
+				} else if ( strstr( cmd, "sound " ) == cmd ) {
+					// pipe the GUI sound commands not handled by the game to the main menu code
+					HandleMainMenuCommands( cmd );
+				}
+			} else if ( guiHandle ) {
+				if ( (*guiHandle)( menuCommand ) ) {
+					return;
+				}
+			}*/
+
+			else if(doIngame == false)
+			{
+				idConsole.DeveloperWriteLine("idSessionLocal.DispatchCommand: no dispatch found for command '{0}'", menuCommand);
+			}
+			else
+			{
+				// TODO: HandleInGameCommands( menuCommand );
+			}
+		}
+
+
 		private void Draw()
 		{
 			// TODO
@@ -436,6 +555,31 @@ namespace idTech4
 			{
 				console->Draw(false);
 			}*/
+		}
+
+		private bool ProcessMenuEvent(SystemEvent ev)
+		{
+			if(_guiActive == null)
+			{
+				return true;
+			}
+
+			string menuCommand = _guiActive.HandleEvent(ev, idE.System.FrameTime);
+
+			if((menuCommand != null) && (menuCommand.Length > 0))
+			{
+				// if the menu didn't handle the event, and it's a key down event for an F key, run the bind
+				// TODO: keys
+				/*if ( event->evType == SE_KEY && event->evValue2 == 1 && event->evValue >= K_F1 && event->evValue <= K_F12 ) {
+					idKeyInput::ExecKeyBinding( event->evValue );
+				}*/
+			}
+			else
+			{
+				DispatchCommand(_guiActive, menuCommand);
+			}
+
+			return true;
 		}
 		#endregion
 		#endregion

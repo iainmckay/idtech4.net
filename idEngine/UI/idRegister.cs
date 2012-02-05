@@ -37,6 +37,18 @@ namespace idTech4.UI
 	public sealed class idRegister
 	{
 		#region Properties
+		public bool Enabled
+		{
+			get
+			{
+				return _enabled;
+			}
+			set
+			{
+				_enabled = value;
+			}
+		}
+
 		public int[] Indexes
 		{
 			get
@@ -46,6 +58,18 @@ namespace idTech4.UI
 			set
 			{
 				_indexes = value;
+			}
+		}
+
+		public idWindowVariable Variable
+		{
+			get
+			{
+				return _var;
+			}
+			set
+			{
+				_var = value;
 			}
 		}
 		#endregion

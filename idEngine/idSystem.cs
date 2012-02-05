@@ -37,13 +37,14 @@ using System.Threading;
 using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using idTech4.IO;
 using idTech4.Net;
 
 namespace idTech4
 {
-	public sealed class idSystem
+	public sealed class idSystem : Game
 	{
 		#region Properties
 		#region Public
@@ -98,219 +99,28 @@ namespace idTech4
 
 		private List<string> _errorList = new List<string>();
 
+		private string[] _rawCommandLineArguments;
 		private idCmdArgs[] _commandLineArguments = new idCmdArgs[] { };
+
+		private GraphicsDeviceManager _graphics;
 		#endregion
 
 		#region Constructor
-		public idSystem()
+		public idSystem(string[] args)
 		{
+			idE.System = this;
 
+			_graphics = new GraphicsDeviceManager(this);
+			_graphics.PreparingDeviceSettings += new EventHandler<PreparingDeviceSettingsEventArgs>(OnPreparingDeviceManager);
+
+			_rawCommandLineArguments = args;
+
+			Content.RootDirectory = "Content";
 		}
 		#endregion
 
 		#region Methods
 		#region Public
-		public void Frame()
-		{
-			//try
-			{
-				// pump all the events
-				// TODO: Sys_GenerateEvents();
-
-				// write config file if anything changed
-				// TODO: WriteConfiguration(); 
-
-				// change SIMD implementation if required
-				// TODO
-				/*if ( com_forceGenericSIMD.IsModified() ) {
-					InitSIMD();
-				}*/
-
-				/*eventLoop->RunEventLoop();*/
-
-				_frameTime = _ticNumber * idE.UserCommandMillseconds;
-
-				/*idAsyncNetwork::RunFrame();*/
-
-				if(idE.AsyncNetwork.IsActive == true)
-				{
-					if(idE.CvarSystem.GetInteger("net_serverDedicated") != 1)
-					{
-						idE.Session.GuiFrameEvents();
-						idE.Session.UpdateScreen(false);
-					}
-				}
-				/*else
-				{
-				
-				 * else {
-					session->Frame();*/
-
-				// normal, in-sequence screen update
-				idE.Session.UpdateScreen(false);
-				/*}
-
-				// report timing information
-				if ( com_speeds.GetBool() ) {
-					static int	lastTime;
-					int		nowTime = Sys_Milliseconds();
-					int		com_frameMsec = nowTime - lastTime;
-					lastTime = nowTime;
-					Printf( "frame:%i all:%3i gfr:%3i rf:%3i bk:%3i\n", com_frameNumber, com_frameMsec, time_gameFrame, time_frontend, time_backend );
-					time_gameFrame = 0;
-					time_gameDraw = 0;
-				}	*/
-
-				_frameNumber++;
-			}
-			/*catch(Exception)
-			{
-				// an ERP_DROP was thrown
-			}*/
-		}
-
-		public void Init(string[] args)
-		{
-			// TODO
-			//try
-			{
-				InitCvars();
-
-				// clear warning buffer
-				idConsole.ClearWarnings(string.Format("{0} initialization", idE.GameName));
-
-				ParseCommandLine(args);
-
-				idE.CmdSystem.Init();
-				idE.CvarSystem.Init();
-
-				// start file logging right away, before early console or whatever
-				StartupVariable("win_outputDebugString", false);
-
-				// print engine version
-				idConsole.WriteLine(idE.Version);
-
-				// initialize key input/binding, done early so bind command exists
-				// TODO: idKeyInput::Init();
-
-				// init the console so we can take prints
-				idE.Console.Init();
-
-				// get architecture info
-				Sys_Init();
-
-				// initialize networking
-				// TODO: Sys_InitNetworking();
-
-				// override cvars from command line
-				StartupVariable(null, false);
-
-				// initialize processor specific SIMD implementation
-				// TODO: InitSIMD();
-
-				// init commands
-				InitCommands();
-
-				// game specific initialization
-				InitGame();
-
-				// don't add startup commands if no CD key is present
-				if(AddStartupCommands() == false)
-				{
-
-					// TODO: remove this the next two braces, it's just to force ui to work while i port the rest of the code
-
-				}
-
-				{
-					// if the user didn't give any commands, run default action
-					idE.Session.StartMenu(true);
-				}
-
-				idConsole.WriteLine("--- Common Initialization Complete ---");
-
-				// print all warnings queued during initialization
-				idConsole.PrintWarnings();
-
-				// TODO
-				/*
-#ifdef	ID_DEDICATED
-				Printf( "\nType 'help' for dedicated server info.\n\n" );
-#endif
-
-				// remove any prints from the notify lines
-				// TODO: console->ClearNotifyLines();
-				*/
-
-				_commandLineArguments = null;
-				_fullyInitialized = true;
-			}
-			/*catch(Exception x)
-			{
-				Error("Error during initialization");
-
-				idConsole.WriteLine(x.ToString());
-			}*/
-		}
-
-		public void Quit()
-		{
-			// don't try to shutdown if we are in a recursive error			
-			if(_errorEntered == ErrorType.None)
-			{
-				Shutdown();
-			}
-
-			Sys_Quit();
-		}
-
-		public void Shutdown()
-		{
-			_shuttingDown = true;
-
-			// TODO
-			/*idAsyncNetwork::server.Kill();
-			idAsyncNetwork::client.Shutdown();*/
-
-			// game specific shut down
-			// TODO: ShutdownGame( false );
-
-			// shut down non-portable system services
-			// TODO: Sys_Shutdown();
-
-			// shut down the console
-			// TODO: console->Shutdown();
-
-			// shut down the key system
-			// TODO: idKeyInput::Shutdown();
-
-			// shut down the cvar system
-			// TODO: cvarSystem->Shutdown();
-
-			// shut down the console command system
-			// TODO: cmdSystem->Shutdown();
-
-			// TODO
-			/*#ifdef ID_WRITE_VERSION
-				delete config_compressor;
-				config_compressor = NULL;
-			#endif*/
-
-			// free any buffered warning messages
-			idConsole.ClearWarnings(string.Format("{0} shutdown", idE.GameName));
-
-			_errorList.Clear();
-
-			// free language dictionary
-			// TODO: languageDict.Clear();
-
-			// enable leak test
-			// TODO: Mem_EnableLeakTest( "doom" );
-
-			// shutdown idLib
-			// TODO: idLib::ShutDown();
-		}
-
 		/// <summary>
 		/// Searches for command line parameters that are set commands.
 		/// </summary>
@@ -384,7 +194,7 @@ namespace idTech4
 				// error dialog
 				if(_errorEntered == ErrorType.Fatal)
 				{
-					Quit();
+					this.Exit();
 				}
 
 				code = ErrorType.Fatal;
@@ -464,7 +274,7 @@ namespace idTech4
 				idConsole.WriteLine("FATAL: recursed fatal error:\n{0}", string.Format(format, args));
 
 				// write the console to a log file?
-				Sys_Quit();
+				this.Exit();
 			}
 
 			_errorEntered = ErrorType.Fatal;
@@ -586,6 +396,28 @@ namespace idTech4
 		#endif*/
 		}
 
+		private void InitConsole()
+		{
+			// don't show it now that we have a splash screen up
+			if(idE.CvarSystem.GetBool("win32_viewlog") == true)
+			{
+				idE.SystemConsole.Show();
+				idE.SystemConsole.FocusInput();
+			}
+
+			idConsole.ClearInputHistory();
+
+			// hide or show the early console as necessary
+			if((idE.CvarSystem.GetInteger("win_viewlog") > 0) || (idE.CvarSystem.GetBool("com_skipRenderer") == true) /* TODO: || idAsyncNetwork::serverDedicated.GetInteger()*/)
+			{
+				idE.SystemConsole.Show(1, true);
+			}
+			else
+			{
+				idE.SystemConsole.Show(0, false);
+			}
+		}
+
 		private void InitGame()
 		{
 			// initialize the file system
@@ -614,7 +446,7 @@ namespace idTech4
 			}
 
 			// initialize the renderSystem data structures, but don't start OpenGL yet
-			idE.RenderSystem.Init();
+			idE.RenderSystem.Init(_graphics);
 
 			// initialize string database right off so we can use it for loading messages
 			InitLanguageDict();
@@ -628,7 +460,7 @@ namespace idTech4
 			idE.EventLoop.Init();
 
 			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04345\" ) );");
-
+			
 			// exec the startup scripts
 			idE.CmdSystem.BufferCommandText(Execute.Append, "exec editor.cfg");
 			idE.CmdSystem.BufferCommandText(Execute.Append, "exec default.cfg");
@@ -645,7 +477,7 @@ namespace idTech4
 
 			// run cfg execution
 			idE.CmdSystem.ExecuteCommandBuffer();
-
+			
 			// re-override anything from the config files with command line args
 			StartupVariable(null, false);
 
@@ -661,10 +493,9 @@ namespace idTech4
 			idConsole.WriteLine("TODO: soundSystem->Init();");
 
 			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04347\" ) );");
-			
+
 			// init async network
 			idE.AsyncNetwork.Init();
-
 
 #if ID_DEDICATED
 			throw new NotImplementedException("don't do dedicated");
@@ -681,25 +512,25 @@ namespace idTech4
 			else
 			{
 				// init OpenGL, which will open a window and connect sound and input hardware
-				// TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04348" ) );
+				idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04348\" ) );");
 				InitRenderSystem();
 			}
 #endif
 
 			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04349\" ) );");
-
+			
 			// initialize the user interfaces
 			idE.UIManager.Init();
 
 			// startup the script debugger
 			idConsole.WriteLine("TODO: DebuggerServerInit();");
 
-			/*PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04350" ) );
+			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04350\" ) );");
 
 			// load the game dll
-			LoadGameDLL();
-	
-			PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04351" ) );*/
+			idConsole.WriteLine("TODO: LoadGameDLL();");
+
+			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04351\" ) );");
 
 			// init the session
 			idE.Session.Init();
@@ -762,9 +593,9 @@ namespace idTech4
 				return;
 			}
 
-			idE.RenderSystem.InitGraphics();
+			idE.RenderSystem.InitGraphics(this.GraphicsDevice);
 
-			// TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( "#str_04343" ) );
+			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04343\" ) );");
 		}
 
 		private void ParseCommandLine(string[] args)
@@ -794,6 +625,53 @@ namespace idTech4
 			}
 
 			_commandLineArguments = argList.ToArray();
+		}
+
+		private void Shutdown()
+		{
+			_shuttingDown = true;
+
+			// TODO
+			/*idAsyncNetwork::server.Kill();
+			idAsyncNetwork::client.Shutdown();*/
+
+			// game specific shut down
+			// TODO: ShutdownGame( false );
+
+			// shut down non-portable system services
+			// TODO: Sys_Shutdown();
+
+			// shut down the console
+			// TODO: console->Shutdown();
+
+			// shut down the key system
+			// TODO: idKeyInput::Shutdown();
+
+			// shut down the cvar system
+			// TODO: cvarSystem->Shutdown();
+
+			// shut down the console command system
+			// TODO: cmdSystem->Shutdown();
+
+			// TODO
+			/*#ifdef ID_WRITE_VERSION
+				delete config_compressor;
+				config_compressor = NULL;
+			#endif*/
+
+			// free any buffered warning messages
+			idConsole.ClearWarnings(string.Format("{0} shutdown", idE.GameName));
+
+			_errorList.Clear();
+
+			// free language dictionary
+			// TODO: languageDict.Clear();
+
+			// enable leak test
+			// TODO: Mem_EnableLeakTest( "doom" );
+
+			// shutdown idLib
+			// TODO: idLib::ShutDown();
 		}
 
 		/// <summary>
@@ -987,7 +865,7 @@ namespace idTech4
 			{
 				if(idE.SystemConsole.IsDisposed == true)
 				{
-					Quit();
+					this.Exit();
 					break;
 				}
 
@@ -995,16 +873,7 @@ namespace idTech4
 				Thread.Sleep(0);
 			}
 
-			Sys_Quit();
-		}
-
-		private void Sys_Quit()
-		{
-			// TODO: timeEndPeriod( 1 );
-			// TODO: Sys_ShutdownInput();
-
-			idE.Quit = true;
-			Application.Exit();
+			this.Exit();
 		}
 
 		private void Sys_Init()
@@ -1153,7 +1022,7 @@ namespace idTech4
 
 		private void Cmd_Quit(object sender, CommandEventArgs e)
 		{
-			Quit();
+			this.Exit();
 		}
 
 		private void Cmd_ReloadLanguage(object sender, CommandEventArgs e)
@@ -1246,9 +1115,216 @@ namespace idTech4
 		}
 		#endregion
 		#endregion
+
+		#region Game implementation
+		protected override void Draw(GameTime gameTime)
+		{
+			if(idE.AsyncNetwork.IsActive == true)
+			{
+				if(idE.CvarSystem.GetInteger("net_serverDedicated") != 1)
+				{
+					idE.Session.UpdateScreen(false);
+				}
+			}
+			else
+			{
+				// normal, in-sequence screen update
+				idE.Session.UpdateScreen(false);
+			}
+
+			base.Draw(gameTime);
+		}
+
+		protected override void Initialize()
+		{
+			// TODO
+			//try
+			{
+				InitConsole();
+				InitCvars();
+
+				// clear warning buffer
+				idConsole.ClearWarnings(string.Format("{0} initialization", idE.GameName));
+
+				ParseCommandLine(_rawCommandLineArguments);
+
+				idE.CmdSystem.Init();
+				idE.CvarSystem.Init();
+
+				// start file logging right away, before early console or whatever
+				StartupVariable("win_outputDebugString", false);
+
+				// print engine version
+				idConsole.WriteLine(idE.Version);
+
+				// initialize key input/binding, done early so bind command exists
+				// TODO: idKeyInput::Init();
+
+				// init the console so we can take prints
+				idE.Console.Init();
+
+				// get architecture info
+				Sys_Init();
+
+				// initialize networking
+				// TODO: Sys_InitNetworking();
+
+				// override cvars from command line
+				StartupVariable(null, false);
+
+				// initialize processor specific SIMD implementation
+				// TODO: InitSIMD();
+
+				// init commands
+				InitCommands();
+
+				// game specific initialization
+				InitGame();
+
+				// don't add startup commands if no CD key is present
+				if(AddStartupCommands() == false)
+				{
+					// TODO: remove next two braces
+				}
+
+				{
+					// if the user didn't give any commands, run default action
+					idE.Session.StartMenu(true);
+				}
+
+				idConsole.WriteLine("--- Common Initialization Complete ---");
+
+				// print all warnings queued during initialization
+				idConsole.PrintWarnings();
+
+				// TODO
+				/*
+#ifdef	ID_DEDICATED
+				Printf( "\nType 'help' for dedicated server info.\n\n" );
+#endif
+
+				// remove any prints from the notify lines
+				// TODO: console->ClearNotifyLines();
+				*/
+
+				
+
+				_commandLineArguments = null;
+				_rawCommandLineArguments = null;
+				_fullyInitialized = true;
+
+				base.Initialize();
+			}
+			/*catch(Exception x)
+			{
+				Error("Error during initialization");
+
+				idConsole.WriteLine(x.ToString());
+			}*/
+		}
+
+		protected override void LoadContent()
+		{
+			base.LoadContent();
+			
+			idE.ImageManager.ReloadImages();
+		}
+
+		protected override void Update(GameTime gameTime)
+		{
+			// if "viewlog" has been modified, show or hide the log console
+			if(idE.CvarSystem.IsModified("win_viewlog") == true)
+			{
+				if((idE.CvarSystem.GetBool("com_skipRenderer") == false) /* TODO: && idAsyncNetwork::serverDedicated.GetInteger() != 1)*/)
+				{
+					idE.SystemConsole.Show(idE.CvarSystem.GetInteger("win_viewlog"), false);
+				}
+
+				idE.CvarSystem.ClearModified("win_viewlog");
+			}
+
+			//try
+			{
+				// pump all the events
+				// TODO: Sys_GenerateEvents();
+
+				// write config file if anything changed
+				// TODO: WriteConfiguration(); 
+
+				// change SIMD implementation if required
+				// TODO
+				/*if ( com_forceGenericSIMD.IsModified() ) {
+					InitSIMD();
+				}*/
+
+				idE.EventLoop.RunEventLoop();
+
+				_frameTime = _ticNumber * idE.UserCommandMillseconds;
+
+				/*idAsyncNetwork::RunFrame();*/
+
+				if(idE.AsyncNetwork.IsActive == true)
+				{
+					if(idE.CvarSystem.GetInteger("net_serverDedicated") != 1)
+					{
+						idE.Session.GuiFrameEvents();
+					}
+				}
+				else
+				{
+					//session->Frame();
+				}
+
+				// report timing information
+				// TODO: com_speeds, remember drawing is in Draw now!!
+				/*if ( com_speeds.GetBool() ) {
+					static int	lastTime;
+					int		nowTime = Sys_Milliseconds();
+					int		com_frameMsec = nowTime - lastTime;
+					lastTime = nowTime;
+					Printf( "frame:%i all:%3i gfr:%3i rf:%3i bk:%3i\n", com_frameNumber, com_frameMsec, time_gameFrame, time_frontend, time_backend );
+					time_gameFrame = 0;
+					time_gameDraw = 0;
+				}	*/
+
+				_frameNumber++;
+			}
+			/*catch(Exception)
+			{
+				// an ERP_DROP was thrown
+			}*/
+
+			base.Update(gameTime);
+		}
+
+		protected override void OnExiting(object sender, EventArgs args)
+		{
+			base.OnExiting(sender, args);
+
+			// don't try to shutdown if we are in a recursive error			
+			if(_errorEntered == ErrorType.None)
+			{
+				Shutdown();
+			}
+		}
+
+		private void OnPreparingDeviceManager(object sender, PreparingDeviceSettingsEventArgs e)
+		{
+			foreach(GraphicsAdapter adapter in GraphicsAdapter.Adapters)
+			{
+				if(adapter.Description.Contains("PerfHUD"))
+				{
+					e.GraphicsDeviceInformation.Adapter = adapter;
+					GraphicsAdapter.UseReferenceDevice = true;
+
+					break;
+				}
+			}
+		}
+		#endregion
 	}
 
-	public sealed class SystemEventArgs : EventArgs
+	public sealed class SystemEvent : EventArgs
 	{
 		#region Properties
 		public SystemEventType Type
@@ -1265,7 +1341,7 @@ namespace idTech4
 		#endregion
 
 		#region Constructor
-		public SystemEventArgs(SystemEventType type)
+		public SystemEvent(SystemEventType type)
 			: base()
 		{
 			_type = type;

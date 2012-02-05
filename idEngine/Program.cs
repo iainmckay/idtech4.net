@@ -30,31 +30,44 @@ using System;
 namespace idTech4
 {
 #if WINDOWS || XBOX
-    public static class Program
-    {
-        /// <summary>
-        /// The main entry point for the application.
-        /// </summary>
+	public static class Program
+	{
+		/// <summary>
+		/// The main entry point for the application.
+		/// </summary>
 		[STAThread]
-        public static void Main(string[] args)
-        {
-			/*using(System.IO.StreamReader s = new System.IO.StreamReader("base/materials/senetemp.mtr"))
+		public static void Main(string[] args)
+		{
+			/*System.Diagnostics.Stopwatch w = new System.Diagnostics.Stopwatch();
+			w.Start();
+
+			for(int i = 0; i < 15; i++)
 			{
-				DateTime start = DateTime.Now;
-				string content = s.ReadToEnd();
 
-				idTech4.Renderer.idMaterial mat = new idTech4.Renderer.idMaterial();
-				mat.Parse(content);
+				using(System.IO.StreamReader s = new System.IO.StreamReader("base/materials/senetemp.mtr"))
+				{
 
-				DateTime end = DateTime.Now;
 
-				Console.Write("START={0} END={1} DIFF={2}", start, end, end - start);
+					string content = s.ReadToEnd();
+
+
+					idTech4.Renderer.idMaterial mat = new idTech4.Renderer.idMaterial();
+					mat.Parse(content);
+
+
+
+				}
 			}
-			return;*/
 
-			new Main().Run(args);
-        }
-    }
+			w.Stop();
+			Console.WriteLine(w.ElapsedMilliseconds);
+			return;*/
+			
+			using(idSystem sys = new idSystem(args))
+			{
+				sys.Run();
+			}
+		}
+	}
 #endif
 }
-

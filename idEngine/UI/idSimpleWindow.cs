@@ -230,8 +230,7 @@ namespace idTech4.UI
 			}
 
 			DrawBackground(_drawRect);
-
-			// TODO: DrawBorderAndCaption(drawRect);
+			DrawBorderAndCaption(_drawRect);
 
 			// TODO: textShadow
 			/*if ( textShadow ) {
@@ -387,6 +386,17 @@ namespace idTech4.UI
 					}
 					dc->DrawMaterial(drawRect.x, drawRect.y, drawRect.w, drawRect.h, background, matColor, scalex, scaley);
 				}*/
+		}
+		
+		private void DrawBorderAndCaption(Rectangle drawRect)
+		{
+			if(_flags.HasFlag(WindowFlags.Border) == true)
+			{
+				if(_borderSize > 0)
+				{
+					_context.DrawRectangle(drawRect.X, drawRect.Y, drawRect.Width, drawRect.Height, _borderSize, _borderColor);
+				}
+			}
 		}
 
 		private void SetupTransforms(float x, float y)

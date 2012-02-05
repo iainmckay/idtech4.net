@@ -164,7 +164,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public string HandleEvent(SystemEventArgs e, int time)
+		public string HandleEvent(SystemEvent e, int time)
 		{
 			_time = time;
 

@@ -32,6 +32,7 @@ using System.Linq;
 using System.Text;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 using Tao.OpenGl;
 
 using idTech4.IO;
@@ -331,7 +332,7 @@ namespace idTech4.Renderer
 		private DateTime _timeStamp;			// the most recent of all images used in creation, for reloadImages command
 		private bool _precompressedFile;		// true when it was loaded from a .d3t file
 
-		private int _texNumber;
+		public Texture2D _texture;
 
 		private TextureType _type;
 		private TextureFilter _filter;
@@ -528,65 +529,61 @@ namespace idTech4.Renderer
 			{
 				if(textureUnit.Type == TextureType.Cubic)
 				{
-					Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
+					//Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
 				}
 				else if(textureUnit.Type == TextureType.ThreeD)
 				{
-					Gl.glDisable(Gl.GL_TEXTURE_3D);
+					//Gl.glDisable(Gl.GL_TEXTURE_3D);
 				}
 				else if(textureUnit.Type == TextureType.TwoD)
 				{
-					Gl.glDisable(Gl.GL_TEXTURE_2D);
+					//Gl.glDisable(Gl.GL_TEXTURE_2D);
 				}
 
 				if(_type == TextureType.Cubic)
 				{
-					Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
+					//Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
 				}
 				else if(_type == TextureType.ThreeD)
 				{
-					Gl.glEnable(Gl.GL_TEXTURE_3D);
+					//Gl.glEnable(Gl.GL_TEXTURE_3D);
 				}
 				else if(_type == TextureType.TwoD)
 				{
-					Gl.glEnable(Gl.GL_TEXTURE_2D);
+					//Gl.glEnable(Gl.GL_TEXTURE_2D);
 				}
 
 				textureUnit.Type = _type;
 			}
 
 			// bind the texture.
-			if(_type == TextureType.TwoD)
+			if((_type == TextureType.TwoD) && (textureUnit.Current2DMap != _texture))
 			{
-				if(textureUnit.Current2DMap != _texNumber)
-				{
-					textureUnit.Current2DMap = _texNumber;
-					Gl.glBindTexture(Gl.GL_TEXTURE_2D, _texNumber);
-				}
+				textureUnit.Current2DMap = _texture;
 			}
 			else if(_type == TextureType.Cubic)
 			{
-				if(textureUnit.CurrentCubeMap != _texNumber)
+				/*if(textureUnit.CurrentCubeMap != _texNumber)
 				{
 					textureUnit.CurrentCubeMap = _texNumber;
-					Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP_EXT, _texNumber);
-				}
+					//Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP_EXT, _texNumber);
+				}*/
 			}
 			else if(_type == TextureType.ThreeD)
 			{
-				if(textureUnit.Current3DMap != _texNumber)
+				/*if(textureUnit.Current3DMap != _texNumber)
 				{
 					textureUnit.Current3DMap = _texNumber;
-					Gl.glBindTexture(Gl.GL_TEXTURE_3D, _texNumber);
-				}
+					//Gl.glBindTexture(Gl.GL_TEXTURE_3D, _texNumber);
+				}*/
 			}
 
-			if(idE.CvarSystem.GetBool("com_purgeAll") == true)
+			/*if(idE.CvarSystem.GetBool("com_purgeAll") == true)
 			{
 				float priority = 1.0f;
 
-				Gl.glPrioritizeTextures(1, ref _texNumber, ref priority);
-			}
+				//Gl.glPrioritizeTextures(1, ref _texNumber, ref priority);
+			}*/
 		}
 
 		/// <summary>
@@ -629,7 +626,7 @@ namespace idTech4.Renderer
 			// have filled in the parms.  We must have the values set, or
 			// an image match from a shader before OpenGL starts would miss
 			// the generated texture
-			if(idE.GLConfig.IsInitialized == false)
+			if(idE.RenderSystem.IsRunning == false)
 			{
 				return;
 			}
@@ -650,11 +647,11 @@ namespace idTech4.Renderer
 			GetDownSize(ref scaledWidth, ref scaledHeight);
 
 			byte[] scaledBuffer = null;
-			idE.RenderSystem.CheckOpenGLErrors();
+			/*idE.RenderSystem.CheckOpenGLErrors();
 			uint[] tex = new uint[1];
-			Gl.glGenTextures(1, tex);
+			//Gl.glGenTextures(1, tex);
 			_texNumber = (int) tex[0];
-			idE.RenderSystem.CheckOpenGLErrors();
+			idE.RenderSystem.CheckOpenGLErrors();*/
 			_loaded = true;
 
 			// select proper internal format before we resample
@@ -775,12 +772,12 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, _internalFormat, scaledWidth, scaledHeight, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, scaledBuffer);
+				//Gl.glTexImage2D(Gl.GL_TEXTURE_2D, 0, _internalFormat, scaledWidth, scaledHeight, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, scaledBuffer);
 			}
 
 			// create and upload the mip map levels, which we do in all cases, even if we don't think they are needed
-			int miplevel = 0;
-
+			/*int miplevel = 0;
+			// TODO: remove this if not needed
 			while((scaledWidth > 1) || (scaledHeight > 1))
 			{
 				// preserve the border after mip map unless repeating
@@ -809,21 +806,18 @@ namespace idTech4.Renderer
 					R_BlendOverTexture( (byte *)scaledBuffer, scaled_width * scaled_height, mipBlendColors[miplevel] );
 				}*/
 
-				// upload the mip map
-				if(_internalFormat == Gl.GL_COLOR_INDEX8_EXT)
-				{
-					idConsole.WriteLine("TODO: UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, miplevel );");
-				}
-				else
-				{
-					Gl.glTexImage2D(Gl.GL_TEXTURE_2D, miplevel, _internalFormat, scaledWidth, scaledHeight, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, scaledBuffer);
-				}
+			// upload the mip map
+			/*if(_internalFormat == Gl.GL_COLOR_INDEX8_EXT)
+			{
+				idConsole.WriteLine("TODO: UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, miplevel );");
 			}
+			else
+			{
+				//Gl.glTexImage2D(Gl.GL_TEXTURE_2D, miplevel, _internalFormat, scaledWidth, scaledHeight, 0, Gl.GL_RGBA, Gl.GL_UNSIGNED_BYTE, scaledBuffer);
+			}
+		}*/
 
 			SetImageFilterAndRepeat();
-
-			// see if we messed anything up
-			idE.RenderSystem.CheckOpenGLErrors();
 		}
 
 		public void MakeDefault()
@@ -884,14 +878,14 @@ namespace idTech4.Renderer
 		{
 			if(_loaded == true)
 			{
-				Gl.glDeleteTextures(1, ref _texNumber);
+				//Gl.glDeleteTextures(1, ref _texNumber);
 				_loaded = false;
 			}
 
 			// clear all the current binding caches, so the next bind will do a real one
 			for(int i = 0; i < idE.Backend.GLState.TextureUnits.Length; i++)
 			{
-				idE.Backend.GLState.TextureUnits[i].Current2DMap = -1;
+				idE.Backend.GLState.TextureUnits[i].Current2DMap = null;
 				idE.Backend.GLState.TextureUnits[i].Current3DMap = -1;
 				idE.Backend.GLState.TextureUnits[i].CurrentCubeMap = -1;
 			}
@@ -949,7 +943,7 @@ namespace idTech4.Renderer
 		/// <returns></returns>
 		private bool CheckPrecompressedImage(bool fullLoad)
 		{
-			if((idE.GLConfig.IsInitialized == false) || (idE.GLConfig.TextureCompressionAvailable == false))
+			if((idE.RenderSystem.IsRunning == false) || (idE.GLConfig.TextureCompressionAvailable == false))
 			{
 				return false;
 			}
@@ -1451,18 +1445,18 @@ namespace idTech4.Renderer
 			switch(_filter)
 			{
 				case TextureFilter.Default:
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, idE.ImageManager.MinTextureFilter);
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, idE.ImageManager.MaxTextureFilter);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, idE.ImageManager.MinTextureFilter);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, idE.ImageManager.MaxTextureFilter);
 					break;
 
 				case TextureFilter.Linear:
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_LINEAR);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_LINEAR);
 					break;
 
 				case TextureFilter.Nearest:
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_NEAREST);
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_NEAREST);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MIN_FILTER, Gl.GL_NEAREST);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAG_FILTER, Gl.GL_NEAREST);
 					break;
 			}
 
@@ -1471,37 +1465,37 @@ namespace idTech4.Renderer
 				// only do aniso filtering on mip mapped images.
 				if(_filter == TextureFilter.Default)
 				{
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, idE.ImageManager.TextureAnisotropy);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, idE.ImageManager.TextureAnisotropy);
 				}
 				else
 				{
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, 1);
 				}
 			}
 
 			if(idE.GLConfig.TextureLodBiasAvailable == true)
 			{
-				Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_LOD_BIAS_EXT, idE.ImageManager.TextureLodBias);
+				//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_LOD_BIAS_EXT, idE.ImageManager.TextureLodBias);
 			}
 
 			// set the wrap/clamp modes.
 			switch(_repeat)
 			{
 				case TextureRepeat.Repeat:
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_REPEAT);
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_REPEAT);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_REPEAT);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_REPEAT);
 					break;
 
 				case TextureRepeat.ClampToBorder:
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_BORDER);
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_BORDER);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_BORDER);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_BORDER);
 					break;
 
 				case TextureRepeat.ClampToZero:
 				case TextureRepeat.ClampToZeroAlpha:
 				case TextureRepeat.Clamp:
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
-					Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_S, Gl.GL_CLAMP_TO_EDGE);
+					//Gl.glTexParameterf(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_WRAP_T, Gl.GL_CLAMP_TO_EDGE);
 					break;
 			}
 		}

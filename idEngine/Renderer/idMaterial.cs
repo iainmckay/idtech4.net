@@ -182,6 +182,22 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public int ImageHeight
+		{
+			get
+			{
+				return GetStage(0).Texture.Image.UploadHeight;
+			}
+		}
+
+		public int ImageWidth
+		{
+			get
+			{
+				return GetStage(0).Texture.Image.UploadWidth;
+			}
+		}	
+
 		/// <summary>
 		/// Returns true if the material will draw anything at all.
 		/// </summary>
@@ -448,6 +464,16 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public MaterialStage GetStage(int index)
+		{
+			if((index < 0) || (index > _stages.Length))
+			{
+				throw new IndexOutOfRangeException();
+			}
+
+			return _stages[index];
+		}
+
 		/// <summary>
 		/// Test for existance of specific material flag(s).
 		/// </summary>
@@ -479,7 +505,7 @@ namespace idTech4.Renderer
 			_ops = null;
 			_expressionRegisters = null;
 			_constantRegisters = null;
-			_stages = null;
+			_stages = new MaterialStage[] { };
 
 			_stageCount = 0;
 			_ambientStageCount = 0;
@@ -986,7 +1012,7 @@ namespace idTech4.Renderer
 			}
 			catch(Exception x)
 			{
-				Debug.Write(x.ToString());
+				idConsole.Write(x.ToString());
 				float.TryParse(token.ToString(), out _sort);
 			}
 		}
@@ -1322,18 +1348,14 @@ namespace idTech4.Renderer
 				return a;
 			}
 
-			try
+			ExpressionRegister tmpReg;
+
+			if(Enum.TryParse<ExpressionRegister>(tokenValue, true, out tmpReg) == true)
 			{
-				ExpressionRegister reg = (ExpressionRegister) Enum.Parse(typeof(ExpressionRegister), tokenValue);
 				_parsingData.RegistersAreConstant = false;
-
-				return (int) reg;
+				return (int) tmpReg;
 			}
-			catch(Exception x)
-			{
-				Debug.Write(x.ToString());
-			}
-
+			
 			if(tokenLower == "fragmentPrograms")
 			{
 				return GetExpressionConstant(1.0f);
@@ -2698,7 +2720,7 @@ namespace idTech4.Renderer
 
 		protected override void ClearData()
 		{
-			_stages = null;
+			_stages = new MaterialStage[] { };
 			_expressionRegisters = null;
 			_constantRegisters = null;
 			_ops = null;
@@ -3012,7 +3034,7 @@ namespace idTech4.Renderer
 
 	public enum ExpressionRegister
 	{
-		Time,
+		Time = 0,
 
 		Parm0,
 		Parm1,
