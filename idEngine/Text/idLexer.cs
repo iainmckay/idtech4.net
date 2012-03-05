@@ -442,8 +442,7 @@ namespace idTech4.Text
 
 			using(StreamReader r = new StreamReader(content))
 			{
-				// TODO
-				/*idLexer::fileTime = fp->Timestamp();*/
+				// TODO: idLexer::fileTime = fp->Timestamp();
 				_fileName = Path.GetFullPath(pathName);
 
 				_buffer = r.ReadToEnd();

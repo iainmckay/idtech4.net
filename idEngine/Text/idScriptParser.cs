@@ -552,12 +552,11 @@ namespace idTech4.Text
 							Error("invalid define parameter");
 							return false;
 						}
-						// TODO
-						/*else if(FindDefineParameter(define, token.ToString()) >= 0)
+						else if(FindDefineParameter(define, token.ToString()) >= 0)
 						{
 							Error("two of the same define parameters");
 							return false;
-						}*/
+						}
 
 						// add the define parm
 						t = new idToken(token);
@@ -849,7 +848,8 @@ namespace idTech4.Text
 				// try relative to the current file
 
 				// TODO: replace with something like Path.Combine.
-				path = Path.Combine(Path.GetDirectoryName(_scriptStack.Peek().FileName), token.ToString());
+				//path = Path.Combine(Path.GetDirectoryName(_scriptStack.Peek().FileName), token.ToString());
+				path = token.ToString();
 
 				if(script.LoadFile(path, _osPath) == false)
 				{
@@ -1118,7 +1118,6 @@ namespace idTech4.Text
 						}
 
 						idConsole.Write("TODO: expanddefineintosource");
-						// TODO
 						/*else if(ExpandDefineIntoSource(token, define) == false)
 						{
 							return false;
@@ -1152,7 +1151,8 @@ namespace idTech4.Text
 			}
 			while((token = ReadSourceToken()) != null);
 
-			// TODO
+			idConsole.WriteLine("TODO: DollarEvaluate");
+			
 			/*if(EvaluateTokens(tokens.ToArray(), ref intValue, ref floatValue, integer) == false)
 			{
 				return false;
@@ -1202,7 +1202,7 @@ namespace idTech4.Text
 						}
 
 						idConsole.Write("TODO: expanddefineintosource");
-						// TODO
+						
 						/*else if(ExpandDefineIntoSource(token, _defineDict[token.ToString()]) == false)
 						{
 							return false;
@@ -1221,7 +1221,8 @@ namespace idTech4.Text
 			}
 			while((token = ReadToken()) != null);
 
-			// TODO
+			idConsole.WriteLine("TODO: EvaluateTokens2");
+
 			/*if(EvaluateTokens(tokens.ToArray(), ref intValue, ref floatValue, integer) == false)
 			{
 				return false;
@@ -1246,6 +1247,23 @@ namespace idTech4.Text
 	}
 	return true;
 }*/
+
+		private int FindDefineParameter(ScriptDefinition define, string name)
+		{
+			int i = 0;
+
+			foreach(idToken token in define.Parameters)
+			{
+				if(define.ToString() == name)
+				{
+					return i;
+				}
+
+				i++;
+			}
+
+			return -1;
+		}
 
 		private void PopIndent(out IndentType type, out int skip)
 		{

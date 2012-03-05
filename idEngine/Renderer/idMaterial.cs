@@ -186,7 +186,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return GetStage(0).Texture.Image.UploadHeight;
+				return GetStage(0).Texture.Image.Height;
 			}
 		}
 
@@ -194,7 +194,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return GetStage(0).Texture.Image.UploadWidth;
+				return GetStage(0).Texture.Image.Width;
 			}
 		}	
 
@@ -1947,7 +1947,7 @@ namespace idTech4.Renderer
 			{
 				materialStage.Texture.Image = idE.ImageManager.ImageFromFile(imageName, textureFilter, allowPicmip, textureRepeat, textureDepth, cubeMap);
 
-				if(materialStage.Texture.Image != null)
+				if(materialStage.Texture.Image == null)
 				{
 					materialStage.Texture.Image = idE.ImageManager.DefaultImage;
 				}

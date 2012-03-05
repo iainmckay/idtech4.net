@@ -38,31 +38,6 @@ namespace idTech4
 		[STAThread]
 		public static void Main(string[] args)
 		{
-			/*System.Diagnostics.Stopwatch w = new System.Diagnostics.Stopwatch();
-			w.Start();
-
-			for(int i = 0; i < 15; i++)
-			{
-
-				using(System.IO.StreamReader s = new System.IO.StreamReader("base/materials/senetemp.mtr"))
-				{
-
-
-					string content = s.ReadToEnd();
-
-
-					idTech4.Renderer.idMaterial mat = new idTech4.Renderer.idMaterial();
-					mat.Parse(content);
-
-
-
-				}
-			}
-
-			w.Stop();
-			Console.WriteLine(w.ElapsedMilliseconds);
-			return;*/
-			
 			using(idSystem sys = new idSystem(args))
 			{
 				sys.Run();

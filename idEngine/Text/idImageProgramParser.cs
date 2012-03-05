@@ -3,6 +3,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
 using idTech4.Renderer;
 
 namespace idTech4.Text
@@ -33,30 +36,29 @@ namespace idTech4.Text
 
 		#region Methods
 		#region Public
-		public byte[] ParseImageProgram(idLexer lexer)
+		public Texture2D ParseImageProgram(idLexer lexer)
 		{
 			_lexer = lexer;
 
-			int width = 0;
-			int height = 0;
 			DateTime timeStamp = DateTime.Now;;
 			TextureDepth depth = TextureDepth.Default;
 
-			return ParseImageProgram(ref width, ref height, ref timeStamp, ref depth, true);
+			return ParseImageProgram(ref timeStamp, ref depth, true);
 		}
 
-		public byte[] ParseImageProgram(idLexer lexer, ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth)
+		public Texture2D ParseImageProgram(idLexer lexer, ref DateTime timeStamp, ref TextureDepth depth)
 		{
 			_lexer = lexer;
-			return ParseImageProgram(ref width, ref height, ref timeStamp, ref depth, false);
+
+			return ParseImageProgram(ref timeStamp, ref depth, false);
 		}
 
-		public byte[] ParseImageProgram(string source, ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth)
+		public Texture2D ParseImageProgram(string source, ref DateTime timeStamp, ref TextureDepth depth)
 		{
 			_lexer = new idLexer(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowPathNames);
 			_lexer.LoadMemory(source, source);
 
-			return ParseImageProgram(ref width, ref height, ref timeStamp, ref depth, false);
+			return ParseImageProgram(ref timeStamp, ref depth, false);
 		}
 				
 		#endregion
@@ -85,7 +87,7 @@ namespace idTech4.Text
 			_builder.Append(match);
 		}
 
-		private byte[] ParseImageProgram(ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth, bool parseOnly)
+		private Texture2D ParseImageProgram(ref DateTime timeStamp, ref TextureDepth depth, bool parseOnly)
 		{
 			idToken token = _lexer.ReadToken();			
 			AppendToken(token);
@@ -279,9 +281,10 @@ namespace idTech4.Text
 			else if(tokenLower == "makeintensity")
 			{
 				MatchAndAppendToken(_lexer, "(");
-				byte[] data = ParseImageProgram(ref width, ref height, ref timeStamp, ref depth, parseOnly);
+				Texture2D t = ParseImageProgram(ref timeStamp, ref depth, parseOnly);
 
-				if(parseOnly == false)
+				idConsole.WriteLine("TODO: makeintensity");
+				/*if(parseOnly == false)
 				{
 					// copy red to green, blue, and alpha			
 					int c = width * height * 4;
@@ -290,11 +293,11 @@ namespace idTech4.Text
 					{
 						data[i + 1] = data[i + 2] = data[i + 3] = data[i];
 					}
-				}
+				}*/
 
 				MatchAndAppendToken(_lexer, ")");
 
-				return data;
+				return t;
 			}
 			else if(tokenLower == "makealpha")
 			{
@@ -326,11 +329,11 @@ namespace idTech4.Text
 			// if we are just parsing instead of loading or checking, don't do the R_LoadImage
 			if(parseOnly == true)
 			{
-				return new byte[] {};
+				return null;
 			}
 
 			// load it as an image
-			return idE.ImageManager.LoadImage(token.ToString(), ref width, ref height, ref timeStamp, true);
+			return idE.ImageManager.LoadImage(token.ToString(), ref timeStamp, true);
 		}
 		#endregion
 		#endregion

@@ -141,6 +141,11 @@ namespace idTech4.UI
 				reg.GetFromRegisters(registers);
 			}
 		}
+
+		public void Reset()
+		{
+			_registers.Clear();
+		}
 		#endregion
 		#endregion
 	}

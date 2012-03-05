@@ -619,52 +619,11 @@ namespace idTech4.Renderer
 
 			// in case we had an error while doing a tiled rendering
 			_viewPortOffset = Vector2.Zero;
-
-			//
-			// initialize OS specific portions of the renderSystem
-			//
-			/*for(int i = 0; i < 2; i++)
-			{
-				// set the parameters we are trying
-				GetModeInfo(ref idE.GLConfig.VideoWidth, ref idE.GLConfig.VideoHeight, idE.CvarSystem.GetInteger("r_mode"));
-
-				if(InitOpenGLContext(
-					idE.GLConfig.VideoWidth,
-					idE.GLConfig.VideoHeight,
-					idE.CvarSystem.GetBool("r_fullscreen"),
-					idE.CvarSystem.GetInteger("r_displayRefresh"),
-					idE.CvarSystem.GetInteger("r_multiSamples"),
-					false) == true)
-				{
-					break;
-				}
-
-				if(i == 1)
-				{
-					idConsole.FatalError("Unable to initialize OpenGL");
-				}
-
-				// if we failed, set everything back to "safe mode" and try again
-				idE.CvarSystem.SetInteger("r_mode", 3);
-				idE.CvarSystem.SetInteger("r_fullscreen", 0);
-				idE.CvarSystem.SetInteger("r_displayRefresh", 0);
-				idE.CvarSystem.SetInteger("r_multiSamples", 0);
-			}*/
-
+					
 			// input and sound systems need to be tied to the new window
 			// TODO: Sys_InitInput();
 			// TODO: soundSystem->InitHW();
-
-			// get our config strings
-			/*idE.GLConfig.Vendor = Gl.glGetString(Gl.GL_VENDOR);
-			idE.GLConfig.Renderer = Gl.glGetString(Gl.GL_RENDERER);
-			idE.GLConfig.Version = Gl.glGetString(Gl.GL_VERSION);
-			idE.GLConfig.VersionF = new Version(idE.GLConfig.Version);
-			idE.GLConfig.Extensions = Gl.glGetString(Gl.GL_EXTENSIONS);
-
-			// OpenGL driver constants
-			Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_SIZE, out idE.GLConfig.MaxTextureSize);*/
-
+			
 			// stubbed or broken drivers may have reported 0...
 			if(idE.GLConfig.MaxTextureSize <= 0)
 			{
@@ -673,9 +632,7 @@ namespace idTech4.Renderer
 
 			_graphicsInitialized = true;
 
-			// recheck all the extensions (FIXME: this might be dangerous)
-			CheckPortableExtensions();
-
+			CheckCapabilities();
 
 			// allocate the vertex array range or vertex objects
 			/*// TODO: vertexCache.Init();*/
@@ -849,79 +806,42 @@ namespace idTech4.Renderer
 			}
 		}
 
-		private bool CheckExtension(string name)
-		{
-			return true;
-			if(idE.GLConfig.Extensions.Contains(name) == true)
-			{
-				idConsole.WriteLine("...using {0}", name);
-				return true;
-			}
-
-			idConsole.WriteLine("X..{0} not found", name);
-
-			return false;
-		}
-
-		private void CheckPortableExtensions()
+		private void CheckCapabilities()
 		{
 			idE.GLConfig.MultiTextureAvailable = true;
+			idE.GLConfig.CubeMapAvailable = true;
+			idE.GLConfig.TextureCompressionAvailable = true;
+			idE.GLConfig.AnisotropicAvailable = true;
 
-			if(idE.GLConfig.MultiTextureAvailable == true)
+			idE.GLConfig.MaxTextureAnisotropy = 16;
+			idE.GLConfig.MaxTextureImageUnits = 8;
+			idE.GLConfig.MaxTextureUnits = 8;
+
+			if(_graphicsDevice.GraphicsProfile == GraphicsProfile.HiDef)
 			{
-				//Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_UNITS_ARB, out idE.GLConfig.MaxTextureUnits);
-				idE.GLConfig.MaxTextureCoordinates = 4096;
-				idE.GLConfig.MaxTextureUnits = 8;
-				idE.GLConfig.MaxTextureImageUnits = 8;
-
-				if(idE.GLConfig.MaxTextureUnits < 2)
-				{
-					idE.GLConfig.MultiTextureAvailable = false; // shouldn't ever happen
-				}
-
-				//Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_COORDS_ARB, out idE.GLConfig.MaxTextureCoordinates);
-				//Gl.glGetIntegerv(Gl.GL_MAX_TEXTURE_IMAGE_UNITS_ARB, out idE.GLConfig.MaxTextureImageUnits);
-
-				
+				idE.GLConfig.MaxTextureSize = 4096;
+				idE.GLConfig.TextureNonPowerOfTwoAvailable = true;
+				idE.GLConfig.Texture3DAvailable = true;
 			}
-
-			idE.GLConfig.TextureEnvCombineAvailable = CheckExtension("GL_ARB_texture_env_combine");
-			idE.GLConfig.CubeMapAvailable = CheckExtension("GL_ARB_texture_cube_map");
+			else
+			{
+				idE.GLConfig.MaxTextureSize = 2048;
+				idE.GLConfig.TextureNonPowerOfTwoAvailable = false;
+			}
+			
+			/*idE.GLConfig.TextureEnvCombineAvailable = CheckExtension("GL_ARB_texture_env_combine");
 			idE.GLConfig.EnvDot3Available = CheckExtension("GL_ARB_texture_env_dot3");
 			idE.GLConfig.TextureEnvAddAvailable = CheckExtension("GL_ARB_texture_env_add");
 			idE.GLConfig.TextureNonPowerOfTwoAvailable = CheckExtension("GL_ARB_texture_non_power_of_two");
-
-			// GL_ARB_texture_compression + GL_S3_s3tc
-			// DRI drivers may have GL_ARB_texture_compression but no GL_EXT_texture_compression_s3tc
-			if((CheckExtension("GL_ARB_texture_compression") == true) && (CheckExtension("GL_EXT_texture_compression_s3tc") == true))
-			{
-				idE.GLConfig.TextureCompressionAvailable = true;
-			}
-			else
-			{
-				idE.GLConfig.TextureCompressionAvailable = false;
-			}
-
-			idE.GLConfig.AnisotropicAvailable = CheckExtension("GL_EXT_texture_filter_anisotropic");
-
-			if(idE.GLConfig.AnisotropicAvailable == true)
-			{
-				//Gl.glGetFloatv(Gl.GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, out idE.GLConfig.MaxTextureAnisotropy);
-
-				idConsole.WriteLine("   maxTextureAnisotropy: {0}", idE.GLConfig.MaxTextureAnisotropy);
-			}
-			else
-			{
-				idE.GLConfig.MaxTextureAnisotropy = 1;
-			}
-
+			idE.GLConfig.TextureLodBiasAvailable = true;*/
+			
 			// GL_EXT_texture_lod_bias
 			// The actual extension is broken as specificed, storing the state in the texture unit instead
 			// of the texture object.  The behavior in GL 1.4 is the behavior we use.
 			/*if((((idE.GLConfig.VersionF.Major <= 1) && (idE.GLConfig.VersionF.Minor < 4)) == false) || (CheckExtension("GL_EXT_texture_lod") == true))
 			{*/
-				idConsole.WriteLine("...using {0}", "GL_1.4_texture_lod_bias");
-				idE.GLConfig.TextureLodBiasAvailable = true;
+			//idConsole.WriteLine("...using {0}", "GL_1.4_texture_lod_bias");
+			
 			/*}
 			else
 			{
@@ -930,11 +850,8 @@ namespace idTech4.Renderer
 			}*/
 
 			// GL_EXT_shared_texture_palette
-			idE.GLConfig.SharedTexturePaletteAvailable = CheckExtension("GL_EXT_shared_texture_palette");
-
-			// GL_EXT_texture3D (not currently used for anything)
-			idE.GLConfig.Texture3DAvailable = CheckExtension("GL_EXT_texture3D");
-
+			//idE.GLConfig.SharedTexturePaletteAvailable = CheckExtension("GL_EXT_shared_texture_palette");
+			
 			// EXT_stencil_wrap
 			// This isn't very important, but some pathological case might cause a clamp error and give a shadow bug.
 			// Nvidia also believes that future hardware may be able to run faster with this enabled to avoid the
@@ -950,10 +867,10 @@ namespace idTech4.Renderer
 				_stencilDecrement = Gl.GL_DECR_WRAP;
 			}
 
-			idE.GLConfig.RegisterCombinersAvailable = CheckExtension("GL_NV_register_combiners");
-			idE.GLConfig.TwoSidedStencilAvailable = CheckExtension("GL_EXT_stencil_two_side");
+			// idE.GLConfig.RegisterCombinersAvailable = CheckExtension("GL_NV_register_combiners");
+			// idE.GLConfig.TwoSidedStencilAvailable = CheckExtension("GL_EXT_stencil_two_side");
 
-			if(idE.GLConfig.TwoSidedStencilAvailable == false)
+			/*if(idE.GLConfig.TwoSidedStencilAvailable == false)
 			{
 				idE.GLConfig.AtiTwoSidedStencilAvailable = CheckExtension("GL_ATI_separate_stencil");
 			}
@@ -988,9 +905,23 @@ namespace idTech4.Renderer
 				idConsole.Error(6780);
 			}
 
-			idE.GLConfig.DepthBoundsTestAvailable = CheckExtension("EXT_depth_bounds_test");
+			idE.GLConfig.DepthBoundsTestAvailable = CheckExtension("EXT_depth_bounds_test");*/
 		}
 
+		private bool CheckExtension(string name)
+		{
+			return true;
+			if(idE.GLConfig.Extensions.Contains(name) == true)
+			{
+				idConsole.WriteLine("...using {0}", name);
+				return true;
+			}
+
+			idConsole.WriteLine("X..{0} not found", name);
+
+			return false;
+		}
+		
 		private void Clear()
 		{
 			_frameCount = 0;
@@ -1082,12 +1013,12 @@ namespace idTech4.Renderer
 					UnbindIndex();
 				}
 
-				Texture texture = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].Current2DMap;
+				Texture texture = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].CurrentTexture;
 
 				if(texture != null)
 				{
 					_basicEffect.Texture = (Texture2D) texture;
-					_basicEffect.TextureEnabled = false;
+					_basicEffect.TextureEnabled = true;
 				}
 				else
 				{
@@ -2606,7 +2537,7 @@ namespace idTech4.Renderer
 					if(stage.VertexColor != StageVertexColor.Ignore)
 					{
 						idConsole.WriteLine("TODO: SVC ignore");
-						/*GL.DisableClientState(ArrayCap.ColorArray);
+						/*GL.DisableClientState(ArrayCap.ColorArray);*/
 
 						GL_SelectTexture(1);
 						GL_TextureEnvironment(Gl.GL_MODULATE);
@@ -2614,7 +2545,7 @@ namespace idTech4.Renderer
 						idE.ImageManager.BindNullTexture();
 
 						GL_SelectTexture(0);
-						GL_TextureEnvironment(Gl.GL_MODULATE);*/
+						GL_TextureEnvironment(Gl.GL_MODULATE);
 					}
 				}
 
@@ -2878,7 +2809,7 @@ namespace idTech4.Renderer
 
 			for(int i = idE.GLConfig.MaxTextureUnits - 1; i >= 0; i--)
 			{
-				//GL_SelectTexture(i);
+				GL_SelectTexture(i);
 
 				// object linear texgen is our default
 				//Gl.glTexGenf(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
@@ -3064,11 +2995,11 @@ namespace idTech4.Renderer
 			// screen power of two correction factor, assuming the copy to _currentRender
 			// also copied an extra row and column for the bilerp
 			int width = idE.Backend.ViewDefinition.ViewPort.X2 - idE.Backend.ViewDefinition.ViewPort.X1 + 1;
-			pot = idE.ImageManager.CurrentRenderImage.UploadWidth;
+			pot = idE.ImageManager.CurrentRenderImage.Width;
 			parameters[0] = width / pot;
 
 			int height = idE.Backend.ViewDefinition.ViewPort.Y2 - idE.Backend.ViewDefinition.ViewPort.Y1 + 1;
-			pot = idE.ImageManager.CurrentRenderImage.UploadHeight;
+			pot = idE.ImageManager.CurrentRenderImage.Height;
 			parameters[1] = height / pot;
 
 			parameters[2] = 0;
@@ -3628,12 +3559,10 @@ namespace idTech4.Renderer
 	}
 
 	internal class TextureUnit
-	{
-		public Texture Current2DMap;
-		public int Current3DMap;
-		public int CurrentCubeMap;
+	{		
 		public int TexEnv;
 
+		public Texture CurrentTexture;
 		public TextureType Type;
 	}
 

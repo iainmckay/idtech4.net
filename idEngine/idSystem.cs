@@ -115,7 +115,7 @@ namespace idTech4
 
 			_rawCommandLineArguments = args;
 
-			Content.RootDirectory = "Content";
+			Content.RootDirectory = "base";
 		}
 		#endregion
 

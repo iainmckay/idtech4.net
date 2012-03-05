@@ -181,12 +181,19 @@ namespace idTech4.UI
 			Vertex[] verts = new Vertex[4];
 			int[] indexes = new int[6];
 
-			indexes[0] = 0;
+			/*indexes[0] = 0;
 			indexes[1] = 1;
 			indexes[2] = 2;
 			indexes[3] = 0;
 			indexes[4] = 2;
-			indexes[5] = 3;
+			indexes[5] = 3;*/
+			
+			indexes[0] = 3;
+			indexes[1] = 0;
+			indexes[2] = 2;
+			indexes[3] = 2;
+			indexes[4] = 0;
+			indexes[5] = 1;
 
 			verts[0].Position = new Vector3(x, y, 0);
 			verts[0].TextureCoordinates = new Vector2(s, t);
@@ -213,7 +220,7 @@ namespace idTech4.UI
 			};*/
 
 			verts[3].Position = new Vector3(x, y + height, 0);
-			verts[3].TextureCoordinates = new Vector2(s, t);
+			verts[3].TextureCoordinates = new Vector2(s, t2);
 			verts[3].Normal = new Vector3(0, 0, 1);
 			/*verts[3].Tangents = new Vector3[] {
 				new Vector3(1, 0, 0),
@@ -696,7 +703,7 @@ namespace idTech4.UI
 						else
 						{
 							idConsole.WriteLine("TODO: newColor = idHelper.ColorForIndex");
-							// TODO: newColor = idHelper.ColorForIndex(c2);
+							// newColor = idHelper.ColorForIndex(c2);
 						}
 
 						if((cursor == count) || (cursor == (count + 1)))

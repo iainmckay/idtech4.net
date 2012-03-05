@@ -40,6 +40,22 @@ namespace idTech4.UI
 {
 	public sealed class idWindow
 	{
+		#region Constants
+		private static readonly string[] ScriptNames = new string[] {
+			"onMouseEnter",
+			"onMouseExit",
+			"onAction",
+			"onActivate",
+			"onDeactivate",
+			"onESC",
+			"onEvent",
+			"onTrigger",
+			"onActionRelease",
+			"onEnter",
+			"onEnterRelease"
+		};
+		#endregion
+
 		#region Properties
 		public Vector4 BackColor
 		{
@@ -150,10 +166,10 @@ namespace idTech4.UI
 		{
 			get
 			{
-				// TODO: scripts
-				/*if ( scripts[ ON_ACTION ] ) {
+				if(_scripts[(int) ScriptName.Action] != null)
+				{
 					return true;
-				}*/
+				}
 
 				foreach(idWindow child in _children)
 				{
@@ -186,19 +202,20 @@ namespace idTech4.UI
 				{
 					return false;
 				}
-				// TODO: scripts
-				/*else if(_scripts.Count > 0)
+				/*TODO: else if(_scripts.Length > 0)
 				{
 					return false;
 				}*/
-				// TODO: events
-				/*if (timeLineEvents.Num()) {
+
+				if(_timeLineEvents.Count > 0)
+				{
 					return false;
 				}
 
-				if ( namedEvents.Num() ) {
+				if(_namedEvents.Count > 0)
+				{
 					return false;
-				}*/
+				}
 
 				return true;
 			}
@@ -421,6 +438,10 @@ namespace idTech4.UI
 		private List<idWindowVariable> _definedVariables = new List<idWindowVariable>();
 		private List<idWindowVariable> _updateVariables = new List<idWindowVariable>();
 
+		private idGuiScriptList[] _scripts = new idGuiScriptList[(int) ScriptName.Count];
+		private List<idTimeLineEvent> _timeLineEvents = new List<idTimeLineEvent>();
+		private List<idNamedEvent> _namedEvents = new List<idNamedEvent>();
+
 		private bool[] _saveTemporaries;
 		private bool[] _registerIsTemporary = new bool[idE.MaxExpressionRegisters];
 		private List<float> _expressionRegisters = new List<float>();
@@ -487,9 +508,7 @@ namespace idTech4.UI
 		{
 			// make sure win vars are updated before activation
 			UpdateVariables();
-
-			// TODO: int n = (activate) ? ON_ACTIVATE : ON_DEACTIVATE;
-			// TODO: RunScript(n);
+			RunScript((activate == true) ? ScriptName.Activate : ScriptName.Deactivate);
 
 			foreach(idWindow child in _children)
 			{
@@ -508,9 +527,32 @@ namespace idTech4.UI
 			_children.Add(child);
 		}
 
+		public void AddDefinedVariable(idWindowVariable var)
+		{
+			if(_definedVariables.Contains(var) == false)
+			{
+				_definedVariables.Add(var);
+			}
+		}
+
 		public void AddUpdateVariable(idWindowVariable var)
 		{
 			_updateVariables.Add(var);
+		}
+
+		public void ClientToScreen(ref Rectangle rect)
+		{
+			int x, y;
+			idWindow p;
+
+			for(p = this, x = 0, y = 0; p != null; p = p.Parent)
+			{
+				x += p.Rectangle.X;
+				y += p.Rectangle.Y;
+			}
+
+			rect.X += x;
+			rect.Y += y;	
 		}
 
 		public void Draw(int x, int y)
@@ -526,7 +568,8 @@ namespace idTech4.UI
 
 			if((_flags.HasFlag(WindowFlags.Desktop) == true) && (skipShaders != 3))
 			{
-				// TODO: RunTimeEvents( time );
+				idConsole.WriteLine("TODO: RunTimeEvents");
+				// RunTimeEvents( time );
 			}
 
 			if(skipShaders == 2)
@@ -630,6 +673,158 @@ namespace idTech4.UI
 			_textRect.Offset(-x, -y);
 		}
 
+		public idWindowVariable GetVariableByName(string name)
+		{
+			DrawWindow owner = new DrawWindow();
+			return GetVariableByName(name, false, ref owner);
+		}
+
+		public idWindowVariable GetVariableByName(string name, bool fixup)
+		{
+			DrawWindow owner = new DrawWindow();
+			return GetVariableByName(name, fixup, ref owner);
+		}
+
+		public idWindowVariable GetVariableByName(string name, bool fixup, ref DrawWindow owner)
+		{
+			idWindowVariable ret = null;
+
+			if(owner != null)
+			{
+				owner = null;
+			}
+
+			string nameLower = name.ToLower();
+
+			if(nameLower == "notime")
+			{
+				ret = _noTime;
+			}
+			else if(nameLower == "background")
+			{
+				ret = _backgroundName;
+			}
+			else if(nameLower == "visible")
+			{
+				ret = _visible;
+			}
+			else if(nameLower == "rect")
+			{
+				ret = _rect;
+			}
+			else if(nameLower == "backcolor")
+			{
+				ret = _backColor;
+			}
+			else if(nameLower == "matcolor")
+			{
+				ret = _materialColor;
+			}
+			else if(nameLower == "forecolor")
+			{
+				ret = _foreColor;
+			}
+			else if(nameLower == "hovercolor")
+			{
+				ret = _hoverColor;
+			}
+			else if(nameLower == "bordercolor")
+			{
+				ret = _borderColor;
+			}
+			else if(nameLower == "textscale")
+			{
+				ret = _textScale;
+			}
+			else if(nameLower == "rotate")
+			{
+				ret = _rotate;
+			}
+			else if(nameLower == "noevents")
+			{
+				ret = _noEvents;
+			}
+			else if(nameLower == "text")
+			{
+				ret = _text;
+			}
+			else if(nameLower == "backgroundname")
+			{
+				ret = _backgroundName;
+			}
+			else if(nameLower == "hidecursor")
+			{
+				ret = _hideCursor;
+			}
+
+			string key = name;
+			bool guiVar = key.StartsWith(idWindowVariable.Prefix);
+
+			foreach(idWindowVariable var in _definedVariables)
+			{
+				if(nameLower.Equals(var.Name) == true)
+				{
+					ret = var;
+					break;
+				}
+			}
+
+			if(ret != null)
+			{
+				if((fixup == true) && (name != "$"))
+				{
+					DisableRegister(name);
+				}
+
+				if(_parent != null)
+				{
+					owner = _parent.FindChildByName(_name);
+				}
+
+				return ret;
+			}
+
+			int keyLength = key.Length;
+
+			if((keyLength > 5) && (guiVar == true))
+			{
+				idWindowVariable var = new idWinString(name);
+				var.Init(name, this);
+
+				_definedVariables.Add(var);
+
+				return var;
+			}
+			else if(fixup == true)
+			{
+				int n = key.IndexOf("::");
+
+				if(n > 0)
+				{
+					string winName = key.Substring(0, n);
+					string var = key.Substring(n + 2);
+
+					DrawWindow win = this.UserInterface.Desktop.FindChildByName(winName);
+
+					if(win != null)
+					{
+						if(win.Window != null)
+						{
+							return win.Window.GetVariableByName(var, false, ref owner);
+						}
+						else
+						{
+							owner = win;
+						}
+
+						return win.Simple.GetVariableByName(var);
+					}
+				}
+			}
+
+			return null;
+		}
+
 		public DrawWindow FindChildByName(string name)
 		{
 			if(name.Equals(_name, StringComparison.OrdinalIgnoreCase) == true)
@@ -672,23 +867,23 @@ namespace idTech4.UI
 				child.FixupParameters();
 			}
 
-			// TODO: scripts
-			/*for (i = 0; i < SCRIPT_COUNT; i++) {
-				if (scripts[i]) {
-					scripts[i]->FixupParms(this);
+			for(int i = 0; i < _scripts.Length; i++)
+			{
+				if(_scripts[i] != null)
+				{
+					_scripts[i].FixupParameters(this);
 				}
-			}*/
-
-			// TODO: events
-			/*c = timeLineEvents.Num();
-			for (i = 0; i < c; i++) {
-				timeLineEvents[i]->event->FixupParms(this);
 			}
 
-			c = namedEvents.Num();
-			for (i = 0; i < c; i++) {
-				namedEvents[i]->mEvent->FixupParms(this);
-			}*/
+			foreach(idTimeLineEvent ev in _timeLineEvents)
+			{
+				ev.Event.FixupParameters(this);
+			}
+
+			foreach(idNamedEvent ev in _namedEvents)
+			{
+				ev.Event.FixupParameters(this);
+			}
 
 			int count = _ops.Count;
 
@@ -726,7 +921,8 @@ namespace idTech4.UI
 					EvaluateRegisters();
 				}
 
-				// TODO: RunTimeEvents(gui->GetTime());
+				idConsole.WriteLine("TODO: RunTimeEvents2");
+				// RunTimeEvents(gui->GetTime());
 
 				CalculateRectangles(0, 0);
 
@@ -971,13 +1167,9 @@ namespace idTech4.UI
 				CleanUp();
 			}
 
-			// TODO: events
-			/*
-
-			timeLineEvents.Clear();
-			transitions.Clear();
-
-			namedEvents.DeleteContents( true );*/
+			_timeLineEvents.Clear();
+			_namedEvents.Clear();
+			/*transitions.Clear();*/
 
 			idToken token2;
 			idToken token = parser.ExpectTokenType(TokenType.Name, 0);
@@ -1191,83 +1383,84 @@ namespace idTech4.UI
 				//  added new onEvent
 				else if(token.ToString() == "onNamedEvent")
 				{
-					idConsole.WriteLine("TODO: onNamedEvent");
-					// Read the event name
-					/*if ( !src->ReadToken(&token) ) {
-						src->Error( "Expected event name" );
+					// read the event name
+					if((token = parser.ReadToken()) == null)
+					{
+						parser.Error("Expected event name");
 						return false;
 					}
+					
+					idNamedEvent ev = new idNamedEvent(token.ToString());			
+					parser.SetMarker();
 
-					rvNamedEvent* ev = new rvNamedEvent ( token );
-			
-					src->SetMarker ( );
-			
-					if ( !ParseScript ( src, *ev->mEvent ) ) {
+					if(ParseScript(parser, ev.Event) == false)
+					{
 						ret = false;
 						break;
 					}
-	
-					namedEvents.Append(ev);*/
+
+					_namedEvents.Add(ev);
 				}
 				else if(token.ToString() == "onTime")
 				{
-					idConsole.WriteLine("TODO: onTime");
+					idTimeLineEvent ev = new idTimeLineEvent();
 
-					/*idTimeLineEvent *ev = new idTimeLineEvent;
-
-					if ( !src->ReadToken(&token) ) {
-						src->Error( "Unexpected end of file" );
+					if((token = parser.ReadToken()) == null)
+					{
+						parser.Error("Unexpected end of file");
 						return false;
 					}
-					ev->time = atoi(token.c_str());
-			
-					// reset the mark since we dont want it to include the time
-					src->SetMarker ( );
 
-					if (!ParseScript(src, *ev->event, &ev->time)) {
+					int tmp;
+					int.TryParse(token.ToString(), out tmp);
+
+					ev.Time = tmp;
+
+					// reset the mark since we dont want it to include the time
+					parser.SetMarker();
+
+					if(ParseScript(parser, ev.Event) == false)
+					{
 						ret = false;
 						break;
 					}
 
 					// this is a timeline event
-					ev->pending = true;
-					timeLineEvents.Append(ev);*/
+					ev.Pending = true;
+					_timeLineEvents.Add(ev);
 				}
 				else if(token.ToString() == "definefloat")
 				{
-					idConsole.WriteLine("definefloat");
-					/*src->ReadToken(&token);
-					work = token;
-					work.ToLower();
-					idWinFloat *varf = new idWinFloat();
-					varf->SetName(work);
-					definedVars.Append(varf);
+					token = parser.ReadToken();
+					string tokenLower = token.ToString().ToLower();
+
+					idWinFloat var = new idWinFloat(tokenLower);
+
+					_definedVariables.Add(var);
 
 					// add the float to the editors wrapper dict
 					// Set the marker after the float name
-					src->SetMarker ( );
+					parser.SetMarker();
 
 					// Read in the float 
-					regList.AddReg(work, idRegister::FLOAT, src, this, varf);*/
+					_regList.AddRegister(tokenLower, RegisterType.Float, parser, this, var);
 				}
 				else if(token.ToString() == "definevec4")
 				{
-					idConsole.WriteLine("definevec4");
-					/*src->ReadToken(&token);
-					work = token;
-					work.ToLower();
-					idWinVec4 *var = new idWinVec4();
-					var->SetName(work);
+					token = parser.ReadToken();
+					string tokenLower = token.ToString().ToLower();
+
+					idWinVector4 var = new idWinVector4(tokenLower);
 
 					// set the marker so we can determine what was parsed
 					// set the marker after the vec4 name
-					src->SetMarker ( );
+					parser.SetMarker();
 
 					// FIXME: how about we add the var to the desktop instead of this window so it won't get deleted
 					//        when this window is destoyed which even happens during parsing with simple windows ?
 					//definedVars.Append(var);
-					gui->GetDesktop()->definedVars.Append( var );
-					gui->GetDesktop()->regList.AddReg( work, idRegister::VEC4, src, gui->GetDesktop(), var );*/
+					_gui.Desktop._definedVariables.Add(var);
+					_gui.Desktop._regList.AddRegister(tokenLower, RegisterType.Vector4, parser, _gui.Desktop, var);
 				}
 				else if(token.ToString() == "float")
 				{
@@ -1284,11 +1477,10 @@ namespace idTech4.UI
 					// Parse the float
 					_regList.AddRegister(tokenLower, RegisterType.Float, parser, this, var);
 				}
-				// TODO
-				/*else if (ParseScriptEntry(token, src)) 
+				else if(ParseScriptEntry(token, parser) == true)
 				{
-					
-				}*/
+
+				}
 				else if(ParseInternalVariable(token.ToString(), parser) == true)
 				{
 
@@ -1351,6 +1543,21 @@ namespace idTech4.UI
 			return ParseExpressionPriority(parser, 4 /* TOP_PRIORITY */, var);
 		}
 
+		public void ScreenToClient(ref Rectangle rect)
+		{
+			int x, y;
+			idWindow p;
+
+			for(p = this, x = 0, y = 0; p != null; p = p.Parent)
+			{
+				x += p.Rectangle.X;
+				y += p.Rectangle.Y;
+			}
+
+			rect.X -= x;
+			rect.Y -= y;
+		}
+		
 		public void SetupFromState()
 		{
 			SetupBackground();
@@ -1451,28 +1658,27 @@ namespace idTech4.UI
 
 		private void CleanUp()
 		{
-			// TODO
-			/*int i, c = drawWindows.Num();
-			for (i = 0; i < c; i++) {
-				delete drawWindows[i].simp;
+			for(int i = 0; i < _drawWindows.Count; i++)
+			{
+				_drawWindows[i].Simple = null;
 			}
 
 			// ensure the register list gets cleaned up
-			regList.Reset ( );
+			_regList.Reset( );
 	
-			// Cleanup the named events
-			namedEvents.DeleteContents(true);*/
+			// cleanup the named events
+			_namedEvents.Clear();
 
 			_drawWindows.Clear();
 			_children.Clear();
 			_definedVariables.Clear();
 
-			// TODO
-			/*
-			timeLineEvents.DeleteContents(true);
-			for (i = 0; i < SCRIPT_COUNT; i++) {
-				delete scripts[i];
-			}*/
+			_timeLineEvents.Clear();
+
+			for(int i = 0; i < _scripts.Length; i++)
+			{
+				_scripts[i] = null;
+			}
 
 			Init();
 		}
@@ -1739,8 +1945,6 @@ namespace idTech4.UI
 						break;
 
 					case WindowExpressionOperationType.VarF:
-						idConsole.WriteLine("TODO: WindowExpressionOperationType.VarF");
-
 						if(op.A != null)
 						{
 							registers[op.C] = ((idWinFloat) op.A).X;
@@ -1807,158 +2011,6 @@ namespace idTech4.UI
 			return i;
 		}
 
-		private idWindowVariable GetVariableByName(string name)
-		{
-			DrawWindow owner = new DrawWindow();
-			return GetVariableByName(name, false, ref owner);
-		}
-
-		private idWindowVariable GetVariableByName(string name, bool fixup)
-		{
-			DrawWindow owner = new DrawWindow();
-			return GetVariableByName(name, fixup, ref owner);
-		}
-
-		private idWindowVariable GetVariableByName(string name, bool fixup, ref DrawWindow owner)
-		{
-			idWindowVariable ret = null;
-
-			if(owner != null)
-			{
-				owner = null;
-			}
-
-			string nameLower = name.ToLower();
-
-			if(nameLower == "notime")
-			{
-				ret = _noTime;
-			}
-			else if(nameLower == "background")
-			{
-				ret = _backgroundName;
-			}
-			else if(nameLower == "visible")
-			{
-				ret = _visible;
-			}
-			else if(nameLower == "rect")
-			{
-				ret = _rect;
-			}
-			else if(nameLower == "backcolor")
-			{
-				ret = _backColor;
-			}
-			else if(nameLower == "matcolor")
-			{
-				ret = _materialColor;
-			}
-			else if(nameLower == "forecolor")
-			{
-				ret = _foreColor;
-			}
-			else if(nameLower == "hovercolor")
-			{
-				ret = _hoverColor;
-			}
-			else if(nameLower == "bordercolor")
-			{
-				ret = _borderColor;
-			}
-			else if(nameLower == "textscale")
-			{
-				ret = _textScale;
-			}
-			else if(nameLower == "rotate")
-			{
-				ret = _rotate;
-			}
-			else if(nameLower == "noevents")
-			{
-				ret = _noEvents;
-			}
-			else if(nameLower == "text")
-			{
-				ret = _text;
-			}
-			else if(nameLower == "backgroundname")
-			{
-				ret = _backgroundName;
-			}
-			else if(nameLower == "hidecursor")
-			{
-				ret = _hideCursor;
-			}
-
-			string key = name;
-			bool guiVar = key.StartsWith(idWindowVariable.Prefix);
-
-			foreach(idWindowVariable var in _definedVariables)
-			{
-				if(nameLower.Equals(var.Name) == true)
-				{
-					ret = var;
-					break;
-				}
-			}
-
-			if(ret != null)
-			{
-				if((fixup == true) && (name != "$"))
-				{
-					DisableRegister(name);
-				}
-
-				if(_parent != null)
-				{
-					owner = _parent.FindChildByName(_name);
-				}
-
-				return ret;
-			}
-
-			int keyLength = key.Length;
-
-			if((keyLength > 5) && (guiVar == true))
-			{
-				idWindowVariable var = new idWinString(name);
-				var.Init(name, this);
-
-				_definedVariables.Add(var);
-
-				return var;
-			}
-			else if(fixup == true)
-			{
-				int n = key.IndexOf("::");
-
-				if(n > 0)
-				{
-					string winName = key.Substring(0, n);
-					string var = key.Substring(n + 2);
-
-					DrawWindow win = this.UserInterface.Desktop.FindChildByName(winName);
-
-					if(win != null)
-					{
-						if(win.Window != null)
-						{
-							return win.Window.GetVariableByName(var, false, ref owner);
-						}
-						else
-						{
-							owner = win;
-						}
-
-						return win.Simple.GetVariableByName(var);
-					}
-				}
-			}
-
-			return null;
-		}
-
 		private void Init()
 		{
 			_childID = 0;
@@ -1983,6 +2035,7 @@ namespace idTech4.UI
 
 			_noTime.Set(false);
 			_visible.Set(true);
+			_hideCursor.Set(false);
 			_shear = Vector2.Zero;
 
 			_noEvents.Set(false);
@@ -2009,14 +2062,12 @@ namespace idTech4.UI
 			timeLine = -1;*/
 			_textShadow = 0;
 
-			/*hover = false;
-
-			for(int i = 0; i < SCRIPT_COUNT; i++)
+			/*hover = false;*/
+			
+			for(int i = 0; i < _scripts.Length; i++)
 			{
-				scripts[i] = NULL;
-			}
-
-			hideCursor = false;*/
+				_scripts[i] = null;
+			}			
 		}
 
 		private int ParseEmitOperation(idScriptParser parser, int a, WindowExpressionOperationType opType, int priority)
@@ -2251,7 +2302,7 @@ namespace idTech4.UI
 
 				idToken token = parser.ReadToken();
 
-				if(token.ToString() == ",")
+				if(token.ToString() != ",")
 				{
 					parser.Error("Expected comma in shear definition");
 
@@ -2362,6 +2413,130 @@ namespace idTech4.UI
 			}
 
 			return true;
+		}
+
+		private bool ParseScript(idScriptParser parser, idGuiScriptList list)
+		{
+			return ParseScript(parser, list, false);
+		}
+
+		private bool ParseScript(idScriptParser parser, idGuiScriptList list, bool elseBlock)
+		{
+			bool ifElseBlock = false;
+
+			idToken token;
+
+			// scripts start with { ( unless parm is true ) and have ; separated command lists.. commands are command,
+			// arg.. basically we want everything between the { } as it will be interpreted at
+			// run time
+			if(elseBlock == true)
+			{
+				token = parser.ReadToken();
+
+				if(token.ToString().ToLower() == "if")
+				{
+					ifElseBlock = true;
+				}
+
+				parser.UnreadToken(token);
+
+				if((ifElseBlock == false) && (parser.ExpectTokenString("{") == false))
+				{
+					return false;
+				}
+			}
+			else if(parser.ExpectTokenString("{") == false)
+			{
+				return false;
+			}
+
+			int nest = 0;
+			string tokenLower;
+
+			while(true)
+			{
+				if((token = parser.ReadToken()) == null)
+				{
+					parser.Error("Unexpected end of file");
+					return false;
+				}
+
+				tokenLower = token.ToString().ToLower();
+
+				if(tokenLower == "{")
+				{
+					nest++;
+				}
+				else if(tokenLower == "}")
+				{
+					if(nest-- <= 0)
+					{
+						return true;
+					}
+				}
+
+				idGuiScript script = new idGuiScript();
+
+				if(tokenLower == "if")
+				{
+					script.ConditionRegister = ParseExpression(parser);
+
+					ParseScript(parser, script.IfList);
+
+					if((token = parser.ReadToken()) != null)
+					{
+						if(token.ToString() == "else")
+						{
+							// pass true to indicate we are parsing an else condition
+							ParseScript(parser, script.ElseList, true);
+						}
+						else
+						{
+							parser.UnreadToken(token);
+						}
+					}
+
+					list.Append(script);
+
+					// if we are parsing an else if then return out so 
+					// the initial "if" parser can handle the rest of the tokens
+					if(ifElseBlock == true)
+					{
+						return true;
+					}
+
+					continue;
+				}
+				else
+				{
+					parser.UnreadToken(token);
+				}
+
+				// empty { } is not allowed
+				if(token.ToString() == "{")
+				{
+					parser.Error("Unexpected {");
+					return false;
+				}
+
+				script.Parse(parser);
+				list.Append(script);
+			}
+		}
+
+		private bool ParseScriptEntry(idToken token, idScriptParser parser)
+		{
+			for(int i = 0; i < (int) ScriptName.Count; i++)
+			{
+				if(token.ToString().ToLower() == ScriptNames[i].ToLower())
+				{
+					_scripts[i] = new idGuiScriptList();
+
+					return ParseScript(parser, _scripts[i]);
+				}
+			}
+
+			return false;
 		}
 
 		private string ParseString(idScriptParser parser)
@@ -2509,6 +2684,23 @@ namespace idTech4.UI
 			_saveTemporaries = null;
 		}
 
+		private bool RunScript(ScriptName name)
+		{
+			return RunScriptList(_scripts[(int) name]);
+		}
+
+		private bool RunScriptList(idGuiScriptList list)
+		{
+			if(list == null)
+			{
+				return false;
+			}
+
+			list.Execute(this);
+
+			return true;
+		}
+
 		private void SaveExpressionParseState()
 		{
 			_saveTemporaries = _registerIsTemporary;
@@ -2642,6 +2834,23 @@ namespace idTech4.UI
 		PredefinedCount
 	}
 
+	public enum ScriptName
+	{
+		MouseEnter = 0,
+		MouseExit,
+		Action,
+		Activate,
+		Deactivate,
+		Escape,
+		Frame,
+		Trigger,
+		ActionRelease,
+		Enter,
+		EnterRelease,
+
+		Count
+	}
+
 	public struct WindowExpressionOperation
 	{
 		public WindowExpressionOperationType Type;
@@ -2649,5 +2858,89 @@ namespace idTech4.UI
 		public int B;
 		public int C;
 		public int D;
+	}
+
+	public sealed class idTimeLineEvent
+	{
+		#region Properties
+		public idGuiScriptList Event
+		{
+			get
+			{
+				return _scriptList;
+			}
+		}
+
+		public bool Pending
+		{
+			get
+			{
+				return _pending;
+			}
+			set
+			{
+				_pending = value;
+			}
+		}
+
+		public int Time
+		{
+			get
+			{
+				return _time;
+			}
+			set
+			{
+				_time = value;
+			}
+		}
+		#endregion
+
+		#region Members
+		private idGuiScriptList _scriptList = new idGuiScriptList();
+		private bool _pending;
+		private int _time;
+		#endregion
+
+		#region Constructor
+		public idTimeLineEvent()
+		{
+
+		}
+		#endregion
+	}
+
+	public sealed class idNamedEvent
+	{
+		#region Properties
+		public idGuiScriptList Event
+		{
+			get
+			{
+				return _scriptList;
+			}
+		}
+
+		public string Name
+		{
+			get
+			{
+				return _name;
+			}
+		}
+		#endregion
+
+		#region Members
+		private idGuiScriptList _scriptList;
+		private string _name;
+		#endregion
+
+		#region Constructor
+		public idNamedEvent(string name)
+		{
+			_name = name;
+			_scriptList = new idGuiScriptList();
+		}
+		#endregion
 	}
 }

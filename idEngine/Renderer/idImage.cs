@@ -33,10 +33,12 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Tao.OpenGl;
+using Microsoft.Xna.Framework.Content.Pipeline;
 
 using idTech4.IO;
 using idTech4.Renderer;
+
+using Tao.OpenGl;
 
 namespace idTech4.Renderer
 {
@@ -48,10 +50,6 @@ namespace idTech4.Renderer
 			get
 			{
 				return _allowDownSize;
-			}
-			internal set
-			{
-				_allowDownSize = value;
 			}
 		}
 
@@ -76,10 +74,6 @@ namespace idTech4.Renderer
 			{
 				return _cubeFiles;
 			}
-			internal set
-			{
-				_cubeFiles = value;
-			}
 		}
 
 		public TextureDepth Depth
@@ -88,10 +82,6 @@ namespace idTech4.Renderer
 			{
 				return _depth;
 			}
-			internal set
-			{
-				_depth = value;
-			}
 		}
 
 		public TextureFilter Filter
@@ -99,10 +89,6 @@ namespace idTech4.Renderer
 			get
 			{
 				return _filter;
-			}
-			internal set
-			{
-				_filter = value;
 			}
 		}
 
@@ -136,11 +122,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return _loaded;
+				return (_texture != null);
 			}
 		}
 
-		public bool IsPartialImage
+		/*public bool IsPartialImage
 		{
 			get
 			{
@@ -150,8 +136,8 @@ namespace idTech4.Renderer
 			{
 				_isPartialImage = value;
 			}
-		}
-
+		}*/
+		
 		public bool LevelLoadReferenced
 		{
 			get
@@ -178,30 +164,6 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public idImage PartialImage
-		{
-			get
-			{
-				return _partialImage;
-			}
-			internal set
-			{
-				_partialImage = value;
-			}
-		}
-
-		public bool PrecompressedFile
-		{
-			get
-			{
-				return _precompressedFile;
-			}
-			internal set
-			{
-				_precompressedFile = value;
-			}
-		}
-
 		public bool ReferencedOutsideLevelLoad
 		{
 			get
@@ -220,119 +182,49 @@ namespace idTech4.Renderer
 			{
 				return _repeat;
 			}
-			internal set
-			{
-				_repeat = value;
-			}
 		}
-
-		/// <summary>
-		/// Is there a precompressed image, and it is large enough to be worth caching?
-		/// </summary>
-		public bool ShouldImageBePartialCached
-		{
-			get
-			{
-				if((idE.GLConfig.TextureCompressionAvailable == false) || (idE.CvarSystem.GetBool("image_useCache") == false))
-				{
-					return false;
-				}
-
-				// the allowDownSize flag does double-duty as don't-partial-load
-				if(_allowDownSize == false)
-				{
-					return false;
-				}
-
-				if(idE.CvarSystem.GetInteger("image_cacheMinK") <= 0)
-				{
-					return false;
-				}
-
-				// TODO: copying
-				// if we are doing a copyFiles, make sure the original images are referenced
-				/*if ( fileSystem->PerformingCopyFiles() ) {
-					return false;
-				}*/
-
-				// should image be partial cached
-				string fileName = idE.ImageManager.ImageProgramStringToCompressedFileName(this.Name);
-
-				using(Stream s = idE.FileSystem.OpenFileRead(fileName))
-				{
-					if(s == null)
-					{
-						return false;
-					}
-
-					// open it and get the file size
-					if(s.Length <= (idE.CvarSystem.GetInteger("image_cacheMinK") * 1024))
-					{
-						return false;
-					}
-				}
-
-				// we do want to do a partial load
-				return true;
-			}
-		}
-
+		
 		public TextureType Type
 		{
 			get
 			{
 				return _type;
 			}
-			internal set
-			{
-				_type = value;
-			}
 		}
 
-		public int UploadDepth
+		public int Height
 		{
 			get
 			{
-				return _uploadDepth;
-			}
-			internal set
-			{
-				_uploadDepth = value;
+				return _height;
 			}
 		}
 
-		public int UploadHeight
+		public int Width
 		{
 			get
 			{
-				return _uploadHeight;
-			}
-		}
-
-		public int UploadWidth
-		{
-			get
-			{
-				return _uploadWidth;
+				return _width;
 			}
 		}
 		#endregion
 
 		#region Members
 		private string _name;
-		private bool _loaded;
+
 		private bool _backgroundLoadInProgress;
 		private bool _defaulted;				// true if the default image was generated because a file couldn't be loaded
 		private bool _allowDownSize;			// this also doubles as a don't-partially-load flag
-		private bool _isMonochrome;				// so the NV20 path can use a reduced pass count
 
 		private bool _referencedOutsideLevelLoad;
 		private bool _levelLoadReferenced;		// for determining if it needs to be purged
 
 		private DateTime _timeStamp;			// the most recent of all images used in creation, for reloadImages command
-		private bool _precompressedFile;		// true when it was loaded from a .d3t file
+		//private bool _precompressedFile;		// true when it was loaded from a .d3t file
 
-		public Texture2D _texture;
+		private Texture2D _texture;
+		private int _width;
+		private int _height;
 
 		private TextureType _type;
 		private TextureFilter _filter;
@@ -345,29 +237,36 @@ namespace idTech4.Renderer
 		private int _frameUsed;					// for texture usage in frame statistics
 		private int _bindCount;					// incremented each bind
 
-		private int _uploadWidth;
-		private int _uploadHeight;
-		private int _uploadDepth;		// after power of two, downsample, and MAX_TEXTURE_SIZE
-
-		private int _internalFormat;
-
 		private int _classification;
 
 		// background loading information.
-		private idImage _partialImage;			// shrunken, space-saving version
-		private bool _isPartialImage;			// true if this is pointed to by another image
+		/*private idImage _partialImage;			// shrunken, space-saving version
+		private bool _isPartialImage;			// true if this is pointed to by another image*/
 		#endregion
 
 		#region Constructor
-		public idImage(string name)
+		public idImage(string name, ImageLoadCallback generator)
 		{
 			_name = name;
+			_generator = generator;
 			_type = TextureType.Disabled;
 
 			_filter = TextureFilter.Default;
 			_repeat = TextureRepeat.Repeat;
 			_depth = TextureDepth.Default;
 			_cubeFiles = CubeFiles.TwoD;
+		}
+
+		public idImage(string name, TextureType type, TextureFilter filter, TextureRepeat repeat, TextureDepth depth, CubeFiles cubeMap, bool allowDownSize)
+		{
+			_name = name;
+			_type = type;
+
+			_filter = filter;
+			_repeat = repeat;
+			_depth = depth;
+			_cubeFiles = cubeMap;
+			_allowDownSize = allowDownSize;
 		}
 
 		~idImage()
@@ -393,7 +292,7 @@ namespace idTech4.Renderer
 			}
 
 			// if we are a partial image, we are only going to load from a compressed file
-			if(_isPartialImage == true)
+			/*if(_isPartialImage == true)
 			{
 				if(CheckPrecompressedImage(false) == true)
 				{
@@ -403,10 +302,11 @@ namespace idTech4.Renderer
 				// this is an error -- the partial image failed to load
 				MakeDefault();
 			}
+			 
 			//
 			// load the image from disk
 			//
-			else if(_cubeFiles != Renderer.CubeFiles.TwoD)
+			else */if(_cubeFiles != Renderer.CubeFiles.TwoD)
 			{
 				idConsole.WriteLine("TODO: cube files");
 				/*byte	*pics[6];
@@ -433,7 +333,7 @@ namespace idTech4.Renderer
 			{
 				// see if we have a pre-generated image file that is
 				// already image processed and compressed
-				if((checkForPrecompressed == true) && (idE.CvarSystem.GetBool("image_usePrecompressedTextures") == true))
+				/*if((checkForPrecompressed == true) && (idE.CvarSystem.GetBool("image_usePrecompressedTextures") == true))
 				{
 					if(CheckPrecompressedImage(true) == true)
 					{
@@ -442,13 +342,11 @@ namespace idTech4.Renderer
 					}
 
 					// fall through to load the normal image
-				}
-
-				int width = 0, height = 0;
-
-				byte[] data = idE.ImageManager.LoadImageProgram(this.Name, ref width, ref height, ref _timeStamp, ref _depth);
-
-				if(data == null)
+				}*/
+					   
+				_texture = idE.ImageManager.LoadImageProgram(this.Name, ref _timeStamp, ref _depth);
+					   
+				if(_texture == null)
 				{
 					idConsole.Warning("Couldn't load image: {0}", this.Name);
 					MakeDefault();
@@ -456,13 +354,16 @@ namespace idTech4.Renderer
 					return;
 				}
 
+				_width = _texture.Width;
+				_height = _texture.Height;
+
 				// build a hash for checking duplicate image files
 				// NOTE: takes about 10% of image load times (SD)
 				// may not be strictly necessary, but some code uses it, so let's leave it in
 				// TODO: imageHash = MD4_BlockChecksum( pic, width * height * 4 );
-				Generate(data, width, height, _filter, _allowDownSize, _repeat, _depth);
+				//Generate(data, width, height, _filter, _allowDownSize, _repeat, _depth);
 
-				_precompressedFile = false;
+				//_precompressedFile = false;
 
 				// write out the precompressed version of this file if needed
 				// TODO: WritePrecompressedImage();
@@ -480,7 +381,7 @@ namespace idTech4.Renderer
 			}*/
 
 			// if this is an image that we are caching, move it to the front of the LRU chain.
-			if(_partialImage != null)
+			/*if(_partialImage != null)
 			{
 				idConsole.WriteLine("TODO: Bind LRU _partialImage");
 
@@ -495,12 +396,12 @@ namespace idTech4.Renderer
 
 				cacheUsageNext->cacheUsagePrev = this;
 				cacheUsagePrev->cacheUsageNext = this;*/
-			}
+			/*}*/
 
 			// load the image if necessary (FIXME: not SMP safe!).
-			if(_loaded == false)
+			if(this.IsLoaded == false)
 			{
-				if(_partialImage != null)
+				/*if(_partialImage != null)
 				{
 					// if we have a partial image, go ahead and use that
 					_partialImage.Bind();
@@ -512,10 +413,10 @@ namespace idTech4.Renderer
 					}
 
 					return;
-				}
+				}*/
 
 				// load the image on demand here, which isn't our normal game operating mode
-				ActuallyLoadImage(true, true); // check for precompressed, load is from back end
+				//ActuallyLoadImage(true, true); // check for precompressed, load is from back end
 			}
 
 			// bump our statistic counters
@@ -524,66 +425,11 @@ namespace idTech4.Renderer
 
 			TextureUnit textureUnit = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit];
 
-			// enable or disable apropriate texture modes.
-			if((textureUnit.Type != _type) && (idE.Backend.GLState.CurrentTextureUnit < idE.Backend.GLState.TextureUnits.Length))
+			if(idE.Backend.GLState.CurrentTextureUnit < idE.Backend.GLState.TextureUnits.Length)
 			{
-				if(textureUnit.Type == TextureType.Cubic)
-				{
-					//Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
-				}
-				else if(textureUnit.Type == TextureType.ThreeD)
-				{
-					//Gl.glDisable(Gl.GL_TEXTURE_3D);
-				}
-				else if(textureUnit.Type == TextureType.TwoD)
-				{
-					//Gl.glDisable(Gl.GL_TEXTURE_2D);
-				}
-
-				if(_type == TextureType.Cubic)
-				{
-					//Gl.glEnable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
-				}
-				else if(_type == TextureType.ThreeD)
-				{
-					//Gl.glEnable(Gl.GL_TEXTURE_3D);
-				}
-				else if(_type == TextureType.TwoD)
-				{
-					//Gl.glEnable(Gl.GL_TEXTURE_2D);
-				}
-
 				textureUnit.Type = _type;
+				textureUnit.CurrentTexture = _texture;
 			}
-
-			// bind the texture.
-			if((_type == TextureType.TwoD) && (textureUnit.Current2DMap != _texture))
-			{
-				textureUnit.Current2DMap = _texture;
-			}
-			else if(_type == TextureType.Cubic)
-			{
-				/*if(textureUnit.CurrentCubeMap != _texNumber)
-				{
-					textureUnit.CurrentCubeMap = _texNumber;
-					//Gl.glBindTexture(Gl.GL_TEXTURE_CUBE_MAP_EXT, _texNumber);
-				}*/
-			}
-			else if(_type == TextureType.ThreeD)
-			{
-				/*if(textureUnit.Current3DMap != _texNumber)
-				{
-					textureUnit.Current3DMap = _texNumber;
-					//Gl.glBindTexture(Gl.GL_TEXTURE_3D, _texNumber);
-				}*/
-			}
-
-			/*if(idE.CvarSystem.GetBool("com_purgeAll") == true)
-			{
-				float priority = 1.0f;
-
-				//Gl.glPrioritizeTextures(1, ref _texNumber, ref priority);
-			}*/
 		}
 
 		/// <summary>
@@ -615,12 +461,14 @@ namespace idTech4.Renderer
 		public void Generate(byte[] data, int width, int height, TextureFilter filter, bool allowDownSize, TextureRepeat repeat, TextureDepth depth)
 		{
 			// FIXME: should we implement cinematics this way, instead of with explicit calls?
-			Purge();
+			/*Purge();
 
 			_filter = filter;
 			_allowDownSize = allowDownSize;
 			_repeat = repeat;
-			_depth = depth;
+			_depth = depth;*/
+
+			idConsole.WriteLine("TODO: generate");
 
 			// if we don't have a rendering context, just return after we
 			// have filled in the parms.  We must have the values set, or
@@ -632,7 +480,7 @@ namespace idTech4.Renderer
 			}
 
 			// don't let mip mapping smear the texture into the clamped border
-			bool preserveBorder = (_repeat == TextureRepeat.ClampToZero);
+			/*bool preserveBorder = (_repeat == TextureRepeat.ClampToZero);
 
 			// make sure it is a power of 2
 			int scaledWidth = idHelper.MakePowerOfTwo(width);
@@ -652,7 +500,7 @@ namespace idTech4.Renderer
 			//Gl.glGenTextures(1, tex);
 			_texNumber = (int) tex[0];
 			idE.RenderSystem.CheckOpenGLErrors();*/
-			_loaded = true;
+			/*_loaded = true;
 
 			// select proper internal format before we resample
 			_internalFormat = Gl.GL_RGB8;  // SelectInternalFormat(data, 1, width, height, depth, out _isMonochrome);
@@ -698,9 +546,9 @@ namespace idTech4.Renderer
 				// one might have shrunk down below the target size
 				scaled_width = width;
 				scaled_height = height;*/
-			}
+			/*}*/
 
-			_uploadWidth = scaledWidth;
+			/*_uploadWidth = scaledWidth;
 			_uploadHeight = scaledHeight;
 			_type = TextureType.TwoD;
 
@@ -715,9 +563,9 @@ namespace idTech4.Renderer
 			{
 				byte[] rgba = new byte[4] { 255, 255, 255, 0 };
 				SetBorderTexels(scaledBuffer, width, height, rgba);
-			}
+			}*/
 
-			if((_generator == null) && ((_depth == TextureDepth.Bump) && (idE.CvarSystem.GetBool("image_writeNormalTGA") == true) || (_depth != TextureDepth.Bump) && (idE.CvarSystem.GetBool("image_writeTGA") == true)))
+			/*if((_generator == null) && ((_depth == TextureDepth.Bump) && (idE.CvarSystem.GetBool("image_writeNormalTGA") == true) || (_depth != TextureDepth.Bump) && (idE.CvarSystem.GetBool("image_writeTGA") == true)))
 			{
 				idConsole.WriteLine("TODO: gen = null && bump && write");
 				// Optionally write out the texture to a .tga
@@ -747,14 +595,14 @@ namespace idTech4.Renderer
 				}
 				*/
 				/*}*/
-			}
+		/*	}*/
 
 			// swap the red and alpha for rxgb support
 			// do this even on tga normal maps so we only have to use
 			// one fragment program.
 			// if the image is precompressed (either in palletized mode or true rxgb mode)
 			// then it is loaded above and the swap never happens here.
-			if((depth == TextureDepth.Bump) && (idE.CvarSystem.GetInteger("image_useNormalCompression") != 1))
+			/*if((depth == TextureDepth.Bump) && (idE.CvarSystem.GetInteger("image_useNormalCompression") != 1))
 			{
 				for(int i = 0; i < scaledWidth * scaledHeight * 4; i += 4)
 				{
@@ -817,7 +665,7 @@ namespace idTech4.Renderer
 			}
 		}*/
 
-			SetImageFilterAndRepeat();
+			//SetImageFilterAndRepeat();
 		}
 
 		public void MakeDefault()
@@ -876,18 +724,16 @@ namespace idTech4.Renderer
 		/// </summary>
 		public void Purge()
 		{
-			if(_loaded == true)
+			if(this.IsLoaded == true)
 			{
-				//Gl.glDeleteTextures(1, ref _texNumber);
-				_loaded = false;
+				/*_texture.Dispose();
+				_texture = null;*/
 			}
 
 			// clear all the current binding caches, so the next bind will do a real one
 			for(int i = 0; i < idE.Backend.GLState.TextureUnits.Length; i++)
 			{
-				idE.Backend.GLState.TextureUnits[i].Current2DMap = null;
-				idE.Backend.GLState.TextureUnits[i].Current3DMap = -1;
-				idE.Backend.GLState.TextureUnits[i].CurrentCubeMap = -1;
+				idE.Backend.GLState.TextureUnits[i].CurrentTexture = null;
 			}
 		}
 
@@ -1509,11 +1355,11 @@ namespace idTech4.Renderer
 
 			_backgroundLoadInProgress = true;
 
-			if(_precompressedFile == false)
+			/*if(_precompressedFile == false)
 			{
 				idConsole.WriteLine("idImage.StartBackgroundLoad: {0} wasn't a precompressed file", _name);
 				return;
-			}
+			}*/
 
 			idE.ImageManager.QueueBackgroundLoad(this);
 		}
@@ -1546,7 +1392,7 @@ namespace idTech4.Renderer
 
 			if(disposing == true)
 			{
-				if(_loaded == true)
+				if(this.IsLoaded == true)
 				{
 					Purge();
 				}

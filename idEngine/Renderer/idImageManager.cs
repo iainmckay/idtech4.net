@@ -34,6 +34,13 @@ using System.Text;
 using System.Text.RegularExpressions;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+using Microsoft.Xna.Framework.Content.Pipeline;
+using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
+using Microsoft.Xna.Framework.Content.Pipeline.Processors;
+using Microsoft.Xna.Framework.Content.Pipeline.Serialization;
+using Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler;
+using Microsoft.Xna.Framework.Content.Pipeline.Tasks;
 
 using Tao.DevIl;
 using Tao.OpenGl;
@@ -226,7 +233,10 @@ namespace idTech4.Renderer
 				if((image.Filter != filter) || (image.Repeat != repeat))
 				{
 					// we might want to have the system reset these parameters on every bind and
-					// share the image data		
+					// share the image data	
+
+					// FIXME: this might be the wrong behaviour.  original d3 would return a new image but our dictionary
+					// requires unique keys.
 					return image;
 				}
 				else
@@ -236,10 +246,10 @@ namespace idTech4.Renderer
 						// note that it is used this level load
 						image.LevelLoadReferenced = true;
 
-						if(image.PartialImage != null)
+						/*if(image.PartialImage != null)
 						{
 							image.PartialImage.LevelLoadReferenced = true;
-						}
+						}*/
 
 						return image;
 					}
@@ -261,39 +271,34 @@ namespace idTech4.Renderer
 						// the already created one is already the highest quality
 						image.LevelLoadReferenced = true;
 
-						if(image.PartialImage != null)
+						/*if(image.PartialImage != null)
 						{
 							image.PartialImage.LevelLoadReferenced = true;
-						}
+						}*/
 
 						return image;
 					}
 
-					image.AllowDownSize = allowDownSize;
-					image.Depth = depth;
+					/*image.AllowDownSize = allowDownSize;
+					image.Depth = depth;*/
 					image.LevelLoadReferenced = true;
 
-					if(image.PartialImage != null)
+					/*if(image.PartialImage != null)
 					{
 						image.PartialImage.LevelLoadReferenced = true;
-					}
+					}*/
 
 					if((idE.CvarSystem.GetBool("image_preload") == true) && (_insideLevelLoad == false))
 					{
 						image.ReferencedOutsideLevelLoad = true;
 						image.ActuallyLoadImage(true, false); // check for precompressed, load is from front end
 
-						idE.DeclManager.MediaPrint("{0}x{1} {1} (reload for mixed referneces)", image.UploadWidth, image.UploadHeight, image.Name);
+						idE.DeclManager.MediaPrint("{0}x{1} {1} (reload for mixed referneces)", image.Width, image.Height, image.Name);
 					}
 
 					return image;
 				}
 			}
-
-			//
-			// create a new image
-			//
-			image = CreateImage(name);
 
 			// HACK: to allow keep fonts from being mip'd, as new ones will be introduced with localization
 			// this keeps us from having to make a material for each font tga
@@ -302,17 +307,14 @@ namespace idTech4.Renderer
 				allowDownSize = false;
 			}
 
-			image.AllowDownSize = allowDownSize;
-			image.Repeat = repeat;
-			image.Depth = depth;
-			image.Type = TextureType.TwoD;
-			image.CubeFiles = cubeMap;
-			image.Filter = filter;
-
+			//
+			// create a new image
+			//
+			image = CreateImage(name, TextureType.TwoD, filter, repeat, depth, cubeMap, allowDownSize);
 			image.LevelLoadReferenced = true;
 
 			// also create a shrunken version if we are going to dynamically cache the full size image
-			if(image.ShouldImageBePartialCached == true)
+			/*if(image.ShouldImageBePartialCached == true)
 			{
 				// if we only loaded part of the file, create a new idImage for the shrunken version
 				image.PartialImage = new idImage(name);
@@ -336,7 +338,7 @@ namespace idTech4.Renderer
 				{
 					image.PartialImage.ActuallyLoadImage(true, false);	// check for precompressed, load is from front end
 
-					idE.DeclManager.MediaPrint("{0}x{1} {2}", image.PartialImage.UploadWidth, image.PartialImage.UploadHeight, image.Name);
+					idE.DeclManager.MediaPrint("{0}x{1} {2}", image.PartialImage.Width, image.PartialImage.Height, image.Name);
 				}
 				else
 				{
@@ -344,7 +346,7 @@ namespace idTech4.Renderer
 				}
 
 				return image;
-			}
+			}*/
 
 			// load it if we aren't in a level preload
 			if((idE.CvarSystem.GetBool("image_preload") == true) && (_insideLevelLoad == false))
@@ -352,7 +354,7 @@ namespace idTech4.Renderer
 				image.ReferencedOutsideLevelLoad = true;
 				image.ActuallyLoadImage(true, false); // check for precompressed, load is from front end
 
-				idE.DeclManager.MediaPrint("{0}x{1} {2}", image.UploadWidth, image.UploadHeight, image.Name);
+				idE.DeclManager.MediaPrint("{0}x{1} {2}", image.Width, image.Height, image.Name);
 			}
 			else
 			{
@@ -368,22 +370,7 @@ namespace idTech4.Renderer
 		public void BindNullTexture()
 		{
 			TextureUnit unit = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit];
-
-			// TODO: RB_LogComment( "BindNull()\n" );
-
-			if(unit.Type == TextureType.Cubic)
-			{
-				//Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
-			}
-			else if(unit.Type == TextureType.ThreeD)
-			{
-				//Gl.glDisable(Gl.GL_TEXTURE_3D);
-			}
-			else if(unit.Type == TextureType.TwoD)
-			{
-				//Gl.glDisable(Gl.GL_TEXTURE_2D);
-			}
-
+			unit.CurrentTexture = null;
 			unit.Type = TextureType.Disabled;
 		}
 
@@ -580,8 +567,7 @@ namespace idTech4.Renderer
 			}
 
 			// create the image and issue the callback
-			image = CreateImage(name);
-			image.Generator = generator;
+			image = CreateImage(name, generator);
 
 			if(idE.CvarSystem.GetBool("image_preload") == true)
 			{
@@ -593,9 +579,9 @@ namespace idTech4.Renderer
 			return image;
 		}
 
-		public byte[] LoadImageProgram(string name, ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth)
+		public Texture2D LoadImageProgram(string name, ref DateTime timeStamp, ref TextureDepth depth)
 		{
-			return ParseImageProgram(name, ref width, ref height, ref timeStamp, ref depth);
+			return ParseImageProgram(name, ref timeStamp, ref depth);
 		}
 
 		public string ImageProgramStringToCompressedFileName(string program)
@@ -1374,99 +1360,17 @@ namespace idTech4.Renderer
 		/// timestamp.
 		/// </remarks>
 		/// <param name="name"></param>
-		/// <param name="width"></param>
-		/// <param name="height"></param>
 		/// <param name="timeStamp"></param>
 		/// <param name="makePowerOf2"></param>
 		/// <returns></returns>
-		public byte[] LoadImage(string name, ref int width, ref int height, ref DateTime timeStamp, bool makePowerOf2)
+		public Texture2D LoadImage(string name, ref DateTime timeStamp, bool makePowerOf2)
 		{
-			width = 0;
-			height = 0;
+			// TODO: timestamp
+			timeStamp = DateTime.Now;
+			
 
-			if(Path.HasExtension(name) == false)
-			{
-				name += ".tga";
-			}
 
-			name = name.ToLower();
-
-			string ext = Path.GetExtension(name);
-			byte[] data = null;
-
-			if(ext == ".tga")
-			{
-				data = LoadTGA(name, ref width, ref height, ref timeStamp);
-
-				if(data == null)
-				{
-					name = Path.Combine(Path.GetDirectoryName(name), Path.GetFileNameWithoutExtension(name));
-					name += ".jpg";
-
-					// TODO: data = LoadJPG(name, ref width, ref height, ref timeStamp);
-					idConsole.WriteLine("LoadImage try jpg");
-				}
-			}
-			else if(ext == ".pcx")
-			{
-				idConsole.WriteLine("TODO: LoadImage pcx");
-				//LoadPCX32( name.c_str(), pic, width, height, timestamp );
-			}
-			else if(ext == ".bmp")
-			{
-				idConsole.WriteLine("TODO: LoadImage bmp");
-				// LoadBMP( name.c_str(), pic, width, height, timestamp );
-			}
-			else if(ext == ".jpg")
-			{
-				idConsole.WriteLine("TODO: LoadImage jpg");
-			}
-
-			if((width < 1) || (height < 1))
-			{
-				return null;
-			}
-
-			//
-			// convert to exact power of 2 sizes
-			//
-			if((data != null) && (makePowerOf2 == true))
-			{
-				int scaledWidth, scaledHeight;
-
-				int tmpWidth = width;
-				int tmpHeight = height;
-
-				for(scaledWidth = 1; scaledWidth < tmpWidth; scaledWidth <<= 1)
-				{
-
-				}
-
-				for(scaledHeight = 1; scaledHeight < tmpHeight; scaledHeight <<= 1)
-				{
-
-				}
-
-				if((scaledWidth != tmpWidth) || (scaledHeight != tmpHeight))
-				{
-					if((idE.CvarSystem.GetBool("image_roundDown") == true) && (scaledWidth > tmpWidth))
-					{
-						scaledWidth >>= 1;
-					}
-
-					if((idE.CvarSystem.GetBool("image_roundDown") == true) && (scaledHeight > tmpHeight))
-					{
-						scaledHeight >>= 1;
-					}
-
-					data = ResampleTexture(data, tmpWidth, tmpHeight, scaledWidth, scaledHeight);
-
-					width = scaledWidth;
-					height = scaledHeight;
-				}
-			}
-
-			return data;
+			return idE.System.Content.Load<Texture2D>(name);
 		}
 
 		/// <summary>
@@ -1474,23 +1378,30 @@ namespace idTech4.Renderer
 		/// If both data and timeStamp are NULL, it will just advance past it, which can be
 		/// used to parse an image program from a text stream.
 		/// </summary>
-		/// <param name="lexer"></param>
-		/// <param name="data"></param>
-		/// <param name="width"></param>
-		/// <param name="height"></param>
+		/// <param name="source"></param>
 		/// <param name="timeStamp"></param>
 		/// <param name="depth"></param>
 		/// <returns></returns>
-		public byte[] ParseImageProgram(string source, ref int width, ref int height, ref DateTime timeStamp, ref TextureDepth depth)
+		public Texture2D ParseImageProgram(string source, ref DateTime timeStamp, ref TextureDepth depth)
 		{
-			return new idImageProgramParser().ParseImageProgram(source, ref width, ref height, ref timeStamp, ref depth);
+			return new idImageProgramParser().ParseImageProgram(source, ref timeStamp, ref depth);
 		}
 		#endregion
 
 		#region Private
-		private idImage CreateImage(string name)
+		private idImage CreateImage(string name, ImageLoadCallback generator)
 		{
-			idImage image = new idImage(name);
+			idImage image = new idImage(name, generator);
+
+			_images.Add(image);
+			_imageDictionary.Add(name, image);
+
+			return image;
+		}
+
+		private idImage CreateImage(string name, TextureType type, TextureFilter filter, TextureRepeat repeat, TextureDepth depth, CubeFiles cubeMap, bool allowDownSize)
+		{
+			idImage image = new idImage(name, type, filter, repeat, depth, cubeMap, allowDownSize);
 
 			_images.Add(image);
 			_imageDictionary.Add(name, image);
@@ -1562,8 +1473,8 @@ namespace idTech4.Renderer
 				byte[] tmp = new byte[width * height * bitsPerPixel];
 
 				IntPtr ptr = Il.ilGetData();
-				Marshal.Copy(ptr, tmp, 0, tmp.Length);		
-		
+				Marshal.Copy(ptr, tmp, 0, tmp.Length);
+
 				// if this is only 3 bytes per pixel, copy to 4 bytes
 				if(bitsPerPixel == 3)
 				{

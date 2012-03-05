@@ -208,9 +208,12 @@ namespace idTech4.UI
 			}
 
 			_loading = true;
-
-			_desktop = new idWindow(this, idE.UIManager.Context);
-			_desktop.Flags = WindowFlags.Desktop;
+			
+			if((rebuild == true) || (_desktop == null))
+			{
+				_desktop = new idWindow(this, idE.UIManager.Context);
+				_desktop.Flags = WindowFlags.Desktop;
+			}
 
 			_sourceFile = path;
 			_state.Set("text", "Test Text!");
@@ -238,8 +241,6 @@ namespace idTech4.UI
 						{
 							_desktop.FixupParameters();
 						}
-
-						continue;
 					}
 				}
 
