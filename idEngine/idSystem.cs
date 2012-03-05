@@ -420,38 +420,7 @@ namespace idTech4
 
 		private void InitGame()
 		{
-			// initialize the file system
-			idE.FileSystem.Init();
-
-			// initialize the declaration manager
-			idE.DeclManager.Init();
-
-			bool sysDetect = idE.FileSystem.FileExists(idE.ConfigSpecification, "fs_savepath") == false;
-
-			if(sysDetect == true)
-			{
-				Stream s = idE.FileSystem.OpenFileWrite(idE.ConfigSpecification);
-
-				if(s != null)
-				{
-					s.Dispose();
-					s = null;
-				}
-			}
-
-			if(sysDetect == true)
-			{
-				SetMachineSpec();
-				Cmd_ExecMachineSpec(this, new CommandEventArgs(new idCmdArgs()));
-			}
-
-			// initialize the renderSystem data structures, but don't start OpenGL yet
-			idE.RenderSystem.Init(_graphics);
-
-			// initialize string database right off so we can use it for loading messages
-			InitLanguageDict();
-
-			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04344\" ) );");
+			PrintLoadingMessage(idE.Language.Get("#str_04344"));
 
 			// load the font, etc
 			idE.Console.LoadGraphics();
@@ -459,7 +428,7 @@ namespace idTech4
 			// init journalling, etc
 			idE.EventLoop.Init();
 
-			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04345\" ) );");
+			PrintLoadingMessage(idE.Language.Get("#str_04345"));
 			
 			// exec the startup scripts
 			idE.CmdSystem.BufferCommandText(Execute.Append, "exec editor.cfg");
@@ -487,12 +456,12 @@ namespace idTech4
 			// init the user command input code
 			idConsole.WriteLine("TODO: usercmdGen->Init();");
 
-			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04346\" ) );");
+			PrintLoadingMessage(idE.Language.Get("#str_04346"));
 
 			// start the sound system, but don't do any hardware operations yet
 			idConsole.WriteLine("TODO: soundSystem->Init();");
 
-			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04347\" ) );");
+			PrintLoadingMessage(idE.Language.Get("#str_04347"));
 
 			// init async network
 			idE.AsyncNetwork.Init();
@@ -512,12 +481,12 @@ namespace idTech4
 			else
 			{
 				// init OpenGL, which will open a window and connect sound and input hardware
-				idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04348\" ) );");
+				PrintLoadingMessage(idE.Language.Get("#str_04348"));
 				InitRenderSystem();
 			}
 #endif
 
-			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04349\" ) );");
+			PrintLoadingMessage(idE.Language.Get("#str_04349"));
 			
 			// initialize the user interfaces
 			idE.UIManager.Init();
@@ -525,12 +494,12 @@ namespace idTech4
 			// startup the script debugger
 			idConsole.WriteLine("TODO: DebuggerServerInit();");
 
-			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04350\" ) );");
+			PrintLoadingMessage(idE.Language.Get("#str_04350"));
 
 			// load the game dll
 			idConsole.WriteLine("TODO: LoadGameDLL();");
 
-			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04351\" ) );");
+			PrintLoadingMessage(idE.Language.Get("#str_04351"));
 
 			// init the session
 			idE.Session.Init();
@@ -538,7 +507,8 @@ namespace idTech4
 			// have to do this twice.. first one sets the correct r_mode for the renderer init
 			// this time around the backend is all setup correct.. a bit fugly but do not want
 			// to mess with all the gl init at this point.. an old vid card will never qualify for 
-			if(sysDetect == true)
+
+			/* TODO: if(sysDetect == true)
 			{
 				SetMachineSpec();
 				Cmd_ExecMachineSpec(this, new CommandEventArgs(new idCmdArgs()));
@@ -547,7 +517,39 @@ namespace idTech4
 
 				idE.CmdSystem.BufferCommandText(Execute.Now, "s_restart");
 				idE.CmdSystem.ExecuteCommandBuffer();
+			}*/
+
+			// don't add startup commands if no CD key is present
+			if(AddStartupCommands() == false)
+			{
+				// TODO: remove next two braces
 			}
+
+			{
+				// if the user didn't give any commands, run default action
+				idE.Session.StartMenu(true);
+			}
+
+			idConsole.WriteLine("--- Common Initialization Complete ---");
+
+			// print all warnings queued during initialization
+			idConsole.PrintWarnings();
+
+			// TODO
+			/*
+#ifdef	ID_DEDICATED
+			Printf( "\nType 'help' for dedicated server info.\n\n" );
+#endif
+
+			// remove any prints from the notify lines
+			// TODO: console->ClearNotifyLines();
+			*/
+
+
+
+			_commandLineArguments = null;
+			_rawCommandLineArguments = null;
+			_fullyInitialized = true;
 		}
 
 		private void InitLanguageDict()
@@ -594,8 +596,7 @@ namespace idTech4
 			}
 
 			idE.RenderSystem.InitGraphics(this.GraphicsDevice);
-
-			idConsole.WriteLine("TODO: PrintLoadingMessage( common->GetLanguageDict()->GetString( \"#str_04343\" ) );");
+			PrintLoadingMessage(idE.Language.Get("#str_04343"));
 		}
 
 		private void ParseCommandLine(string[] args)
@@ -625,6 +626,14 @@ namespace idTech4
 			}
 
 			_commandLineArguments = argList.ToArray();
+		}
+
+		private void PrintLoadingMessage(string msg)
+		{
+			idE.RenderSystem.BeginFrame(idE.RenderSystem.ScreenWidth, idE.RenderSystem.ScreenHeight);
+			idE.RenderSystem.DrawStretchPicture(0, 0, idE.VirtualScreenWidth, idE.VirtualScreenHeight, 0, 0, 1, 1, idE.DeclManager.FindMaterial("splashScreen"));
+			// TODO: renderSystem->DrawSmallStringExt( ( 640 - len * SMALLCHAR_WIDTH ) / 2, 410, msg, idVec4( 0.0f, 0.81f, 0.94f, 1.0f ), true, declManager->FindMaterial( "textures/bigchars" ) );
+			idE.RenderSystem.EndFrame();
 		}
 
 		private void Shutdown()
@@ -1178,40 +1187,36 @@ namespace idTech4
 				// init commands
 				InitCommands();
 
-				// game specific initialization
-				InitGame();
+				// initialize the file system
+				idE.FileSystem.Init();
 
-				// don't add startup commands if no CD key is present
-				if(AddStartupCommands() == false)
+				// initialize the declaration manager
+				idE.DeclManager.Init();
+
+				bool sysDetect = idE.FileSystem.FileExists(idE.ConfigSpecification, "fs_savepath") == false;
+
+				if(sysDetect == true)
 				{
-					// TODO: remove next two braces
+					Stream s = idE.FileSystem.OpenFileWrite(idE.ConfigSpecification);
+
+					if(s != null)
+					{
+						s.Dispose();
+						s = null;
+					}
 				}
 
+				if(sysDetect == true)
 				{
-					// if the user didn't give any commands, run default action
-					idE.Session.StartMenu(true);
+					SetMachineSpec();
+					Cmd_ExecMachineSpec(this, new CommandEventArgs(new idCmdArgs()));
 				}
 
-				idConsole.WriteLine("--- Common Initialization Complete ---");
+				// initialize the renderSystem data structures, but don't start OpenGL yet
+				idE.RenderSystem.Init(_graphics);
 
-				// print all warnings queued during initialization
-				idConsole.PrintWarnings();
-
-				// TODO
-				/*
-#ifdef	ID_DEDICATED
-				Printf( "\nType 'help' for dedicated server info.\n\n" );
-#endif
-
-				// remove any prints from the notify lines
-				// TODO: console->ClearNotifyLines();
-				*/
-
-				
-
-				_commandLineArguments = null;
-				_rawCommandLineArguments = null;
-				_fullyInitialized = true;
+				// initialize string database right off so we can use it for loading messages
+				InitLanguageDict();
 
 				base.Initialize();
 			}
@@ -1226,7 +1231,11 @@ namespace idTech4
 		protected override void LoadContent()
 		{
 			base.LoadContent();
-			
+
+			// game specific initialization
+			InitGame();
+
+
 			idE.ImageManager.ReloadImages();
 		}
 

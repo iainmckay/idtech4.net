@@ -94,7 +94,7 @@ namespace idTech4.Renderer
 			{
 				return;
 			}
-			
+
 			// break the current surface if we are changing to a new material
 			if(material != _surface.Material)
 			{
@@ -188,16 +188,112 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public void DrawStretchPicture(float x, float y, float width, float height, float s, float t, float s2, float t2, idMaterial material)
+		{
+			Vertex[] vertices = new Vertex[4];
+			int[] indexes = new int[6];
+
+			if(material == null)
+			{
+				return;
+			}
+
+			// clip to edges, because the pic may be going into a guiShader
+			// instead of full screen
+			if(x < 0)
+			{
+				s += (s2 - s) * -x / width;
+				width += x;
+				x = 0;
+			}
+
+			if(y < 0)
+			{
+				t += (t2 - t) * -y / height;
+				height += y;
+				y = 0;
+			}
+			if((x + width) > 640)
+			{
+				s2 -= (s2 - s) * (x + width - 640) / width;
+				width = 640 - x;
+			}
+
+			if((y + height) > 480)
+			{
+				t2 -= (t2 - t) * (y + height - 480) / height;
+				height = 480 - y;
+			}
+
+			if((width <= 0) || (height <= 0))
+			{
+				// completely clipped away
+				return;		
+			}
+
+			indexes[0] = 3;
+			indexes[1] = 0;
+			indexes[2] = 2;
+			indexes[3] = 2;
+			indexes[4] = 0;
+			indexes[5] = 1;
+
+			vertices[0].Position = new Vector3(x, y, 0);
+			vertices[0].TextureCoordinates = new Vector2(s, t);
+			vertices[0].Normal = new Vector3(0, 0, 1);
+
+			// TODO: tangents
+			/*vertices[0].tangents[0][0] = 1;
+			vertices[0].tangents[0][1] = 0;
+			vertices[0].tangents[0][2] = 0;
+			vertices[0].tangents[1][0] = 0;
+			vertices[0].tangents[1][1] = 1;
+			vertices[0].tangents[1][2] = 0;*/
+
+
+			vertices[1].Position = new Vector3(x + width, y, 0);
+			vertices[1].TextureCoordinates = new Vector2(s2, t);
+			vertices[1].Normal = new Vector3(0, 0, 1);
+			/*vertices[1].tangents[0][0] = 1;
+			vertices[1].tangents[0][1] = 0;
+			vertices[1].tangents[0][2] = 0;
+			vertices[1].tangents[1][0] = 0;
+			vertices[1].tangents[1][1] = 1;
+			vertices[1].tangents[1][2] = 0;*/
+
+			vertices[2].Position = new Vector3(x + width, y + height, 0);
+			vertices[2].TextureCoordinates = new Vector2(s2, t2);
+			vertices[2].Normal = new Vector3(0, 0, 1);
+			/*vertices[2].tangents[0][0] = 1;
+			vertices[2].tangents[0][1] = 0;
+			vertices[2].tangents[0][2] = 0;
+			vertices[2].tangents[1][0] = 0;
+			vertices[2].tangents[1][1] = 1;
+			vertices[2].tangents[1][2] = 0;*/
+
+			vertices[3].Position = new Vector3(x, y + height, 0);
+			vertices[3].TextureCoordinates = new Vector2(s, t2);
+			vertices[3].Normal = new Vector3(0, 0, 1);
+			/*vertices[3].tangents[0][0] = 1;
+			vertices[3].tangents[0][1] = 0;
+			vertices[3].tangents[0][2] = 0;
+			vertices[3].tangents[1][0] = 0;
+			vertices[3].tangents[1][1] = 1;
+			vertices[3].tangents[1][2] = 0;*/
+
+			DrawStretchPicture(vertices, indexes, material, false, 0, 0, 640.0f, 480.0f);
+		}
+
 		/// <summary>
 		/// Creates a view that covers the screen and emit the surfaces.
 		/// </summary>
 		public void EmitFullScreen()
-		{			
+		{
 			if(_surfaces[0].VertexCount == 0)
 			{
 				return;
 			}
-			
+
 			View viewDef = new View();
 
 			// for gui editor
@@ -287,7 +383,7 @@ namespace idTech4.Renderer
 			{
 				return;	// nothing in the surface
 			}
-			
+
 			// copy verts and indexes
 			Surface tri = new Surface();
 			tri.Indexes = new int[surface.IndexCount];
@@ -304,7 +400,7 @@ namespace idTech4.Renderer
 			tri.AmbientCache = idE.RenderSystem.AllocateVertexCacheFrameTemporary(tri.Vertices);
 
 			// if we are out of vertex cache, don't create the surface
-			if(tri.AmbientCache == null) 
+			if(tri.AmbientCache == null)
 			{
 				return;
 			}

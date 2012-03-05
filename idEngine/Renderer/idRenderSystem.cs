@@ -487,6 +487,11 @@ namespace idTech4.Renderer
 			_guiModel.DrawStretchPicture(vertices, indexes, material, clip, minX, minY, maxX, maxY);
 		}
 
+		public void DrawStretchPicture(float x, float y, float width, float height, float s, float t, float s2, float t2, idMaterial material)
+		{
+			_guiModel.DrawStretchPicture(x, y, width, height, s, t, s2, t2, material);
+		}
+
 		public void EndFrame()
 		{
 			int front, back;
@@ -580,9 +585,6 @@ namespace idTech4.Renderer
 			idE.GLConfig.IsFullscreen = _graphicsDeviceManager.IsFullScreen;
 
 			// TODO: R_InitTriSurfData();
-
-			Il.ilInit();
-			Ilu.iluInit();
 
 			idE.ImageManager.Init();
 
