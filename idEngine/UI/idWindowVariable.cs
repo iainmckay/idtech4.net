@@ -155,10 +155,8 @@ namespace idTech4.UI
 
 		public abstract void Update();
 		public abstract void Set(string value);
-		#endregion
 
-		#region Protected
-		protected virtual void SetGuiInfo(idDict dict, string name)
+		public virtual void SetGuiInfo(idDict dict, string name)
 		{
 			_guiDict = dict;
 			this.Name = name;
@@ -333,18 +331,23 @@ namespace idTech4.UI
 			return _data.Equals(obj);
 		}
 
-		public static bool operator ==(idWinString v1, string v2)
+		/*public static bool operator ==(idWinString v1, string v2)
 		{
 			return (v1._data == v2);
 		}
 
 		public static bool operator !=(idWinString v1, string v2)
 		{
-			return (v1._data != v2);
-		}
+			return ((v1 != null) && (v1._data != v2));
+		}*/
 
 		public static implicit operator string(idWinString v)
 		{
+			if(v == null)
+			{
+				return null;
+			}
+
 			return v._data;
 		}
 		#endregion

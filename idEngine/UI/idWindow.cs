@@ -38,7 +38,7 @@ using idTech4.Text.Decl;
 
 namespace idTech4.UI
 {
-	public sealed class idWindow
+	public class idWindow
 	{
 		#region Constants
 		private static readonly string[] ScriptNames = new string[] {
@@ -102,6 +102,18 @@ namespace idTech4.UI
 			}
 		}
 
+		public virtual idWindow Buddy
+		{
+			get
+			{
+				return null;
+			}
+			set
+			{
+
+			}
+		}
+
 		public Rectangle ClientRectangle
 		{
 			get
@@ -151,6 +163,14 @@ namespace idTech4.UI
 			set
 			{
 				_foreColor.Set(value);
+			}
+		}
+
+		public bool HasOperations
+		{
+			get
+			{
+				return (_ops.Count > 0);
 			}
 		}
 
@@ -394,6 +414,9 @@ namespace idTech4.UI
 		private int _offsetX;
 		private int _offsetY;
 
+		private string _command;
+		private int _timeLine; // time stamp used for various fx
+
 		private float _forceAspectWidth;
 		private float _forceAspectHeight;
 		private float _materialScaleX;
@@ -504,7 +527,7 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public void Activate(bool activate, ref string act)
+		public virtual void Activate(bool activate, ref string act)
 		{
 			// make sure win vars are updated before activation
 			UpdateVariables();
@@ -525,6 +548,18 @@ namespace idTech4.UI
 		{
 			child._childID = _children.Count;
 			_children.Add(child);
+		}
+
+		public void AddCommand(string command)
+		{
+			if(_command.Length > 0)
+			{
+				_command += string.Format(" ; {0}", command);
+			}
+			else
+			{
+				_command = command;
+			}
 		}
 
 		public void AddDefinedVariable(idWindowVariable var)
@@ -552,10 +587,10 @@ namespace idTech4.UI
 			}
 
 			rect.X += x;
-			rect.Y += y;	
+			rect.Y += y;
 		}
 
-		public void Draw(int x, int y)
+		public virtual void Draw(int x, int y)
 		{
 			int skipShaders = idE.CvarSystem.GetInteger("r_skipGuiShaders");
 
@@ -568,8 +603,7 @@ namespace idTech4.UI
 
 			if((_flags.HasFlag(WindowFlags.Desktop) == true) && (skipShaders != 3))
 			{
-				idConsole.WriteLine("TODO: RunTimeEvents");
-				// RunTimeEvents( time );
+				RunTimeEvents(time);
 			}
 
 			if(skipShaders == 2)
@@ -685,7 +719,7 @@ namespace idTech4.UI
 			return GetVariableByName(name, fixup, ref owner);
 		}
 
-		public idWindowVariable GetVariableByName(string name, bool fixup, ref DrawWindow owner)
+		public virtual idWindowVariable GetVariableByName(string name, bool fixup, ref DrawWindow owner)
 		{
 			idWindowVariable ret = null;
 
@@ -825,6 +859,208 @@ namespace idTech4.UI
 			return null;
 		}
 
+		public float EvaluateRegisters()
+		{
+			return EvaluateRegisters(-1, false);
+		}
+
+		public float EvaluateRegisters(int test)
+		{
+			return EvaluateRegisters(test, false);
+		}
+
+		public float EvaluateRegisters(int test, bool force)
+		{
+			if((force == false) && (test >= 0) && (test < idE.MaxExpressionRegisters) && (_lastEval == this))
+			{
+				return _regs[test];
+			}
+
+			_lastEval = this;
+
+			if(_expressionRegisters.Count > 0)
+			{
+				_regList.SetToRegisters(ref _regs);
+				EvaluateRegisters(ref _regs);
+				_regList.GetFromRegisters(_regs);
+			}
+
+			if((test >= 0) && (test < idE.MaxExpressionRegisters))
+			{
+				return _regs[test];
+			}
+
+			return 0.0f;
+		}
+
+		/// <summary>
+		/// Parameters are taken from the localSpace and the renderView,
+		/// then all expressions are evaluated, leaving the shader registers
+		/// set to their apropriate values.
+		/// </summary>
+		/// <param name="registers"></param>
+		public void EvaluateRegisters(ref float[] registers)
+		{
+			int expressionRegisterCount = _expressionRegisters.Count;
+			int opCount = _ops.Count;
+
+			// copy the constants
+			for(int i = (int) WindowExpressionRegister.PredefinedCount; i < expressionRegisterCount; i++)
+			{
+				registers[i] = _expressionRegisters[i];
+			}
+
+			// copy the local and global parameters
+			registers[(int) WindowExpressionRegister.Time] = _gui.Time;
+
+			foreach(WindowExpressionOperation op in _ops)
+			{
+				if(op.B == -2)
+				{
+					continue;
+				}
+
+				switch(op.Type)
+				{
+					case WindowExpressionOperationType.Add:
+						registers[op.C] = registers[(int) op.A] + registers[op.B];
+						break;
+
+					case WindowExpressionOperationType.Subtract:
+						registers[op.C] = registers[(int) op.A] - registers[op.B];
+						break;
+
+					case WindowExpressionOperationType.Multiply:
+						registers[op.C] = registers[(int) op.A] * registers[op.B];
+						break;
+
+					case WindowExpressionOperationType.Divide:
+						if(registers[op.B] == 0.0f)
+						{
+							idConsole.Warning("Divide by zero in window '{0}' in {1}", this.Name, _gui.SourceFile);
+							registers[op.C] = registers[(int) op.A];
+						}
+						else
+						{
+							registers[op.C] = registers[(int) op.A] / registers[op.B];
+						}
+						break;
+
+					case WindowExpressionOperationType.Modulo:
+						int b = (int) registers[op.B];
+						b = (b != 0) ? b : 1;
+
+						registers[op.C] = (int) registers[(int) op.A] % b;
+						break;
+
+					case WindowExpressionOperationType.Table:
+						idDeclTable table = (idDeclTable) idE.DeclManager.DeclByIndex(DeclType.Table, (int) op.A);
+						registers[op.C] = table.Lookup(registers[op.B]);
+						break;
+
+					case WindowExpressionOperationType.GreaterThan:
+						registers[op.C] = (registers[(int) op.A] > registers[op.B]) ? 1 : 0;
+						break;
+
+					case WindowExpressionOperationType.GreaterThanOrEqual:
+						registers[op.C] = (registers[(int) op.A] >= registers[op.B]) ? 1 : 0;
+						break;
+
+					case WindowExpressionOperationType.LessThan:
+						registers[op.C] = (registers[(int) op.A] < registers[op.B]) ? 1 : 0;
+						break;
+
+					case WindowExpressionOperationType.LessThanOrEqual:
+						registers[op.C] = (registers[(int) op.A] <= registers[op.B]) ? 1 : 0;
+						break;
+
+					case WindowExpressionOperationType.Equal:
+						registers[op.C] = (registers[(int) op.A] == registers[op.B]) ? 1 : 0;
+						break;
+
+					case WindowExpressionOperationType.NotEqual:
+						registers[op.C] = (registers[(int) op.A] != registers[op.B]) ? 1 : 0;
+						break;
+
+					case WindowExpressionOperationType.Conditional:
+						registers[op.C] = (registers[(int) op.A] > 0) ? registers[op.B] : registers[op.D];
+						break;
+
+					case WindowExpressionOperationType.And:
+						registers[op.C] = ((registers[(int) op.A] > 0) && (registers[op.B] > 0)) ? 1 : 0;
+						break;
+
+					case WindowExpressionOperationType.Or:
+						registers[op.C] = ((registers[(int) op.A] > 0) || (registers[op.B] > 0)) ? 1 : 0;
+						break;
+
+					case WindowExpressionOperationType.Var:
+						if(op.A == null)
+						{
+							registers[op.C] = 0.0f;
+							break;
+						}
+						else if((op.B >= 0) && (registers[op.B] >= 0) && (registers[op.B] < 4))
+						{
+							throw new Exception("WTF?");
+							// grabs vector components
+							/*idWinVector4 var = (idWinVector4) op.A;
+							registers[op.C] = var.
+							idWinVec4 *var = (idWinVec4 *)( op->a );
+							registers[op->c] = ((idVec4&)var)[registers[op->b]];*/
+						}
+						else
+						{
+							registers[op.C] = ((idWindowVariable) op.A).X;
+						}
+						break;
+					case WindowExpressionOperationType.VarS:
+						if(op.A != null)
+						{
+							float.TryParse(((idWinString) op.A), out registers[op.C]);
+						}
+						else
+						{
+							registers[op.C] = 0;
+						}
+						break;
+
+					case WindowExpressionOperationType.VarF:
+						if(op.A != null)
+						{
+							registers[op.C] = ((idWinFloat) op.A).X;
+						}
+						else
+						{
+							registers[op.C] = 0;
+						}
+						break;
+
+					case WindowExpressionOperationType.VarI:
+						if(op.A != null)
+						{
+							registers[op.C] = ((idWinInteger) op.A).X;
+						}
+						else
+						{
+							registers[op.C] = 0;
+						}
+						break;
+
+					case WindowExpressionOperationType.VarB:
+						if(op.A != null)
+						{
+							registers[op.C] = ((idWinBool) op.A).X;
+						}
+						else
+						{
+							registers[op.C] = 0;
+						}
+						break;
+				}
+			}
+		}
+
 		public DrawWindow FindChildByName(string name)
 		{
 			if(name.Equals(_name, StringComparison.OrdinalIgnoreCase) == true)
@@ -908,7 +1144,12 @@ namespace idTech4.UI
 			}
 		}
 
-		public string HandleEvent(SystemEvent e)
+		public virtual void HandleBuddyUpdate(idWindow buddy)
+		{
+
+		}
+
+		public virtual string HandleEvent(SystemEvent e)
 		{
 			if(_flags.HasFlag(WindowFlags.Desktop) == true)
 			{
@@ -921,9 +1162,7 @@ namespace idTech4.UI
 					EvaluateRegisters();
 				}
 
-				idConsole.WriteLine("TODO: RunTimeEvents2");
-				// RunTimeEvents(gui->GetTime());
-
+				RunTimeEvents(_gui.Time);
 				CalculateRectangles(0, 0);
 
 				// TODO: dc->SetCursor( idDeviceContext::CURSOR_ARROW );
@@ -1173,6 +1412,7 @@ namespace idTech4.UI
 
 			idToken token2;
 			idToken token = parser.ExpectTokenType(TokenType.Name, 0);
+			DrawWindow drawWindow;
 
 			SetInitialState(token.ToString());
 
@@ -1199,7 +1439,7 @@ namespace idTech4.UI
 
 					parser.UnreadToken(token);
 
-					DrawWindow drawWindow = FindChildByName(token2.ToString());
+					drawWindow = FindChildByName(token2.ToString());
 
 					if((drawWindow != null) && (drawWindow.Window != null))
 					{
@@ -1237,43 +1477,60 @@ namespace idTech4.UI
 				}
 				else if(token.ToString() == "editDef")
 				{
-					idConsole.WriteLine("TODO: editDef");
-					/*idEditWindow *win = new idEditWindow(dc, gui);
-		  			SaveExpressionParseState();
-					win->Parse(src, rebuild);	
-		  			RestoreExpressionParseState();
-					AddChild(win);
-					win->SetParent(this);
-					dwt.simp = NULL;
-					dwt.win = win;
-					drawWindows.Append(dwt);*/
+					SaveExpressionParseState();
+
+					idEditWindow window = new idEditWindow(_context, _gui);
+					window.Parse(parser, rebuild);
+
+					RestoreExpressionParseState();
+
+					AddChild(window);
+
+					window.Parent = this;
+
+					drawWindow = new DrawWindow();
+					drawWindow.Simple = null;
+					drawWindow.Window = window;
+
+					_drawWindows.Add(drawWindow);
 				}
 				else if(token.ToString() == "choiceDef")
 				{
-					idConsole.WriteLine("TODO: choiceDef");
-
-					/*idChoiceWindow *win = new idChoiceWindow(dc, gui);
 					SaveExpressionParseState();
-					win->Parse(src, rebuild);	
+
+					idChoiceWindow window = new idChoiceWindow(_context, _gui);
+					window.Parse(parser, rebuild);
+
 					RestoreExpressionParseState();
-					AddChild(win);
-					win->SetParent(this);
-					dwt.simp = NULL;
-					dwt.win = win;
-					drawWindows.Append(dwt);*/
+
+					AddChild(window);
+
+					window.Parent = this;
+
+					drawWindow = new DrawWindow();
+					drawWindow.Simple = null;
+					drawWindow.Window = window;
+
+					_drawWindows.Add(drawWindow);
 				}
 				else if(token.ToString() == "sliderDef")
 				{
-					idConsole.WriteLine("TODO: sliderDef");
-					/*idSliderWindow *win = new idSliderWindow(dc, gui);
 					SaveExpressionParseState();
-					win->Parse(src, rebuild);	
+
+					idSliderWindow window = new idSliderWindow(_context, _gui);
+					window.Parse(parser, rebuild);
+
 					RestoreExpressionParseState();
-					AddChild(win);
-					win->SetParent(this);
-					dwt.simp = NULL;
-					dwt.win = win;
-					drawWindows.Append(dwt);*/
+
+					AddChild(window);
+
+					window.Parent = this;
+
+					drawWindow = new DrawWindow();
+					drawWindow.Simple = null;
+					drawWindow.Window = window;
+
+					_drawWindows.Add(drawWindow);
 				}
 				else if(token.ToString() == "markerDef")
 				{
@@ -1290,29 +1547,41 @@ namespace idTech4.UI
 				}
 				else if(token.ToString() == "bindDef")
 				{
-					idConsole.WriteLine("TODO: bindDef");
-					/*idBindWindow *win = new idBindWindow(dc, gui);
 					SaveExpressionParseState();
-					win->Parse(src, rebuild);	
+
+					idBindWindow window = new idBindWindow(_context, _gui);
+					window.Parse(parser, rebuild);
+
 					RestoreExpressionParseState();
-					AddChild(win);
-					win->SetParent(this);
-					dwt.simp = NULL;
-					dwt.win = win;
-					drawWindows.Append(dwt);*/
+
+					AddChild(window);
+
+					window.Parent = this;
+
+					drawWindow = new DrawWindow();
+					drawWindow.Simple = null;
+					drawWindow.Window = window;
+
+					_drawWindows.Add(drawWindow);
 				}
 				else if(token.ToString() == "listDef")
 				{
-					idConsole.WriteLine("TODO: listDef");
-					/*idListWindow *win = new idListWindow(dc, gui);
 					SaveExpressionParseState();
-					win->Parse(src, rebuild);	
+
+					idListWindow window = new idListWindow(_context, _gui);
+					window.Parse(parser, rebuild);
+
 					RestoreExpressionParseState();
-					AddChild(win);
-					win->SetParent(this);
-					dwt.simp = NULL;
-					dwt.win = win;
-					drawWindows.Append(dwt);*/
+
+					AddChild(window);
+
+					window.Parent = this;
+
+					drawWindow = new DrawWindow();
+					drawWindow.Simple = null;
+					drawWindow.Window = window;
+
+					_drawWindows.Add(drawWindow);
 				}
 				else if(token.ToString() == "fieldDef")
 				{
@@ -1328,17 +1597,23 @@ namespace idTech4.UI
 					drawWindows.Append(dwt);*/
 				}
 				else if(token.ToString() == "renderDef")
-				{
-					idConsole.WriteLine("TODO: renderDef");
-					/*idRenderWindow *win = new idRenderWindow(dc, gui);
+				{					
 					SaveExpressionParseState();
-					win->Parse(src, rebuild);	
+
+					idRenderWindow window = new idRenderWindow(_context, _gui);
+					window.Parse(parser, rebuild);
+
 					RestoreExpressionParseState();
-					AddChild(win);
-					win->SetParent(this);
-					dwt.simp = NULL;
-					dwt.win = win;
-					drawWindows.Append(dwt);*/
+
+					AddChild(window);
+
+					window.Parent = this;
+
+					drawWindow = new DrawWindow();
+					drawWindow.Simple = null;
+					drawWindow.Window = window;
+
+					_drawWindows.Add(drawWindow);
 				}
 				else if(token.ToString() == "gameSSDDef")
 				{
@@ -1389,8 +1664,8 @@ namespace idTech4.UI
 						parser.Error("Expected event name");
 						return false;
 					}
-					
-					idNamedEvent ev = new idNamedEvent(token.ToString());			
+
+					idNamedEvent ev = new idNamedEvent(token.ToString());
 					parser.SetMarker();
 
 					if(ParseScript(parser, ev.Event) == false)
@@ -1543,6 +1818,49 @@ namespace idTech4.UI
 			return ParseExpressionPriority(parser, 4 /* TOP_PRIORITY */, var);
 		}
 
+		public void ResetTime(int time)
+		{
+			_timeLine = _gui.Time - time;
+
+			foreach(idTimeLineEvent e in _timeLineEvents)
+			{
+				if(e.Time >= time)
+				{
+					e.Pending = true;
+				}
+			}
+
+			_noTime.Set(false);
+
+			// TODO: transitions
+			/*c = transitions.Num();
+			for ( i = 0; i < c; i++ ) {
+				idTransitionData *data = &transitions[i];
+				if ( data->interp.IsDone( gui->GetTime() ) && data->data ) {
+					transitions.RemoveIndex( i );
+					i--;
+					c--;
+				}
+			}*/
+		}
+
+		public bool RunScript(ScriptName name)
+		{
+			return RunScriptList(_scripts[(int) name]);
+		}
+
+		public bool RunScriptList(idGuiScriptList list)
+		{
+			if(list == null)
+			{
+				return false;
+			}
+
+			list.Execute(this);
+
+			return true;
+		}
+
 		public void ScreenToClient(ref Rectangle rect)
 		{
 			int x, y;
@@ -1557,7 +1875,7 @@ namespace idTech4.UI
 			rect.X -= x;
 			rect.Y -= y;
 		}
-		
+
 		public void SetupFromState()
 		{
 			SetupBackground();
@@ -1582,118 +1900,8 @@ namespace idTech4.UI
 		}
 		#endregion
 
-		#region Private
-		private void CalculateClientRectangle(int offsetX, int offsetY)
-		{
-			_drawRect = _rect.Data;
-
-			if(_flags.HasFlag(WindowFlags.InvertRectangle) == true)
-			{
-				_drawRect.X = (int) (_rect.X - _rect.Width);
-				_drawRect.Y = (int) (_rect.Y - _rect.Height);
-			}
-
-			if((_flags.HasFlag(WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter) == true) && (_parent != null))
-			{
-				// in this case treat xofs and yofs as absolute top left coords
-				// and ignore the original positioning
-				if(_flags.HasFlag(WindowFlags.HorizontalCenter) == true)
-				{
-					_drawRect.X = (int) ((_parent.Rectangle.Width - _rect.Width) / 2);
-				}
-				else
-				{
-					_drawRect.Y = (int) ((_parent.Rectangle.Height - _rect.Height) / 2);
-				}
-			}
-
-			_drawRect.X += offsetX;
-			_drawRect.Y += offsetY;
-
-			_clientRect = _drawRect;
-
-			if((_rect.Height > 0.0f) && (_rect.Width > 0.0f))
-			{
-				if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize != 0.0f))
-				{
-					_clientRect.X += _borderSize;
-					_clientRect.Y += _borderSize;
-					_clientRect.Width -= _borderSize;
-					_clientRect.Height -= _borderSize;
-				}
-
-				_textRect = _clientRect;
-				_textRect.X += 2;
-				_textRect.Y += 2;
-				_textRect.Width -= 2;
-				_textRect.Height -= 2;
-
-				_textRect.X += _textAlignX;
-				_textRect.Y += _textAlignY;
-			}
-
-			_origin = new Vector2(_rect.X + (_rect.Width / 2), _rect.Y + (_rect.Height / 2));
-		}
-
-		private void CalculateRectangles(int x, int y)
-		{
-			CalculateClientRectangle(x, y);
-
-			_drawRect.Offset(x, y);
-			_clientRect.Offset(x, y);
-			_actualX = _drawRect.X;
-			_actualY = _drawRect.Y;
-
-			foreach(DrawWindow drawWindow in _drawWindows)
-			{
-				if(drawWindow.Window != null)
-				{
-					drawWindow.Window.CalculateRectangles(_clientRect.X + _offsetX, _clientRect.Y + _offsetY);
-				}
-			}
-
-			_drawRect.Offset(-x, -y);
-			_clientRect.Offset(-x, -y);
-		}
-
-		private void CleanUp()
-		{
-			for(int i = 0; i < _drawWindows.Count; i++)
-			{
-				_drawWindows[i].Simple = null;
-			}
-
-			// ensure the register list gets cleaned up
-			_regList.Reset( );
-	
-			// cleanup the named events
-			_namedEvents.Clear();
-
-			_drawWindows.Clear();
-			_children.Clear();
-			_definedVariables.Clear();
-
-			_timeLineEvents.Clear();
-
-			for(int i = 0; i < _scripts.Length; i++)
-			{
-				_scripts[i] = null;
-			}
-
-			Init();
-		}
-
-		private void DisableRegister(string name)
-		{
-			idRegister reg = _regList.FindRegister(name);
-
-			if(reg != null)
-			{
-				reg.Enabled = false;
-			}
-		}
-
-		private void DrawBackground(Rectangle drawRect)
+		#region Protected
+		protected virtual void DrawBackground(Rectangle drawRect)
 		{
 			if(_backColor.W != 0)
 			{
@@ -1722,486 +1930,7 @@ namespace idTech4.UI
 			}
 		}
 
-		private void DrawBorderAndCaption(Rectangle drawRect)
-		{
-			if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize > 0) && (_borderColor.W > 0))
-			{
-				_context.DrawRectangle(drawRect.X, drawRect.Y, drawRect.Width, drawRect.Height, _borderSize, _borderColor);
-			}
-		}
-
-		private void DrawText(int time, int x, int y)
-		{
-			if(_text == string.Empty)
-			{
-				return;
-			}
-
-			if(_textShadow > 0)
-			{
-				string shadowText = idHelper.RemoveColors(_text);
-				Rectangle shadowRect = _textRect;
-				shadowRect.X += _textShadow;
-				shadowRect.Y += _textShadow;
-
-				// TODO: _context.DrawText(shadowText, _textScale, _textAlign, _colorBlack, shadowRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
-			}
-
-			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
-
-			// TODO: gui_edit
-			/*if ( gui_edit.GetBool() ) {
-				dc->EnableClipping( false );
-				dc->DrawText( va( "x: %i  y: %i", ( int )rect.x(), ( int )rect.y() ), 0.25, 0, dc->colorWhite, idRectangle( rect.x(), rect.y() - 15, 100, 20 ), false );
-				dc->DrawText( va( "w: %i  h: %i", ( int )rect.w(), ( int )rect.h() ), 0.25, 0, dc->colorWhite, idRectangle( rect.x() + rect.w(), rect.w() + rect.h() + 5, 100, 20 ), false );
-				dc->EnableClipping( true );
-			}*/
-		}
-
-		private int EmitOperation(object a, int b, WindowExpressionOperationType opType)
-		{
-			WindowExpressionOperation op;
-			return EmitOperation(a, b, opType, out op);
-		}
-
-		private int EmitOperation(object a, int b, WindowExpressionOperationType opType, out WindowExpressionOperation op)
-		{
-			int i = _expressionRegisters.Count;
-			_registerIsTemporary[i] = true;
-			_expressionRegisters.Add(0);
-
-			i = _expressionRegisters.Count;
-
-			op = new WindowExpressionOperation();
-			op.Type = opType;
-			op.A = a;
-			op.B = b;
-			op.C = i;
-
-			_ops.Add(op);
-
-			return op.C;
-		}
-
-		private float EvaluateRegisters()
-		{
-			return EvaluateRegisters(-1, false);
-		}
-
-		private float EvaluateRegisters(int test, bool force)
-		{
-			if((force == false) && (test >= 0) && (test < idE.MaxExpressionRegisters) && (_lastEval == this))
-			{
-				return _regs[test];
-			}
-
-			_lastEval = this;
-
-			if(_expressionRegisters.Count > 0)
-			{
-				_regList.SetToRegisters(ref _regs);
-				EvaluateRegisters(ref _regs);
-				_regList.GetFromRegisters(_regs);
-			}
-
-			if((test >= 0) && (test < idE.MaxExpressionRegisters))
-			{
-				return _regs[test];
-			}
-
-			return 0.0f;
-		}
-
-		/// <summary>
-		/// Parameters are taken from the localSpace and the renderView,
-		/// then all expressions are evaluated, leaving the shader registers
-		/// set to their apropriate values.
-		/// </summary>
-		/// <param name="registers"></param>
-		private void EvaluateRegisters(ref float[] registers)
-		{
-			int expressionRegisterCount = _expressionRegisters.Count;
-			int opCount = _ops.Count;
-
-			// copy the constants
-			for(int i = (int) WindowExpressionRegister.PredefinedCount; i < expressionRegisterCount; i++)
-			{
-				registers[i] = _expressionRegisters[i];
-			}
-
-			// copy the local and global parameters
-			registers[(int) WindowExpressionRegister.Time] = _gui.Time;
-
-			foreach(WindowExpressionOperation op in _ops)
-			{
-				if(op.B == -2)
-				{
-					continue;
-				}
-
-				switch(op.Type)
-				{
-					case WindowExpressionOperationType.Add:
-						registers[op.C] = registers[(int) op.A] + registers[op.B];
-						break;
-
-					case WindowExpressionOperationType.Subtract:
-						registers[op.C] = registers[(int) op.A] - registers[op.B];
-						break;
-
-					case WindowExpressionOperationType.Multiply:
-						registers[op.C] = registers[(int) op.A] * registers[op.B];
-						break;
-
-					case WindowExpressionOperationType.Divide:
-						if(registers[op.B] == 0.0f)
-						{
-							idConsole.Warning("Divide by zero in window '{0}' in {1}", this.Name, _gui.SourceFile);
-							registers[op.C] = registers[(int) op.A];
-						}
-						else
-						{
-							registers[op.C] = registers[(int) op.A] / registers[op.B];
-						}
-						break;
-
-					case WindowExpressionOperationType.Modulo:
-						int b = (int) registers[op.B];
-						b = (b != 0) ? b : 1;
-
-						registers[op.C] = (int) registers[(int) op.A] % b;
-						break;
-
-					case WindowExpressionOperationType.Table:
-						idDeclTable table = (idDeclTable) idE.DeclManager.DeclByIndex(DeclType.Table, (int) op.A);
-						registers[op.C] = table.Lookup(registers[op.B]);
-						break;
-
-					case WindowExpressionOperationType.GreaterThan:
-						registers[op.C] = (registers[(int) op.A] > registers[op.B]) ? 1 : 0;
-						break;
-
-					case WindowExpressionOperationType.GreaterThanOrEqual:
-						registers[op.C] = (registers[(int) op.A] >= registers[op.B]) ? 1 : 0;
-						break;
-
-					case WindowExpressionOperationType.LessThan:
-						registers[op.C] = (registers[(int) op.A] < registers[op.B]) ? 1 : 0;
-						break;
-
-					case WindowExpressionOperationType.LessThanOrEqual:
-						registers[op.C] = (registers[(int) op.A] <= registers[op.B]) ? 1 : 0;
-						break;
-
-					case WindowExpressionOperationType.Equal:
-						registers[op.C] = (registers[(int) op.A] == registers[op.B]) ? 1 : 0;
-						break;
-
-					case WindowExpressionOperationType.NotEqual:
-						registers[op.C] = (registers[(int) op.A] != registers[op.B]) ? 1 : 0;
-						break;
-
-					case WindowExpressionOperationType.Conditional:
-						registers[op.C] = (registers[(int) op.A] > 0) ? registers[op.B] : registers[op.D];
-						break;
-
-					case WindowExpressionOperationType.And:
-						registers[op.C] = ((registers[(int) op.A] > 0) && (registers[op.B] > 0)) ? 1 : 0;
-						break;
-
-					case WindowExpressionOperationType.Or:
-						registers[op.C] = ((registers[(int) op.A] > 0) || (registers[op.B] > 0)) ? 1 : 0;
-						break;
-
-					case WindowExpressionOperationType.Var:
-						if(op.A == null)
-						{
-							registers[op.C] = 0.0f;
-							break;
-						}
-						else if((op.B >= 0) && (registers[op.B] >= 0) && (registers[op.B] < 4))
-						{
-							throw new Exception("WTF?");
-							// grabs vector components
-							/*idWinVector4 var = (idWinVector4) op.A;
-							registers[op.C] = var.
-							idWinVec4 *var = (idWinVec4 *)( op->a );
-							registers[op->c] = ((idVec4&)var)[registers[op->b]];*/
-						}
-						else
-						{
-							registers[op.C] = ((idWindowVariable) op.A).X;
-						}
-						break;
-					case WindowExpressionOperationType.VarS:
-						if(op.A != null)
-						{
-							float.TryParse(((idWinString) op.A), out registers[op.C]);
-						}
-						else
-						{
-							registers[op.C] = 0;
-						}
-						break;
-
-					case WindowExpressionOperationType.VarF:
-						if(op.A != null)
-						{
-							registers[op.C] = ((idWinFloat) op.A).X;
-						}
-						else
-						{
-							registers[op.C] = 0;
-						}
-						break;
-
-					case WindowExpressionOperationType.VarI:
-						if(op.A != null)
-						{
-							registers[op.C] = ((idWinInteger) op.A).X;
-						}
-						else
-						{
-							registers[op.C] = 0;
-						}
-						break;
-
-					case WindowExpressionOperationType.VarB:
-						if(op.A != null)
-						{
-							registers[op.C] = ((idWinBool) op.A).X;
-						}
-						else
-						{
-							registers[op.C] = 0;
-						}
-						break;
-				}
-			}
-		}
-
-		private int ExpressionConstant(float f)
-		{
-			int i;
-
-			for(i = (int) WindowExpressionRegister.PredefinedCount; i < _expressionRegisters.Count; i++)
-			{
-				if((_registerIsTemporary[i] == false) && (_expressionRegisters[i] == f))
-				{
-					return i;
-				}
-			}
-
-			int c = _expressionRegisters.Count;
-
-			if(i > c)
-			{
-				while(i > c)
-				{
-					_expressionRegisters.Add(-9999999);
-					i--;
-				}
-			}
-
-			i = _expressionRegisters.Count;
-
-			_expressionRegisters.Add(f);
-			_registerIsTemporary[i] = false;
-
-			return i;
-		}
-
-		private void Init()
-		{
-			_childID = 0;
-			_flags = 0;
-			_lastTimeRun = 0;
-
-			_origin = Vector2.Zero;
-
-			/*fontNum = 0;
-			timeLine = -1;
-			xOffset = yOffset = 0.0;
-			cursor = 0;*/
-			_forceAspectWidth = 640;
-			_forceAspectHeight = 480;
-			_materialScaleX = 1;
-			_materialScaleY = 1;
-			_borderSize = 0;
-
-			_textAlign = TextAlign.Left;
-			_textAlignX = 0;
-			_textAlignY = 0;
-
-			_noTime.Set(false);
-			_visible.Set(true);
-			_hideCursor.Set(false);
-			_shear = Vector2.Zero;
-
-			_noEvents.Set(false);
-			_rotate.Set(0);
-			_textScale.Set(0.35f);
-
-			_backColor.Set(Vector4.Zero);
-			_foreColor.Set(new Vector4(1, 1, 1, 1));
-			_hoverColor.Set(new Vector4(1, 1, 1, 1));
-			_materialColor.Set(new Vector4(1, 1, 1, 1));
-			_borderColor.Set(Vector4.Zero);
-
-			_background = null;
-			_backgroundName.Set(string.Empty);
-
-			// TODO
-			/*
-			focusedChild = NULL;
-			captureChild = NULL;
-			overChild = NULL;*/
-			_parent = null;
-			/*saveOps = NULL;
-			saveRegs = NULL;
-			timeLine = -1;*/
-			_textShadow = 0;
-
-			/*hover = false;*/
-			
-			for(int i = 0; i < _scripts.Length; i++)
-			{
-				_scripts[i] = null;
-			}			
-		}
-
-		private int ParseEmitOperation(idScriptParser parser, int a, WindowExpressionOperationType opType, int priority)
-		{
-			WindowExpressionOperation op;
-			return ParseEmitOperation(parser, a, opType, priority, out op);
-		}
-
-		private int ParseEmitOperation(idScriptParser parser, int a, WindowExpressionOperationType opType, int priority, out WindowExpressionOperation op)
-		{
-			int b = ParseExpressionPriority(parser, priority);
-			return EmitOperation(a, b, opType, out op);
-		}
-
-		private int ParseExpressionPriority(idScriptParser parser, int priority)
-		{
-			return ParseExpressionPriority(parser, priority, null, 0);
-		}
-
-		private int ParseExpressionPriority(idScriptParser parser, int priority, idWindowVariable var)
-		{
-			return ParseExpressionPriority(parser, priority, var, 0);
-		}
-
-		private int ParseExpressionPriority(idScriptParser parser, int priority, idWindowVariable var, int component)
-		{
-			if(priority == 0)
-			{
-				return ParseTerm(parser, var, component);
-			}
-
-			idToken token;
-			string tokenValue;
-			int a = ParseExpressionPriority(parser, priority - 1, var, component);
-
-			if((token = parser.ReadToken()) == null)
-			{
-				// we won't get EOF in a real file, but we can
-				// when parsing from generated strings
-				return a;
-			}
-
-			tokenValue = token.ToString();
-
-			if(priority == 1)
-			{
-				if(tokenValue == "*")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Multiply, priority);
-				}
-				else if(tokenValue == "/")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Divide, priority);
-				}
-				else if(tokenValue == "%")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Modulo, priority);
-				}
-			}
-			else if(priority == 2)
-			{
-				if(tokenValue == "+")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Add, priority);
-				}
-				else if(tokenValue == "-")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Subtract, priority);
-				}
-			}
-			else if(priority == 3)
-			{
-				if(tokenValue == ">")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.GreaterThan, priority);
-				}
-				else if(tokenValue == ">=")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.GreaterThanOrEqual, priority);
-				}
-				else if(tokenValue == "<")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.LessThan, priority);
-				}
-				else if(tokenValue == "<=")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.LessThanOrEqual, priority);
-				}
-				else if(tokenValue == "==")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Equal, priority);
-				}
-				else if(tokenValue == "!=")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.NotEqual, priority);
-				}
-			}
-			else if(priority == 4)
-			{
-				if(tokenValue == "&&")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.And, priority);
-				}
-				else if(tokenValue == "||")
-				{
-					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Or, priority);
-				}
-				else if(tokenValue == "?")
-				{
-					WindowExpressionOperation op;
-					int o = ParseEmitOperation(parser, a, WindowExpressionOperationType.Conditional, priority, out op);
-
-					if((token = parser.ReadToken()) == null)
-					{
-						return o;
-					}
-					else if(token.ToString() == ":")
-					{
-						a = ParseExpressionPriority(parser, priority - 1, var);
-						op.D = a;
-					}
-
-					return priority;
-				}
-			}
-
-			// assume that anything else terminates the expression
-			// not too robust error checking...
-			parser.UnreadToken(token);
-
-			return a;
-		}
-
-		private bool ParseInternalVariable(string name, idScriptParser parser)
+		protected virtual bool ParseInternalVariable(string name, idScriptParser parser)
 		{
 			name = name.ToLower();
 
@@ -2352,6 +2081,573 @@ namespace idTech4.UI
 			return true;
 		}
 
+		protected string ParseString(idScriptParser parser)
+		{
+			idToken token = parser.ReadToken();
+
+			if(token != null)
+			{
+				return token.ToString();
+			}
+
+			return string.Empty;
+		}
+
+		protected virtual void PostParse()
+		{
+
+		}
+
+		protected virtual string RouteMouseCoordinates(float x, float y)
+		{
+			/*idStr str;
+			if (GetCaptureChild()) {
+				//FIXME: unkludge this whole mechanism
+				return GetCaptureChild()->RouteMouseCoords(xd, yd);
+			}
+	
+			if (xd == -2000 || yd == -2000) {
+				return "";
+			}
+
+			int c = children.Num();
+			while (c > 0) {
+				idWindow *child = children[--c];
+				if (child->visible && !child->noEvents && child->Contains(child->drawRect, gui->CursorX(), gui->CursorY())) {
+
+					dc->SetCursor(child->cursor);
+					child->hover = true;
+
+					if (overChild != child) {
+						if (overChild) {
+							overChild->MouseExit();
+							str = overChild->cmd;
+							if (str.Length()) {
+								gui->GetDesktop()->AddCommand(str);
+								overChild->cmd = "";
+							}
+						}
+						overChild = child;
+						overChild->MouseEnter();
+						str = overChild->cmd;
+						if (str.Length()) {
+							gui->GetDesktop()->AddCommand(str);
+							overChild->cmd = "";
+						}
+					} else {
+						if (!(child->flags & WIN_HOLDCAPTURE)) {
+							child->RouteMouseCoords(xd, yd);
+						}
+					}
+					return "";
+				}
+			}
+			if (overChild) {
+				overChild->MouseExit();
+				str = overChild->cmd;
+				if (str.Length()) {
+					gui->GetDesktop()->AddCommand(str);
+					overChild->cmd = "";
+				}
+				overChild = NULL;
+			}
+			return "";*/
+			return string.Empty;
+		}
+
+		protected virtual void RunNamedEvent(string name)
+		{
+			foreach(idNamedEvent e in _namedEvents)
+			{
+				if(e.Name.Equals(name, StringComparison.OrdinalIgnoreCase) == false)
+				{
+					continue;
+				}
+
+				UpdateVariables();
+
+				// make sure we got all the current values for stuff
+				if((_expressionRegisters.Count > 0) && (_ops.Count > 0))
+				{
+					EvaluateRegisters(-1, true);
+				}
+
+				RunScriptList(e.Event);
+
+				break;
+			}
+
+			// run the event in all the children as well
+			foreach(idWindow window in _children)
+			{
+				window.RunNamedEvent(name);
+			}
+		}
+
+		protected virtual bool RunTimeEvents(int time)
+		{
+			if((time - _lastTimeRun) < idE.UserCommandMillseconds)
+			{
+				return false;
+			}
+
+			_lastTimeRun = time;
+
+			UpdateVariables();
+
+			if((_expressionRegisters.Count > 0) && (_ops.Count > 0))
+			{
+				EvaluateRegisters();
+			}
+
+			if(_flags.HasFlag(WindowFlags.InTransition) == true)
+			{
+				idConsole.WriteLine("TODO: transition");
+				// TODO: Transition();
+			}
+
+			Time();
+
+			// renamed ON_EVENT to ON_FRAME
+			RunScript(ScriptName.Frame);
+
+			foreach(idWindow child in _children)
+			{
+				child.RunTimeEvents(time);
+			}
+
+			return true;
+		}
+
+		protected virtual void StateChanged(bool redraw)
+		{
+			UpdateVariables();
+
+			if((_expressionRegisters.Count > 0) && (_ops.Count > 0))
+			{
+				EvaluateRegisters();
+			}
+
+			foreach(DrawWindow drawWindow in _drawWindows)
+			{
+				if(drawWindow.Window != null)
+				{
+					drawWindow.Window.StateChanged(redraw);
+				}
+				else
+				{
+					drawWindow.Simple.StateChanged(redraw);
+				}
+			}
+
+			if(redraw == true)
+			{
+				if(this.Flags.HasFlag(WindowFlags.Desktop) == true)
+				{
+					Draw(0, 0);
+				}
+
+				// TODO: cinematic
+				/*if ( background && background->CinematicLength() ) {
+					background->UpdateCinematic( gui->GetTime() );
+				}*/
+			}	
+		}
+		#endregion
+
+		#region Private
+		private void CalculateClientRectangle(int offsetX, int offsetY)
+		{
+			_drawRect = _rect.Data;
+
+			if(_flags.HasFlag(WindowFlags.InvertRectangle) == true)
+			{
+				_drawRect.X = (int) (_rect.X - _rect.Width);
+				_drawRect.Y = (int) (_rect.Y - _rect.Height);
+			}
+
+			if((_flags.HasFlag(WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter) == true) && (_parent != null))
+			{
+				// in this case treat xofs and yofs as absolute top left coords
+				// and ignore the original positioning
+				if(_flags.HasFlag(WindowFlags.HorizontalCenter) == true)
+				{
+					_drawRect.X = (int) ((_parent.Rectangle.Width - _rect.Width) / 2);
+				}
+				else
+				{
+					_drawRect.Y = (int) ((_parent.Rectangle.Height - _rect.Height) / 2);
+				}
+			}
+
+			_drawRect.X += offsetX;
+			_drawRect.Y += offsetY;
+
+			_clientRect = _drawRect;
+
+			if((_rect.Height > 0.0f) && (_rect.Width > 0.0f))
+			{
+				if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize != 0.0f))
+				{
+					_clientRect.X += _borderSize;
+					_clientRect.Y += _borderSize;
+					_clientRect.Width -= _borderSize;
+					_clientRect.Height -= _borderSize;
+				}
+
+				_textRect = _clientRect;
+				_textRect.X += 2;
+				_textRect.Y += 2;
+				_textRect.Width -= 2;
+				_textRect.Height -= 2;
+
+				_textRect.X += _textAlignX;
+				_textRect.Y += _textAlignY;
+			}
+
+			_origin = new Vector2(_rect.X + (_rect.Width / 2), _rect.Y + (_rect.Height / 2));
+		}
+
+		private void CalculateRectangles(int x, int y)
+		{
+			CalculateClientRectangle(x, y);
+
+			_drawRect.Offset(x, y);
+			_clientRect.Offset(x, y);
+			_actualX = _drawRect.X;
+			_actualY = _drawRect.Y;
+
+			foreach(DrawWindow drawWindow in _drawWindows)
+			{
+				if(drawWindow.Window != null)
+				{
+					drawWindow.Window.CalculateRectangles(_clientRect.X + _offsetX, _clientRect.Y + _offsetY);
+				}
+			}
+
+			_drawRect.Offset(-x, -y);
+			_clientRect.Offset(-x, -y);
+		}
+
+		private void CleanUp()
+		{
+			for(int i = 0; i < _drawWindows.Count; i++)
+			{
+				_drawWindows[i].Simple = null;
+			}
+
+			// ensure the register list gets cleaned up
+			_regList.Reset();
+
+			// cleanup the named events
+			_namedEvents.Clear();
+
+			_drawWindows.Clear();
+			_children.Clear();
+			_definedVariables.Clear();
+
+			_timeLineEvents.Clear();
+
+			for(int i = 0; i < _scripts.Length; i++)
+			{
+				_scripts[i] = null;
+			}
+
+			Init();
+		}
+
+		private void DisableRegister(string name)
+		{
+			idRegister reg = _regList.FindRegister(name);
+
+			if(reg != null)
+			{
+				reg.Enabled = false;
+			}
+		}
+		
+		private void DrawBorderAndCaption(Rectangle drawRect)
+		{
+			if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize > 0) && (_borderColor.W > 0))
+			{
+				_context.DrawRectangle(drawRect.X, drawRect.Y, drawRect.Width, drawRect.Height, _borderSize, _borderColor);
+			}
+		}
+
+		private void DrawText(int time, int x, int y)
+		{
+			if(_text == string.Empty)
+			{
+				return;
+			}
+
+			if(_textShadow > 0)
+			{
+				string shadowText = idHelper.RemoveColors(_text);
+				Rectangle shadowRect = _textRect;
+				shadowRect.X += _textShadow;
+				shadowRect.Y += _textShadow;
+
+				// TODO: _context.DrawText(shadowText, _textScale, _textAlign, _colorBlack, shadowRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
+			}
+
+			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
+
+			// TODO: gui_edit
+			/*if ( gui_edit.GetBool() ) {
+				dc->EnableClipping( false );
+				dc->DrawText( va( "x: %i  y: %i", ( int )rect.x(), ( int )rect.y() ), 0.25, 0, dc->colorWhite, idRectangle( rect.x(), rect.y() - 15, 100, 20 ), false );
+				dc->DrawText( va( "w: %i  h: %i", ( int )rect.w(), ( int )rect.h() ), 0.25, 0, dc->colorWhite, idRectangle( rect.x() + rect.w(), rect.w() + rect.h() + 5, 100, 20 ), false );
+				dc->EnableClipping( true );
+			}*/
+		}
+
+		private int EmitOperation(object a, int b, WindowExpressionOperationType opType)
+		{
+			WindowExpressionOperation op;
+			return EmitOperation(a, b, opType, out op);
+		}
+
+		private int EmitOperation(object a, int b, WindowExpressionOperationType opType, out WindowExpressionOperation op)
+		{
+			int i = _expressionRegisters.Count;
+			_registerIsTemporary[i] = true;
+			_expressionRegisters.Add(0);
+
+			i = _expressionRegisters.Count;
+
+			op = new WindowExpressionOperation();
+			op.Type = opType;
+			op.A = a;
+			op.B = b;
+			op.C = i;
+
+			_ops.Add(op);
+
+			return op.C;
+		}
+
+		private int ExpressionConstant(float f)
+		{
+			int i;
+
+			for(i = (int) WindowExpressionRegister.PredefinedCount; i < _expressionRegisters.Count; i++)
+			{
+				if((_registerIsTemporary[i] == false) && (_expressionRegisters[i] == f))
+				{
+					return i;
+				}
+			}
+
+			int c = _expressionRegisters.Count;
+
+			if(i > c)
+			{
+				while(i > c)
+				{
+					_expressionRegisters.Add(-9999999);
+					i--;
+				}
+			}
+
+			i = _expressionRegisters.Count;
+
+			_expressionRegisters.Add(f);
+			_registerIsTemporary[i] = false;
+
+			return i;
+		}
+
+		private void Init()
+		{
+			_childID = 0;
+			_flags = 0;
+			_lastTimeRun = 0;
+
+			_origin = Vector2.Zero;
+
+			/*fontNum = 0;*/
+			_timeLine = -1;
+			/*xOffset = yOffset = 0.0;
+			cursor = 0;*/
+			_forceAspectWidth = 640;
+			_forceAspectHeight = 480;
+			_materialScaleX = 1;
+			_materialScaleY = 1;
+			_borderSize = 0;
+
+			_textAlign = TextAlign.Left;
+			_textAlignX = 0;
+			_textAlignY = 0;
+
+			_noTime.Set(false);
+			_visible.Set(true);
+			_hideCursor.Set(false);
+			_shear = Vector2.Zero;
+
+			_noEvents.Set(false);
+			_rotate.Set(0);
+			_textScale.Set(0.35f);
+
+			_backColor.Set(Vector4.Zero);
+			_foreColor.Set(new Vector4(1, 1, 1, 1));
+			_hoverColor.Set(new Vector4(1, 1, 1, 1));
+			_materialColor.Set(new Vector4(1, 1, 1, 1));
+			_borderColor.Set(Vector4.Zero);
+
+			_background = null;
+			_backgroundName.Set(string.Empty);
+
+			// TODO
+			/*
+			focusedChild = NULL;
+			captureChild = NULL;
+			overChild = NULL;*/
+			_parent = null;
+			/*saveOps = NULL;
+			saveRegs = NULL;*/
+			_timeLine = -1;
+			_textShadow = 0;
+
+			/*hover = false;*/
+
+			for(int i = 0; i < _scripts.Length; i++)
+			{
+				_scripts[i] = null;
+			}
+		}
+
+		private int ParseEmitOperation(idScriptParser parser, int a, WindowExpressionOperationType opType, int priority)
+		{
+			WindowExpressionOperation op;
+			return ParseEmitOperation(parser, a, opType, priority, out op);
+		}
+
+		private int ParseEmitOperation(idScriptParser parser, int a, WindowExpressionOperationType opType, int priority, out WindowExpressionOperation op)
+		{
+			int b = ParseExpressionPriority(parser, priority);
+			return EmitOperation(a, b, opType, out op);
+		}
+
+		private int ParseExpressionPriority(idScriptParser parser, int priority)
+		{
+			return ParseExpressionPriority(parser, priority, null, 0);
+		}
+
+		private int ParseExpressionPriority(idScriptParser parser, int priority, idWindowVariable var)
+		{
+			return ParseExpressionPriority(parser, priority, var, 0);
+		}
+
+		private int ParseExpressionPriority(idScriptParser parser, int priority, idWindowVariable var, int component)
+		{
+			if(priority == 0)
+			{
+				return ParseTerm(parser, var, component);
+			}
+
+			idToken token;
+			string tokenValue;
+			int a = ParseExpressionPriority(parser, priority - 1, var, component);
+
+			if((token = parser.ReadToken()) == null)
+			{
+				// we won't get EOF in a real file, but we can
+				// when parsing from generated strings
+				return a;
+			}
+
+			tokenValue = token.ToString();
+
+			if(priority == 1)
+			{
+				if(tokenValue == "*")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Multiply, priority);
+				}
+				else if(tokenValue == "/")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Divide, priority);
+				}
+				else if(tokenValue == "%")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Modulo, priority);
+				}
+			}
+			else if(priority == 2)
+			{
+				if(tokenValue == "+")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Add, priority);
+				}
+				else if(tokenValue == "-")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Subtract, priority);
+				}
+			}
+			else if(priority == 3)
+			{
+				if(tokenValue == ">")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.GreaterThan, priority);
+				}
+				else if(tokenValue == ">=")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.GreaterThanOrEqual, priority);
+				}
+				else if(tokenValue == "<")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.LessThan, priority);
+				}
+				else if(tokenValue == "<=")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.LessThanOrEqual, priority);
+				}
+				else if(tokenValue == "==")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Equal, priority);
+				}
+				else if(tokenValue == "!=")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.NotEqual, priority);
+				}
+			}
+			else if(priority == 4)
+			{
+				if(tokenValue == "&&")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.And, priority);
+				}
+				else if(tokenValue == "||")
+				{
+					return ParseEmitOperation(parser, a, WindowExpressionOperationType.Or, priority);
+				}
+				else if(tokenValue == "?")
+				{
+					WindowExpressionOperation op;
+					int o = ParseEmitOperation(parser, a, WindowExpressionOperationType.Conditional, priority, out op);
+
+					if((token = parser.ReadToken()) == null)
+					{
+						return o;
+					}
+					else if(token.ToString() == ":")
+					{
+						a = ParseExpressionPriority(parser, priority - 1, var);
+						op.D = a;
+					}
+
+					return priority;
+				}
+			}
+
+			// assume that anything else terminates the expression
+			// not too robust error checking...
+			parser.UnreadToken(token);
+
+			return a;
+		}
+		
 		private bool ParseRegisterEntry(string name, idScriptParser parser)
 		{
 			string work = name.ToLower();
@@ -2538,19 +2834,7 @@ namespace idTech4.UI
 
 			return false;
 		}
-
-		private string ParseString(idScriptParser parser)
-		{
-			idToken token = parser.ReadToken();
-
-			if(token != null)
-			{
-				return token.ToString();
-			}
-
-			return string.Empty;
-		}
-
+		
 		/// <summary>
 		/// 
 		/// </summary>
@@ -2673,32 +2957,10 @@ namespace idTech4.UI
 			return 0;
 		}
 
-		private void PostParse()
-		{
-
-		}
-
 		private void RestoreExpressionParseState()
 		{
 			_registerIsTemporary = _saveTemporaries;
 			_saveTemporaries = null;
-		}
-
-		private bool RunScript(ScriptName name)
-		{
-			return RunScriptList(_scripts[(int) name]);
-		}
-
-		private bool RunScriptList(idGuiScriptList list)
-		{
-			if(list == null)
-			{
-				return false;
-			}
-
-			list.Execute(this);
-
-			return true;
 		}
 
 		private void SaveExpressionParseState()
@@ -2763,6 +3025,35 @@ namespace idTech4.UI
 			_noTime.Set(false);
 			_visible.Set(true);
 			_flags = 0;
+		}
+
+		private void Time()
+		{
+			if(_noTime == true)
+			{
+				return;
+			}
+
+			if(_timeLine == -1)
+			{
+				_timeLine = _gui.Time;
+			}
+
+			_command = string.Empty;
+
+			foreach(idTimeLineEvent e in _timeLineEvents)
+			{
+				if((e.Pending == true) && ((_gui.Time - _timeLine) >= e.Time))
+				{
+					e.Pending = false;
+					RunScriptList(e.Event);
+				}
+			}
+
+			if(_gui.IsActive == true)
+			{
+				_gui.PendingCommand += _command;
+			}
 		}
 
 		private void UpdateVariables()

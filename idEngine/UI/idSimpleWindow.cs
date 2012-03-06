@@ -315,6 +315,14 @@ namespace idTech4.UI
 
 			return ret;
 		}
+
+		public void StateChanged(bool redraw)
+		{
+			// TODO: cinematic
+			/*if ( redraw && background && background->CinematicLength() ) { 
+				background->UpdateCinematic( gui->GetTime() );
+			}*/
+		}
 		#endregion
 
 		#region Private

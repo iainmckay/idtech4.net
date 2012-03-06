@@ -381,7 +381,8 @@ namespace idTech4.Renderer
 		{
 			if(surface.VertexCount == 0)
 			{
-				return;	// nothing in the surface
+				// nothing in the surface
+				return;
 			}
 
 			// copy verts and indexes

@@ -54,7 +54,7 @@ namespace idTech4
 		#region Public
 		public void Init()
 		{
-			_initialTimeOffset = idE.System.Time;
+			_initialTimeOffset = idE.System.Time.Milliseconds;
 
 			idE.System.StartupVariable("journal", false);
 

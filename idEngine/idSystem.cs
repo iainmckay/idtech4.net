@@ -48,12 +48,16 @@ namespace idTech4
 	{
 		#region Properties
 		#region Public
-		public int Time
+		public TimeSpan Time
 		{
 			get
 			{
-				idConsole.WriteLine("AAAAAAAAAAAAAAAAAAAAAAAAAAAARGH");
-				return 0;
+				if(_gameTime != null)
+				{
+					return _gameTime.TotalGameTime;
+				}
+
+				return TimeSpan.Zero;
 			}
 		}
 
@@ -102,6 +106,7 @@ namespace idTech4
 		private string[] _rawCommandLineArguments;
 		private idCmdArgs[] _commandLineArguments = new idCmdArgs[] { };
 
+		private GameTime _gameTime;
 		private GraphicsDeviceManager _graphics;
 		#endregion
 
@@ -201,7 +206,7 @@ namespace idTech4
 			}
 
 			// if we are getting a solid stream of ERP_DROP, do an ERP_FATAL
-			int currentTime = this.Time;
+			int currentTime = this.Time.Milliseconds;
 
 			if((currentTime - _lastErrorTime) < 100)
 			{
@@ -1241,10 +1246,12 @@ namespace idTech4
 
 		protected override void Update(GameTime gameTime)
 		{
+			_gameTime = gameTime;
+
 			// if "viewlog" has been modified, show or hide the log console
 			if(idE.CvarSystem.IsModified("win_viewlog") == true)
 			{
-				if((idE.CvarSystem.GetBool("com_skipRenderer") == false) /* TODO: && idAsyncNetwork::serverDedicated.GetInteger() != 1)*/)
+				if((idE.CvarSystem.GetBool("com_skipRenderer") == false) && (idE.CvarSystem.GetInteger("net_serverDedicated") != 1))
 				{
 					idE.SystemConsole.Show(idE.CvarSystem.GetInteger("win_viewlog"), false);
 				}
@@ -1268,6 +1275,8 @@ namespace idTech4
 
 				idE.EventLoop.RunEventLoop();
 
+				// TODO: _ticNumber++ is temp, supposed to be in async thread
+				_ticNumber++;
 				_frameTime = _ticNumber * idE.UserCommandMillseconds;
 
 				/*idAsyncNetwork::RunFrame();*/
@@ -1281,7 +1290,7 @@ namespace idTech4
 				}
 				else
 				{
-					//session->Frame();
+					idE.Session.Frame();
 				}
 
 				// report timing information

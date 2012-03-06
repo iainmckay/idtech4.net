@@ -47,6 +47,14 @@ namespace idTech4.UI
 			}
 		}
 
+		public bool IsActive
+		{
+			get
+			{
+				return _active;
+			}
+		}
+
 		public bool IsInteractive
 		{
 			get
@@ -64,6 +72,18 @@ namespace idTech4.UI
 			set
 			{
 				_uniqued = value;
+			}
+		}
+
+		public string PendingCommand
+		{
+			get
+			{
+				return _pendingCommand;
+			}
+			set
+			{
+				_pendingCommand = value;
 			}
 		}
 
@@ -212,7 +232,6 @@ namespace idTech4.UI
 			if((rebuild == true) || (_desktop == null))
 			{
 				_desktop = new idWindow(this, idE.UIManager.Context);
-				_desktop.Flags = WindowFlags.Desktop;
 			}
 
 			_sourceFile = path;
@@ -239,6 +258,7 @@ namespace idTech4.UI
 					{
 						if(_desktop.Parse(parser, rebuild) == true)
 						{
+							_desktop.Flags = WindowFlags.Desktop;
 							_desktop.FixupParameters();
 						}
 					}
@@ -249,6 +269,7 @@ namespace idTech4.UI
 			else
 			{
 				_desktop.Name = "Desktop";
+				_desktop.Flags = WindowFlags.Desktop;
 				_desktop.Text = string.Format("Invalid GUI: {0}", path);
 				_desktop.Rectangle = new Rectangle(0, 0, 640, 480);
 				_desktop.DrawRectangle = _desktop.Rectangle;
@@ -280,7 +301,7 @@ namespace idTech4.UI
 		Child = 0x00000001,
 		Caption = 0x00000002,
 		Border = 0x00000004,
-		Sizable = 0x00000008,
+		Sizable = 0x00000008, 
 		Movable = 0x00000010,
 		Focus = 0x00000020,
 		Capture = 0x00000040,

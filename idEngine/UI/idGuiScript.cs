@@ -104,6 +104,14 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
+		public void Execute(idWindow window)
+		{
+			if(_handler != null)
+			{
+				_handler(window, _parameters);
+			}
+		}
+
 		public void FixupParameters(idWindow window)
 		{
 			if(_handler == Script_Set)
@@ -383,7 +391,28 @@ namespace idTech4.UI
 
 		private static void Script_ResetTime(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_ResetTime");
+			idWinString parameter = (source.Count > 0) ? source[0].Variable as idWinString : null;
+			DrawWindow drawWindow = null;
+
+			if((parameter != null) && (source.Count > 1))
+			{
+				drawWindow = window.UserInterface.Desktop.FindChildByName(parameter.ToString());
+				parameter = source[1].Variable as idWinString;
+			}
+
+			int tmp;
+			int.TryParse(parameter.ToString(), out tmp);
+
+			if((drawWindow != null) && (drawWindow.Window != null))
+			{
+				drawWindow.Window.ResetTime(tmp);
+				drawWindow.Window.EvaluateRegisters(-1, true);
+			}
+			else
+			{
+				window.ResetTime(tmp);
+				window.EvaluateRegisters(-1, true);
+			}
 		}
 
 		private static void Script_RunScript(idWindow window, List<idWinGuiScript> source)
@@ -393,7 +422,42 @@ namespace idTech4.UI
 
 		private static void Script_Set(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_Set");
+			idWinString dest = (source.Count > 0) ? source[0].Variable as idWinString : null;
+
+			if(dest != null)
+			{
+				string destStr = dest.ToString();
+
+				if(destStr.Equals("cmd", StringComparison.OrdinalIgnoreCase) == true)
+				{
+					dest = (source.Count > 1) ? source[1].Variable as idWinString : null;
+					destStr = dest.ToString();
+					int parameterCount = source.Count;
+
+					if(parameterCount > 2)
+					{
+						StringBuilder value = new StringBuilder(destStr);
+						int i = 2;
+
+						while(i < parameterCount)
+						{
+							value.AppendFormat(" \"{0}\"", source[i].Variable.ToString());
+							i++;
+						}
+
+						window.AddCommand(value.ToString());
+					}
+					else
+					{
+						window.AddCommand(destStr);
+					}
+				
+					return;
+				}
+			}
+
+			source[0].Variable.Set(source[1].Variable.ToString());
+			source[0].Variable.Evaluate = false;
 		}
 
 		private static void Script_SetFocus(idWindow window, List<idWinGuiScript> source)
@@ -435,29 +499,30 @@ namespace idTech4.UI
 
 		public void Execute(idWindow window)
 		{
-			idConsole.WriteLine("TODO: Execute");
-
-			/*foreach(idGuiScript script in _list)
+			foreach(idGuiScript script in _list)
 			{
 				if(script.ConditionRegister >= 0)
 				{
 					if(window.HasOperations == true)
 					{
-						float f= window.EvalulateRegisters(script.ConditionRegister);
+						float f = window.EvaluateRegisters(script.ConditionRegister);
 
 						if(f > 0)
-						{							
-							if (gs->ifList) {
-								win->RunScriptList(gs->ifList);
+						{
+							if(script.IfList != null)
+							{
+								window.RunScriptList(script.IfList);
 							}
-						} else if (gs->elseList) {
-							win->RunScriptList(gs->elseList);
+						}
+						else if(script.ElseList != null)
+						{
+							window.RunScriptList(script.ElseList);
 						}
 					}
 				}
 
 				script.Execute(window);
-			}*/
+			}
 		}
 
 		public void FixupParameters(idWindow window)

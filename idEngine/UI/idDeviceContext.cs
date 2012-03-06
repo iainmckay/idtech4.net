@@ -449,8 +449,10 @@ namespace idTech4.UI
 			_origin = Vector3.Zero;
 			_enableClipping = true;
 			_mbcs = false;
+
+			SetSize(idE.VirtualScreenWidth, idE.VirtualScreenHeight);
+
 			/*
-			SetSize(VIRTUAL_WIDTH, VIRTUAL_HEIGHT);
 			
 			activeFont = &fonts[0];
 			colorPurple = idVec4(1, 0, 1, 1);
