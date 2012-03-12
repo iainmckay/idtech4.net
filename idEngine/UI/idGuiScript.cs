@@ -187,7 +187,7 @@ namespace idTech4.UI
 					}
 					else if(precacheSounds == true)
 					{
-						idConsole.WriteLine("TODO: PrecacheSounds");
+						idConsole.Warning("TODO: PrecacheSounds");
 						// Search for "play <...>"
 						/*idToken token;
 						idParser parser( LEXFL_NOSTRINGCONCAT | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT );
@@ -371,22 +371,22 @@ namespace idTech4.UI
 		#region Commands
 		private static void Script_EndGame(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_EndGame");
+			idConsole.Warning("TODO: Script_EndGame");
 		}
 
 		private static void Script_EvaluateRegisters(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_EvaluateRegisters");
+			idConsole.Warning("TODO: Script_EvaluateRegisters");
 		}
 
 		private static void Script_LocalSound(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_LocalSound");
+			idConsole.Warning("TODO: Script_LocalSound");
 		}
 
 		private static void Script_ResetCinematics(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_ResetCinematics");
+			idConsole.Warning("TODO: Script_ResetCinematics");
 		}
 
 		private static void Script_ResetTime(idWindow window, List<idWinGuiScript> source)
@@ -417,7 +417,7 @@ namespace idTech4.UI
 
 		private static void Script_RunScript(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_RunScript");
+			idConsole.Warning("TODO: Script_RunScript");
 		}
 
 		private static void Script_Set(idWindow window, List<idWinGuiScript> source)
@@ -462,17 +462,93 @@ namespace idTech4.UI
 
 		private static void Script_SetFocus(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_SetFocus");
+			idWinString parameter = source[0].Variable as idWinString;
+
+			if(parameter != null)
+			{
+				DrawWindow drawWindow = window.UserInterface.Desktop.FindChildByName(parameter.ToString());
+
+				if((drawWindow != null) && (drawWindow.Window != null))
+				{
+					window.SetFocus(drawWindow.Window);
+				}
+			}
 		}
 
 		private static void Script_ShowCursor(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_ShowCursor");
+			idConsole.Warning("TODO: Script_ShowCursor");
 		}
 
 		private static void Script_Transition(idWindow window, List<idWinGuiScript> source)
 		{
-			idConsole.WriteLine("TODO: Script_Transition");
+			// transitions always affect rect or vec4 vars
+			if(source.Count >= 4)
+			{
+				idWinRectangle rect = null;
+				idWinVector4 vec4 = source[0].Variable as idWinVector4;
+
+				// 
+				//  added float variable
+				idWinFloat val = null;
+				// 
+				if(vec4 == null)
+				{
+					rect = source[0].Variable as idWinRectangle;
+					// 
+					//  added float variable					
+					if(rect == null)
+					{
+						val = source[0].Variable as idWinFloat;
+					}
+					// 
+				}
+
+				idWinVector4 from = source[1].Variable as idWinVector4;
+				idWinVector4 to = source[2].Variable as idWinVector4;
+				idWinString timeStr = source[3].Variable as idWinString;
+				// 
+				//  added float variable			
+				if(((vec4 == null) && (rect == null) && (val == null)) && (from != null) && (to != null) && (timeStr != null))
+				{
+					idConsole.Warning("Bad transition in gui {0} in window {1}", window.UserInterface.SourceFile, window.Name);
+				}
+				else
+				{
+					int time;
+					int.TryParse(timeStr.ToString(), out time);
+
+					float accel = 0.0f;
+					float decel = 0.0f;
+
+					if(source.Count > 4)
+					{
+						idWinString accelStr = source[4].Variable as idWinString;
+						idWinString decelStr = source[5].Variable as idWinString;
+
+						float.TryParse(accelStr.ToString(), out accel);
+						float.TryParse(decelStr.ToString(), out decel);
+					}
+
+					if(vec4 != null)
+					{
+						vec4.Evaluate = false;
+						window.AddTransition(vec4, from, to, time, accel, decel);
+					}
+					else if(val != null)
+					{
+						val.Evaluate = false;
+						window.AddTransition(val, from, to, time, accel, decel);
+					}
+					else
+					{
+						rect.Evaluate = false;
+						window.AddTransition(rect, from, to, time, accel, decel);
+					}
+
+					window.StartTransition();
+				}
+			}
 		}
 		#endregion
 		#endregion

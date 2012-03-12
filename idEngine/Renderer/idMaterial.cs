@@ -428,7 +428,7 @@ namespace idTech4.Renderer
 						registers[op.C] = table.Lookup(registers[op.B]);
 						break;
 					case ExpressionOperationType.Sound:
-						idConsole.WriteLine("TODO: eoptype sound");
+						idConsole.Warning("TODO: eoptype sound");
 						// TODO: OP_TYPE_SOUND:
 						/*if ( soundEmitter ) {
 							registers[op->c] = soundEmitter->CurrentAmplitude();
@@ -2180,7 +2180,7 @@ namespace idTech4.Renderer
 			string image = ParsePastImageProgram(lexer);
 
 			// TODO: fragment program images.
-			idConsole.WriteLine("TODO: fragment program images");
+			idConsole.Warning("TODO: fragment program images");
 			/*
 			newStage->fragmentProgramImages[unit] = 
 				globalImages->ImageFromFile( str, tf, allowPicmip, trp, td, cubeMap );

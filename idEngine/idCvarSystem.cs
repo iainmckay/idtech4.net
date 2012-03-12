@@ -125,6 +125,11 @@ namespace idTech4
 
 		#region Methods
 		#region Public
+		public idCvar Find(string name)
+		{
+			return FindInternal(name);
+		}
+
 		public void Init()
 		{
 			if(this.IsInitialized == true)

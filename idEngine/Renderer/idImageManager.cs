@@ -27,25 +27,18 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
-using System.Text;
 using System.Text.RegularExpressions;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Content.Pipeline;
-using Microsoft.Xna.Framework.Content.Pipeline.Graphics;
-using Microsoft.Xna.Framework.Content.Pipeline.Processors;
-using Microsoft.Xna.Framework.Content.Pipeline.Serialization;
-using Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler;
-using Microsoft.Xna.Framework.Content.Pipeline.Tasks;
 
 using Tao.DevIl;
 using Tao.OpenGl;
 
 using idTech4.IO;
+using idTech4.Math;
 using idTech4.Text;
 
 namespace idTech4.Renderer
@@ -761,7 +754,7 @@ namespace idTech4.Renderer
 			}
 
 			// this must be a cube map for fragment programs to simply substitute for the normalization cube map
-			idConsole.WriteLine("TODO: image->GenerateCubeImage( pics, 2, TF_DEFAULT, true, TD_HIGH_QUALITY );");
+			idConsole.Warning("TODO: image->GenerateCubeImage( pics, 2, TF_DEFAULT, true, TD_HIGH_QUALITY );");
 		}
 
 		public static void GenerateBlackImage(idImage image)
@@ -1084,7 +1077,7 @@ namespace idTech4.Renderer
 
 				for(int y = 0; y < 256; y++)
 				{
-					int b = (int) (Math.Pow(f, y) * 255.0f);
+					int b = (int) (idMath.Pow(f, y) * 255.0f);
 
 					if(b == 0)
 					{
@@ -1124,7 +1117,7 @@ namespace idTech4.Renderer
 
 		private static float FogFraction(float viewHeight, float targetHeight)
 		{
-			float total = Math.Abs(targetHeight - viewHeight);
+			float total = idMath.Abs(targetHeight - viewHeight);
 			float rampRange = 8;
 			float deepRange = -30;
 
@@ -1249,7 +1242,7 @@ namespace idTech4.Renderer
 			{
 				for(int y = 0; y < FogSize; y++)
 				{
-					float d = (float) Math.Sqrt((x - (FogSize / 2)) * (x - (FogSize / 2))
+					float d = (float) idMath.Sqrt((x - (FogSize / 2)) * (x - (FogSize / 2))
 						+ (y - (FogSize / 2)) * (y - (FogSize / 2)));
 					d /= FogSize / 2 - 1;
 
@@ -1290,7 +1283,7 @@ namespace idTech4.Renderer
 				for(int y = 0; y < QuadraticHeight; y++)
 				{
 					float d = x - ((QuadraticWidth / 2) - 0.5f);
-					d = Math.Abs(d);
+					d = idMath.Abs(d);
 					d -= 0.5f;
 					d /= QuadraticWidth / 2;
 
@@ -1501,7 +1494,7 @@ namespace idTech4.Renderer
 
 		private void SetNormalPalette()
 		{
-			idConsole.WriteLine("TODO: SetNormalPalette");
+			idConsole.Warning("TODO: SetNormalPalette");
 			/*int		i, j;
 			idVec3	v;
 			float	t;

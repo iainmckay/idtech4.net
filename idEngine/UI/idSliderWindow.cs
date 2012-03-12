@@ -98,6 +98,56 @@ namespace idTech4.UI
 
 			_liveUpdate.Set(true);
 		}
+
+		private void InitCvar()
+		{
+			if(_cvarStr == string.Empty)
+			{
+				if(this.Buddy == null)
+				{
+					idConsole.Warning("idSliderWindow::InitCvar: gui '{0}' in window '{1}' has an empty cvar string", this.UserInterface.SourceFile, this.Name);
+				}
+
+				_cvarInit = true;
+				_cvar = null;
+			}
+			else
+			{
+				_cvar = idE.CvarSystem.Find(_cvarStr.ToString());
+
+				if(_cvar == null)
+				{
+					idConsole.Warning("idSliderWindow::InitCvar: gui '{0}' in window '{1}' references undefined cvar '{2}'", this.UserInterface.SourceFile, this.Name, _cvarStr.ToString());
+					_cvarInit = true;
+				}
+			}
+		}
+
+		private void UpdateCvar(bool read, bool force = false)
+		{
+			if((this.Buddy != null) || (_cvar == null))
+			{
+				return;
+			}
+
+			if((force == true) || (_liveUpdate == true))
+			{
+				_value.Set(_cvar.ToFloat());
+
+				if(_value != this.UserInterface.State.GetFloat(_cvarStr))
+				{
+					if(read == true)
+					{
+						this.UserInterface.State.Set(_cvarStr, _value);
+					}
+					else
+					{
+						_value.Set(this.UserInterface.State.GetFloat(_cvarStr));
+						_cvar.SetFloat(_value);
+					}
+				}
+			}
+		}
 		#endregion
 		#endregion
 
@@ -120,16 +170,16 @@ namespace idTech4.UI
 		public override void Activate(bool activate, ref string act)
 		{
 			base.Activate(activate, ref act);
-			idConsole.WriteLine("TODO: SliderWindow Activate");
-			/*if(activate)
+			
+			if(activate == true)
 			{
 				UpdateCvar(true, true);
-			}*/
+			}
 		}
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.WriteLine("TODO: SliderWindow Draw");
+			idConsole.Warning("TODO: SliderWindow Draw");
 			/*idVec4 color = foreColor;
 
 			if(!cvar && !buddyWin)
@@ -229,7 +279,7 @@ namespace idTech4.UI
 
 		public override string HandleEvent(SystemEvent e)
 		{
-			idConsole.WriteLine("TODO: SliderWindow HandleEvent");
+			idConsole.Warning("TODO: SliderWindow HandleEvent");
 			/* TODO: if (!(event->evType == SE_KEY && event->evValue2)) {
 				return "";
 			}
@@ -248,44 +298,73 @@ namespace idTech4.UI
 
 			if ( key == K_LEFTARROW || key == K_KP_LEFTARROW || ( key == K_MOUSE2 && gui->CursorY() < thumbRect.y ) ) {
 				value = value - stepSize;
+			}*/
+
+			if(this.Buddy != null)
+			{
+				this.Buddy.HandleBuddyUpdate(this);
+			}
+			else
+			{
+				this.UserInterface.State.Set(_cvarStr.ToString(), _value);
 			}
 
-			if (buddyWin) {
-				buddyWin->HandleBuddyUpdate(this);
-			} else {
-				gui->SetStateFloat( cvarStr, value );
-				UpdateCvar( false );
-			}
-
-			return "";*/
+			UpdateCvar(false);
+			
 			return string.Empty;
+		}
+
+		public override void RunNamedEvent(string name)
+		{
+			idConsole.Warning("TODO: SliderWindow RunNamedEvent");
+			/*idStr event, group;
+	
+			if ( !idStr::Cmpn( eventName, "cvar read ", 10 ) ) {
+				event = eventName;
+				group = event.Mid( 10, event.Length() - 10 );
+				if ( !group.Cmp( cvarGroup ) ) {
+					UpdateCvar( true, true );
+				}
+			} else if ( !idStr::Cmpn( eventName, "cvar write ", 11 ) ) {
+				event = eventName;
+				group = event.Mid( 11, event.Length() - 11 );
+				if ( !group.Cmp( cvarGroup ) ) {
+					UpdateCvar( false, true );
+				}
+			}*/
 		}
 		#endregion
 
 		#region Protected
-		protected override void DrawBackground(Microsoft.Xna.Framework.Rectangle drawRect)
+		protected override void DrawBackground(Rectangle drawRect)
 		{
-			idConsole.WriteLine("TODO: SliderWindow DrawBackground");
-			/*if ( !cvar && !buddyWin ) {
+			if((_cvar == null) && (this.Buddy == null))
+			{
 				return;
 			}
 
-			if ( high - low <= 0.0f ) {
+			if((_high - _low) <= 0.0f)
+			{
 				return;
 			}
 
-			idRectangle r = _drawRect;
-			if (!scrollbar) {
-				if ( vertical ) {
-					r.y += thumbHeight / 2.f;
-					r.h -= thumbHeight;
-				} else {
-					r.x += thumbWidth / 2.0;
-					r.w -= thumbWidth;
+			Rectangle r = this.DrawRectangle;
+
+			if(_scrollBar == false)
+			{
+				if(_vertical == true)
+				{
+					r.Y += (int) (_thumbHeight / 2.0f);
+					r.Height -= (int) _thumbHeight;
 				}
-			}*/
+				else
+				{
+					r.X += (int) (_thumbWidth / 2.0f);
+					r.Width -= (int) _thumbWidth;
+				}
+			}
 	
-			base.DrawBackground(drawRect);
+			base.DrawBackground(r);
 		}
 
 		protected override bool ParseInternalVariable(string name, Text.idScriptParser parser)
@@ -295,49 +374,44 @@ namespace idTech4.UI
 			if((nameLower == "stepsize") || (nameLower == "step"))
 			{
 				_stepSize = parser.ParseFloat();
-				return true;
 			}
 			else if(nameLower == "low")
 			{
 				_low = parser.ParseFloat();
-				return true;
 			}
 			else if(nameLower == "high")
 			{
 				_high = parser.ParseFloat();
-				return true;
 			}
 			else if(nameLower == "vertical")
 			{
 				_vertical = parser.ParseBool();
-				return true;
 			}
 			else if(nameLower == "verticalflip")
 			{
 				_verticalFlip = parser.ParseBool();
-				return true;
 			}
 			else if(nameLower == "scrollbar")
 			{
 				_scrollBar = parser.ParseBool();
-				return true;
 			}
 			else if(nameLower == "thumbshader")
 			{
 				_thumbMaterialName = ParseString(parser);
 				idE.DeclManager.FindMaterial(_thumbMaterialName);
-
-				return true;
+			}
+			else
+			{
+				return base.ParseInternalVariable(name, parser);
 			}
 
-			return base.ParseInternalVariable(name, parser);
+			return true;
 		}
 
 		protected override void PostParse()
 		{
 			base.PostParse();
-
-			
+						
 			_value.Set(0.0f);
 
 			_thumbMaterial = idE.DeclManager.FindMaterial(_thumbMaterialName);
@@ -345,16 +419,15 @@ namespace idTech4.UI
 			_thumbWidth = _thumbMaterial.ImageWidth;
 			_thumbHeight = _thumbMaterial.ImageHeight;
 
-			//vertical = state.GetBool("vertical");
-			//scrollbar = state.GetBool("scrollbar");
 
 			this.Flags |= WindowFlags.HoldCapture | WindowFlags.CanFocus;
-			/* TODO: InitCvar();*/
+
+			InitCvar();
 		}
 
 		protected override string RouteMouseCoordinates(float x, float y)
 		{
-			idConsole.WriteLine("TODO: SliderWindow RouteMouseCoordinates");
+			idConsole.Warning("TODO: SliderWindow RouteMouseCoordinates");
 			/*float pct;
 
 			if(!(flags & WIN_CAPTURE))
@@ -420,40 +493,20 @@ namespace idTech4.UI
 				{
 					value = high;
 				}
-			}
+			}*/
 
-			if(buddyWin)
+			if(this.Buddy != null)
 			{
-				buddyWin->HandleBuddyUpdate(this);
+				this.Buddy.HandleBuddyUpdate(this);
 			}
 			else
 			{
-				gui->SetStateFloat(cvarStr, value);
+				this.UserInterface.State.Set(_cvarStr.ToString(), _value);
 			}
+
 			UpdateCvar(false);
 
-			return "";*/
 			return string.Empty;
-		}
-
-		protected override void RunNamedEvent(string name)
-		{
-			idConsole.WriteLine("TODO: SliderWindow RunNamedEvent");
-			/*idStr event, group;
-	
-			if ( !idStr::Cmpn( eventName, "cvar read ", 10 ) ) {
-				event = eventName;
-				group = event.Mid( 10, event.Length() - 10 );
-				if ( !group.Cmp( cvarGroup ) ) {
-					UpdateCvar( true, true );
-				}
-			} else if ( !idStr::Cmpn( eventName, "cvar write ", 11 ) ) {
-				event = eventName;
-				group = event.Mid( 11, event.Length() - 11 );
-				if ( !group.Cmp( cvarGroup ) ) {
-					UpdateCvar( false, true );
-				}
-			}*/
 		}
 		#endregion
 		#endregion

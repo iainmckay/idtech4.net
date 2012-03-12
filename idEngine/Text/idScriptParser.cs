@@ -31,6 +31,8 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using idTech4.Math;
+
 namespace idTech4.Text
 {
 	public sealed class idScriptParser
@@ -1151,7 +1153,7 @@ namespace idTech4.Text
 			}
 			while((token = ReadSourceToken()) != null);
 
-			idConsole.WriteLine("TODO: DollarEvaluate");
+			idConsole.Warning("TODO: DollarEvaluate");
 			
 			/*if(EvaluateTokens(tokens.ToArray(), ref intValue, ref floatValue, integer) == false)
 			{
@@ -1221,7 +1223,7 @@ namespace idTech4.Text
 			}
 			while((token = ReadToken()) != null);
 
-			idConsole.WriteLine("TODO: EvaluateTokens2");
+			idConsole.Warning("TODO: EvaluateTokens2");
 
 			/*if(EvaluateTokens(tokens.ToArray(), ref intValue, ref floatValue, integer) == false)
 			{
@@ -1554,7 +1556,7 @@ namespace idTech4.Text
 			token.Set("-");
 			token.Type = TokenType.Punctuation;
 
-			idConsole.WriteLine("TODO: UnreadSignToken");
+			idConsole.Warning("TODO: UnreadSignToken");
 			// TODO: token.SubType = LexerPunctuationID.Subtract;
 
 			UnreadSourceToken(token);

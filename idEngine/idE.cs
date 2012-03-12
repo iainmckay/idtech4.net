@@ -87,6 +87,11 @@ namespace idTech4
 		public const int VirtualScreenWidth = 640;
 		public const int VirtualScreenHeight = 480;
 
+		public const int SmallCharacterWidth = 8;
+		public const int SmallCharacterHeight = 16;
+		public const int BigCharacterWidth = 16;
+		public const int BigCharacterHeight = 16;
+
 		public const string MasterServerAddress = "dnet.ua-corp.com";
 		public const int MasterServerPort = 27650;
 

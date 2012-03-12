@@ -74,7 +74,7 @@ namespace idTech4.UI
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.WriteLine("TODO: BindWindow Draw");
+			idConsole.Warning("TODO: BindWindow Draw");
 
 			/*idVec4 color = foreColor;
 
@@ -108,7 +108,7 @@ namespace idTech4.UI
 
 		public override string HandleEvent(SystemEvent e)
 		{
-			idConsole.WriteLine("TODO: BindWindow HandleEvent");
+			idConsole.Warning("TODO: BindWindow HandleEvent");
 			/*static char ret[ 256 ];
 	
 			if (!(event->evType == SE_KEY && event->evValue2)) {
@@ -143,8 +143,6 @@ namespace idTech4.UI
 		protected override void PostParse()
 		{
 			base.PostParse();
-
-			idConsole.WriteLine("TODO: BindWindow PostParse");
 
 			_bindName.SetGuiInfo(this.UserInterface.State, _bindName.ToString());
 			_bindName.Update();

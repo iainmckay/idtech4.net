@@ -152,7 +152,7 @@ namespace idTech4
 				latchedTicNumber = com_ticNumber;
 			}
 
-			// se how many tics we should have before continuing
+			// see how many tics we should have before continuing
 			int	minTic = latchedTicNumber + 1;
 			if ( com_minTics.GetInteger() > 1 ) {
 				minTic = lastGameTic + com_minTics.GetInteger();
@@ -227,7 +227,7 @@ namespace idTech4
 				return;
 			}
 
-			idConsole.WriteLine("TODO: REST OF FRAME");
+			idConsole.Warning("TODO: REST OF FRAME");
 			/*// in message box / GUIFrame, idSessionLocal::Frame is used for GUI interactivity
 			// but we early exit to avoid running game frames
 			if ( idAsyncNetwork::IsActive() ) {
@@ -333,7 +333,7 @@ namespace idTech4
 
 			if(cmd != string.Empty)
 			{
-				idConsole.WriteLine("TODO: DispatchCommand(guiActive, cmd);");
+				idConsole.Warning("TODO: DispatchCommand(guiActive, cmd);");
 			}
 		}
 
@@ -500,12 +500,12 @@ namespace idTech4
 			}
 
 			// TODO
-			/*if(guiActive == guiMainMenu)
+			if(_guiActive == _guiMainMenu)
 			{
-				SetSaveGameGuiVars();
-				SetMainMenuGuiVars();
+				//SetSaveGameGuiVars();
+				SetMainMenuVariables();
 			}
-			else if(guiActive == guiRestartMenu)
+			/* TODO: else if(guiActive == guiRestartMenu)
 			{
 				SetSaveGameGuiVars();
 			}*/
@@ -543,7 +543,7 @@ namespace idTech4
 			// TODO: soundSystem->SetPlayingSoundWorld(menuSoundWorld);
 
 			SetUserInterface(_guiMainMenu, null);
-			// TODO: guiMainMenu->HandleNamedEvent(playIntro ? "playIntro" : "noIntro");
+			_guiMainMenu.HandleNamedEvent((playIntro == true) ? "playIntro" : "noIntro");
 
 
 			/*// TODO: if(fileSystem->HasD3XP())
@@ -782,6 +782,42 @@ namespace idTech4
 			}
 
 			return true;
+		}
+
+		private void SetMainMenuVariables()
+		{
+			idConsole.Warning("TODO: SetMainMenuVariables");
+
+			_guiMainMenu.State.Set("serverlist_sel_0", "-1");
+			_guiMainMenu.State.Set("serverlist_selid_0", "-1");
+
+			_guiMainMenu.State.Set("com_machineSpec", idE.CvarSystem.GetInteger("com_machineSpec"));
+
+			// "inetGame" will hold a hand-typed inet address, which is not archived to a cvar
+			_guiMainMenu.State.Set("inetGame", "");
+
+			// key bind names
+			// TODO: guiMainMenu->SetKeyBindingNames();
+
+			// flag for in-game menu
+			/*if ( mapSpawned ) {
+				guiMainMenu->SetStateString( "inGame", IsMultiplayer() ? "2" : "1" );
+			} else*/ 
+			{
+				_guiMainMenu.State.Set("inGame", "0");
+			}
+
+			// TODO: SetCDKeyGuiVars( );
+
+			_guiMainMenu.State.Set("nightmare", (idE.CvarSystem.GetBool("g_nightmare") == true) ? "1" : "0");
+			_guiMainMenu.State.Set("browser_levelshot", "guis/assets/splash/pdtempa");
+
+			// TODO: SetMainMenuSkin();
+			// TODO: SetModsMenuGuiVars();
+
+			// TODO: guiMsg->SetStateString( "visible_hasxp", fileSystem->HasD3XP() ? "1" : "0" );
+			
+			_guiMainMenu.State.Set("driver_prompt", "0");
 		}
 		#endregion
 		#endregion

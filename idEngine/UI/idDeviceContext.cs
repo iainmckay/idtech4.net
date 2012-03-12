@@ -50,6 +50,25 @@ namespace idTech4.UI
 				_enableClipping = value;
 			}
 		}
+
+		public idFontFamily FontFamily
+		{
+			get
+			{
+				return _currentFontFamily;
+			}
+			set
+			{
+				if(value == null)
+				{
+					_currentFontFamily = _fontFamilies[0];
+				}
+				else
+				{
+					_currentFontFamily = value;
+				}
+			}
+		}
 		#endregion
 
 		#region Members
@@ -68,7 +87,12 @@ namespace idTech4.UI
 
 		private idMaterial _whiteImage;
 
+		private idFont _currentFont;
+		private idFontFamily _currentFontFamily;
+		private List<idFontFamily> _fontFamilies = new List<idFontFamily>();
+
 		private Stack<Rectangle> _clipRectangles = new Stack<Rectangle>();
+		private string _fontLanguage;
 		#endregion
 
 		#region Constructor
@@ -249,17 +273,7 @@ namespace idTech4.UI
 			idE.RenderSystem.DrawStretchPicture(verts.ToArray(), indexes.ToArray(), material, ident);
 		}
 
-		public int DrawText(string text, float textScale, TextAlign textAlign, Vector4 color, Rectangle rectDraw, bool wrap)
-		{
-			return DrawText(text, textScale, textAlign, color, rectDraw, wrap, -1, false, null, 0);
-		}
-
-		public int DrawText(string text, float textScale, TextAlign textAlign, Vector4 color, Rectangle rectDraw, bool wrap, int cursor)
-		{
-			return DrawText(text, textScale, textAlign, color, rectDraw, wrap, cursor, false, null, 0);
-		}
-
-		public int DrawText(string text, float textScale, TextAlign textAlign, Vector4 color, Rectangle rectDraw, bool wrap, int cursor, bool calcOnly, int[] breaks, int limit)
+		public int DrawText(string text, float textScale, TextAlign textAlign, Vector4 color, Rectangle rectDraw, bool wrap, int cursor = -1, bool calcOnly = false, List<int> breaks = null, int limit = 0)
 		{
 			SetFontByScale(textScale);
 
@@ -287,21 +301,21 @@ namespace idTech4.UI
 
 			StringBuilder buffer = new StringBuilder();
 
-			// TODO: text breaks
-			//if(breaks != null)
-			/*breaks->Append(0);
-		}*/
-
-			c = text[0];
-
-			while((c = idHelper.GetBufferCharacter(text, textPosition)) != '\0')
+			if(breaks != null)
 			{
+				breaks.Add(0);
+			}
+			
+			while(true)
+			{
+				c = idHelper.GetBufferCharacter(text, textPosition);
+			
 				if((c == '\n') || (c == '\r') || (c == '\0'))
 				{
 					lineBreak = true;
 
 					if(((c == '\n') && (idHelper.GetBufferCharacter(text, textPosition + 1) == '\r'))
-						|| ((c == '\r') && (idHelper.GetBufferCharacter(text, textPosition + 1) == '\r')))
+						|| ((c == '\r') && (idHelper.GetBufferCharacter(text, textPosition + 1) == '\n')))
 					{
 						textPosition++;
 						c = idHelper.GetBufferCharacter(text, textPosition);
@@ -394,10 +408,10 @@ namespace idTech4.UI
 
 					textPosition = newLinePosition;
 
-					// TODO: text breaks
-					/*if (breaks) {
-						breaks->Append(p - text);
-					}*/
+					if(breaks != null)
+					{
+						breaks.Add(textPosition);
+					}
 
 					length = 0;
 					newLine = 0;
@@ -409,25 +423,54 @@ namespace idTech4.UI
 					continue;
 				}
 
-				textPosition++;
-
+				length++;
+				buffer.Append(idHelper.GetBufferCharacter(text, textPosition++));
+				
 				// update the width
-				if((text[textPosition - 1] != (int) idColor.Escape)
-					&& ((length <= 1) || (text[textPosition - 2] != (int) idColor.Escape)))
+				if((buffer[length - 1] != (int) idColorIndex.Escape)
+					&& ((length <= 1) || (buffer[length - 2] != (int) idColorIndex.Escape)))
 				{
-					// TODO: textWidth += textScale * _useFont.GlyphScale * _useFont.Glyphs[text[textPosition] - 1].SkipX;
+					byte c2 = (byte) buffer[length - 1];
+					textWidth += textScale * _currentFont.GlyphScale * _currentFont.Glyphs[(char) c2].SkipX;
 				}
 			}
 
 			return (int) (rectDraw.Width / charSkip);
 		}
 
+		public idFontFamily FindFont(string name)
+		{
+			string nameLower = name.ToLower();
+			
+			foreach(idFontFamily fontFamily in _fontFamilies)
+			{
+				if(fontFamily.Name.Equals(nameLower) == true)
+				{
+					return fontFamily;
+				}
+			}
+
+			// if the font was not found, try to register it
+			string fileName = name.Replace("fonts", string.Format("fonts/{0}", _fontLanguage));
+			idFontFamily fontFamily2 = idE.RenderSystem.RegisterFont(name, fileName);
+
+			if(fontFamily2 != null)
+			{
+				_fontFamilies.Add(fontFamily2);
+			}
+			else
+			{
+				idConsole.WriteLine("Could not register font {0} [{1}]", name, fileName);
+			}
+
+			return fontFamily2;
+		}
+
 		public int GetCharacterWidth(char c, float scale)
 		{
 			SetFontByScale(scale);
-			idConsole.WriteLine("TODO: idDeviceContext.GetCharacterWidth");
-			return 0; 
-			// return (int) (_useFont.Glyphs[c].SkipX * (scale * _useFont.GlyphScale));
+
+			return (int) (_currentFont.Glyphs[c].SkipX * (scale * _currentFont.GlyphScale));
 		}
 
 		public void GetTransformInformation(out Vector3 origin, out Matrix transform)
@@ -452,9 +495,8 @@ namespace idTech4.UI
 
 			SetSize(idE.VirtualScreenWidth, idE.VirtualScreenHeight);
 
+			_currentFontFamily = _fontFamilies[0];
 			/*
-			
-			activeFont = &fonts[0];
 			colorPurple = idVec4(1, 0, 1, 1);
 			colorOrange = idVec4(1, 1, 0, 1);
 			colorYellow = idVec4(0, 1, 1, 1);
@@ -484,6 +526,7 @@ namespace idTech4.UI
 			scrollBarImages[SCROLLBAR_DOWN]->SetSort( SS_GUI );
 			cursor = CURSOR_ARROW;
 			overStrikeMode = true;*/
+
 			_initialized = true;
 		}
 
@@ -491,16 +534,14 @@ namespace idTech4.UI
 		{
 			SetFontByScale(scale);
 
-			return 0;
-			// TODO: return (int) (_activeFont.MaxWidth * (scale * _useFont.GlyphScale));
+			return (int) (_currentFont.MaxWidth * (scale * _currentFont.GlyphScale));
 		}
 
 		public int MaxCharacterHeight(float scale)
 		{
 			SetFontByScale(scale);
 
-			return 0;
-			// TODO: return (int) (_activeFont.MaxHeight * (scale * _useFont.GlyphScale));
+			return (int) (_currentFont.MaxHeight * (scale * _currentFont.GlyphScale));
 		}
 
 		public void PopClipRectangle()
@@ -555,8 +596,8 @@ namespace idTech4.UI
 		{
 			_initialized = false;
 
-			// TODO: _useFont = null;
-			// TODO: _activeFont = null;
+			_currentFont = null;
+			_currentFontFamily = null;
 			_mbcs = false;
 		}
 
@@ -663,10 +704,9 @@ namespace idTech4.UI
 		{
 			SetFontByScale(scale);
 
-			float useScale = scale /* TODO:  *_useFont.GlyphScale*/;
+			float useScale = scale * _currentFont.GlyphScale;
 			int count = 0;
-
-			// TODO: Glyph glyph;
+			idFontGlyph glyph;
 
 			if((text != string.Empty) && (color.W != 0.0f))
 			{
@@ -684,7 +724,7 @@ namespace idTech4.UI
 
 				while(((c = idHelper.GetBufferCharacter(text, textPosition)) != '\0') && (count < length))
 				{
-					if((c < idE.GlyphStart) || (c > idE.GlyphStart))
+					if((c < idE.GlyphStart) || (c > idE.GlyphEnd))
 					{
 						textPosition++;
 						c = idHelper.GetBufferCharacter(text, textPosition);
@@ -692,25 +732,24 @@ namespace idTech4.UI
 						continue;
 					}
 
-					// TODO: glyph = _useFont.Glyphs[c];
+					glyph = _currentFont.Glyphs[c];
 
 					if(idHelper.IsColor(text, textPosition) == true)
 					{
 						c2 = idHelper.GetBufferCharacter(text, textPosition + 1);
 
-						if(c2 == (int) idColor.Default)
+						if(c2 == (int) idColorIndex.Default)
 						{
 							newColor = color;
 						}
 						else
 						{
-							idConsole.WriteLine("TODO: newColor = idHelper.ColorForIndex");
-							// newColor = idHelper.ColorForIndex(c2);
+							newColor = idHelper.ColorForIndex(c2);
 						}
 
 						if((cursor == count) || (cursor == (count + 1)))
 						{
-							float partialSkip = (/* TODO: (glyph.SkipX * useScale) + */ adjust) / 5.0f;
+							float partialSkip = ((glyph.SkipX * useScale) + adjust) / 5.0f;
 
 							if(cursor == count)
 							{
@@ -734,17 +773,17 @@ namespace idTech4.UI
 					}
 					else
 					{
-						// TODO
-						/*float adjY = useScale * glyph.Top;
+						float adjustY = useScale * glyph.Top;
 
-						PaintCharacter(x, y - adjY, glyph.ImageWidth, glyph.ImageHeight, useScale, glyph.S, glyph.T, glyph.S2, glyph.T2, glyph.Glyph);
+						PaintCharacter(x, y - adjustY, glyph.ImageWidth, glyph.ImageHeight, useScale, glyph.S, glyph.T, glyph.S2, glyph.T2, glyph.Glyph);
 
-						if(cursor == count)
+
+						/* TODO: if(cursor == count)
 						{
 							// TODO: DrawEditCursor(x, y, scale);
-						}
+						}*/
 
-						x += (glyph.SkipX * useScale) + adjust;*/
+						x += (glyph.SkipX * useScale) + adjust;
 						textPosition++;
 						count++;
 						c = idHelper.GetBufferCharacter(text, textPosition);
@@ -776,45 +815,35 @@ namespace idTech4.UI
 
 		private void SetFontByScale(float scale)
 		{
-			idConsole.WriteLine("TODO: idDeviceContext.SetFontByScale");
-			/*if(scale <= idE.CvarSystem.GetFloat("gui_smallFontLimit"))
+			if(scale <= idE.CvarSystem.GetFloat("gui_smallFontLimit"))
 			{
-				_useFont = _activeFont.FontInfoSmall;
-
-				_activeFont.MaxWidth = _activeFont.MaxWidthSmall;
-				_activeFont.MaxHeight = _activeFont.MaxHeightSmall;
+				_currentFont = _currentFontFamily.Small;
 			}
 			else if(scale <= idE.CvarSystem.GetFloat("gui_mediumFontLimit"))
 			{
-				_useFont = _activeFont.FontInfoMedium;
-
-				_activeFont.MaxWidth = _activeFont.MaxWidthMedium;
-				_activeFont.MaxHeight = _activeFont.MaxHeightMedium;
+				_currentFont = _currentFontFamily.Medium;
 			}
 			else
 			{
-				_useFont = _activeFont.FontInfoLarge;
-
-				_activeFont.MaxWidth = _activeFont.MaxWidthLarge;
-				_activeFont.MaxHeight = _activeFont.MaxHeightLarge;
-			}*/
+				_currentFont = _currentFontFamily.Large;
+			}
 		}
 
 		private void SetupFonts()
 		{
-			// TODO: SetupFonts
-			idConsole.WriteLine("TODO: idDeviceContext.SetupFonts");
-			/*fonts.SetGranularity( 1 );
-
-			fontLang = cvarSystem->GetCVarString( "sys_lang" );
+			_fontLanguage = idE.CvarSystem.GetString("sys_lang");
 	
 			// western european languages can use the english font
-			if ( fontLang == "french" || fontLang == "german" || fontLang == "spanish" || fontLang == "italian" ) {
-				fontLang = "english";
+			if((_fontLanguage == "french")
+				|| (_fontLanguage == "german")
+				|| (_fontLanguage == "spanish")
+				|| (_fontLanguage == "italian") ) 
+			{
+				_fontLanguage = "english";
 			}
 
-			// Default font has to be added first
-			FindFont( "fonts" );*/
+			// default font has to be added first
+			FindFont("fonts");
 		}
 		#endregion
 		#endregion

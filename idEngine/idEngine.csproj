@@ -68,6 +68,7 @@
     <Reference Include="ICSharpCode.SharpZipLib">
       <HintPath>..\Externals\ICSharpCode.SharpZipLib.dll</HintPath>
     </Reference>
+    <Reference Include="Microsoft.CSharp" />
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Microsoft.Xna.Framework.Content.Pipeline, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
     <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.TextureImporter, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86" />
@@ -112,8 +113,11 @@
     <Compile Include="idEventLoop.cs" />
     <Compile Include="idGameConsole.cs" />
     <Compile Include="idLangDict.cs" />
-    <Compile Include="idMath.cs" />
+    <Compile Include="Math\idExtrapolate.cs" />
+    <Compile Include="Math\idInterpolateAccelerationDecelerationLinear.cs" />
+    <Compile Include="Math\idMath.cs" />
     <Compile Include="idRotation.cs" />
+    <Compile Include="Renderer\idFont.cs" />
     <Compile Include="Renderer\idRenderWorld.cs" />
     <Compile Include="Renderer\idScreenRect.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />

@@ -97,7 +97,7 @@ namespace idTech4.UI
 		{
 			base.Activate(activate, ref act);
 
-			idConsole.WriteLine("TODO: ListWindow Activate");
+			idConsole.Warning("TODO: ListWindow Activate");
 			/*if(activate)
 			{
 				UpdateList();
@@ -106,7 +106,7 @@ namespace idTech4.UI
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.WriteLine("TODO: ListWindow Draw");
+			idConsole.Warning("TODO: ListWindow Draw");
 			/*idVec4 color;
 			idStr work;
 			int count = listItems.Num();
@@ -229,13 +229,13 @@ namespace idTech4.UI
 
 		public override void HandleBuddyUpdate(idWindow buddy)
 		{
-			idConsole.WriteLine("TODO: ListWindow HandleBuddyUpdate");
+			idConsole.Warning("TODO: ListWindow HandleBuddyUpdate");
 			// TODO: top = scroller->GetValue();
 		}
 		
 		public override string HandleEvent(SystemEvent e)
 		{
-			idConsole.WriteLine("TODO: ListWindow HandleEvent");
+			idConsole.Warning("TODO: ListWindow HandleEvent");
 
 			// need to call this to allow proper focus and capturing on embedded children
 			/*const char *ret = idWindow::HandleEvent(event, updateVisuals);
@@ -392,53 +392,43 @@ namespace idTech4.UI
 			if(nameLower == "horizontal")
 			{
 				_horizontal = parser.ParseBool();
-				return true;
 			}
 			else if(nameLower == "listname")
 			{
 				_listName = ParseString(parser);
-				return true;
 			}
 			else if(nameLower == "tabstops")
 			{
 				_tabStopString = ParseString(parser);
-				return true;
 			}
 			else if(nameLower == "tabaligns")
 			{
 				_tabAlignString = ParseString(parser);
-				return true;
 			}
-			else if(nameLower == "multipleSel")
+			else if(nameLower == "multiplesel")
 			{
 				_multipleSelection = parser.ParseBool();
-				return true;
 			}
 			else if(nameLower == "tabvaligns")
 			{
 				_tabVerticalAlignString = ParseString(parser);
-				return true;
 			}
 			else if(nameLower == "tabtypes")
 			{
 				_tabTypeString = ParseString(parser);
-				return true;
 			}
 			else if(nameLower == "tabiconsizes")
 			{
 				_tabIconSizeString = ParseString(parser);
-				return true;
 			}
 			else if(nameLower == "tabiconvoffset")
 			{
 				_tabIconVerticalOffsetString = ParseString(parser);
-				return true;
 			}
-
-			if(nameLower.StartsWith("mtr_") == true)
+			else if(nameLower.StartsWith("mtr_") == true)
 			{
 				string materialName = ParseString(parser);
-				
+
 				idMaterial material = idE.DeclManager.FindMaterial(materialName);
 				material.ImageClassification = 1; // just for resource tracking
 
@@ -448,15 +438,18 @@ namespace idTech4.UI
 				}
 
 				_iconMaterials.Add(name, material);
-				return true;
+			}
+			else
+			{
+				return base.ParseInternalVariable(name, parser);
 			}
 
-			return base.ParseInternalVariable(name, parser);
+			return true;
 		}
 
 		protected override void PostParse()
 		{
-			idConsole.WriteLine("TODO: ListWindow PostParse");
+			idConsole.Warning("TODO: ListWindow PostParse");
 			/*InitScroller(horizontal);
 
 			idList<int> tabStops;
@@ -570,7 +563,7 @@ namespace idTech4.UI
 
 		protected override void StateChanged(bool redraw)
 		{
-			idConsole.WriteLine("TODO: ListWindow StateChanged");
+			idConsole.Warning("TODO: ListWindow StateChanged");
 			// TODO: UpdateList();
 		}
 		#endregion

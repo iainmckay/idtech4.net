@@ -215,6 +215,11 @@ namespace idTech4.UI
 			return string.Empty;
 		}
 
+		public void HandleNamedEvent(string name)
+		{
+			_desktop.RunNamedEvent(name);
+		}
+
 		public bool InitFromFile(string path)
 		{
 			return InitFromFile(path, true, true);

@@ -32,50 +32,63 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
-namespace idTech4
+using XMath = System.Math;
+
+namespace idTech4.Math
 {
 	public class idMath
 	{
+		public const float Pi = MathHelper.Pi;
+		public const float TwoPi = MathHelper.TwoPi;
+		public const float HalfPi = MathHelper.PiOver2;
 		public const float Radian = MathHelper.Pi / 180.0f;
 		public const float Infinity = 1e30f;
+
+		public const float Sqrt1Over2 = 0.70710678118654752440f;
+
 		public static float Abs(float a)
+		{			
+			return XMath.Abs(a);
+		}
+
+		public static float Ceiling(float c)
 		{
-			return Math.Abs(a);
+			return (float) XMath.Ceiling(c);
 		}
 		
 		public static float Cos(float c)
 		{
-			return (float) Math.Cos(c);
+			return (float) XMath.Cos(c);
 		}
 
 		public static float Floor(float v)
 		{
-			return (float) Math.Floor(v);
+			return (float) XMath.Floor(v);
 		}
 
 		public static float Max(float a, float b)
 		{
-			return Math.Max(a, b);
+			return XMath.Max(a, b);
 		}
 
 		public static float Min(float a, float b)
 		{
-			return Math.Min(a, b);
+			return XMath.Min(a, b);
 		}
 
 		public static float Pow(float a, float b)
 		{
-			return (float) Math.Pow(a, b);
+			return (float) XMath.Pow(a, b);
 		}
 
 		public static float Sqrt(float v)
 		{
-			return (float) Math.Sqrt(v);
+			return (float) XMath.Sqrt(v);
 		}
 
 		public static float Sin(float s)
 		{
-			return (float) Math.Sin(s);
+			return (float) XMath.Sin(s);
 		}
 
 		public static float ToRadians(float v)

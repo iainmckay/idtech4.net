@@ -104,7 +104,7 @@ namespace idTech4.UI
 		public override void Activate(bool activate, ref string act)
 		{
 			base.Activate(activate, ref act);
-			idConsole.WriteLine("TODO: EditWindow Activate");
+			idConsole.Warning("TODO: EditWindow Activate");
 			/* TODO: if(activate)
 			{
 				UpdateCvar(true, true);
@@ -114,7 +114,7 @@ namespace idTech4.UI
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.WriteLine("TODO: EditWindow Draw");
+			idConsole.Warning("TODO: EditWindow Draw");
 
 			/*idVec4 color = foreColor;
 
@@ -167,14 +167,7 @@ namespace idTech4.UI
 
 			dc->DrawText( buffer, scale, 0, color, rect, wrap, (flags & WIN_FOCUS) ? cursorPos : -1);*/
 		}
-
-		public void GainFocus()
-		{
-			idConsole.WriteLine("TODO: EditWindow GainFocus");
-			/*cursorPos = text.Length();
-			EnsureCursorVisible();*/
-		}
-
+				
 		public override idWindowVariable GetVariableByName(string name, bool fixup, ref DrawWindow owner)
 		{
 			string nameLower = name.ToLower();
@@ -201,7 +194,7 @@ namespace idTech4.UI
 
 		public override string HandleEvent(SystemEvent e)
 		{
-			idConsole.WriteLine("TODO: EditWindow HandleEvent");
+			idConsole.Warning("TODO: EditWindow HandleEvent");
 			/* TODO: static char buffer[ MAX_EDITFIELD ];
 			const char *ret = "";
 
@@ -440,9 +433,36 @@ namespace idTech4.UI
 			return ret;*/
 			return string.Empty;
 		}
+
+		public override void RunNamedEvent(string name)
+		{
+			idConsole.Warning("TODO: EditWindow RunNamedEvent");
+			/*idStr event, group;
+	
+			if ( !idStr::Cmpn( eventName, "cvar read ", 10 ) ) {
+				event = eventName;
+				group = event.Mid( 10, event.Length() - 10 );
+				if ( !group.Cmp( cvarGroup ) ) {
+					UpdateCvar( true, true );
+				}
+			} else if ( !idStr::Cmpn( eventName, "cvar write ", 11 ) ) {
+				event = eventName;
+				group = event.Mid( 11, event.Length() - 11 );
+				if ( !group.Cmp( cvarGroup ) ) {
+					UpdateCvar( false, true );
+				}
+			}*/
+		}
 		#endregion
 
 		#region Protected
+		protected override void GainFocus()
+		{
+			idConsole.Warning("TODO: EditWindow GainFocus");
+			/*cursorPos = text.Length();
+			EnsureCursorVisible();*/
+		}
+
 		protected override bool ParseInternalVariable(string name, Text.idScriptParser parser)
 		{
 			string nameLower = name.ToLower();
@@ -450,51 +470,47 @@ namespace idTech4.UI
 			if(nameLower == "maxchars")
 			{
 				_maxChars = parser.ParseInteger();
-				return true;
 			}
 			else if(nameLower == "numeric")
 			{
 				_numeric = parser.ParseBool();
-				return true;
 			}
 			else if(nameLower == "wrap")
 			{
 				_wrap = parser.ParseBool();
-				return true;
 			}
 			else if(nameLower == "readonly")
 			{
 				_readOnly = parser.ParseBool();
-				return true;
 			}
 			else if(nameLower == "forcescroll")
 			{
 				_forceScroll = parser.ParseBool();
-				return true;
 			}
 			else if(nameLower == "source")
 			{
 				_sourceFile = ParseString(parser);
-				return true;
 			}
 			else if(nameLower == "password")
 			{
 				_password.Set(parser.ParseBool());
-				return true;
 			}
 			else if(nameLower == "cvarmax")
 			{
 				_cvarMax = parser.ParseInteger();
-				return true;
+			}
+			else
+			{
+				return base.ParseInternalVariable(name, parser);
 			}
 
-			return base.ParseInternalVariable(name, parser);
+			return true;
 		}
 
 		protected override void PostParse()
 		{
 			base.PostParse();
-			idConsole.WriteLine("TODO: EditWindow PostParse");
+			idConsole.Warning("TODO: EditWindow PostParse");
 			/* TODO: if(maxChars == 0)
 			{
 				maxChars = 10;
@@ -513,26 +529,6 @@ namespace idTech4.UI
 			EnsureCursorVisible();*/
 
 			this.Flags |= WindowFlags.CanFocus;
-		}
-
-		protected override void RunNamedEvent(string name)
-		{
-			idConsole.WriteLine("TODO: EditWindow RunNamedEvent");
-			/*idStr event, group;
-	
-			if ( !idStr::Cmpn( eventName, "cvar read ", 10 ) ) {
-				event = eventName;
-				group = event.Mid( 10, event.Length() - 10 );
-				if ( !group.Cmp( cvarGroup ) ) {
-					UpdateCvar( true, true );
-				}
-			} else if ( !idStr::Cmpn( eventName, "cvar write ", 11 ) ) {
-				event = eventName;
-				group = event.Mid( 11, event.Length() - 11 );
-				if ( !group.Cmp( cvarGroup ) ) {
-					UpdateCvar( false, true );
-				}
-			}*/
 		}
 		#endregion
 		#endregion

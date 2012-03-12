@@ -270,7 +270,7 @@ namespace idTech4.UI
 		public idWinString(string name)
 			: base(name)
 		{
-
+			_data = string.Empty;
 		}
 		#endregion
 
@@ -618,6 +618,11 @@ namespace idTech4.UI
 			{
 				_guiDict.Set(this.Name, _data);
 			}
+		}
+
+		public void Set(Vector4 value)
+		{
+			_data = new Rectangle((int) value.X, (int) value.Y, (int) value.Z, (int) value.W);
 		}
 
 		public override void Set(string value)

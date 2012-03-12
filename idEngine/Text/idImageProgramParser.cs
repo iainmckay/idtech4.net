@@ -96,7 +96,7 @@ namespace idTech4.Text
 		
 			if(tokenLower == "heightmap")
 			{
-				idConsole.WriteLine("TODO: image program heightmap");
+				idConsole.Warning("TODO: image program heightmap");
 				/*MatchAndAppendToken(_lexer, "(");
 
 	if ( !token.Icmp( "heightmap" ) ) {
@@ -283,7 +283,7 @@ namespace idTech4.Text
 				MatchAndAppendToken(_lexer, "(");
 				Texture2D t = ParseImageProgram(ref timeStamp, ref depth, parseOnly);
 
-				idConsole.WriteLine("TODO: makeintensity");
+				idConsole.Warning("TODO: makeintensity");
 				/*if(parseOnly == false)
 				{
 					// copy red to green, blue, and alpha			

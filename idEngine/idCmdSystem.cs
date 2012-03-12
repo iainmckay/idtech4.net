@@ -273,7 +273,6 @@ namespace idTech4
 			}
 
 			// check cvars.
-			// TODO
 			if(idE.CvarSystem.Command(args) == true)
 			{
 				return;
@@ -456,7 +455,6 @@ namespace idTech4
 		#region Argument completion
 		public static void ArgCompletion_ConfigName(object sender, CommandCompletionEventArgs e)
 		{
-			// TODO
 			idConsole.WriteLine("ArgCompletion_ConfigName: TODO!");
 		}
 		#endregion

@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using idTech4.Math;
+
 namespace idTech4.Text.Decl
 {
 	/// <summary>
@@ -86,10 +88,10 @@ namespace idTech4.Text.Decl
 
 				if(index < 0)
 				{
-					index += (domain * (float) Math.Ceiling(-index / domain));
+					index += (domain * (float) idMath.Ceiling(-index / domain));
 				}
 
-				iIndex = (int) Math.Floor(index);
+				iIndex = (int) idMath.Floor(index);
 				iFrac = index - iIndex;
 				iIndex = iIndex % domain;
 			}

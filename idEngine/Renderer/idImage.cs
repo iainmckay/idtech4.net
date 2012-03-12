@@ -26,17 +26,10 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Text;
 
-using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
-using Microsoft.Xna.Framework.Content.Pipeline;
 
-using idTech4.IO;
-using idTech4.Renderer;
+using idTech4.Math;
 
 using Tao.OpenGl;
 
@@ -308,7 +301,7 @@ namespace idTech4.Renderer
 			//
 			else */if(_cubeFiles != Renderer.CubeFiles.TwoD)
 			{
-				idConsole.WriteLine("TODO: cube files");
+				idConsole.Warning("TODO: cube files");
 				/*byte	*pics[6];
 
 				// we don't check for pre-compressed cube images currently
@@ -383,7 +376,7 @@ namespace idTech4.Renderer
 			// if this is an image that we are caching, move it to the front of the LRU chain.
 			/*if(_partialImage != null)
 			{
-				idConsole.WriteLine("TODO: Bind LRU _partialImage");
+				idConsole.Warning("TODO: Bind LRU _partialImage");
 
 				/*if ( cacheUsageNext ) {
 					// unlink from old position
@@ -468,7 +461,7 @@ namespace idTech4.Renderer
 			_repeat = repeat;
 			_depth = depth;*/
 
-			idConsole.WriteLine("TODO: generate");
+			idConsole.Warning("TODO: generate");
 
 			// if we don't have a rendering context, just return after we
 			// have filled in the parms.  We must have the values set, or
@@ -514,7 +507,7 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				idConsole.WriteLine("TODO: DONT SUPPORT MIMAP RIGHT NOW");
+				idConsole.Warning("TODO: DONT SUPPORT MIMAP RIGHT NOW");
 
 				// resample down as needed (FIXME: this doesn't seem like it resamples anymore!)
 				// scaledBuffer = R_ResampleTexture( pic, width, height, width >>= 1, height >>= 1 );
@@ -567,7 +560,7 @@ namespace idTech4.Renderer
 
 			/*if((_generator == null) && ((_depth == TextureDepth.Bump) && (idE.CvarSystem.GetBool("image_writeNormalTGA") == true) || (_depth != TextureDepth.Bump) && (idE.CvarSystem.GetBool("image_writeTGA") == true)))
 			{
-				idConsole.WriteLine("TODO: gen = null && bump && write");
+				idConsole.Warning("TODO: gen = null && bump && write");
 				// Optionally write out the texture to a .tga
 				/*char filename[MAX_IMAGE_NAME];
 				ImageProgramStringToCompressedFileName( imgName, filename );
@@ -616,7 +609,7 @@ namespace idTech4.Renderer
 
 			if(_internalFormat == Gl.GL_COLOR_INDEX8_EXT)
 			{
-				idConsole.WriteLine("TODO: UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, 0 );");
+				idConsole.Warning("TODO: UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, 0 );");
 			}
 			else
 			{
@@ -657,7 +650,7 @@ namespace idTech4.Renderer
 			// upload the mip map
 			/*if(_internalFormat == Gl.GL_COLOR_INDEX8_EXT)
 			{
-				idConsole.WriteLine("TODO: UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, miplevel );");
+				idConsole.Warning("TODO: UploadCompressedNormalMap( scaled_width, scaled_height, scaledBuffer, miplevel );");
 			}
 			else
 			{
@@ -754,13 +747,13 @@ namespace idTech4.Renderer
 
 					if(_cubeFiles != CubeFiles.TwoD)
 					{
-						idConsole.WriteLine("TODO: R_LoadCubeImages");
+						idConsole.Warning("TODO: R_LoadCubeImages");
 						//R_LoadCubeImages(imgName, cubeFiles, NULL, NULL, &current);
 					}
 					else
 					{
 						// get the current values
-						idConsole.WriteLine("TODO: R_LoadImageProgram");
+						idConsole.Warning("TODO: R_LoadImageProgram");
 						//R_LoadImageProgram(imgName, NULL, NULL, NULL, &current);
 					}
 
@@ -812,7 +805,7 @@ namespace idTech4.Renderer
 				return false;
 			}
 
-			idConsole.WriteLine("TODO: CheckPrecompressedImage");
+			idConsole.Warning("TODO: CheckPrecompressedImage");
 
 
 			/*char filename[MAX_IMAGE_NAME];
@@ -1101,8 +1094,8 @@ namespace idTech4.Renderer
 					// our "isMonochrome" test is more lax than rgbDiffer,
 					// allowing the values to be off by several units and
 					// still use the NV20 mono path
-					if((Math.Abs(data[offset] - data[offset + 1]) > 16)
-						|| (Math.Abs(data[offset] - data[offset + 2]) > 16))
+					if((idMath.Abs(data[offset] - data[offset + 1]) > 16)
+						|| (idMath.Abs(data[offset] - data[offset + 2]) > 16))
 					{
 						isMonochrome = false;
 					}

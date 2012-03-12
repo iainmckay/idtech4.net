@@ -94,7 +94,7 @@ namespace idTech4
 
 		#region Event handlers
 		private void OnQuitClicked(object sender, EventArgs e)
-		{
+		{			
 			idE.System.Exit();
 		}
 
@@ -119,8 +119,6 @@ namespace idTech4
 			idConsole.WriteLine("] {0}", _input.Text);
 						
 			idE.CmdSystem.BufferCommandText(_input.Text);
-			// TODO: REMOVE, is only here because we don't have the game loop written yet
-			idE.CmdSystem.ExecuteCommandBuffer();
 		}
 		#endregion
 		#endregion

@@ -370,9 +370,11 @@ namespace idTech4.UI
 			{
 				idConsole.WriteLine("DrawFilled");
 			}
-			/*if (backColor.w() > 0) {
-		dc->DrawFilledRect(drawRect.x, drawRect.y, drawRect.w, drawRect.h, backColor);
-	}*/
+
+			if(_backColor.W > 0)
+			{
+				_context.DrawFilledRectangle(_drawRect.X, _drawRect.Y, _drawRect.Width, _drawRect.Height, _backColor);
+			}
 
 			if(_background != null)
 			{
@@ -382,18 +384,26 @@ namespace idTech4.UI
 				}
 			}
 
-			/*if (background) {
-				if (matColor.w() > 0) {
-					float scalex, scaley;
-					if ( flags & WIN_NATURALMAT ) {
-						scalex = drawRect.w / background->GetImageWidth();
-						scaley = drawRect.h / background->GetImageHeight();
-					} else {
-						scalex = matScalex;
-						scaley = matScaley;
+			if(_background != null)
+			{
+				if(_materialColor.W > 0)
+				{
+					float scaleX, scaleY;
+
+					if(_flags.HasFlag(WindowFlags.NaturalMaterial) == true)
+					{
+						scaleX = _drawRect.Width / _background.ImageWidth;
+						scaleY = _drawRect.Height / _background.ImageHeight;
 					}
-					dc->DrawMaterial(drawRect.x, drawRect.y, drawRect.w, drawRect.h, background, matColor, scalex, scaley);
-				}*/
+					else
+					{
+						scaleX = _materialScaleX;
+						scaleY = _materialScaleY;
+					}
+
+					_context.DrawMaterial(_drawRect.X, _drawRect.Y, _drawRect.Width, _drawRect.Height, _background, _materialColor, scaleX, scaleY);
+				}
+			}
 		}
 		
 		private void DrawBorderAndCaption(Rectangle drawRect)

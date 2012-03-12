@@ -27,11 +27,10 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Math;
 using idTech4.Renderer;
 using idTech4.Text;
 using idTech4.Text.Decl;
@@ -154,6 +153,18 @@ namespace idTech4.UI
 			}
 		}
 
+		public idWindow FocusedChild
+		{
+			get
+			{
+				return _focusedChild;
+			}
+			set
+			{
+				_focusedChild = value;
+			}
+		}
+
 		public Vector4 ForeColor
 		{
 			get
@@ -249,21 +260,6 @@ namespace idTech4.UI
 			}
 		}
 
-		/// <summary>
-		/// Gets the name of the window.
-		/// </summary>
-		public string Name
-		{
-			get
-			{
-				return _name;
-			}
-			set
-			{
-				_name = value;
-			}
-		}
-
 		public float MaterialScaleX
 		{
 			get
@@ -277,6 +273,21 @@ namespace idTech4.UI
 			get
 			{
 				return _materialScaleY;
+			}
+		}
+
+		/// <summary>
+		/// Gets the name of the window.
+		/// </summary>
+		public string Name
+		{
+			get
+			{
+				return _name;
+			}
+			set
+			{
+				_name = value;
 			}
 		}
 
@@ -438,7 +449,13 @@ namespace idTech4.UI
 		private Vector2 _origin;
 		private Vector2 _shear;
 
+		private idFontFamily _fontFamily;
+
 		private idMaterial _background;
+
+		private idWindow _focusedChild;				// if a child window has the focus
+		private idWindow _captureChild;				// if a child window has mouse capture
+		private idWindow _overChild;				// if a child window has mouse capture
 
 		private idWinBool _noTime = new idWinBool("noTime");
 		private idWinBool _visible = new idWinBool("visible");
@@ -463,6 +480,7 @@ namespace idTech4.UI
 
 		private idGuiScriptList[] _scripts = new idGuiScriptList[(int) ScriptName.Count];
 		private List<idTimeLineEvent> _timeLineEvents = new List<idTimeLineEvent>();
+		private List<TransitionData> _transitions = new List<TransitionData>();
 		private List<idNamedEvent> _namedEvents = new List<idNamedEvent>();
 
 		private bool[] _saveTemporaries;
@@ -570,6 +588,14 @@ namespace idTech4.UI
 			}
 		}
 
+		public void AddTransition(idWindowVariable dest, Vector4 from, Vector4 to, int time, float accelTime, float decelTime)
+		{
+			TransitionData data = new TransitionData(dest);
+			data.Interp.Init(this.UserInterface.Time, accelTime * time, decelTime * time, time, from, to);
+
+			_transitions.Add(data);
+		}
+
 		public void AddUpdateVariable(idWindowVariable var)
 		{
 			_updateVariables.Add(var);
@@ -630,7 +656,7 @@ namespace idTech4.UI
 			}
 
 			CalculateClientRectangle(0, 0);
-			// TODO: SetFont();
+			SetFont();
 
 			// see if this window forces a new aspect ratio
 			_context.SetSize(_forceAspectWidth, _forceAspectHeight);
@@ -660,7 +686,7 @@ namespace idTech4.UI
 
 			if(skipShaders < 5)
 			{
-				// TODO: DrawText(time, x, y);
+				DrawText(time, x, y);
 			}
 
 			// TODO: debug draw
@@ -1408,7 +1434,7 @@ namespace idTech4.UI
 
 			_timeLineEvents.Clear();
 			_namedEvents.Clear();
-			/*transitions.Clear();*/
+			_transitions.Clear();
 
 			idToken token2;
 			idToken token = parser.ExpectTokenType(TokenType.Name, 0);
@@ -1468,7 +1494,7 @@ namespace idTech4.UI
 						else*/
 						{
 							AddChild(window);
-							// TODO: SetFocus(window, false);
+							SetFocus(window, false);
 
 							drawWindow.Window = window;
 							_drawWindows.Add(drawWindow);
@@ -1534,7 +1560,7 @@ namespace idTech4.UI
 				}
 				else if(token.ToString() == "markerDef")
 				{
-					idConsole.WriteLine("TODO: markerDef");
+					idConsole.Warning("TODO: markerDef");
 					/*idMarkerWindow *win = new idMarkerWindow(dc, gui);
 					SaveExpressionParseState();
 					win->Parse(src, rebuild);	
@@ -1585,7 +1611,7 @@ namespace idTech4.UI
 				}
 				else if(token.ToString() == "fieldDef")
 				{
-					idConsole.WriteLine("TODO: fieldDef");
+					idConsole.Warning("TODO: fieldDef");
 					/*idFieldWindow *win = new idFieldWindow(dc, gui);
 					SaveExpressionParseState();
 					win->Parse(src, rebuild);	
@@ -1617,7 +1643,7 @@ namespace idTech4.UI
 				}
 				else if(token.ToString() == "gameSSDDef")
 				{
-					idConsole.WriteLine("TODO: gameSSDDef");
+					idConsole.Warning("TODO: gameSSDDef");
 					/*idGameSSDWindow *win = new idGameSSDWindow(dc, gui);
 					SaveExpressionParseState();
 					win->Parse(src, rebuild);	
@@ -1630,7 +1656,7 @@ namespace idTech4.UI
 				}
 				else if(token.ToString() == "gameBearShootDef")
 				{
-					idConsole.WriteLine("TODO: gameBearShootDef");
+					idConsole.Warning("TODO: gameBearShootDef");
 					/*idGameBearShootWindow *win = new idGameBearShootWindow(dc, gui);
 					SaveExpressionParseState();
 					win->Parse(src, rebuild);	
@@ -1643,7 +1669,7 @@ namespace idTech4.UI
 				}
 				else if(token.ToString() == "gameBustOutDef")
 				{
-					idConsole.WriteLine("TODO: gameBustOutDef");
+					idConsole.Warning("TODO: gameBustOutDef");
 					/*idGameBustOutWindow *win = new idGameBustOutWindow(dc, gui);
 					SaveExpressionParseState();
 					win->Parse(src, rebuild);	
@@ -1832,16 +1858,47 @@ namespace idTech4.UI
 
 			_noTime.Set(false);
 
-			// TODO: transitions
-			/*c = transitions.Num();
-			for ( i = 0; i < c; i++ ) {
-				idTransitionData *data = &transitions[i];
-				if ( data->interp.IsDone( gui->GetTime() ) && data->data ) {
-					transitions.RemoveIndex( i );
+			int c = _transitions.Count;
+
+			for(int i = 0; i < c; i++)
+			{
+				if((_transitions[i].Variable != null) && (_transitions[i].Interp.IsDone(this.UserInterface.Time) == true))
+				{
+					_transitions.RemoveAt(i);
+
 					i--;
 					c--;
 				}
-			}*/
+			}
+		}
+
+		public virtual void RunNamedEvent(string name)
+		{
+			foreach(idNamedEvent e in _namedEvents)
+			{
+				if(e.Name.Equals(name, StringComparison.OrdinalIgnoreCase) == false)
+				{
+					continue;
+				}
+
+				UpdateVariables();
+
+				// make sure we got all the current values for stuff
+				if((_expressionRegisters.Count > 0) && (_ops.Count > 0))
+				{
+					EvaluateRegisters(-1, true);
+				}
+
+				RunScriptList(e.Event);
+
+				break;
+			}
+
+			// run the event in all the children as well
+			foreach(idWindow window in _children)
+			{
+				window.RunNamedEvent(name);
+			}
 		}
 
 		public bool RunScript(ScriptName name)
@@ -1885,18 +1942,67 @@ namespace idTech4.UI
 				_flags |= WindowFlags.Border;
 			}
 
-			// TODO: rotate/shear
-			/*if (regList.FindReg("rotate") || regList.FindReg("shear")) {
-				flags |= WIN_TRANSFORM;
-			}*/
+			if((_regList.FindRegister("rotate") != null) || (_regList.FindRegister("shear") != null))
+			{
+				this.Flags |= WindowFlags.Transform;
+			}
 
 			CalculateClientRectangle(0, 0);
 
-			// TODO: scripts
-			/*if ( scripts[ ON_ACTION ] ) {
-				cursor = idDeviceContext::CURSOR_HAND;
-				flags |= WIN_CANFOCUS;
-			}*/
+			if(_scripts[(int) ScriptName.Action] != null)
+			{
+				// TODO: cursor = idDeviceContext::CURSOR_HAND;
+				this.Flags |= WindowFlags.CanFocus;
+			}
+		}
+
+		public idWindow SetFocus(idWindow window)
+		{
+			return SetFocus(window, true);
+		}
+
+		public idWindow SetFocus(idWindow window, bool scripts)
+		{
+			// only one child can have the focus
+			idWindow lastFocus = null;
+
+			if(window.Flags.HasFlag(WindowFlags.CanFocus) == true)
+			{
+				lastFocus = this.UserInterface.Desktop.FocusedChild;
+
+				if(lastFocus != null)
+				{
+					lastFocus.Flags &= ~WindowFlags.Focus;
+					lastFocus.LoseFocus();
+				}
+
+				//  call on lose focus
+				if((scripts == true) && (lastFocus != null))
+				{
+					// calling this broke all sorts of guis
+					// lastFocus->RunScript(ON_MOUSEEXIT);
+				}
+
+
+				//  call on gain focus
+				if((scripts == true) && (window != null))
+				{
+					// calling this broke all sorts of guis
+					// w->RunScript(ON_MOUSEENTER);
+				}
+
+				window.Flags |= WindowFlags.Focus;
+				window.GainFocus();
+
+				this.UserInterface.Desktop.FocusedChild = window;
+			}
+
+			return lastFocus;
+		}
+
+		public void StartTransition()
+		{
+			this.Flags |= WindowFlags.InTransition;
 		}
 		#endregion
 
@@ -1930,6 +2036,16 @@ namespace idTech4.UI
 			}
 		}
 
+		protected virtual void GainFocus()
+		{
+
+		}
+
+		protected virtual void LoseFocus()
+		{
+
+		}
+
 		protected virtual bool ParseInternalVariable(string name, idScriptParser parser)
 		{
 			name = name.ToLower();
@@ -1945,7 +2061,7 @@ namespace idTech4.UI
 			else if(name == "font")
 			{
 				string font = ParseString(parser);
-				idConsole.WriteLine("TODO: fontNum = dc->FindFont( fontStr );");
+				_fontFamily = _context.FindFont(font);
 			}
 			else if(name == "forceaspectwidth")
 			{
@@ -2100,6 +2216,7 @@ namespace idTech4.UI
 
 		protected virtual string RouteMouseCoordinates(float x, float y)
 		{
+			idConsole.Warning("TODO: RouteMouseCoordinates");
 			/*idStr str;
 			if (GetCaptureChild()) {
 				//FIXME: unkludge this whole mechanism
@@ -2155,35 +2272,6 @@ namespace idTech4.UI
 			return string.Empty;
 		}
 
-		protected virtual void RunNamedEvent(string name)
-		{
-			foreach(idNamedEvent e in _namedEvents)
-			{
-				if(e.Name.Equals(name, StringComparison.OrdinalIgnoreCase) == false)
-				{
-					continue;
-				}
-
-				UpdateVariables();
-
-				// make sure we got all the current values for stuff
-				if((_expressionRegisters.Count > 0) && (_ops.Count > 0))
-				{
-					EvaluateRegisters(-1, true);
-				}
-
-				RunScriptList(e.Event);
-
-				break;
-			}
-
-			// run the event in all the children as well
-			foreach(idWindow window in _children)
-			{
-				window.RunNamedEvent(name);
-			}
-		}
-
 		protected virtual bool RunTimeEvents(int time)
 		{
 			if((time - _lastTimeRun) < idE.UserCommandMillseconds)
@@ -2202,8 +2290,7 @@ namespace idTech4.UI
 
 			if(_flags.HasFlag(WindowFlags.InTransition) == true)
 			{
-				idConsole.WriteLine("TODO: transition");
-				// TODO: Transition();
+				Transition();
 			}
 
 			Time();
@@ -2388,7 +2475,7 @@ namespace idTech4.UI
 				shadowRect.X += _textShadow;
 				shadowRect.Y += _textShadow;
 
-				// TODO: _context.DrawText(shadowText, _textScale, _textAlign, _colorBlack, shadowRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
+				_context.DrawText(shadowText, _textScale, _textAlign, idColor.Black, shadowRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
 			}
 
 			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
@@ -2465,11 +2552,13 @@ namespace idTech4.UI
 			_lastTimeRun = 0;
 
 			_origin = Vector2.Zero;
-
-			/*fontNum = 0;*/
+						
+			_fontFamily = null;
 			_timeLine = -1;
-			/*xOffset = yOffset = 0.0;
-			cursor = 0;*/
+			_offsetX = 0;
+			_offsetY = 0;
+			
+			/*cursor = 0;*/
 			_forceAspectWidth = 640;
 			_forceAspectHeight = 480;
 			_materialScaleX = 1;
@@ -2498,11 +2587,13 @@ namespace idTech4.UI
 			_background = null;
 			_backgroundName.Set(string.Empty);
 
+			_focusedChild = null;
+			_captureChild = null;
+			_overChild = null;
+
 			// TODO
 			/*
-			focusedChild = NULL;
-			captureChild = NULL;
-			overChild = NULL;*/
+			*/
 			_parent = null;
 			/*saveOps = NULL;
 			saveRegs = NULL;*/
@@ -3012,6 +3103,11 @@ namespace idTech4.UI
 			}
 		}
 
+		private void SetFont()
+		{
+			_context.FontFamily = _fontFamily;
+		}
+
 		private void SetInitialState(string name)
 		{
 			_name = name;
@@ -3053,6 +3149,76 @@ namespace idTech4.UI
 			if(_gui.IsActive == true)
 			{
 				_gui.PendingCommand += _command;
+			}
+		}
+
+		private void Transition()
+		{
+			bool clear = true;
+			int count = _transitions.Count;
+
+			for(int i = 0; i < count; i++)
+			{
+				TransitionData data = _transitions[i];
+				idWinRectangle r = null;
+				idWinVector4 v4 = data.Variable as idWinVector4;
+				idWinFloat value = null;
+
+				if(v4 == null)
+				{
+					r = data.Variable as idWinRectangle;
+
+					if(r == null)
+					{
+						value = data.Variable as idWinFloat;
+					}
+				}
+
+				if((data.Variable != null) && (data.Interp.IsDone(this.UserInterface.Time) == true))
+				{
+					if(v4 != null)
+					{
+						v4.Set(data.Interp.EndValue);
+					}
+					else if(value != null)
+					{
+						value.Set(data.Interp.EndValue.X);
+					}
+					else
+					{
+						r.Set(data.Interp.EndValue);
+					}
+				}
+				else
+				{
+					clear = false;
+
+					if(data.Variable != null)
+					{
+						if(v4 != null)
+						{
+							v4.Set(data.Interp.GetCurrentValue(this.UserInterface.Time));
+						}
+						else if(value != null)
+						{
+							value.Set(data.Interp.GetCurrentValue(this.UserInterface.Time).X);
+						}
+						else
+						{
+							r.Set(data.Interp.GetCurrentValue(this.UserInterface.Time));
+						}
+					}
+					else
+					{
+						idConsole.Warning("Invalid transitional data for window {0} in gui {1}", this.Name, this.UserInterface.SourceFile);
+					}
+				}
+			}
+
+			if(clear == true)
+			{
+				_transitions.Clear();
+				_flags &= ~WindowFlags.InTransition;
 			}
 		}
 
@@ -3201,6 +3367,20 @@ namespace idTech4.UI
 		#endregion
 	}
 
+	public struct TransitionData
+	{
+		public idWindowVariable Variable;
+		public int Offset;
+		public idInterpolateAccelerationDecelerationLinear<Vector4> Interp;
+
+		public TransitionData(idWindowVariable var)
+		{
+			this.Variable = var;
+			this.Interp = new idInterpolateAccelerationDecelerationLinear<Vector4>();
+			this.Offset = 0;
+		}
+	}
+	
 	public sealed class idNamedEvent
 	{
 		#region Properties

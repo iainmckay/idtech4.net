@@ -98,7 +98,7 @@ namespace idTech4.UI
 		#region Public
 		public override void Draw(int x, int y)
 		{
-			idConsole.WriteLine("TODO: RenderWindow Draw");
+			idConsole.Warning("TODO: RenderWindow Draw");
 
 			/*PreRender();
 			Render(time);
@@ -170,13 +170,16 @@ namespace idTech4.UI
 		{
 			string nameLower = name.ToLower();
 
-			if(name == "animclass")
+			if(nameLower == "animclass")
 			{
 				_animationClass = ParseString(parser);
-				return true;
+			}
+			else
+			{
+				return base.ParseInternalVariable(name, parser);
 			}
 
-			return base.ParseInternalVariable(name, parser);
+			return true;
 		}
 		#endregion
 		#endregion

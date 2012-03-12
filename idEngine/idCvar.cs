@@ -562,7 +562,7 @@ namespace idTech4
 
 		internal void Set(string value, bool force, bool fromServer)
 		{
-			// TODO
+			// TODO: network cvar
 			/*if ( session && session->IsMultiplayer() && !fromServer ) {
 #ifndef ID_TYPEINFO
 				if ( ( flags & CVAR_NETWORKSYNC ) && idAsyncNetwork::client.IsActive() ) {

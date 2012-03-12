@@ -42,6 +42,8 @@ using Tao.DevIl;
 using Tao.OpenGl;
 using Tao.Platform.Windows;
 
+using idTech4.Math;
+
 namespace idTech4.Renderer
 {
 	/// <summary>
@@ -472,6 +474,90 @@ namespace idTech4.Renderer
 			return world;
 		}
 
+		/// <summary>
+		/// Small characters are drawn at native screen resolution.
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="c"></param>
+		/// <param name="material"></param>
+		public void DrawSmallCharacter(int x, int y, int c, idMaterial material)
+		{
+			c &= 255;
+
+			if(c == ' ') 
+			{
+				return;
+			}
+
+			if(y < -idE.SmallCharacterHeight)
+			{
+				return;
+			}
+
+			int row = c >> 4;
+			int col = c & 15;
+
+			float actualRow = row * 0.0625f;
+			float actualCol = col * 0.0625f;
+			float size = 0.0625f;
+
+			DrawStretchPicture(x, y, idE.SmallCharacterWidth, idE.SmallCharacterHeight, actualCol, actualRow, actualCol + size, actualRow + size, material);
+		}
+
+		/// <summary>
+		/// Draws a multi-colored string with a drop shadow, optionally forcing to a fixed color.
+		/// </summary>
+		/// <remarks>
+		/// Coordinates are at 640x480 virtual resolution.
+		/// </remarks>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="str"></param>
+		/// <param name="setColor"></param>
+		/// <param name="forceColor"></param>
+		/// <param name="material"></param>
+		public void DrawSmallString(int x, int y, string str, Vector4 setColor, bool forceColor, idMaterial material)
+		{
+			Vector4 color;
+			char c;
+			int xx = x;
+
+			this.Color = setColor;
+
+			for(int i = 0; i < str.Length; i++)
+			{
+				c = str[i];
+
+				if(idHelper.IsColor(str, i) == true)
+				{
+					if(forceColor == false)
+					{
+						if(str[i + 1] == (char) idColorIndex.Default)
+						{
+							this.Color = setColor;
+						}
+						else
+						{
+							color = idHelper.ColorForIndex(str[i + 1]);
+							color.Z = setColor.Z;
+
+							this.Color = color;
+						}
+					}
+
+					i += 2;
+				}
+				else
+				{
+					DrawSmallCharacter(xx, y, str[i], material);
+					xx += idE.SmallCharacterWidth;
+				}
+			}
+
+			this.Color = idColor.White;
+		}
+
 		public void DrawStretchPicture(Vertex[] vertices, int[] indexes, idMaterial material)
 		{
 			DrawStretchPicture(vertices, indexes, material, true);
@@ -645,6 +731,75 @@ namespace idTech4.Renderer
 			/*SetColorMappings();*/
 		}
 
+		public void Present()
+		{
+			if(_graphicsDevice != null)
+			{
+				_graphicsDevice.Present();
+			}
+		}
+
+		public idFontFamily RegisterFont(string fontName, string fileName)
+		{
+			float glyphScale;
+			byte[] data;
+			int pointSize;
+			idFont outFont;
+			idFontFamily fontFamily = new idFontFamily(fontName);
+			string filePath;
+
+			for(int fontCount = 0; fontCount < 3; fontCount++)
+			{
+				if(fontCount == 0)
+				{
+					pointSize = 12;
+				}
+				else if(fontCount == 1)
+				{
+					pointSize = 24;
+				}
+				else 
+				{
+					pointSize = 48;
+				}
+
+				// we also need to adjust the scale based on point size relative to 48 points as the ui scaling is based on a 48 point font.
+				// change the scale to be relative to 1 based on 72 dpi ( so dpi of 144 means a scale of .5 )
+				glyphScale = 1.0f; 		
+				glyphScale *= 48.0f / pointSize;
+
+				filePath = string.Format("{0}/fontImage_{1}.dat", fileName, pointSize);
+				data = idE.FileSystem.ReadFile(filePath);
+
+				if(data == null)
+				{
+					idConsole.Warning("RegisterFont: couldn't find font: {0}", fileName);
+					return null;
+				}
+
+				using(BinaryReader r = new BinaryReader(new MemoryStream(data)))
+				{
+					outFont = new idFont(filePath);
+					outFont.Init(r, fileName);
+
+					if(fontCount == 0)
+					{
+						fontFamily.Small = outFont;
+					}
+					else if(fontCount == 1)
+					{
+						fontFamily.Medium = outFont;
+					}
+					else
+					{
+						fontFamily.Large = outFont;
+					}
+				}
+			}
+
+			return fontFamily;
+		}
+
 		/// <summary>
 		/// Converts from SCREEN_WIDTH / SCREEN_HEIGHT coordinates to current cropped pixel coordinates
 		/// </summary>
@@ -729,18 +884,19 @@ namespace idTech4.Renderer
 
 
 			// set the window clipping
-			/*Gl.glViewport((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1,
+			_graphicsDevice.Viewport = new Viewport(
+				(int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1,
 				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1,
 				idE.Backend.ViewDefinition.ViewPort.X2 + 1 - idE.Backend.ViewDefinition.ViewPort.X1,
-				idE.Backend.ViewDefinition.ViewPort.Y2 + 1 - idE.Backend.ViewDefinition.ViewPort.Y1);*/
-
+				idE.Backend.ViewDefinition.ViewPort.Y2 + 1 - idE.Backend.ViewDefinition.ViewPort.Y1);
 
 			// the scissor may be smaller than the viewport for subviews
-			/*Gl.glScissor((int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.ViewDefinition.Scissor.X1,
+			_graphicsDevice.ScissorRectangle = new Rectangle(
+				(int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.ViewDefinition.Scissor.X1,
 				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.ViewDefinition.Scissor.Y1,
 				idE.Backend.ViewDefinition.Scissor.X2 + 1 - idE.Backend.ViewDefinition.Scissor.X1,
-				idE.Backend.ViewDefinition.Scissor.Y2 + 1 - idE.Backend.ViewDefinition.Scissor.Y1);*/
-
+				idE.Backend.ViewDefinition.Scissor.Y2 + 1 - idE.Backend.ViewDefinition.Scissor.Y1);
+			
 			idE.Backend.CurrentScissor = idE.Backend.ViewDefinition.Scissor;
 
 			// ensures that depth writes are enabled for the depth clear
@@ -779,7 +935,7 @@ namespace idTech4.Renderer
 			/* TODO: if(texture.IsCinematic == true)*/
 			if(false)
 			{
-				idConsole.WriteLine("TODO: BindVariableStageImage cinematic");
+				idConsole.Warning("TODO: BindVariableStageImage cinematic");
 				/*cinData_t	cin;
 
 				if ( r_skipDynamicTextures.GetBool() ) {
@@ -1000,7 +1156,7 @@ namespace idTech4.Renderer
 
 			if((tri.IndexCache != null) && (idE.CvarSystem.GetBool("r_useIndexBuffers") == true))
 			{
-				idConsole.WriteLine("TODO: indexCache");
+				idConsole.Warning("TODO: indexCache");
 				/*Gl.glDrawElements(Gl.GL_TRIANGLES,
 					(idE.CvarSystem.GetBool("r_singleTriangle") == true) ? 3 : tri.Indexes.Length,
 					Gl.GL_INDEX_ARRAY_TYPE,
@@ -1016,6 +1172,8 @@ namespace idTech4.Renderer
 				}
 
 				Texture texture = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].CurrentTexture;
+
+				_graphicsDevice.BlendState = BlendState.AlphaBlend;
 
 				if(texture != null)
 				{
@@ -1062,7 +1220,7 @@ namespace idTech4.Renderer
 			// the rendering in a texture, copy it over
 			if(surfaces[0].Material.Sort >= (float) MaterialSort.PostProcess)
 			{
-				idConsole.WriteLine("TODO: PostProcess");
+				idConsole.Warning("TODO: PostProcess");
 				/*if ( r_skipPostProcess.GetBool() ) {
 					return 0;
 				}
@@ -1275,7 +1433,7 @@ namespace idTech4.Renderer
 						break;
 
 					case RenderCommandType.CopyRender:
-						idConsole.WriteLine("TODO: RenderCommandType.CopyRender");
+						idConsole.Warning("TODO: RenderCommandType.CopyRender");
 						/*RB_CopyRender( cmds );
 						c_copyRenders++;*/
 						break;
@@ -1303,7 +1461,7 @@ namespace idTech4.Renderer
 
 			if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
 			{
-				idConsole.WriteLine("TODO: FinishStageTexturing DiffuseCube");
+				idConsole.Warning("TODO: FinishStageTexturing DiffuseCube");
 
 				// TODO qglTexCoordPointer( 2, GL_FLOAT, sizeof( idDrawVert ), (void *)&ac->st );
 			}
@@ -1321,7 +1479,7 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
 			{
-				idConsole.WriteLine("TODO: FinishStageTexturing GlassWarp");
+				idConsole.Warning("TODO: FinishStageTexturing GlassWarp");
 
 				/*if ( tr.backEndRenderer == BE_ARB2) {
 					GL_SelectTexture( 2 );
@@ -1341,7 +1499,7 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
 			{
-				idConsole.WriteLine("TODO: FinishStageTexturing ReflectCube");
+				idConsole.Warning("TODO: FinishStageTexturing ReflectCube");
 				/*if ( tr.backEndRenderer == BE_ARB2 ) {
 					// see if there is also a bump map specified
 					const shaderStage_t *bumpStage = surf->material->GetBumpStage();
@@ -2088,23 +2246,23 @@ namespace idTech4.Renderer
 			// set the texture matrix if needed
 			if(stage.Texture.HasMatrix == true)
 			{
-				idConsole.WriteLine("TODO: LoadShaderTextureMatrix(surface.ShaderRegisters, stage.Texture);");
+				idConsole.Warning("TODO: LoadShaderTextureMatrix(surface.ShaderRegisters, stage.Texture);");
 			}
 
 			// texgens
 			if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube)
 			{
-				idConsole.WriteLine("TODO: TexGen DiffuseCube");
+				idConsole.Warning("TODO: TexGen DiffuseCube");
 				// TODO: Gl.glTexCoordPointer(3, Gl.GL_FLOAT, sizeof( idVertex ), new float[] { position.Normal.X, position.Normal.Y, position.Normal.Z });
 			}
 			else if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
 			{
-				idConsole.WriteLine("TODO: TexGen SkyboxCube | WobbleSky");
+				idConsole.Warning("TODO: TexGen SkyboxCube | WobbleSky");
 				// TODO: Gl.glTexCoordPointer(3, Gl.GL_FLOAT, 0, vertexCache.Position( surf->dynamicTexCoords));
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
 			{
-				idConsole.WriteLine("TODO: TexGen Screen");
+				idConsole.Warning("TODO: TexGen Screen");
 
 				/*qglEnable( GL_TEXTURE_GEN_S );
 				qglEnable( GL_TEXTURE_GEN_T );
@@ -2133,7 +2291,7 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2)
 			{
-				idConsole.WriteLine("TODO: TexGen Screen2");
+				idConsole.Warning("TODO: TexGen Screen2");
 				/*qglEnable( GL_TEXTURE_GEN_S );
 				qglEnable( GL_TEXTURE_GEN_T );
 				qglEnable( GL_TEXTURE_GEN_Q );
@@ -2161,7 +2319,7 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
 			{
-				idConsole.WriteLine("TODO: TexGen GlassWarp");
+				idConsole.Warning("TODO: TexGen GlassWarp");
 
 				/*if ( tr.backEndRenderer == BE_ARB2) {
 					qglBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, FPROG_GLASSWARP );
@@ -2203,7 +2361,7 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
 			{
-				idConsole.WriteLine("TODO: TexGen ReflectCube");
+				idConsole.Warning("TODO: TexGen ReflectCube");
 
 				/*if ( tr.backEndRenderer == BE_ARB2 ) {
 					// see if there is also a bump map specified
@@ -2287,10 +2445,11 @@ namespace idTech4.Renderer
 			{
 				idE.Backend.CurrentScissor = surface.ScissorRectangle;
 
-				/*//Gl.glScissor(idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
+				_graphicsDevice.ScissorRectangle = new Rectangle(
+					idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
 					idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.CurrentScissor.Y1,
 					idE.Backend.CurrentScissor.X2 + 1 - idE.Backend.CurrentScissor.X1,
-					idE.Backend.CurrentScissor.Y2 + 1 - idE.Backend.CurrentScissor.Y1);*/
+					idE.Backend.CurrentScissor.Y2 + 1 - idE.Backend.CurrentScissor.Y1);
 			}
 
 			// some deforms may disable themselves by setting numIndexes = 0
@@ -2314,7 +2473,7 @@ namespace idTech4.Renderer
 			// set polygon offset if necessary
 			if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
 			{
-				idConsole.WriteLine("TODO: polygon offset fill");
+				idConsole.Warning("TODO: polygon offset fill");
 				//Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
 				//Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * material.PolygonOffset);
 			}
@@ -2365,7 +2524,7 @@ namespace idTech4.Renderer
 						continue;
 					}
 
-					idConsole.WriteLine("TODO: render");
+					idConsole.Warning("TODO: render");
 					/*Gl.glColorPointer(4, Gl.GL_UNSIGNED_BYTE, Marshal.SizeOf(typeof(Vertex)), (void*) &ambientCacheData->color);
 					Gl.glVertexAttribPointerARB(9, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[0].ToFloatPtr());
 					Gl.glVertexAttribPointerARB(10, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[1].ToFloatPtr());
@@ -2378,7 +2537,7 @@ namespace idTech4.Renderer
 
 					GL_State(stage.DrawStateBits);
 
-					idConsole.WriteLine("TODO: glBindProgramARB");
+					idConsole.Warning("TODO: glBindProgramARB");
 					/*Gl.glBindProgramARB(Gl.GL_VERTEX_PROGRAM_ARB, newStage.VertexProgram);
 					Gl.glEnable(Gl.GL_VERTEX_PROGRAM_ARB);*/
 
@@ -2484,7 +2643,7 @@ namespace idTech4.Renderer
 					{
 						if(stage.VertexColor == StageVertexColor.InverseModulate)
 						{
-							idConsole.WriteLine("TODO: InverseModulate");
+							idConsole.Warning("TODO: InverseModulate");
 							//GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
 
 							/*GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.CombineRgb, (int) All.Modulate);
@@ -2500,7 +2659,7 @@ namespace idTech4.Renderer
 						{
 							GL_SelectTexture(1);
 							idE.ImageManager.WhiteImage.Bind();
-							idConsole.WriteLine("TODO: vertex color");
+							idConsole.Warning("TODO: vertex color");
 							// GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
 
 							/*Gl.glTexEnvfv(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_COLOR, color);
@@ -2538,7 +2697,7 @@ namespace idTech4.Renderer
 
 					if(stage.VertexColor != StageVertexColor.Ignore)
 					{
-						idConsole.WriteLine("TODO: SVC ignore");
+						idConsole.Warning("TODO: SVC ignore");
 						/*GL.DisableClientState(ArrayCap.ColorArray);*/
 
 						GL_SelectTexture(1);
@@ -2696,30 +2855,32 @@ namespace idTech4.Renderer
 				|| (idE.CvarSystem.GetBool("r_singleArea") == true)
 				|| (idE.CvarSystem.GetBool("r_showOverDraw") == true))
 			{
-				Color color = Microsoft.Xna.Framework.Color.Gold;
 				string[] parts = idE.CvarSystem.GetString("r_clear").Split(' ');
+				Color color;
 
 				// TODO: clear color
-				/*if(parts.Length == 3)
+				if(parts.Length == 3)
 				{
-					float.TryParse(parts[0], out color[0]);
-					float.TryParse(parts[1], out color[1]);
-					float.TryParse(parts[2], out color[2]);
+					float tmp1, tmp2, tmp3;
+					float.TryParse(parts[0], out tmp1);
+					float.TryParse(parts[1], out tmp2);
+					float.TryParse(parts[2], out tmp3);
 
-					color = Color.FromNonPremultiplied(color[0], color[1], color[2], 1);
+					Vector4 tmp4 = new Vector4(tmp1, tmp2, tmp3, 1);
+					color = Microsoft.Xna.Framework.Color.FromNonPremultiplied(tmp4);
 				}
 				else if(idE.CvarSystem.GetInteger("r_clear") == 2)
 				{
-					color = Color.FromNonPremultiplied(0.0f, 0.0f, 0.0f, 1.0f);
+					color = Microsoft.Xna.Framework.Color.FromNonPremultiplied(0, 0, 0, 255);
 				}
 				else if(idE.CvarSystem.GetBool("r_showOverDraw") == true)
 				{
-					color = Color.FromNonPremultiplied(1.0f, 1.0f, 1.0f, 1.0f);
+					color = Microsoft.Xna.Framework.Color.FromNonPremultiplied(255, 255, 255, 255);
 				}
 				else
 				{
-					color = Color.FromNonPremultiplied(0.4f, 0.0f, 0.25f, 1.0f);
-				}*/
+					color = Microsoft.Xna.Framework.Color.FromNonPremultiplied(102, 0, 64, 255);
+				}
 
 				_graphicsDevice.Clear(color);
 			}
@@ -2781,32 +2942,35 @@ namespace idTech4.Renderer
 			//Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
 			//Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
 
-			//
-			// make sure our GL state vector is set correctly
-			//
+			
 			idE.Backend.GLState = new GLState();
 			idE.Backend.GLState.ForceState = true;
 
+			RasterizerState rasterState = new RasterizerState();
+			rasterState.ScissorTestEnable = true;
+			rasterState.FillMode = FillMode.Solid;
+						
 			//Gl.glColorMask(1, 1, 1, 1);
 
 			//Gl.glEnable(Gl.GL_DEPTH_TEST);
 			//Gl.glEnable(Gl.GL_BLEND);
-			//Gl.glEnable(Gl.GL_SCISSOR_TEST);
+			
 			//Gl.glEnable(Gl.GL_CULL_FACE);
 			//Gl.glDisable(Gl.GL_LIGHTING);
 			//Gl.glDisable(Gl.GL_LINE_STIPPLE);
 			//Gl.glDisable(Gl.GL_STENCIL_TEST);
 
-			//Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
 			//Gl.glDepthMask(Gl.GL_TRUE);
 			//Gl.glDepthFunc(Gl.GL_ALWAYS);
 
 			//Gl.glCullFace(Gl.GL_FRONT_AND_BACK);
 			//Gl.glShadeModel(Gl.GL_SMOOTH);
 
+			_graphicsDevice.RasterizerState = rasterState;
+
 			if(idE.CvarSystem.GetBool("r_useScissor") == true)
 			{
-				//	_graphicsDevice.ScissorRectangle = new Rectangle(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
+				_graphicsDevice.ScissorRectangle = new Rectangle(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
 			}
 
 			for(int i = idE.GLConfig.MaxTextureUnits - 1; i >= 0; i--)
@@ -2840,7 +3004,7 @@ namespace idTech4.Renderer
 		/// </summary>
 		private void ShowImages()
 		{
-			idConsole.WriteLine("TODO: ShowImages");
+			idConsole.Warning("TODO: ShowImages");
 
 			// TODO: showimages
 			/*GL_Set2D();
@@ -2912,7 +3076,7 @@ namespace idTech4.Renderer
 				{
 					idE.CvarSystem.ClearModified("r_swapInterval");
 
-					idConsole.WriteLine("TODO: r_swapInterval");
+					idConsole.Warning("TODO: r_swapInterval");
 
 					// Wgl.wglSwapIntervalEXT(idE.CvarSystem.GetInteger("r_swapInterval"));
 				}
@@ -2926,7 +3090,7 @@ namespace idTech4.Renderer
 				return;
 			}
 
-			// idConsole.WriteLine("TODO: ToggleSmpFrame");
+			// idConsole.Warning("TODO: ToggleSmpFrame");
 
 			// TODO
 			/*R_FreeDeferredTriSurfs( frameData );
@@ -2975,7 +3139,7 @@ namespace idTech4.Renderer
 				table[2, i] = blue[i];
 			}
 
-			idConsole.WriteLine("TODO: SetDeviceGammaRamp");
+			idConsole.Warning("TODO: SetDeviceGammaRamp");
 			/*if ( !SetDeviceGammaRamp( win32.hDC, table ) ) {
 				common->Printf( "WARNING: SetDeviceGammaRamp failed.\n" );
 			}*/
@@ -3371,7 +3535,7 @@ namespace idTech4.Renderer
 			}
 			else
 			{
-				idConsole.WriteLine("TODO: R200_Init");
+				idConsole.Warning("TODO: R200_Init");
 				// TODO: R200
 				/*Gl.glGetIntegerv( Gl.GL_NUM_FRAGMENT_REGISTERS_ATI, &fsi.numFragmentRegisters );
 				Gl.glGetIntegerv( Gl.GL_NUM_FRAGMENT_CONSTANTS_ATI, &fsi.numFragmentConstants );

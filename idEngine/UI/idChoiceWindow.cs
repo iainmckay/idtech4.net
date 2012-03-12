@@ -67,13 +67,184 @@ namespace idTech4.UI
 		#region Private
 		private void Init()
 		{
-			idConsole.WriteLine("TODO: ChoiceWindow Init");
-			
 			_currentChoice = 0;
 			_choiceType = 0;
 			_cvar = null;
 			_choices.Clear();
 			_liveUpdate.Set(true);
+		}
+
+		private void InitVariables()
+		{
+			if(_cvarStr.ToString().Length > 0)
+			{
+				_cvar = idE.CvarSystem.Find(_cvarStr.ToString());
+
+				if(_cvar == null)
+				{
+					idConsole.Warning("idChoiceWindow::InitVariables: gui '{0}' in window '{1}' references undefined cvar '{2}'", this.UserInterface.SourceFile, this.Name, _cvarStr);
+					return;
+				}
+
+				// TODO: updateStr.Append( &cvarStr );
+			}
+
+			if(_guiStr.ToString().Length > 0)
+			{
+				// TODO: updateStr.Append( &guiStr );
+			}
+
+			// TODO: updateStr.SetGuiInfo( gui->GetStateDict() );
+			// TODO: updateStr.Update();
+		}
+
+		private void UpdateChoice()
+		{
+			return;
+
+			/* TODO: if ( !updateStr.Num() ) {
+				return;
+			}
+			/*UpdateVars( true );	
+			updateStr.Update();
+			if ( choiceType == 0 ) {
+				// ChoiceType 0 stores current as an integer in either cvar or gui
+				// If both cvar and gui are defined then cvar wins, but they are both updated
+				if ( updateStr[ 0 ]->NeedsUpdate() ) {
+					currentChoice = atoi( updateStr[ 0 ]->c_str() );
+				}
+				ValidateChoice();
+			} else {
+				// ChoiceType 1 stores current as a cvar string
+				int c = ( values.Num() ) ? values.Num() : choices.Num();
+				int i;
+				for ( i = 0; i < c; i++ ) {
+					if ( idStr::Icmp( cvarStr.c_str(), ( values.Num() ) ? values[i] : choices[i] ) == 0 ) {
+						break;
+					}
+				}
+				if (i == c) {
+					i = 0;
+				}
+				currentChoice = i;
+				ValidateChoice();
+			}*/
+		}
+
+		private void UpdateChoicesAndValues()
+		{
+			// TODO: UpdateChoicesAndValues
+			/*idToken token;
+			idStr str2, str3;
+			idLexer src;
+
+			if(latchedChoices.Icmp(choicesStr))
+			{
+				choices.Clear();
+				src.FreeSource();
+				src.SetFlags(LEXFL_NOFATALERRORS | LEXFL_ALLOWPATHNAMES | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT);
+				src.LoadMemory(choicesStr, choicesStr.Length(), "<ChoiceList>");
+				if(src.IsLoaded())
+				{
+					while(src.ReadToken(&token))
+					{
+						if(token == ";")
+						{
+							if(str2.Length())
+							{
+								str2.StripTrailingWhitespace();
+								str2 = common->GetLanguageDict()->GetString(str2);
+								choices.Append(str2);
+								str2 = "";
+							}
+							continue;
+						}
+						str2 += token;
+						str2 += " ";
+					}
+					if(str2.Length())
+					{
+						str2.StripTrailingWhitespace();
+						choices.Append(str2);
+					}
+				}
+				latchedChoices = choicesStr.c_str();
+			}
+			if(choiceVals.Length() && latchedVals.Icmp(choiceVals))
+			{
+				values.Clear();
+				src.FreeSource();
+				src.SetFlags(LEXFL_ALLOWPATHNAMES | LEXFL_ALLOWMULTICHARLITERALS | LEXFL_ALLOWBACKSLASHSTRINGCONCAT);
+				src.LoadMemory(choiceVals, choiceVals.Length(), "<ChoiceVals>");
+				str2 = "";
+				bool negNum = false;
+				if(src.IsLoaded())
+				{
+					while(src.ReadToken(&token))
+					{
+						if(token == "-")
+						{
+							negNum = true;
+							continue;
+						}
+						if(token == ";")
+						{
+							if(str2.Length())
+							{
+								str2.StripTrailingWhitespace();
+								values.Append(str2);
+								str2 = "";
+							}
+							continue;
+						}
+						if(negNum)
+						{
+							str2 += "-";
+							negNum = false;
+						}
+						str2 += token;
+						str2 += " ";
+					}
+					if(str2.Length())
+					{
+						str2.StripTrailingWhitespace();
+						values.Append(str2);
+					}
+				}
+				if(choices.Num() != values.Num())
+				{
+					common->Warning("idChoiceWindow:: gui '%s' window '%s' has value count unequal to choices count", gui->GetSourceFile(), name.c_str());
+				}
+				latchedVals = choiceVals.c_str();
+			}*/
+		}
+
+		private void UpdateVariables(bool read)
+		{
+			UpdateVariables(read, false);
+		}
+
+		private void UpdateVariables(bool read, bool force)
+		{
+			if((force == true) || (_liveUpdate == true))
+			{
+				if((_cvar != null) && (_cvarStr.NeedsUpdate == true))
+				{
+					if(read == true)
+					{
+						_cvarStr.Set(_cvarStr.ToString());
+					}
+					else
+					{
+						_cvar.SetString(_cvarStr.ToString());
+					}
+				}
+
+				if((read == false) && (_guiStr.NeedsUpdate == true))
+				{
+					_guiStr.Set(_currentChoice.ToString());
+				}
+			}
 		}
 		#endregion
 		#endregion
@@ -83,17 +254,17 @@ namespace idTech4.UI
 		public override void Activate(bool activate, ref string act)
 		{
 			base.Activate(activate, ref act);
-			idConsole.WriteLine("TODO: ChoiceWindow Activate");
-			/*if(activate)
+
+			if(activate == true) 
 			{
 				// sets the gui state based on the current choice the window contains
 				UpdateChoice();
-			}*/
+			}
 		}
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.WriteLine("TODO: ChoiceWindow Draw");
+			idConsole.Warning("TODO: ChoiceWindow Draw");
 
 			/*idVec4 color = foreColor;
 
@@ -160,7 +331,7 @@ namespace idTech4.UI
 
 		public override string HandleEvent(SystemEvent e)
 		{
-			idConsole.WriteLine("TODO: ChoiceWindow HandleEvent");
+			idConsole.Warning("TODO: ChoiceWindow HandleEvent");
 			/*int key;
 	bool runAction = false;
 	bool runAction2 = false;
@@ -248,6 +419,26 @@ namespace idTech4.UI
 
 			return string.Empty;
 		}
+
+		public override void RunNamedEvent(string name)
+		{
+			idConsole.Warning("TODO: ChoiceWindow RunNamedEvent");
+			/*idStr event, group;
+	
+			if ( !idStr::Cmpn( eventName, "cvar read ", 10 ) ) {
+				event = eventName;
+				group = event.Mid( 10, event.Length() - 10 );
+				if ( !group.Cmp( updateGroup ) ) {
+					UpdateVars( true, true );
+				}
+			} else if ( !idStr::Cmpn( eventName, "cvar write ", 11 ) ) {
+				event = eventName;
+				group = event.Mid( 11, event.Length() - 11 );
+				if ( !group.Cmp( updateGroup ) ) {
+					UpdateVars( false, true );
+				}
+			}*/
+		}
 		#endregion
 
 		#region Protected
@@ -272,34 +463,15 @@ namespace idTech4.UI
 		protected override void PostParse()
 		{
 			base.PostParse();
-			idConsole.WriteLine("TODO: ChoiceWindow PostParse");
-			/*UpdateChoicesAndVals();
+			
+			UpdateChoicesAndValues();
 
-			InitVars();
+			InitVariables();
+
 			UpdateChoice();
-			UpdateVars(false);*/
+			UpdateVariables(false);
 
 			this.Flags |= WindowFlags.CanFocus;
-		}
-
-		protected override void RunNamedEvent(string name)
-		{
-			idConsole.WriteLine("TODO: ChoiceWindow RunNamedEvent");
-			/*idStr event, group;
-	
-			if ( !idStr::Cmpn( eventName, "cvar read ", 10 ) ) {
-				event = eventName;
-				group = event.Mid( 10, event.Length() - 10 );
-				if ( !group.Cmp( updateGroup ) ) {
-					UpdateVars( true, true );
-				}
-			} else if ( !idStr::Cmpn( eventName, "cvar write ", 11 ) ) {
-				event = eventName;
-				group = event.Mid( 11, event.Length() - 11 );
-				if ( !group.Cmp( updateGroup ) ) {
-					UpdateVars( false, true );
-				}
-			}*/
 		}
 		#endregion
 		#endregion

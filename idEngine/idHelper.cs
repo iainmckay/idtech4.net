@@ -183,12 +183,47 @@ namespace idTech4
 			return (((c >= 0x20) && (c <= 0x7E)) || ((c >= 0xA1) && (c <= 0xFF)));
 		}
 
-		public static idColor ColorForIndex(int index)
+		public static Vector4 ColorForIndex(int index)
 		{
-			return (idColor) Enum.Parse(typeof(idColor), index.ToString());
+			idColorIndex tmp;
+
+			if(Enum.TryParse<idColorIndex>(index.ToString(), out tmp) == true)
+			{
+				switch(tmp)
+				{
+					case idColorIndex.Red:
+						return idColor.Red;
+
+					case idColorIndex.Green:
+						return idColor.Green;
+
+					case idColorIndex.Yellow:
+						return idColor.Yellow;
+
+					case idColorIndex.Blue:
+						return idColor.Blue;
+
+					case idColorIndex.Cyan:
+						return idColor.Cyan;
+
+					case idColorIndex.Magenta:
+						return idColor.Magenta;
+				
+					case idColorIndex.White:
+						return idColor.White;
+
+					case idColorIndex.Gray:
+						return idColor.Grey;
+
+					case idColorIndex.Black:
+						return idColor.Black;
+				}
+			}
+
+			return idColor.White;
 		}
 
-		public static int ColorIndex(idColor color)
+		public static int ColorIndex(idColorIndex color)
 		{
 			return ((int) color & 15);
 		}
@@ -250,7 +285,7 @@ namespace idTech4
 				return false;
 			}
 
-			return ((buffer[index] == (int) idColor.Escape) && (buffer[index + 1] != '\0') && (buffer[index + 1] != ' '));
+			return ((buffer[index] == (int) idColorIndex.Escape) && (buffer[index + 1] != '\0') && (buffer[index + 1] != ' '));
 		}
 
 		public static int MakePowerOfTwo(int num)
@@ -401,7 +436,27 @@ namespace idTech4
 		}
 	}
 
-	public enum idColor
+	public class idColor
+	{
+		public static readonly Vector4 Black = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+		public static readonly Vector4 White = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+		public static readonly Vector4 Red = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+		public static readonly Vector4 Green = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+		public static readonly Vector4 Blue = new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+		public static readonly Vector4 Yellow = new Vector4(1.0f, 1.0f, 0.0f, 1.0f);
+		public static readonly Vector4 Magenta = new Vector4(1.0f, 0.0f, 1.0f, 1.0f);
+		public static readonly Vector4 Cyan = new Vector4(0.0f, 1.0f, 1.0f, 1.0f);
+		public static readonly Vector4 Orange = new Vector4(1.0f, 0.5f, 0.0f, 1.0f);
+		public static readonly Vector4 Purple = new Vector4(0.6f, 0.0f, 0.6f, 1.0f);
+		public static readonly Vector4 Pink = new Vector4(0.73f, 0.4f, 0.48f, 1.0f);
+		public static readonly Vector4 Brown = new Vector4(0.4f, 0.35f, 0.08f, 1.0f);
+		public static readonly Vector4 Grey = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
+		public static readonly Vector4 LightGrey = new Vector4(0.75f, 0.75f, 0.75f, 1.0f);
+		public static readonly Vector4 MdGrey = new Vector4(0.0f, 0.5f, 0.5f, 1.0f);
+		public static readonly Vector4 DarkGrey = new Vector4(0.25f, 0.25f, 0.25f, 1.0f);
+	}
+
+	public enum idColorIndex
 	{
 		Escape = '^',
 		Default = '0',

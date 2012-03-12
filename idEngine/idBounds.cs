@@ -32,6 +32,8 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Math;
+
 namespace idTech4
 {
 	public struct idBounds
