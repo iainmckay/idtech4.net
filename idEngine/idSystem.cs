@@ -1,4 +1,4 @@
-﻿/*
+/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -1253,9 +1253,11 @@ namespace idTech4
 			{
 				// game specific initialization
 				InitGame();
+				_frameTime = 0;
+				_ticNumber = 0;
 				return;
 			}
-
+			
 			_gameTime = gameTime;
 
 			// if "viewlog" has been modified, show or hide the log console
@@ -1288,8 +1290,9 @@ namespace idTech4
 				// TODO: _ticNumber++ is temp, supposed to be in async thread
 				_ticNumber++;
 
-				_frameTime = _ticNumber * idE.UserCommandMillseconds;
-
+				//_frameTime = _ticNumber * idE.UserCommandMillseconds;
+				_frameTime = (int) _gameTime.TotalGameTime.TotalMilliseconds;
+				
 				/*idAsyncNetwork::RunFrame();*/
 
 				if(idE.AsyncNetwork.IsActive == true)

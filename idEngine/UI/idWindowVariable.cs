@@ -201,7 +201,7 @@ namespace idTech4.UI
 		public void Set(bool value)
 		{
 			_data = value;
-
+		
 			if(_guiDict != null)
 			{
 				_guiDict.Set(this.Name, _data);
@@ -209,9 +209,20 @@ namespace idTech4.UI
 		}
 
 		public override void Set(string value)
-		{
-			bool.TryParse(value, out _data);
-
+		{	
+			if(value == "1")
+			{
+				_data = true;
+			}
+			else if(value == "0")
+			{
+				_data = false;
+			}
+			else
+			{
+				bool.TryParse(value, out _data);
+			}
+			
 			if(_guiDict != null)
 			{
 				_guiDict.Set(this.Name, _data);
@@ -221,7 +232,7 @@ namespace idTech4.UI
 		public override void Update()
 		{
 			string s = this.Name;
-
+		
 			if((_guiDict != null) && (s != string.Empty))
 			{
 				_data = _guiDict.GetBool(s);

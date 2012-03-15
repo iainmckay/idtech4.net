@@ -376,7 +376,8 @@ namespace idTech4.UI
 
 					if(calcOnly == false)
 					{
-						count += DrawText(x, y, textScale, color, buffer.ToString(), 0, 0, 0, cursor);
+						count += DrawText(x, y, textScale, color, buffer.ToString(0, (newLine > 0) ? newLine : length), 0, 0, 0, cursor);
+						
 						buffer.Clear();
 					}
 
@@ -419,19 +420,19 @@ namespace idTech4.UI
 					textWidth = 0;
 					lineBreak = false;
 					wordBreak = false;
-
-					continue;
 				}
-
-				length++;
-				buffer.Append(idHelper.GetBufferCharacter(text, textPosition++));
-				
-				// update the width
-				if((buffer[length - 1] != (int) idColorIndex.Escape)
-					&& ((length <= 1) || (buffer[length - 2] != (int) idColorIndex.Escape)))
+				else
 				{
-					byte c2 = (byte) buffer[length - 1];
-					textWidth += textScale * _currentFont.GlyphScale * _currentFont.Glyphs[(char) c2].SkipX;
+					length++;
+					buffer.Append(idHelper.GetBufferCharacter(text, textPosition++));
+
+					// update the width
+					if((buffer[length - 1] != (int) idColorIndex.Escape)
+						&& ((length <= 1) || (buffer[length - 2] != (int) idColorIndex.Escape)))
+					{
+						byte c2 = (byte) buffer[length - 1];
+						textWidth += textScale * _currentFont.GlyphScale * _currentFont.Glyphs[(char) c2].SkipX;
+					}
 				}
 			}
 

@@ -232,8 +232,8 @@ namespace idTech4.UI
 			idConsole.Warning("TODO: ListWindow HandleBuddyUpdate");
 			// TODO: top = scroller->GetValue();
 		}
-		
-		public override string HandleEvent(SystemEvent e)
+
+		public override string HandleEvent(SystemEvent e, ref bool updateVisuals)
 		{
 			idConsole.Warning("TODO: ListWindow HandleEvent");
 

@@ -1175,7 +1175,7 @@ namespace idTech4.UI
 
 		}
 
-		public virtual string HandleEvent(SystemEvent e)
+		public virtual string HandleEvent(SystemEvent e, ref bool updateVisuals)
 		{
 			if(_flags.HasFlag(WindowFlags.Desktop) == true)
 			{
@@ -2568,13 +2568,13 @@ namespace idTech4.UI
 			_textAlign = TextAlign.Left;
 			_textAlignX = 0;
 			_textAlignY = 0;
-
+			
+			_noEvents.Set(false);
 			_noTime.Set(false);
 			_visible.Set(true);
 			_hideCursor.Set(false);
-			_shear = Vector2.Zero;
 
-			_noEvents.Set(false);
+			_shear = Vector2.Zero;
 			_rotate.Set(0);
 			_textScale.Set(0.35f);
 

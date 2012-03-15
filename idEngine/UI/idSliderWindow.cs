@@ -277,7 +277,7 @@ namespace idTech4.UI
 			return base.GetVariableByName(name, fixup, ref owner);
 		}
 
-		public override string HandleEvent(SystemEvent e)
+		public override string HandleEvent(SystemEvent e, ref bool updateVisuals)
 		{
 			idConsole.Warning("TODO: SliderWindow HandleEvent");
 			/* TODO: if (!(event->evType == SE_KEY && event->evValue2)) {

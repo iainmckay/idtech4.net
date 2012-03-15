@@ -46,13 +46,13 @@ namespace idTech4
 	{
 		#region Members
 		// TODO: is this going to be affected by boxing on primitives?
-		private Dictionary<string, object> _dict;
+		private Dictionary<string, string> _dict;
 		#endregion 
 
 		#region Constructor
 		public idDict()
 		{
-			_dict = new Dictionary<string, object>(StringComparer.OrdinalIgnoreCase);
+			_dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		}
 		#endregion
 
@@ -65,11 +65,25 @@ namespace idTech4
 
 		public bool GetBool(string key, bool defaultValue)
 		{
-			object obj;
+			string str;
 
-			if(_dict.TryGetValue(key, out obj) == true)
+			if(_dict.TryGetValue(key, out str) == true)
 			{
-				return Convert.ToBoolean(obj);
+				if(str.ToString() == "1")
+				{
+					return true;
+				}
+				else if(str.ToString() == "0")
+				{
+					return false;
+				}
+				else
+				{
+					bool tmp;
+					bool.TryParse(str.ToString(), out tmp);
+
+					return tmp;
+				}
 			}
 
 			return defaultValue;
@@ -82,11 +96,14 @@ namespace idTech4
 
 		public float GetFloat(string key, float defaultValue)
 		{
-			object obj;
+			string str;
 
-			if(_dict.TryGetValue(key, out obj) == true)
+			if(_dict.TryGetValue(key, out str) == true)
 			{
-				return Convert.ToSingle(obj);
+				float tmp;
+				float.TryParse(str, out tmp);
+
+				return tmp;
 			}
 
 			return defaultValue;
@@ -99,11 +116,14 @@ namespace idTech4
 
 		public int GetInteger(string key, int defaultValue)
 		{
-			object obj;
+			string str;
 
-			if(_dict.TryGetValue(key, out obj) == true)
+			if(_dict.TryGetValue(key, out str) == true)
 			{
-				return Convert.ToInt32(obj);
+				int tmp;
+				int.TryParse(str, out tmp);
+
+				return tmp;
 			}
 
 			return defaultValue;
@@ -116,11 +136,11 @@ namespace idTech4
 
 		public string GetString(string key, string defaultString)
 		{
-			object obj;
+			string str;
 
-			if(_dict.TryGetValue(key, out obj) == true)
+			if(_dict.TryGetValue(key, out str) == true)
 			{
-				return obj.ToString();
+				return str;
 			}
 
 			return defaultString;
@@ -133,11 +153,11 @@ namespace idTech4
 
 		public Vector2 GetVector2(string key, Vector2 defaultValue)
 		{
-			object obj;
+			string str;
 
-			if(_dict.TryGetValue(key, out obj) == true)
+			if(_dict.TryGetValue(key, out str) == true)
 			{
-				return idHelper.ParseVector2(obj.ToString());
+				return idHelper.ParseVector2(str);
 			}
 
 			return defaultValue;
@@ -150,11 +170,11 @@ namespace idTech4
 
 		public Vector3 GetVector3(string key, Vector3 defaultValue)
 		{
-			object obj;
+			string str;
 
-			if(_dict.TryGetValue(key, out obj) == true)
+			if(_dict.TryGetValue(key, out str) == true)
 			{
-				return idHelper.ParseVector3(obj.ToString());
+				return idHelper.ParseVector3(str);
 			}
 
 			return defaultValue;
@@ -167,11 +187,11 @@ namespace idTech4
 
 		public Vector4 GetVector4(string key, Vector4 defaultValue)
 		{
-			object obj;
+			string str;
 
-			if(_dict.TryGetValue(key, out obj) == true)
+			if(_dict.TryGetValue(key, out str) == true)
 			{
-				return idHelper.ParseVector4(obj.ToString());
+				return idHelper.ParseVector4(str);
 			}
 
 			return defaultValue;
@@ -184,11 +204,11 @@ namespace idTech4
 
 		public Rectangle GetRectangle(string key, Rectangle defaultValue)
 		{
-			object obj;
+			string str;
 
-			if(_dict.TryGetValue(key, out obj) == true)
+			if(_dict.TryGetValue(key, out str) == true)
 			{
-				return idHelper.ParseRectangle(obj.ToString());
+				return idHelper.ParseRectangle(str);
 			}
 
 			return defaultValue;

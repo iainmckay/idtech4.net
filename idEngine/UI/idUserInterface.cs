@@ -186,6 +186,12 @@ namespace idTech4.UI
 
 		public string HandleEvent(SystemEvent e, int time)
 		{
+			bool updateVisuals = false;
+			return HandleEvent(e, time, ref updateVisuals);
+		}
+
+		public string HandleEvent(SystemEvent e, int time, ref bool updateVisuals)
+		{
 			_time = time;
 
 			// TODO
@@ -209,7 +215,7 @@ namespace idTech4.UI
 
 			if(_desktop != null)
 			{
-				_desktop.HandleEvent(e);
+				_desktop.HandleEvent(e, ref updateVisuals);
 			}
 
 			return string.Empty;
