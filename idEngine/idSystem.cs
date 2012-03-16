@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -44,7 +44,7 @@ using idTech4.Net;
 
 namespace idTech4
 {
-	public sealed class idSystem : Game
+	public sealed class idSystem : Microsoft.Xna.Framework.Game
 	{
 		#region Properties
 		#region Public

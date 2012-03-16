@@ -105,6 +105,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="CollisionManager\idCollisionModelManager.cs" />
+    <Compile Include="Game\idBaseGame.cs" />
     <Compile Include="idBounds.cs" />
     <Compile Include="idCmdArgs.cs" />
     <Compile Include="idCvar.cs" />
@@ -113,6 +115,7 @@
     <Compile Include="idEventLoop.cs" />
     <Compile Include="idGameConsole.cs" />
     <Compile Include="idLangDict.cs" />
+    <Compile Include="Input\idUserCommand.cs" />
     <Compile Include="Math\idExtrapolate.cs" />
     <Compile Include="Math\idInterpolateAccelerationDecelerationLinear.cs" />
     <Compile Include="Math\idMath.cs" />
@@ -121,6 +124,7 @@
     <Compile Include="Renderer\idRenderWorld.cs" />
     <Compile Include="Renderer\idScreenRect.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />
+    <Compile Include="Sound\idSoundWorld.cs" />
     <Compile Include="Text\Decl\idDeclParticle.cs" />
     <Compile Include="Text\Decl\idDeclSkin.cs" />
     <Compile Include="Text\idDecl.cs" />

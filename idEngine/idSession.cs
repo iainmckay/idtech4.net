@@ -543,6 +543,7 @@ namespace idTech4
 			// TODO: soundSystem->SetPlayingSoundWorld(menuSoundWorld);
 
 			SetUserInterface(_guiMainMenu, null);
+			playIntro = false;
 			_guiMainMenu.HandleNamedEvent((playIntro == true) ? "playIntro" : "noIntro");
 
 

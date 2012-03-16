@@ -48,18 +48,13 @@
     <Compile Include="Entities\idAnimatedEntity.cs" />
     <Compile Include="Entities\idPlayerStart.cs" />
     <Compile Include="Entities\idWorldSpawn.cs" />
-    <Compile Include="idConsole.cs" />
     <Compile Include="idEntity.cs" />
-    <Compile Include="idGameEditLocal.cs" />
+    <Compile Include="idGameEdit.cs" />
     <Compile Include="idR.cs" />
-    <Compile Include="Physics\idClip.cs" />
-    <Compile Include="Physics\idClipModel.cs" />
-    <Compile Include="Physics\idPhysics.cs" />
-    <Compile Include="Physics\idStaticPhysics.cs" />
     <Compile Include="Rules\Deathmatch.cs" />
     <Compile Include="Rules\Multiplayer.cs" />
     <Compile Include="Rules\Singleplayer.cs" />
-    <Compile Include="idGameLocal.cs" />
+    <Compile Include="idGame.cs" />
     <Compile Include="idGameRules.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="idTypes.cs" />
@@ -71,6 +66,9 @@
       <Project>{B6B84A1A-0BBC-4147-8689-7D43209CEED3}</Project>
       <Name>idEngine</Name>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Folder Include="Physics\" />
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
   <PropertyGroup>

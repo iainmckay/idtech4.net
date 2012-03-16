@@ -672,13 +672,14 @@ oldViewYaw = 0.0f;*/
 			// set the pm_ cvars
 			if((idR.Game.IsMultiplayer == false) || (idR.Game.IsServer == true))
 			{
-				kv = this.SpawnArgs.MatchPrefix("pm_", null);
+				// TODO
+				/*kv = this.SpawnArgs.MatchPrefix("pm_", null);
 
 				while(kv != null)
 				{
 					idR.CvarSystem.SetString(kv.Key, kv.Value);
 					kv = this.SpawnArgs.MatchPrefix("pm_", kv);
-				}
+				}*/
 			}
 
 			// disable stamina on hell levels
@@ -718,16 +719,16 @@ oldViewYaw = 0.0f;*/
 
 			if(_cursor != null)
 			{
-				_cursor.SetState("talkcursor", 0);
-				_cursor.SetState("combatcursor", "1");
-				_cursor.SetState("itemcursor", "0");
-				_cursor.SetState("guicursor", "0");
+				_cursor.State.Set("talkcursor", 0);
+				_cursor.State.Set("combatcursor", "1");
+				_cursor.State.Set("itemcursor", "0");
+				_cursor.State.Set("guicursor", "0");
 			}
 
 			if(((idR.Game.IsMultiplayer == true) || (idR.CvarSystem.GetBool("g_testDeath") == true)) && (_skin != null))
 			{
 				this.Skin = _skin;
-				this.RenderEntity.ShaderParms[6] = 0.0f;
+				// TODO: this.RenderEntity.ShaderParms[6] = 0.0f;
 			}
 			else
 			{
@@ -738,7 +739,7 @@ oldViewYaw = 0.0f;*/
 					_skin = idR.DeclManager.FindSkin(skin);
 
 					this.Skin = _skin;
-					this.RenderEntity.ShaderParms[6] = 0.0f;
+					// TODO: this.RenderEntity.ShaderParms[6] = 0.0f;
 				}
 			}
 
@@ -855,7 +856,7 @@ oldViewYaw = 0.0f;*/
 			SetPhysics( &physicsObj );
 			InitAASLocation();*/
 
-			_skin = this.RenderEntity.CustomSkin;
+			// TODO: _skin = this.RenderEntity.CustomSkin;
 
 			// only the local player needs guis
 			if((idR.Game.IsMultiplayer == false) || (this.Index == idR.Game.LocalClientIndex))
@@ -919,10 +920,10 @@ oldViewYaw = 0.0f;*/
 			/*SetCombatModel();*/
 
 			// supress model in non-player views, but allow it in mirrors and remote views
-			this.RenderEntity.SuppressSurfaceInViewID = this.Index + 1;
+			// TODO: this.RenderEntity.SuppressSurfaceInViewID = this.Index + 1;
 
 			// don't project shadow on self or weapon
-			this.RenderEntity.NoSelfShadow = true;
+			// TODO: this.RenderEntity.NoSelfShadow = true;
 
 			/*idAFAttachment *headEnt = head.GetEntity();
 			if ( headEnt ) {

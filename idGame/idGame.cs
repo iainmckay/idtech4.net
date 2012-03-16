@@ -7,8 +7,9 @@ using System.Reflection;
 using idTech4.Editor;
 using idTech4.Game.Entities;
 using idTech4.Game.Rules;
-using idTech4.Game.Physics;
+using idTech4.Input;
 using idTech4.Renderer;
+using idTech4.Sound;
 using idTech4.Text;
 using idTech4.Threading;
 
@@ -39,7 +40,7 @@ namespace idTech4.Game
 		/// </summary>
 	}
 
-	public class idGameLocal : idGame
+	public class idGame : idBaseGame
 	{
 		#region Constants
 		public const string GameVersion = "sharp";
@@ -226,13 +227,14 @@ namespace idTech4.Game
 			}
 		}
 
-		public idClip Clip
+		// TODO
+		/*public idClip Clip
 		{
 			get
 			{
 				return _clip;
 			}
-		}
+		}*/
 		#endregion
 
 		#region Members
@@ -292,14 +294,14 @@ namespace idTech4.Game
 
 		private List<int>[,] _clientDeclRemap;
 
-		private idClip _clip; // collision detection
+		// TODO: private idClip _clip; // collision detection
 		#endregion
 
 		#region Constructor
-		public idGameLocal()
+		public idGame()
 		{
 			idR.Game = this;
-			idR.GameEdit = new idGameEditLocal();
+			idR.GameEdit = new idGameEdit();
 
 			for(int i = 0; i < _userInfo.Length; i++)
 			{
@@ -316,16 +318,20 @@ namespace idTech4.Game
 		#region Methods
 		private void InitCvars()
 		{
-			new idCvar("g_version", String.Format("{0}.{1}{2} {3} {4}", idR.EngineVersion, idR.BuildNumber, idR.BuildType, idR.BuildArch, idR.BuildDate, idR.BuildTime), "game version", CvarFlags.Game | CvarFlags.ReadOnly);
+#if DEBUG
+			new idCvar("g_version", String.Format("{0}.{1}-debug {3}", idR.EngineVersion, idVersion.BuildCount, idVersion.BuildDate, idVersion.BuildTime), "game version", CvarFlags.Game | CvarFlags.ReadOnly);
+#else
+			new idCvar("g_version", String.Format("{0}.{1}-debug {3}", idR.EngineVersion, idVersion.BuildCount, idVersion.BuildDate, idVersion.BuildTime), "game version", CvarFlags.Game | CvarFlags.ReadOnly);
+#endif
 
 			// noset vars
-			new idCvar("gamename", idGameLocal.GameVersion, "", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.ReadOnly);
-			new idCvar("gamedate", idR.BuildDate, "", CvarFlags.Game | CvarFlags.ReadOnly);
+			new idCvar("gamename", idGame.GameVersion, "", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.ReadOnly);
+			new idCvar("gamedate", idVersion.BuildDate, "", CvarFlags.Game | CvarFlags.ReadOnly);
 
 			// server info
 			new idCvar("si_name", "DOOM Server", "name of the server", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive);
 			new idCvar("si_gameType", idStrings.GameTypes[0], idStrings.GameTypes, "game type - singleplayer, deathmatch, Tourney, Team DM or Last Man", new ArgCompletion_String(idStrings.GameTypes), CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive);
-			new idCvar("si_map", "game/mp/d3dm1", "map to be played next on server", new MapNameArgCompletion(), CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive);
+			new idCvar("si_map", "game/mp/d3dm1", "map to be played next on server", /* TODO: new MapNameArgCompletion(), */CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive);
 			new idCvar("si_maxPlayers", "4", 1, 4, "max number of players allowed on the server", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive | CvarFlags.Integer);
 			new idCvar("si_fragLimit", "10", 1, MultiplayerMaxFrags, "frag limit", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive | CvarFlags.Integer);
 			new idCvar("si_timeLimit", "10", 0, 60, "time limit in minutes", CvarFlags.Game | CvarFlags.ServerInfo | CvarFlags.Archive | CvarFlags.Integer);
@@ -573,7 +579,8 @@ namespace idTech4.Game
 
 		private void InitAsyncNetwork()
 		{
-			_clientDeclRemap = new List<int>[idR.MaxClients, 32];
+			// TODO
+			/*_clientDeclRemap = new List<int>[idR.MaxClients, 32];
 
 			for(int i = 0; i < idR.MaxClients; i++)
 			{
@@ -581,7 +588,7 @@ namespace idTech4.Game
 				{
 					_clientDeclRemap[i, type] = new List<int>();
 				}
-			}
+			}*/
 
 			/*memset( clientEntityStates, 0, sizeof( clientEntityStates ) );
 			memset( clientPVS, 0, sizeof( clientPVS ) );
@@ -613,7 +620,7 @@ namespace idTech4.Game
 			_isMultiplayer = false;
 
 			_clientCount = 0;
-			_spawnCount = idGameLocal.InitialSpawnCount;
+			_spawnCount = idGame.InitialSpawnCount;
 			_localClientIndex = 0;
 
 			_currentMapFileName = string.Empty;
@@ -773,14 +780,14 @@ namespace idTech4.Game
 					_currentMapFile.Dispose();
 					_currentMapFile = null;
 
-					Error("Couldn't load {0}", mapName);
+					idConsole.Error("Couldn't load {0}", mapName);
 				}
 			}
 
 			_currentMapFileName = _currentMapFile.Name;
 
 			// load the collision map
-			idR.CollisionModelManager.LoadMap(_currentMapFile);
+			// TODO: idR.CollisionModelManager.LoadMap(_currentMapFile);
 
 			_clientCount = 0;
 
@@ -791,7 +798,7 @@ namespace idTech4.Game
 			// TODO
 			// memset( usercmds, 0, sizeof( usercmds ) );
 
-			_spawnCount = idGameLocal.InitialSpawnCount;
+			_spawnCount = idGame.InitialSpawnCount;
 
 			_spawnedEntities.Clear();
 			/*activeEntities.Clear();
@@ -849,7 +856,7 @@ namespace idTech4.Game
 			cinematicStopTime = 0;
 			cinematicMaxSkipTime = 0;*/
 
-			_clip.Init();
+			// TODO: _clip.Init();
 
 			/*pvs.Init();
 			playerPVS.i = -1;
@@ -964,19 +971,19 @@ namespace idTech4.Game
 
 			if(this.IsMultiplayer == true)
 			{
-				result = args.GetBool("not_multiplayer", "0");
+				result = args.GetBool("not_multiplayer", false);
 			}
 			else if(idR.CvarSystem.GetInteger("g_skill") == 0)
 			{
-				result = args.GetBool("not_easy", "0");
+				result = args.GetBool("not_easy", false);
 			}
 			else if(idR.CvarSystem.GetInteger("g_skill") == 1)
 			{
-				result = args.GetBool("not_medium", "0");
+				result = args.GetBool("not_medium", false);
 			}
 			else
 			{
-				result = args.GetBool("not_hard", "0");
+				result = args.GetBool("not_hard", false);
 			}
 
 			string name;
@@ -1069,7 +1076,8 @@ namespace idTech4.Game
 
 		private void InitClientDeclRemap(int clientIndex)
 		{
-			for(int type = 0; type < idR.DeclManager.GetDeclTypeCount(); type++)
+			// TODO
+			/*for(int type = 0; type < idR.DeclManager.GetDeclTypeCount(); type++)
 			{
 				// only implicit materials and sound shaders decls are used
 				DeclType declType = (DeclType) type;
@@ -1097,7 +1105,7 @@ namespace idTech4.Game
 
 					_clientDeclRemap[clientIndex, type].Add(i);
 				}
-			}
+			}*/
 		}
 
 		/// <summary>
@@ -1279,7 +1287,8 @@ namespace idTech4.Game
 
 		public idEntity SpawnEntityDef(idDict args, bool setDefaults)
 		{
-			_spawnArgs = args;
+			// TODO
+			/*_spawnArgs = args;
 
 			string error = string.Empty;
 			string name = string.Empty;
@@ -1342,14 +1351,14 @@ namespace idTech4.Game
 				idEntity ent = (idEntity) obj;
 				ent.Spawn();
 
-				idConsole.DWriteLine("Spawned {0} ({1})", ent.ClassName, ent.GetType().FullName);
+				idConsole.DeveloperWriteLine("Spawned {0} ({1})", ent.ClassName, ent.GetType().FullName);
 
 				return ent;
 			}
 
 			// TODO: spawnfunc
-			/*// check if we should call a script function to spawn
-			spawnArgs.GetString( "spawnfunc", NULL, &spawn );
+			// check if we should call a script function to spawn
+			/*spawnArgs.GetString( "spawnfunc", NULL, &spawn );
 			if ( spawn ) {
 				const function_t *func = program.FindFunction( spawn );
 				if ( !func ) {
@@ -1401,7 +1410,8 @@ namespace idTech4.Game
 
 		public void ServerSendChatMessage(int to, string name, string text)
 		{
-			idBitMsg outMsg = new idBitMsg();
+			// TODO: 
+			/*idBitMsg outMsg = new idBitMsg();
 			outMsg.InitGame();
 			outMsg.BeginWriting();
 			outMsg.WriteByte((int) GameReliableMessage.Chat);
@@ -1413,7 +1423,7 @@ namespace idTech4.Game
 			if((to == -1) || (to == _localClientIndex))
 			{
 				((Multiplayer) _gameRules).AddChatLine("{0}^0: {1}", name, text);
-			}
+			}*/
 		}
 
 		public void RegisterEntity(idEntity entity)
@@ -1427,7 +1437,7 @@ namespace idTech4.Game
 
 			if(_spawnArgs.ContainsKey("spawn_entnum") == true)
 			{
-				entitySpawnIndex = _spawnArgs.GetInteger("spawn_entnum", "0");
+				entitySpawnIndex = _spawnArgs.GetInteger("spawn_entnum", 0);
 			}
 			else
 			{
@@ -1458,22 +1468,6 @@ namespace idTech4.Game
 				_entityCount++;
 			}
 		}
-
-		#region Static
-		public static void Error(string format, params object[] args)
-		{
-			idThread thread = idThread.CurrentThread;
-
-			if(thread != null)
-			{
-				thread.Error(format, args);
-			}
-			else
-			{
-				idConsole.Error(format, args);
-			}
-		}
-		#endregion
 		#endregion
 
 		#region idGame implementation
@@ -1485,8 +1479,8 @@ namespace idTech4.Game
 			InitCvars();
 
 			idConsole.WriteLine("--------- Initializing Game ----------");
-			idConsole.WriteLine("gamename: {0}", idGameLocal.GameVersion);
-			idConsole.WriteLine("gamedate: {0}", idR.BuildDate);
+			idConsole.WriteLine("gamename: {0}", idGame.GameVersion);
+			idConsole.WriteLine("gamedate: {0}", idVersion.BuildDate);
 
 			// TODO: register game specific decl types
 			//declManager->RegisterDeclType("model", DECL_MODELDEF, idDeclAllocator<idDeclModelDef>);
@@ -1538,9 +1532,9 @@ namespace idTech4.Game
 			idConsole.WriteLine("--------------------------------------");
 		}
 
-		public override idGameReturn RunFrame(idUserCommand[] userCommands)
+		public override GameReturn RunFrame(idUserCommand[] userCommands)
 		{
-			idGameReturn gameReturn = new idGameReturn();
+			GameReturn gameReturn = new GameReturn();
 			idPlayer player = this.LocalPlayer;
 
 			// set the user commands for this frame
@@ -1549,7 +1543,7 @@ namespace idTech4.Game
 			if((this.IsMultiplayer == false) && (idR.CvarSystem.GetBool("g_stopTime") == true))
 			{
 				// clear any debug lines from a previous frame
-				_currentRenderWorld.DebugClearLines(_time + 1);
+				// TODO: _currentRenderWorld.DebugClearLines(_time + 1);
 
 				if(player != null)
 				{
@@ -1581,19 +1575,19 @@ namespace idTech4.Game
 					if(player != null)
 					{
 						// update the renderview so that any gui videos play from the right frame
-						idRenderView view = player.RenderView;
+						/* TODO: idRenderView view = player.RenderView;
 
 						if(view != null)
 						{
 							_currentRenderWorld.RenderView = view;
-						}
+						}*/
 					}
 
 					// clear any debug lines from a previous frame
-					_currentRenderWorld.DebugClearLines(_time);
+					// TODO: _currentRenderWorld.DebugClearLines(_time);
 
 					// clear any debug polygons from a previous frame
-					_currentRenderWorld.DebugClearPolygons(_time);
+					// TODO: _currentRenderWorld.DebugClearPolygons(_time);
 
 					// free old smoke particles
 					// TODO: smokeParticles->FreeSmokes();
@@ -1748,19 +1742,19 @@ namespace idTech4.Game
 
 		public override void HandleMainMenuCommands(string menuCommand, idUserInterface gui)
 		{
-			idConsole.DWriteLine("HandleMainMenuCommands");
+			idConsole.DeveloperWriteLine("HandleMainMenuCommands");
 		}
 
 		public override string GetBestGameType(string map, string gameType)
 		{
-			idConsole.DWriteLine("GetBestGameType");
+			idConsole.DeveloperWriteLine("GetBestGameType");
 
 			return gameType;
 		}
 
 		public override string GetMapLoadingGui(string defaultGui)
 		{
-			idConsole.DWriteLine("GetMapLoadingGui");
+			idConsole.DeveloperWriteLine("GetMapLoadingGui");
 
 			return defaultGui;
 		}
@@ -1773,9 +1767,9 @@ namespace idTech4.Game
 		/// <param name="dict"></param>
 		public override void CacheDictionaryMedia(idDict dict)
 		{
-			idConsole.DWriteLine("CacheDictionaryMedia");
+			idConsole.DeveloperWriteLine("CacheDictionaryMedia");
 
-			idKeyValue kv = null;
+			/*idKeyValue kv = null;
 			// TODO
 			/*if ( dict == NULL ) {
 					if ( cvarSystem->GetCVarBool( "com_makingBuild") ) {
@@ -1788,7 +1782,7 @@ namespace idTech4.Game
 				GetShakeSounds( dict );
 			}*/
 
-			kv = dict.MatchPrefix("model", null);
+			/*kv = dict.MatchPrefix("model", null);
 
 			// TODO
 			/*while(kv != null)
@@ -1813,7 +1807,7 @@ namespace idTech4.Game
 				}
 			}*/
 
-			kv = dict.FindKey("s_shader");
+			/*kv = dict.FindKey("s_shader");
 
 			if((kv != null) && (kv.Value != string.Empty))
 			{
@@ -1998,12 +1992,12 @@ namespace idTech4.Game
 				}
 
 				kv = dict.MatchPrefix("audio", kv);
-			}
+			}*/
 		}
 
 		public override void InitFromNewMap(string mapName, idRenderWorld renderWorld, idSoundWorld soundWorld, bool isServer, bool isClient, int randomSeed)
 		{
-			idConsole.DWriteLine("InitFromNewMap");
+			idConsole.DeveloperWriteLine("InitFromNewMap");
 
 			_isServer = isServer;
 			_isClient = isClient;
@@ -2053,12 +2047,13 @@ namespace idTech4.Game
 
 			if(this.IsClient == false)
 			{
-				idBitMsg outMsg = new idBitMsg();
+				// TODO
+				/*idBitMsg outMsg = new idBitMsg();
 				outMsg.InitGame();
 				outMsg.WriteByte((int) GameReliableMessage.ServerInfo);
 				outMsg.WriteDeltaDict(_serverInfo, null);
 
-				idR.NetworkSystem.ServerSendReliableMessage(-1, outMsg);
+				idR.NetworkSystem.ServerSendReliableMessage(-1, outMsg);*/
 			}
 		}
 
@@ -2132,12 +2127,12 @@ namespace idTech4.Game
 
 		public override void ServerClientConnect(int clientIndex, string guid)
 		{
-			idConsole.DWriteLine("ServerClientConnect");
+			idConsole.DeveloperWriteLine("ServerClientConnect");
 
 			// make sure no parasite entity is left
 			if(_entities[clientIndex] != null)
 			{
-				idConsole.DWriteLine("ServerClientConnect: remove old player entity");
+				idConsole.DeveloperWriteLine("ServerClientConnect: remove old player entity");
 
 				_entities[clientIndex].Dispose();
 				_entities[clientIndex] = null;
@@ -2152,13 +2147,14 @@ namespace idTech4.Game
 
 		public override void ServerClientBegin(int clientIndex)
 		{
-			idConsole.DWriteLine("ServerClientBegin");
+			idConsole.DeveloperWriteLine("ServerClientBegin");
 
 			// initialize the decl remap
 			InitClientDeclRemap(clientIndex);
 
 			// send message to initialize decl remap at the client (this is always the very first reliable game message)
-			idBitMsg outMsg = new idBitMsg();
+			// TODO
+			/*idBitMsg outMsg = new idBitMsg();
 			outMsg.InitGame();
 			outMsg.BeginWriting();
 			outMsg.WriteByte((int) GameReliableMessage.InitDeclRemap);
@@ -2181,7 +2177,7 @@ namespace idTech4.Game
 			outMsg.WriteByte(clientIndex);
 			outMsg.WriteLong(_spawnIds[clientIndex]);
 
-			idR.NetworkSystem.ServerSendReliableMessage(-1, outMsg);
+			idR.NetworkSystem.ServerSendReliableMessage(-1, outMsg);*/
 		}
 		#endregion
 	}

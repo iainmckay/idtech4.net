@@ -236,7 +236,7 @@ namespace idTech4.UI
 					}
 					else
 					{
-						_cvar.SetString(_cvarStr.ToString());
+						_cvar.Set(_cvarStr.ToString());
 					}
 				}
 

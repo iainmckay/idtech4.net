@@ -208,22 +208,22 @@ namespace idTech4
 
 		#region Methods
 		#region Public
-		public void SetString(string value)
+		public void Set(string value)
 		{
 			_internal.SetStringInternal(value);
 		}
 
-		public void SetBool(bool value)
+		public void Set(bool value)
 		{
 			_internal.SetBoolInternal(value);
 		}
 
-		public void SetInteger(int value)
+		public void Set(int value)
 		{
 			_internal.SetIntegerInternal(value);
 		}
 
-		public void SetFloat(float value)
+		public void Set(float value)
 		{
 			_internal.SetFloatInternal(value);
 		}

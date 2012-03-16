@@ -5,7 +5,6 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
-using idTech4.Game.Physics;
 using idTech4.Text.Decl;
 
 namespace idTech4.Game
@@ -216,9 +215,10 @@ namespace idTech4.Game
 		}
 
 		/// <summary>
-		///For camera views from this entity.
+		/// For camera views from this entity.
 		/// </summary>
-		public idRenderView RenderView
+		// TODO
+		/*public idRenderView RenderView
 		{
 			get
 			{
@@ -229,12 +229,13 @@ namespace idTech4.Game
 
 				return _renderView;
 			}
-		}
+		}*/
 
 		/// <summary>
 		/// Used to present a model to the renderer
 		/// </summary>
-		public idRenderEntity RenderEntity
+		// TODO
+		/*public idRenderEntity RenderEntity
 		{
 			get
 			{
@@ -245,7 +246,7 @@ namespace idTech4.Game
 
 				return _renderEntity;
 			}
-		}
+		}*/
 
 		public idDeclSkin Skin
 		{
@@ -353,7 +354,7 @@ namespace idTech4.Game
 		// for being linked into activeEntities list
 		private LinkedListNode<idEntity> _activeNode;
 
-		private idStaticPhysics _defaultPhysicsObject;
+		// TODO: private idStaticPhysics _defaultPhysicsObject;
 		#endregion
 
 		#region Constructor
@@ -415,7 +416,8 @@ namespace idTech4.Game
 
 		private void InitDefaultPhysics(Vector3 origin, Matrix axis)
 		{
-			string temp = _spawnArgs.GetString("clipmodel", "");
+			// TODO
+			/*string temp = _spawnArgs.GetString("clipmodel", "");
 			idClipModel clipModel = null;
 
 			// check if a clipmodel key/value pair is set
@@ -427,7 +429,7 @@ namespace idTech4.Game
 				}
 			}
 
-			if(_spawnArgs.GetBool("noclipmodel", "0") == false)
+			if(_spawnArgs.GetBool("noclipmodel", false) == false)
 			{
 				// check if mins/maxs or size key/value pairs are set
 				if(clipModel == null)
@@ -466,7 +468,7 @@ namespace idTech4.Game
 						}
 						clipModel = new idClipModel( trm );
 					}*/
-				}
+				/*}
 
 				// check if the visual model can be used as collision model
 				if(clipModel == null)

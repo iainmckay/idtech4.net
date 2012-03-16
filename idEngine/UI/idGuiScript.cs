@@ -396,12 +396,17 @@ namespace idTech4.UI
 
 			if((parameter != null) && (source.Count > 1))
 			{
-				drawWindow = window.UserInterface.Desktop.FindChildByName(parameter.ToString());
+				drawWindow = window.UserInterface.Desktop.FindChildByName(parameter);
 				parameter = source[1].Variable as idWinString;
+
+				if(drawWindow == null)
+				{
+					idConsole.WriteLine("NUUUUUUULL2");
+				}
 			}
 
 			int tmp;
-			int.TryParse(parameter.ToString(), out tmp);
+			int.TryParse(parameter, out tmp);
 
 			if((drawWindow != null) && (drawWindow.Window != null))
 			{
@@ -422,26 +427,24 @@ namespace idTech4.UI
 
 		private static void Script_Set(idWindow window, List<idWinGuiScript> source)
 		{
-			idWinString dest = (source.Count > 0) ? source[0].Variable as idWinString : null;
+			string dest = (source.Count > 0) ? source[0].Variable.ToString() : null;
 
 			if(dest != null)
 			{
-				string destStr = dest.ToString();
-
-				if(destStr.Equals("cmd", StringComparison.OrdinalIgnoreCase) == true)
+				if(dest.Equals("cmd", StringComparison.OrdinalIgnoreCase) == true)
 				{
 					dest = (source.Count > 1) ? source[1].Variable as idWinString : null;
-					destStr = dest.ToString();
+					
 					int parameterCount = source.Count;
 
 					if(parameterCount > 2)
 					{
-						StringBuilder value = new StringBuilder(destStr);
+						StringBuilder value = new StringBuilder(dest);
 						int i = 2;
 
 						while(i < parameterCount)
 						{
-							value.AppendFormat(" \"{0}\"", source[i].Variable.ToString());
+							value.AppendFormat(" \"{0}\"", source[i].Variable);
 							i++;
 						}
 
@@ -449,9 +452,9 @@ namespace idTech4.UI
 					}
 					else
 					{
-						window.AddCommand(destStr);
+						window.AddCommand(dest);
 					}
-				
+
 					return;
 				}
 			}

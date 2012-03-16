@@ -5,6 +5,8 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.CollisionManager;
+
 namespace idTech4.Game.Physics
 {
 	public class idStaticPhysics : idPhysics

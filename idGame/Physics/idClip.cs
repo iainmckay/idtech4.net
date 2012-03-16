@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 
 using idTech4;
-using idTech4.Geometry;
+using idTech4.CollisionManager;
 using idTech4.Renderer;
 
 namespace idTech4.Game.Physics
@@ -103,7 +103,7 @@ namespace idTech4.Game.Physics
 
 			// initialize a default clip model
 			_defaultClipModel = new idClipModel();
-			_defaultClipModel.LoadModel(new idTraceModel(idBounds.Expand(8)));
+			// TODO: _defaultClipModel.LoadModel(new idTraceModel(idBounds.Expand(8)));
 
 			// set counters to zero
 			_rotationCount = 0;
@@ -123,7 +123,7 @@ namespace idTech4.Game.Physics
 			}*/
 
 			// TODO
-			idTraceModel traceModel = TraceModelForClipModel(model);
+			/*idTraceModel traceModel = TraceModelForClipModel(model);
 			idBounds traceBounds = new idBounds();
 			TraceResult traceResult;
 			float radius = 0;
@@ -193,12 +193,14 @@ namespace idTech4.Game.Physics
 				}
 			}
 
-			return (result.Fraction < 1.0f);
+			return (result.Fraction < 1.0f);*/
+			result = new TraceResult();
+			return false;
 		}
 
 		public bool Rotation(out TraceResult result, Vector3 start, idRotation rotation, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, idEntity passEntity)
 		{
-			idTraceModel traceModel = TraceModelForClipModel(model);
+			/*idTraceModel traceModel = TraceModelForClipModel(model);
 			idBounds traceBounds = new idBounds();
 			TraceResult traceResult;
 
@@ -262,14 +264,18 @@ namespace idTech4.Game.Physics
 				}
 			}
 
-			return (result.Fraction < 1.0f);
+			return (result.Fraction < 1.0f);*/
+			result = new TraceResult();
+			return false;
 		}
 
 		public ContentFlags Contents(Vector3 start, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, idEntity passEntity)
 		{
 			ContentFlags contents = ContentFlags.None;
 			idBounds traceModelBounds = new idBounds();
-			idTraceModel traceModel = TraceModelForClipModel(model);
+			
+			// TODO
+			/*idTraceModel traceModel = TraceModelForClipModel(model);
 
 			if((passEntity == null) || (passEntity.Index != idR.EntityIndexWorld))
 			{
@@ -331,7 +337,7 @@ namespace idTech4.Game.Physics
 				{
 					contents |= (touch.Contents & contentMask);
 				}*/
-			}
+			/*}*/
 
 			return contents;
 		}
@@ -346,7 +352,7 @@ namespace idTech4.Game.Physics
 
 		public TraceResult TranslationModel(Vector3 start, Vector3 end, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, int modelHandle, Vector3 modelOrigin, Matrix modelAxis)
 		{
-			idTraceModel traceModel = TraceModelForClipModel(model);
+			// TODO: idTraceModel traceModel = TraceModelForClipModel(model);
 
 			_translationCount++;
 
@@ -356,7 +362,7 @@ namespace idTech4.Game.Physics
 
 		public TraceResult RotationModel(Vector3 start, idRotation rotation, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, int modelHandle, Vector3 modelOrigin, Matrix modelAxis)
 		{
-			idTraceModel traceModel = TraceModelForClipModel(model);
+			// TODO: idTraceModel traceModel = TraceModelForClipModel(model);
 
 			_rotationCount++;
 
@@ -484,6 +490,8 @@ namespace idTech4.Game.Physics
 			}
 
 			return num;*/
+
+			return null;
 		}
 		#endregion
 		#endregion

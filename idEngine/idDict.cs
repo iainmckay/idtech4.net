@@ -45,19 +45,28 @@ namespace idTech4
 	public sealed class idDict
 	{
 		#region Members
-		// TODO: is this going to be affected by boxing on primitives?
-		private Dictionary<string, string> _dict;
+		private Dictionary<string, string> _dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
 		#endregion 
 
 		#region Constructor
 		public idDict()
 		{
-			_dict = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
+			
 		}
 		#endregion
 
 		#region Methods
 		#region Public
+		public void Clear()
+		{
+			_dict.Clear();
+		}
+
+		public bool ContainsKey(string key)
+		{
+			return _dict.ContainsKey(key);
+		}
+
 		public bool GetBool(string key)
 		{
 			return GetBool(key, false);
@@ -264,6 +273,16 @@ namespace idTech4
 		public void Set(string key, Rectangle value)
 		{
 			Set(key, string.Format("{0} {1} {2} {3}", value.X, value.Y, value.Width, value.Height));
+		}
+
+		public void TransferKeyValues(idDict source)
+		{
+			_dict.Clear();
+
+			foreach(KeyValuePair<string, string> kvp in source._dict)
+			{
+				_dict.Add(kvp.Key, kvp.Value);
+			}
 		}
 		#endregion
 		#endregion

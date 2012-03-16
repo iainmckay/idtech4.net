@@ -9,10 +9,10 @@ using idTech4.UI;
 
 namespace idTech4.Game
 {
-	public class idGameEditLocal : idGameEdit
+	public class idGameEdit : idGameEdit
 	{
 		#region Constructor
-		public idGameEditLocal()
+		public idGameEdit()
 		{
 			idR.GameEdit = this;
 		}
@@ -62,7 +62,7 @@ namespace idTech4.Game
 				renderEntity.CustomShader = idR.DeclManager.FindMaterial(temp);
 			}
 
-			renderEntity.Origin = args.GetVector3("origin", "0 0 0");
+			renderEntity.Origin = args.GetVector3("origin", Vector3.Zero);
 
 			// get the rotation matrix in either full form, or single angle form
 			renderEntity.Axis = args.GetMatrix("rotation", "1 0 0 0 1 0 0 0 1");
@@ -85,7 +85,7 @@ namespace idTech4.Game
 			//renderEntity.ReferencedSound = null;
 
 			// get shader parms
-			Vector3 color = args.GetVector3("_color", "1 1 1");
+			Vector3 color = args.GetVector3("_color", new Vector3(1, 1, 1));
 
 			float[] shaderParms = renderEntity.ShaderParms;
 
@@ -93,15 +93,15 @@ namespace idTech4.Game
 			shaderParms[(int) ShaderParameter.Green] = color.Y;
 			shaderParms[(int) ShaderParameter.Blue] = color.Z;
 
-			shaderParms[3] = args.GetFloat("shaderParm3", "1");
-			shaderParms[4] = args.GetFloat("shaderParm4", "0");
-			shaderParms[5] = args.GetFloat("shaderParm5", "0");
-			shaderParms[6] = args.GetFloat("shaderParm6", "0");
-			shaderParms[7] = args.GetFloat("shaderParm7", "0");
-			shaderParms[8] = args.GetFloat("shaderParm8", "0");
-			shaderParms[9] = args.GetFloat("shaderParm9", "0");
-			shaderParms[10] = args.GetFloat("shaderParm10", "0");
-			shaderParms[11] = args.GetFloat("shaderParm11", "0");
+			shaderParms[3] = args.GetFloat("shaderParm3", 1);
+			shaderParms[4] = args.GetFloat("shaderParm4", 0);
+			shaderParms[5] = args.GetFloat("shaderParm5", 0);
+			shaderParms[6] = args.GetFloat("shaderParm6", 0);
+			shaderParms[7] = args.GetFloat("shaderParm7", 0);
+			shaderParms[8] = args.GetFloat("shaderParm8", 0);
+			shaderParms[9] = args.GetFloat("shaderParm9", 0);
+			shaderParms[10] = args.GetFloat("shaderParm10", 0);
+			shaderParms[11] = args.GetFloat("shaderParm11", 0);
 
 			renderEntity.ShaderParms = shaderParms;
 
@@ -129,17 +129,20 @@ namespace idTech4.Game
 
 		private idUserInterface AddRenderGui(string name, idDict args)
 		{
-			idKeyValue kv = args.MatchPrefix("gui_parm", null);
+			// TODO
+			/*idKeyValue kv = args.MatchPrefix("gui_parm", null);
 			idUserInterface gui = idR.UIManager.FindInterface(name, true, (kv != null));
 
 			UpdateGuiParams(gui, args);
 
-			return gui;
+			return gui;*/
+			return null;
 		}
 
 		private void UpdateGuiParams(idUserInterface gui, idDict args)
 		{
-			if((gui == null) || (args == null))
+			// TODO
+			/*if((gui == null) || (args == null))
 			{
 				return;
 			}
@@ -148,12 +151,12 @@ namespace idTech4.Game
 
 			while(kv != null)
 			{
-				gui.SetState(kv.Key, kv.Value);
+				gui.State.Set(kv.Key, kv.Value);
 				kv = args.MatchPrefix("gui_parm", kv);
 			}
 
 			gui.SetState("noninteractive", args.GetBool("gui_noninteractive"));
-			gui.StateChanged(idR.Game.Time);
+			gui.StateChanged(idR.Game.Time);*/
 		}
 		#endregion
 	}

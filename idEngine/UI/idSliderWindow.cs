@@ -143,7 +143,7 @@ namespace idTech4.UI
 					else
 					{
 						_value.Set(this.UserInterface.State.GetFloat(_cvarStr));
-						_cvar.SetFloat(_value);
+						_cvar.Set(_value);
 					}
 				}
 			}

@@ -96,6 +96,47 @@ namespace idTech4.UI
 
 			_scroller = new idSliderWindow(this.DeviceContext, this.UserInterface);
 		}
+
+		private void InitConsoleVariables()
+		{
+			if(_cvarStr != null)
+			{
+				idConsole.Warning("idEditWindow.InitConsoleVariables: gui '{0}' window '{1}' has an empty cvar string", this.UserInterface.SourceFile, this.Name);
+				_cvar = null;
+			}
+			else
+			{
+				_cvar = idE.CvarSystem.Find(_cvarStr);
+
+				if(_cvar == null)
+				{
+					idConsole.Warning("idEditWindow.InitConsoleVariables: gui '{0}' window '{1}' references undefined cvar '{2}'", this.UserInterface.SourceFile, this.Name, _cvarStr);
+				}
+			}
+		}
+
+		private void UpdateConsoleVariables(bool read, bool force = false)
+		{
+			if((force == true) || (_liveUpdate == true))
+			{
+				if(_cvar != null)
+				{
+					if(read == true)
+					{
+						this.Text = _cvar.ToString();
+					}
+					else
+					{
+						_cvar.Set(this.Text);
+
+						if((_cvarMax > 0) && (_cvar.ToInt() > _cvarMax))
+						{
+							_cvar.Set(_cvarMax);
+						}
+					}
+				}
+			}
+		}
 		#endregion
 		#endregion
 
@@ -104,21 +145,21 @@ namespace idTech4.UI
 		public override void Activate(bool activate, ref string act)
 		{
 			base.Activate(activate, ref act);
-			idConsole.Warning("TODO: EditWindow Activate");
-			/* TODO: if(activate)
+			
+			if(activate == true)
 			{
-				UpdateCvar(true, true);
-				EnsureCursorVisible();
-			}*/
+				UpdateConsoleVariables(true, true);
+				// TODO: EnsureCursorVisible();
+			}
 		}
 
 		public override void Draw(int x, int y)
 		{
 			idConsole.Warning("TODO: EditWindow Draw");
 
+			UpdateConsoleVariables(true);
 			/*idVec4 color = foreColor;
 
-			UpdateCvar( true );
 
 			int len = text.Length();
 			if ( len != lastTextLength ) {
@@ -521,10 +562,10 @@ namespace idTech4.UI
 				fileSystem->ReadFile(sourceFile, &buffer);
 				text = (char*) buffer;
 				fileSystem->FreeFile(buffer);
-			}
+			}*/
 
-			InitCvar();
-			InitScroller(false);
+			InitConsoleVariables();
+			/*InitScroller(false);
 
 			EnsureCursorVisible();*/
 
