@@ -34,6 +34,10 @@ namespace idTech4.Game
 {
 	public abstract class idBaseGame
 	{
+		/// <summary>
+		/// Initialize the game for the first time.
+		/// </summary>
+		public abstract void Init();
 	}
 
 	public struct GameReturn
@@ -47,6 +51,7 @@ namespace idTech4.Game
 		public int HeartRate;
 		public int Stamina;
 		public int Combat;
+
 		/// <summary>
 		/// Used when cinematics are skipped to prevent session from simulating several game frames to
 		/// keep the game time in sync with real time.

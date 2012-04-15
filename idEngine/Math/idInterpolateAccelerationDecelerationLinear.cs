@@ -127,21 +127,21 @@ namespace idTech4.Math
 
 			if(_accelTime > 0)
 			{
-				_extrapolate.Init(_startTime, _accelTime, _startValue, (_startValue - _startValue), speed, ExtrapolationType.AccelerationLinear);
+				_extrapolate.Init(startTime, _accelTime, startValue, (startValue - startValue), speed, ExtrapolationType.AccelerationLinear);
 			}
 			else if(_linearTime > 0)
 			{
-				_extrapolate.Init(_startTime, _linearTime, _startValue, (_startValue - _startValue), speed, ExtrapolationType.Linear);
+				_extrapolate.Init(startTime, _linearTime, startValue, (startValue - startValue), speed, ExtrapolationType.Linear);
 			}
 			else
 			{
-				_extrapolate.Init(_startTime, _decelTime, _startValue, (_startValue - _startValue), speed, ExtrapolationType.DecelerationLinear);
+				_extrapolate.Init(startTime, _decelTime, startValue, (startValue - startValue), speed, ExtrapolationType.DecelerationLinear);
 			}
 		}
 
 		public bool IsDone(float time)
 		{
-			return (_startTime >= (_startTime + _accelTime + _linearTime + _decelTime));
+			return (time >= (_startTime + _accelTime + _linearTime + _decelTime));
 		}
 		#endregion
 

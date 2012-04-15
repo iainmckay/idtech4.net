@@ -14,7 +14,7 @@ namespace idTech4.Game
 		public static readonly int UserCommandHertz = 60; // 60 frames per second
 		public static readonly int UserCommandRate = 1000 / UserCommandHertz;
 
-		public static readonly int MaxClients = idE.MaxClients;
+		/*public static readonly int MaxClients = idE.MaxClients;
 		public static readonly int MaxGameEntities = idE.MaxGameEntities;
 		public static readonly int MaxRenderEntityGui = idE.MaxRenderEntityGui;
 
@@ -22,7 +22,7 @@ namespace idTech4.Game
 
 		public static readonly int EntityIndexNone = idE.MaxGameEntities - 1;
 		public static readonly int EntityIndexWorld = idE.MaxGameEntities - 2;		
-		public static readonly int EntityCountNormalMax = idE.MaxGameEntities - 2;
+		public static readonly int EntityCountNormalMax = idE.MaxGameEntities - 2;*/
 
 		public static readonly string EngineVersion = idE.EngineVersion;
 		
@@ -36,6 +36,6 @@ namespace idTech4.Game
 		public static readonly idLangDict Language = idE.Language;
 
 		public static idGame Game;
-		public static idGameEdit GameEdit;
+		//public static idGameEdit GameEdit;
 	}
 }

@@ -226,12 +226,7 @@ namespace idTech4.UI
 			_desktop.RunNamedEvent(name);
 		}
 
-		public bool InitFromFile(string path)
-		{
-			return InitFromFile(path, true, true);
-		}
-
-		public bool InitFromFile(string path, bool rebuild, bool cache)
+		public bool InitFromFile(string path, bool rebuild = true, bool cache = true)
 		{
 			if(path == string.Empty)
 			{

@@ -668,7 +668,7 @@ namespace idTech4.UI
 		#region Overloads
 		public override string ToString()
 		{
-			return _data.ToString();
+			return string.Format("{0} {1} {2} {3}", _data.X, _data.Y, _data.Width, _data.Height);
 		}
 
 		public override bool Equals(object obj)

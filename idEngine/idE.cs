@@ -31,6 +31,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
+using idTech4.Game;
 using idTech4.IO;
 using idTech4.Net;
 using idTech4.Renderer;
@@ -100,6 +101,8 @@ namespace idTech4
 		public const int UserCommandMillseconds = 1000 / UserCommandHertz;
 
 		public static idSystem System;
+		public static idBaseGame Game;
+
 		public static readonly idLangDict Language = new idLangDict();
 		public static readonly idSession Session = new idSession();
 		public static readonly idFileSystem FileSystem = new idFileSystem();

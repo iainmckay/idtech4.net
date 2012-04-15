@@ -19,9 +19,9 @@ namespace idTech4.Game
 		#endregion
 
 		#region Methods
-		public void ParseSpawnArgsToRenderEntity(idDict args, idRenderEntity renderEntity)
+		public void ParseSpawnArgsToRenderEntity(idDict args, /*idRenderEntity*/ object renderEntity)
 		{
-			renderEntity.Clear();
+			//renderEntity.Clear();
 			
 			string temp = args.GetString("model");
 
@@ -47,7 +47,7 @@ namespace idTech4.Game
 
 			if(temp != null)
 			{
-				renderEntity.CustomSkin = idR.DeclManager.FindSkin(temp);
+				//renderEntity.CustomSkin = idR.DeclManager.FindSkin(temp);
 			}
 			else if(1 == 0 /* modelDef != null*/)
 			{
@@ -59,15 +59,15 @@ namespace idTech4.Game
 
 			if(temp != null)
 			{
-				renderEntity.CustomShader = idR.DeclManager.FindMaterial(temp);
+				//renderEntity.CustomShader = idR.DeclManager.FindMaterial(temp);
 			}
 
-			renderEntity.Origin = args.GetVector3("origin", Vector3.Zero);
+			//renderEntity.Origin = args.GetVector3("origin", Vector3.Zero);
 
 			// get the rotation matrix in either full form, or single angle form
-			renderEntity.Axis = args.GetMatrix("rotation", "1 0 0 0 1 0 0 0 1");
+			//renderEntity.Axis = args.GetMatrix("rotation", "1 0 0 0 1 0 0 0 1");
 
-			if(renderEntity.Axis == Matrix.Identity)
+			/*if(renderEntity.Axis == Matrix.Identity)
 			{
 				float angle = args.GetFloat("angle");
 
@@ -79,7 +79,7 @@ namespace idTech4.Game
 				{
 					renderEntity.Axis = Matrix.Identity;
 				}
-			}
+			}*/
 
 			// TODO
 			//renderEntity.ReferencedSound = null;
@@ -87,13 +87,13 @@ namespace idTech4.Game
 			// get shader parms
 			Vector3 color = args.GetVector3("_color", new Vector3(1, 1, 1));
 
-			float[] shaderParms = renderEntity.ShaderParms;
+			/*float[] shaderParms = renderEntity.ShaderParms;*/
 
-			shaderParms[(int) ShaderParameter.Red] = color.X;
+			/*shaderParms[(int) ShaderParameter.Red] = color.X;
 			shaderParms[(int) ShaderParameter.Green] = color.Y;
-			shaderParms[(int) ShaderParameter.Blue] = color.Z;
+			shaderParms[(int) ShaderParameter.Blue] = color.Z;*/
 
-			shaderParms[3] = args.GetFloat("shaderParm3", 1);
+			/*shaderParms[3] = args.GetFloat("shaderParm3", 1);
 			shaderParms[4] = args.GetFloat("shaderParm4", 0);
 			shaderParms[5] = args.GetFloat("shaderParm5", 0);
 			shaderParms[6] = args.GetFloat("shaderParm6", 0);
@@ -103,16 +103,16 @@ namespace idTech4.Game
 			shaderParms[10] = args.GetFloat("shaderParm10", 0);
 			shaderParms[11] = args.GetFloat("shaderParm11", 0);
 
-			renderEntity.ShaderParms = shaderParms;
+			renderEntity.ShaderParms = shaderParms;*/
 
 			// check noDynamicInteractions flag
-			renderEntity.NoDynamicInteractions = args.GetBool("noDynamicInteractions");
+			/*renderEntity.NoDynamicInteractions = args.GetBool("noDynamicInteractions");
 
 			// check noshadows flag
 			renderEntity.NoShadow = args.GetBool("noshadows");
 
 			// check noselfshadows flag
-			renderEntity.NoSelfShadow = args.GetBool("noselfshadows");
+			renderEntity.NoSelfShadow = args.GetBool("noselfshadows");*/
 
 			// TODO
 			// init any guis, including entity-specific states

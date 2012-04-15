@@ -148,6 +148,8 @@ namespace idTech4.Renderer
 		private GraphicsDevice _graphicsDevice;
 		private GraphicsDeviceManager _graphicsDeviceManager;
 
+		
+
 		private int _frameCount;											// incremented every frame
 		private int _viewCount;												// incremented every view (twice a scene if subviewed) and every R_MarkFragments call
 		private float _sortOffset;											// for determinist sorting of equal sort materials
@@ -426,7 +428,7 @@ namespace idTech4.Renderer
 				int h = (int) (idE.VirtualScreenHeight * idE.CvarSystem.GetInteger("r_screenFraction") / 100.0f);
 
 				// TODO: CropRenderSize(w, h);
-				idConsole.WriteLine("idRenderSystem.CropRenderSize");
+				idConsole.Warning("idRenderSystem.CropRenderSize");
 			}
 
 			// this is the ONLY place this is modified
@@ -472,6 +474,79 @@ namespace idTech4.Renderer
 			_worlds.Add(world);
 
 			return world;
+		}
+
+		public void DrawBigCharacter(int x, int y, int ch, idMaterial material)
+		{
+			ch &= 255;
+
+			if(ch == ' ')
+			{
+				return;
+			}
+
+			if(y < -idE.BigCharacterHeight)
+			{
+				return;
+			}
+
+			int row = ch >> 4;
+			int col = ch & 15;
+
+			float frow = row * 0.0625f;
+			float fcol = col * 0.0625f;
+			float size = 0.0625f;
+
+			DrawStretchPicture(x, y, idE.BigCharacterWidth, idE.BigCharacterHeight, fcol, frow, fcol + size, frow + size, material);
+		}
+
+		/// <summary>
+		/// Draws a multi-colored string with a drop shadow, optionally forcing to a fixed color.
+		/// <para/>
+		/// Coordinates are at 640 by 480 virtual resolution.
+		/// </summary>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="str"></param>
+		/// <param name="color"></param>
+		/// <param name="forceColor"></param>
+		/// <param name="material"></param>
+		public void DrawBigString(int x, int y, string str, Vector4 color, bool forceColor, idMaterial material)
+		{
+			Vector4 tmpColor;
+			int xx = x;
+
+			this.Color = color;
+
+			for(int i = 0; i < str.Length; i++)
+			{
+				if(idHelper.IsColor(str, i) == true)
+				{
+					if(forceColor == false)
+					{
+						if(str[i + 1] == (char) idColorIndex.Default)
+						{
+							this.Color = color;
+						}
+						else
+						{
+							tmpColor = idHelper.ColorForIndex(str[i + 1]);
+							tmpColor.W = color.W;
+
+							this.Color = tmpColor;
+						}
+					}
+
+					i += 2;
+					continue;
+				}
+
+				DrawBigCharacter(xx, y, str[i], material);
+
+				xx += idE.BigCharacterWidth;
+			}
+
+			this.Color = idColor.White;
 		}
 
 		/// <summary>
@@ -728,7 +803,7 @@ namespace idTech4.Renderer
 			ToggleSmpFrame();
 
 			// reset our gamma
-			/*SetColorMappings();*/
+			SetColorMappings();
 		}
 
 		public void Present()
@@ -1172,9 +1247,7 @@ namespace idTech4.Renderer
 				}
 
 				Texture texture = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].CurrentTexture;
-
-				_graphicsDevice.BlendState = BlendState.AlphaBlend;
-
+					
 				if(texture != null)
 				{
 					_basicEffect.Texture = (Texture2D) texture;
@@ -1648,6 +1721,8 @@ namespace idTech4.Renderer
 			int srcFactor;
 			int dstFactor;
 
+			//BlendState blendState = BlendState.AlphaBlend;			
+
 			if((idE.CvarSystem.GetBool("r_useStateCaching") == false) || (idE.Backend.GLState.ForceState == true))
 			{
 				// make sure everything is set all the time, so we
@@ -1665,6 +1740,7 @@ namespace idTech4.Renderer
 				}
 			}
 
+			
 			//
 			// check depthFunc bits
 			//
@@ -1672,14 +1748,17 @@ namespace idTech4.Renderer
 			{
 				if(state.HasFlag(MaterialStates.DepthFunctionEqual) == true)
 				{
+					idConsole.Warning("TODO: DepthFuncEqual");
 					//Gl.glDepthFunc(Gl.GL_EQUAL);
 				}
 				else if(state.HasFlag(MaterialStates.DepthFunctionAlways) == true)
 				{
+					//idConsole.Warning("TODO: DepthFuncAlways");
 					//Gl.glDepthFunc(Gl.GL_ALWAYS);
 				}
 				else
 				{
+					idConsole.Warning("TODO: DepthFuncLEqual");
 					//Gl.glDepthFunc(Gl.GL_LEQUAL);
 				}
 			}
@@ -1692,35 +1771,37 @@ namespace idTech4.Renderer
 				switch(state & MaterialStates.SourceBlendBits)
 				{
 					case MaterialStates.SourceBlendZero:
-						srcFactor = Gl.GL_ZERO;
+						//blendState.AlphaSourceBlend = Blend.Zero;
 						break;
 					case MaterialStates.SourceBlendOne:
-						srcFactor = Gl.GL_ONE;
+						//blendState.AlphaSourceBlend = Blend.One;
 						break;
 					case MaterialStates.SourceBlendDestinationColor:
-						srcFactor = Gl.GL_DST_COLOR;
+						//blendState.AlphaSourceBlend = Blend.DestinationColor;
 						break;
 					case MaterialStates.SourceBlendOneMinusDestinationColor:
+						idConsole.Warning("TODO: ONE_MINUS_DST_COLOR");
 						srcFactor = Gl.GL_ONE_MINUS_DST_COLOR;
 						break;
 					case MaterialStates.SourceBlendSourceAlpha:
-						srcFactor = Gl.GL_SRC_ALPHA;
+						//blendState.AlphaSourceBlend = Blend.SourceAlpha;
 						break;
 					case MaterialStates.SourceBlendOneMinusSourceAlpha:
+						idConsole.Warning("TODO: GL_ONE_MINUS_SRC_ALPHA");
 						srcFactor = Gl.GL_ONE_MINUS_SRC_ALPHA;
 						break;
 					case MaterialStates.SourceBlendDestinationAlpha:
-						srcFactor = Gl.GL_DST_ALPHA;
+						//blendState.AlphaSourceBlend = Blend.DestinationAlpha;						
 						break;
 					case MaterialStates.SourceBlendOneMinusDestinationAlpha:
+						idConsole.Warning("TODO: GL_ONE_MINUS_DST_ALPHA");
 						srcFactor = Gl.GL_ONE_MINUS_DST_ALPHA;
 						break;
 					case MaterialStates.SourceBlendAlphaSaturate:
-						srcFactor = Gl.GL_SRC_ALPHA_SATURATE;
+						//blendState.AlphaSourceBlend = Blend.SourceAlphaSaturation;
 						break;
 					default:
-						srcFactor = Gl.GL_ONE; // to get warning to shut up
-
+						//blendState.AlphaSourceBlend = Blend.One;
 						idConsole.Error("GL_State: invalid src blend state bits");
 						break;
 				}
@@ -1728,36 +1809,39 @@ namespace idTech4.Renderer
 				switch(state & MaterialStates.DestinationBlendBits)
 				{
 					case MaterialStates.DestinationBlendZero:
-						dstFactor = Gl.GL_ZERO;
+						//blendState.AlphaDestinationBlend = Blend.Zero;
 						break;
 					case MaterialStates.DestinationBlendOne:
-						dstFactor = Gl.GL_ONE;
+						//blendState.AlphaDestinationBlend = Blend.One;
 						break;
 					case MaterialStates.DestinationBlendSourceColor:
-						dstFactor = Gl.GL_SRC_COLOR;
+						//blendState.AlphaDestinationBlend = Blend.SourceColor;
 						break;
 					case MaterialStates.DestinationBlendOneMinusSourceColor:
+						idConsole.Warning("TODO: ONE_MINUS_SRC_COLOR");
 						dstFactor = Gl.GL_ONE_MINUS_SRC_COLOR;
 						break;
 					case MaterialStates.DestinationBlendSourceAlpha:
-						dstFactor = Gl.GL_SRC_ALPHA;
+						//blendState.AlphaDestinationBlend = Blend.SourceAlpha;
 						break;
 					case MaterialStates.DestinationBlendOneMinusSourceAlpha:
+						idConsole.Warning("TODO: ONE_MINUS_SRC_ALPHA");
 						dstFactor = Gl.GL_ONE_MINUS_SRC_ALPHA;
 						break;
 					case MaterialStates.DestinationBlendDestinationAlpha:
-						dstFactor = Gl.GL_DST_ALPHA;
+						//blendState.AlphaDestinationBlend = Blend.DestinationAlpha;
 						break;
 					case MaterialStates.DestinationBlendOneMinusDestinationAlpha:
+						idConsole.Warning("TODO: ONE_MINUS_DST_ALPHA");
 						dstFactor = Gl.GL_ONE_MINUS_DST_ALPHA;
 						break;
 					default:
-						dstFactor = Gl.GL_ONE; // to get warning to shut up
+						//blendState.AlphaDestinationBlend = Blend.One;
 
 						idConsole.Error("GL_State: invalid dst blend state bits");
 						break;
 				}
-
+								
 				//Gl.glBlendFunc(srcFactor, dstFactor);
 			}
 
@@ -1766,6 +1850,7 @@ namespace idTech4.Renderer
 			//
 			if(diff.HasFlag(MaterialStates.DepthMask) == true)
 			{
+				//idConsole.Warning("TODO: depthmask");
 				if(state.HasFlag(MaterialStates.DepthMask) == true)
 				{
 					//Gl.glDepthMask(Gl.GL_FALSE);
@@ -1786,6 +1871,7 @@ namespace idTech4.Renderer
 				int b = (diff.HasFlag(MaterialStates.BlueMask) == true) ? 1 : 0;
 				int a = (diff.HasFlag(MaterialStates.AlphaMask) == true) ? 1 : 0;
 
+				//idConsole.Warning("TODO: glColorMask");
 				//Gl.glColorMask(r, g, b, a);
 			}
 
@@ -1812,20 +1898,23 @@ namespace idTech4.Renderer
 				switch(state & MaterialStates.AlphaTestBits)
 				{
 					case 0:
-						////Gl.glDisable(Gl.GL_ALPHA_TEST);
+						//_graphicsDevice.BlendState = BlendState.Opaque;
 						break;
 
 					case MaterialStates.AlphaTestEqual255:
+						idConsole.Warning("TODO: glEnable ALPHA255");
 						//Gl.glEnable(Gl.GL_ALPHA_TEST);
 						//Gl.glAlphaFunc(Gl.GL_EQUAL, 1.0f);
 						break;
 
 					case MaterialStates.AlphaTestLessThan128:
+						idConsole.Warning("TODO: glEnable ALPHA128");
 						//Gl.glEnable(Gl.GL_ALPHA_TEST);
 						//Gl.glAlphaFunc(Gl.GL_LESS, 0.5f);
 						break;
 
 					case MaterialStates.AlphaTestGreaterOrEqual128:
+						idConsole.Warning("TODO: glEnable LEALPHA128");
 						//Gl.glEnable(Gl.GL_ALPHA_TEST);
 						//Gl.glAlphaFunc(Gl.GL_GEQUAL, 0.5f);
 						break;
@@ -1835,6 +1924,7 @@ namespace idTech4.Renderer
 				}
 			}
 
+			//_graphicsDevice.BlendState = blendState;
 			idE.Backend.GLState.StateBits = state;
 		}
 
@@ -2858,7 +2948,6 @@ namespace idTech4.Renderer
 				string[] parts = idE.CvarSystem.GetString("r_clear").Split(' ');
 				Color color;
 
-				// TODO: clear color
 				if(parts.Length == 3)
 				{
 					float tmp1, tmp2, tmp3;
@@ -2934,14 +3023,8 @@ namespace idTech4.Renderer
 		{
 			// TODO: RB_LogComment("--- R_SetDefaultGLState ---\n");
 
+			
 			//Gl.glClearDepth(1.0f);
-			//Gl.glColor4f(1, 1, 1, 1);
-
-			// the vertex array is always enabled
-			//Gl.glEnableClientState(Gl.GL_VERTEX_ARRAY);
-			//Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-			//Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
-
 			
 			idE.Backend.GLState = new GLState();
 			idE.Backend.GLState.ForceState = true;
@@ -2949,25 +3032,18 @@ namespace idTech4.Renderer
 			RasterizerState rasterState = new RasterizerState();
 			rasterState.ScissorTestEnable = true;
 			rasterState.FillMode = FillMode.Solid;
-						
-			//Gl.glColorMask(1, 1, 1, 1);
-
-			//Gl.glEnable(Gl.GL_DEPTH_TEST);
-			//Gl.glEnable(Gl.GL_BLEND);
+			rasterState.CullMode = CullMode.CullCounterClockwiseFace;			
 			
-			//Gl.glEnable(Gl.GL_CULL_FACE);
-			//Gl.glDisable(Gl.GL_LIGHTING);
-			//Gl.glDisable(Gl.GL_LINE_STIPPLE);
-			//Gl.glDisable(Gl.GL_STENCIL_TEST);
+			DepthStencilState depthStencilState = new DepthStencilState();
+			depthStencilState.StencilEnable = false;
+			depthStencilState.DepthBufferFunction = CompareFunction.Always;
+			depthStencilState.DepthBufferEnable = true;
+			depthStencilState.DepthBufferWriteEnable = true;
 
-			//Gl.glDepthMask(Gl.GL_TRUE);
-			//Gl.glDepthFunc(Gl.GL_ALWAYS);
-
-			//Gl.glCullFace(Gl.GL_FRONT_AND_BACK);
-			//Gl.glShadeModel(Gl.GL_SMOOTH);
-
+			_graphicsDevice.BlendState = BlendState.AlphaBlend;
+			_graphicsDevice.DepthStencilState = depthStencilState;
 			_graphicsDevice.RasterizerState = rasterState;
-
+			
 			if(idE.CvarSystem.GetBool("r_useScissor") == true)
 			{
 				_graphicsDevice.ScissorRectangle = new Rectangle(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
@@ -2976,7 +3052,7 @@ namespace idTech4.Renderer
 			for(int i = idE.GLConfig.MaxTextureUnits - 1; i >= 0; i--)
 			{
 				GL_SelectTexture(i);
-
+								
 				// object linear texgen is our default
 				//Gl.glTexGenf(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
 				//Gl.glTexGenf(Gl.GL_T, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);

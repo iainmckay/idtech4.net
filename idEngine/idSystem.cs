@@ -29,18 +29,14 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text;
-using System.Management;
-using System.Net;
-using System.Net.Sockets;
 using System.Threading;
 using System.Windows.Forms;
+using System.Reflection;
 
 using Microsoft.Xna.Framework;
-using Microsoft.Xna.Framework.Graphics;
 
+using idTech4.Game;
 using idTech4.IO;
-using idTech4.Net;
 
 namespace idTech4
 {
@@ -48,24 +44,24 @@ namespace idTech4
 	{
 		#region Properties
 		#region Public
-		public TimeSpan Time
-		{
-			get
-			{
-				if(_gameTime != null)
-				{
-					return _gameTime.TotalGameTime;
-				}
-
-				return TimeSpan.Zero;
-			}
-		}
-
 		public int FrameTime
 		{
 			get
 			{
 				return _frameTime;
+			}
+		}
+
+		public int Milliseconds
+		{
+			get
+			{
+				if(_gameTime != null)
+				{
+					return (int) _gameTime.TotalGameTime.TotalMilliseconds;
+				}
+
+				return 0;
 			}
 		}
 		#endregion
@@ -90,7 +86,6 @@ namespace idTech4
 		private bool _fullyInitialized;
 		private bool _shuttingDown;
 
-		private bool _refreshOnPoint;
 		private bool _refreshOnPrint;
 
 		private ErrorType _errorEntered;
@@ -119,7 +114,8 @@ namespace idTech4
 			_graphics = new GraphicsDeviceManager(this);
 			_rawCommandLineArguments = args;
 
-			Content.RootDirectory = "base";
+			this.TargetElapsedTime = TimeSpan.FromMilliseconds(idE.UserCommandMillseconds);
+			this.Content.RootDirectory = "base";
 		}
 		#endregion
 
@@ -205,7 +201,7 @@ namespace idTech4
 			}
 
 			// if we are getting a solid stream of ERP_DROP, do an ERP_FATAL
-			int currentTime = this.Time.Milliseconds;
+			int currentTime = this.Milliseconds;
 
 			if((currentTime - _lastErrorTime) < 100)
 			{
@@ -435,7 +431,7 @@ namespace idTech4
 			PrintLoadingMessage(idE.Language.Get("#str_04350"));
 
 			// load the game dll
-			idConsole.Warning("TODO: LoadGameDLL();");
+			LoadGameDLL();
 
 			PrintLoadingMessage(idE.Language.Get("#str_04351"));
 
@@ -446,7 +442,7 @@ namespace idTech4
 			// this time around the backend is all setup correct.. a bit fugly but do not want
 			// to mess with all the gl init at this point.. an old vid card will never qualify for 
 
-			/* TODO: if(sysDetect == true)
+			/*if(sysDetect == true)
 			{
 				SetMachineSpec();
 				Cmd_ExecMachineSpec(this, new CommandEventArgs(new idCmdArgs()));
@@ -528,6 +524,30 @@ namespace idTech4
 
 			idE.RenderSystem.InitGraphics(this.GraphicsDevice);
 			PrintLoadingMessage(idE.Language.Get("#str_04343"));
+		}
+
+		private void LoadGameDLL()
+		{
+			// from executable directory first - this is handy for developement
+			string dllName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+			dllName = Path.Combine(dllName, "game.dll");
+
+			if(File.Exists(dllName) == false)
+			{
+				dllName = null;
+			}
+
+			if(dllName == null)
+			{
+				dllName = idE.FileSystem.RelativePathToOSPath("game.dll", "fs_savedir");
+			}
+
+			idConsole.DeveloperWriteLine("Loading game DLL: '{0}'", dllName);
+
+			Assembly asm = Assembly.LoadFile(Path.GetFullPath(dllName));
+			
+			idE.Game = (idBaseGame) asm.CreateInstance("idTech4.Game.idGame");
+			idE.Game.Init();
 		}
 
 		private void ParseCommandLine(string[] args)
@@ -1066,19 +1086,6 @@ namespace idTech4
 		#region Game implementation
 		protected override void Draw(GameTime gameTime)
 		{
-			if(idE.AsyncNetwork.IsActive == true)
-			{
-				if(idE.CvarSystem.GetInteger("net_serverDedicated") != 1)
-				{
-					idE.Session.UpdateScreen(false);
-				}
-			}
-			else
-			{
-				// normal, in-sequence screen update
-				idE.Session.UpdateScreen(false);
-			}
-
 			base.Draw(gameTime);
 		}
 
@@ -1238,7 +1245,7 @@ namespace idTech4
 						
 			idE.ImageManager.ReloadImages();
 		}
-		
+
 		protected override void Update(GameTime gameTime)
 		{
 			// FIXME: this is a hack to get the render window up so we can show the loading messages.
@@ -1253,13 +1260,15 @@ namespace idTech4
 			{
 				// game specific initialization
 				InitGame();
+
 				_frameTime = 0;
 				_ticNumber = 0;
+
 				return;
 			}
 			
 			_gameTime = gameTime;
-
+		
 			// if "viewlog" has been modified, show or hide the log console
 			if(idE.CvarSystem.IsModified("win_viewlog") == true)
 			{
@@ -1284,15 +1293,15 @@ namespace idTech4
 				/*if ( com_forceGenericSIMD.IsModified() ) {
 					InitSIMD();
 				}*/
-
+				
 				idE.EventLoop.RunEventLoop();
 
 				// TODO: _ticNumber++ is temp, supposed to be in async thread
 				_ticNumber++;
 
-				//_frameTime = _ticNumber * idE.UserCommandMillseconds;
-				_frameTime = (int) _gameTime.TotalGameTime.TotalMilliseconds;
-				
+				_frameTime = _ticNumber * idE.UserCommandMillseconds;
+				//_frameTime = this.Milliseconds;
+				Console.WriteLine("{0} -> {1}", _frameTime, this.Milliseconds);
 				/*idAsyncNetwork::RunFrame();*/
 
 				if(idE.AsyncNetwork.IsActive == true)
@@ -1300,11 +1309,15 @@ namespace idTech4
 					if(idE.CvarSystem.GetInteger("net_serverDedicated") != 1)
 					{
 						idE.Session.GuiFrameEvents();
+						idE.Session.UpdateScreen(false);
 					}
 				}
 				else
 				{
 					idE.Session.Frame();
+
+					// normal, in-sequence screen update
+					idE.Session.UpdateScreen(false);
 				}
 
 				// report timing information

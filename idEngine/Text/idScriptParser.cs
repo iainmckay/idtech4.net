@@ -849,10 +849,8 @@ namespace idTech4.Text
 
 				// try relative to the current file
 
-				// TODO: replace with something like Path.Combine.
-				//path = Path.Combine(Path.GetDirectoryName(_scriptStack.Peek().FileName), token.ToString());
-				path = token.ToString();
-
+				path = Path.Combine(Path.GetDirectoryName(_scriptStack.Peek().FileName), token.ToString());
+				
 				if(script.LoadFile(path, _osPath) == false)
 				{
 					// try absolute path

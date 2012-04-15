@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+
 using idTech4.Renderer;
 using idTech4.UI;
 
@@ -79,6 +81,9 @@ namespace idTech4
 		private bool _wipeHold;
 
 		private bool _insideScreenUpdate;
+
+		// watchdog to force the main menu to restart
+		private int _emptyDrawCount;
 
 		// this is the information required to be set before ExecuteMapChange() is called,
 		// which can be saved off at any time with the following commands so it can all be played back
@@ -467,6 +472,7 @@ namespace idTech4
 				return true;
 			}
 
+			idConsole.WriteLine("TODO: process event");
 			// if we aren't in a game, force the console to take it
 			/*if ( !mapSpawned ) {
 				console->ProcessEvent( event, true );
@@ -518,7 +524,7 @@ namespace idTech4
 		/// Activates the main menu.
 		/// </summary>
 		/// <param name="playIntro"></param>
-		public void StartMenu(bool playIntro)
+		public void StartMenu(bool playIntro = false)
 		{
 			if(_guiActive == _guiMainMenu)
 			{
@@ -551,12 +557,12 @@ namespace idTech4
 			{
 				guiMainMenu->SetStateString("game_list", common->GetLanguageDict()->GetString("#str_07202"));
 			}
-			else
+			else*/
 			{
-				guiMainMenu->SetStateString("game_list", common->GetLanguageDict()->GetString("#str_07212"));
+				_guiMainMenu.State.Set("game_list", idE.Language.Get("#str_07212"));
 			}
 
-			// TODO: console->Close();*/
+			idE.Console.Close();
 		}
 
 		public void UpdateScreen(bool outOfSequence)
@@ -606,6 +612,7 @@ namespace idTech4
 
 			if(gui == _guiMainMenu)
 			{
+				idConsole.Warning("TODO: HandleMainMenuCommands");
 				// TODO: HandleMainMenuCommands(menuCommand);
 			}
 
@@ -646,11 +653,10 @@ namespace idTech4
 
 
 		private void Draw()
-		{
-			// TODO
-			/*bool fullConsole = false;
+		{			
+			bool fullConsole = false;
 
-			if(insideExecuteMapChange)
+			/*if(insideExecuteMapChange)
 			{
 				if(guiLoading)
 				{
@@ -717,47 +723,52 @@ namespace idTech4
 				{
 					renderSystem->WriteDemoPics();
 				}
-			}
+			}*/
 			else
 			{
+				if(idE.CvarSystem.GetBool("com_allowConsole") == true)
+				{
+					idE.Console.Draw(true);
+				}
+				else
+				{
+					_emptyDrawCount++;
 
-		/*if ( com_allowConsole.GetBool() ) {
-			console->Draw( true );
-		} else {
-			emptyDrawCount++;
-			if ( emptyDrawCount > 5 ) {
-				// it's best if you can avoid triggering the watchgod by doing the right thing somewhere else
-				assert( false );
-				common->Warning( "idSession: triggering mainmenu watchdog" );
-				emptyDrawCount = 0;
-				StartMenu();
-			}
-			renderSystem->SetColor4( 0, 0, 0, 1 );
-			renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, SCREEN_HEIGHT, 0, 0, 1, 1, declManager->FindMaterial( "_white" ) );
-		}
+					if(_emptyDrawCount > 5)
+					{
+						// it's best if you can avoid triggering the watchgod by doing the right thing somewhere else
+						idConsole.Warning("idSession: triggering mainmenu watchdog");
+				
+						_emptyDrawCount = 0;
+						StartMenu();
+					}
+			
+					idE.RenderSystem.Color = new Vector4(0, 0, 0, 1);
+					idE.RenderSystem.DrawStretchPicture(0, 0, idE.VirtualScreenWidth, idE.VirtualScreenHeight, 0, 0, 1, 1, idE.DeclManager.FindMaterial("_white"));
+				}
 
 				fullConsole = true;
 			}
 
-#if ID_CONSOLE_LOCK
-	if ( !fullConsole && emptyDrawCount ) {
-		common->DPrintf( "idSession: %d empty frame draws\n", emptyDrawCount );
-		emptyDrawCount = 0;
-	}
-	fullConsole = false;
-#endif
+			if((fullConsole == false) && (_emptyDrawCount > 0))
+			{
+				idConsole.DeveloperWriteLine("idSession: {0} empty frame draws", _emptyDrawCount);
+				_emptyDrawCount = 0;
+			}
+	
+			fullConsole = false;
 
-			// draw the wipe material on top of this if it hasn't completed yet
+			/*// draw the wipe material on top of this if it hasn't completed yet
 			DrawWipeModel();
 
 			// draw debug graphs
-			DrawCmdGraph();
+			DrawCmdGraph();*/
 
 			// draw the half console / notify console on top of everything
-			if(!fullConsole)
+			if(fullConsole == false)
 			{
-				console->Draw(false);
-			}*/
+				idE.Console.Draw(false);
+			}
 		}
 
 		private bool ProcessMenuEvent(SystemEvent ev)

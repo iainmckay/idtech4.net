@@ -35,6 +35,16 @@ namespace idTech4
 {
 	public sealed class idEventLoop
 	{
+		#region Properties
+		public int Milliseconds
+		{
+			get
+			{
+				return (idE.System.Milliseconds - _initialTimeOffset);
+			}
+		}
+		#endregion
+
 		#region Members
 		// all events will have this subtracted from their time
 		private int _initialTimeOffset;
@@ -54,7 +64,7 @@ namespace idTech4
 		#region Public
 		public void Init()
 		{
-			_initialTimeOffset = idE.System.Time.Milliseconds;
+			_initialTimeOffset = idE.System.Milliseconds;
 
 			idE.System.StartupVariable("journal", false);
 
