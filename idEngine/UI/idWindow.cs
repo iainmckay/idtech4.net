@@ -822,7 +822,7 @@ namespace idTech4.UI
 
 			foreach(idWindowVariable var in _definedVariables)
 			{
-				if(nameLower.Equals(var.Name) == true)
+				if(nameLower.Equals(var.Name, StringComparison.OrdinalIgnoreCase) == true)
 				{
 					ret = var;
 					break;
@@ -831,7 +831,7 @@ namespace idTech4.UI
 
 			if(ret != null)
 			{
-				if((fixup == true) && (name != "$"))
+				if((fixup == true) && (name.StartsWith("$") == false))
 				{
 					DisableRegister(name);
 				}
@@ -1766,7 +1766,7 @@ namespace idTech4.UI
 				else if(token.ToString() == "float")
 				{
 					token = parser.ReadToken();
-					string tokenLower = token.ToString().ToLower();
+					string tokenLower = token.ToString();
 
 					idWinFloat var = new idWinFloat(tokenLower);
 					_definedVariables.Add(var);
@@ -2004,6 +2004,18 @@ namespace idTech4.UI
 		{
 			this.Flags |= WindowFlags.InTransition;
 		}
+
+		public void Trigger()
+		{
+			RunScript(ScriptName.Trigger);
+
+			for(int i = 0; i < _children.Count; i++)
+			{
+				_children[i].Trigger();
+			}
+
+			StateChanged(true);
+		}
 		#endregion
 
 		#region Protected
@@ -2016,23 +2028,20 @@ namespace idTech4.UI
 
 			if((_background != null) && (_materialColor.W != 0))
 			{
-				if((_background != null) && (_materialColor.W > 0))
+				float scaleX, scaleY;
+
+				if(_flags.HasFlag(WindowFlags.NaturalMaterial) == true)
 				{
-					float scaleX, scaleY;
-
-					if(_flags.HasFlag(WindowFlags.NaturalMaterial) == true)
-					{
-						scaleX = _drawRect.Width / _background.ImageWidth;
-						scaleY = _drawRect.Height / _background.ImageHeight;
-					}
-					else
-					{
-						scaleX = _materialScaleX;
-						scaleY = _materialScaleY;
-					}
-
-					_context.DrawMaterial(_drawRect.X, _drawRect.Y, _drawRect.Width, _drawRect.Height, _background, _materialColor, scaleX, scaleY);
+					scaleX = _drawRect.Width / _background.ImageWidth;
+					scaleY = _drawRect.Height / _background.ImageHeight;
 				}
+				else
+				{
+					scaleX = _materialScaleX;
+					scaleY = _materialScaleY;
+				}
+
+				_context.DrawMaterial(_drawRect.X, _drawRect.Y, _drawRect.Width, _drawRect.Height, _background, _materialColor, scaleX, scaleY);
 			}
 		}
 
@@ -2620,17 +2629,7 @@ namespace idTech4.UI
 			return EmitOperation(a, b, opType, out op);
 		}
 
-		private int ParseExpressionPriority(idScriptParser parser, int priority)
-		{
-			return ParseExpressionPriority(parser, priority, null, 0);
-		}
-
-		private int ParseExpressionPriority(idScriptParser parser, int priority, idWindowVariable var)
-		{
-			return ParseExpressionPriority(parser, priority, var, 0);
-		}
-
-		private int ParseExpressionPriority(idScriptParser parser, int priority, idWindowVariable var, int component)
+		private int ParseExpressionPriority(idScriptParser parser, int priority, idWindowVariable var = null, int component = 0)
 		{
 			if(priority == 0)
 			{
@@ -3221,7 +3220,7 @@ namespace idTech4.UI
 				_flags &= ~WindowFlags.InTransition;
 			}
 		}
-
+		
 		private void UpdateVariables()
 		{
 			foreach(idWindowVariable var in _updateVariables)

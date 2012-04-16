@@ -113,8 +113,7 @@ namespace idTech4.UI
 
 			if((_enabled == false) || (_var == null) || ((_var != null) && ((_var.Dictionary != null) || (_var.Evaluate == false))))
 			{
-				// TODO: this seems to be breaking var parsing.  maybe it depends on other code that hasn't been ported.
-				return;
+				//return;
 			}
 
 			switch(_type)
@@ -167,7 +166,6 @@ namespace idTech4.UI
 
 			if((_enabled == false) || (_var == null) || ((_var != null) && ((_var.Dictionary != null) || (_var.Evaluate == false))))
 			{
-				// TODO: this seems to be breaking var parsing.  maybe it depends on other code that hasn't been ported.
 				//return;
 			}
 			

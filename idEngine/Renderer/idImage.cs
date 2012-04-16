@@ -665,7 +665,7 @@ namespace idTech4.Renderer
 		{
 			byte[, ,] data = new byte[idImageManager.DefaultImageSize, idImageManager.DefaultImageSize, 4];
 
-			if(idE.CvarSystem.GetBool("com_developer") == true)
+			if(idE.CvarSystem.GetBool("developer") == true)
 			{
 				// grey center
 				for(int y = 0; y < idImageManager.DefaultImageSize; y++)

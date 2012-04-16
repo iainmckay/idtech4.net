@@ -226,15 +226,15 @@ namespace idTech4
 			// DebuggerServerPrint( msg );
 
 			// logFile
-			if((idE.CvarSystem.GetInteger("com_logfile") != 0) && (_logFileFailed == false) && (idE.FileSystem.IsInitialized == true))
+			if((idE.CvarSystem.GetInteger("logFile") != 0) && (_logFileFailed == false) && (idE.FileSystem.IsInitialized == true))
 			{
 				if((_logFile == null) && (_recursingLogFileOpen == false))
 				{
 					string fileName = "qconsole.log";
 
-					if(idE.CvarSystem.GetString("com_logFileName") != string.Empty)
+					if(idE.CvarSystem.GetString("logFileName") != string.Empty)
 					{
-						fileName = idE.CvarSystem.GetString("com_logFileName");
+						fileName = idE.CvarSystem.GetString("logFileName");
 					}
 
 					// fileSystem->OpenFileWrite can cause recursive prints into here

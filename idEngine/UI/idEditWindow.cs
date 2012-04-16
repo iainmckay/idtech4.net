@@ -99,7 +99,7 @@ namespace idTech4.UI
 
 		private void InitConsoleVariables()
 		{
-			if(_cvarStr != null)
+			if((_cvarStr == null) || (_cvarStr == string.Empty))
 			{
 				idConsole.Warning("idEditWindow.InitConsoleVariables: gui '{0}' window '{1}' has an empty cvar string", this.UserInterface.SourceFile, this.Name);
 				_cvar = null;

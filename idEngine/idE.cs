@@ -32,9 +32,11 @@ using System.Text;
 using System.Reflection;
 
 using idTech4.Game;
+using idTech4.Input;
 using idTech4.IO;
 using idTech4.Net;
 using idTech4.Renderer;
+using idTech4.Sound;
 using idTech4.Text;
 using idTech4.UI;
 
@@ -103,16 +105,19 @@ namespace idTech4
 		public static idSystem System;
 		public static idBaseGame Game;
 
+		public static readonly idCvarSystem CvarSystem = new idCvarSystem();
 		public static readonly idLangDict Language = new idLangDict();
 		public static readonly idSession Session = new idSession();
 		public static readonly idFileSystem FileSystem = new idFileSystem();
-		public static readonly idCvarSystem CvarSystem = new idCvarSystem();
+		
 		public static readonly idCmdSystem CmdSystem = new idCmdSystem();
 		public static readonly idDeclManager DeclManager = new idDeclManager();
 		public static readonly idRenderSystem RenderSystem = new idRenderSystem();
 		public static readonly idImageManager ImageManager = new idImageManager();
 		public static readonly idUserInterfaceManager UIManager = new idUserInterfaceManager();
 		public static readonly idEventLoop EventLoop = new idEventLoop();
+		public static readonly idUserInput UserInput = new idUserInput();
+		public static readonly idSoundSystem SoundSystem = new idSoundSystem();
 		#endregion
 
 		#region Internal

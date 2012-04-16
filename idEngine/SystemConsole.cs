@@ -64,6 +64,11 @@ namespace idTech4
 
 		public void Append(string text)
 		{
+			if(_log == null)
+			{
+				return;
+			}
+
 			_log.AppendText(text);
 			_log.Select(_log.TextLength, 1);
 			_log.ScrollToCaret();

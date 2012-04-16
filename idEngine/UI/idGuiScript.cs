@@ -398,11 +398,6 @@ namespace idTech4.UI
 			{
 				drawWindow = window.UserInterface.Desktop.FindChildByName(parameter);
 				parameter = source[1].Variable as idWinString;
-
-				if(drawWindow == null)
-				{
-					idConsole.WriteLine("NUUUUUUULL2");
-				}
 			}
 
 			int tmp;

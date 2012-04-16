@@ -226,7 +226,7 @@ namespace idTech4
 		{
 			var.Internal = var;
 
-			idInternalCvar intern = FindInternal(var.Name);
+			idInternalCvar intern = FindInternal(var.Name, true);
 
 			if(intern != null)
 			{
@@ -273,6 +273,16 @@ namespace idTech4
 			}
 
 			return true;
+		}
+
+		public void RegisterStatics()
+		{
+			foreach(idCvar var in StaticList)
+			{
+				Register(var);
+			}
+
+			StaticList.Clear();
 		}
 
 		public void SetString(string name, string value)
@@ -346,13 +356,18 @@ namespace idTech4
 		#endregion
 
 		#region Private
-		private idInternalCvar FindInternal(string name)
+		private idInternalCvar FindInternal(string name, bool ignoreMissing = false)
 		{
 			idInternalCvar var;
 
 			if(_cvarList.TryGetValue(name, out var) == true)
 			{
 				return var;
+			}
+
+			if(ignoreMissing == false)
+			{
+				idConsole.Warning("Tried to find unknown cvar '{0}'", name);
 			}
 
 			return null;
@@ -370,20 +385,12 @@ namespace idTech4
 			}
 			else
 			{
+				idConsole.Warning("Tried to set unknown cvar '{0}'", name);
+
 				intern = new idInternalCvar(name, value, flags);
 
 				_cvarList.Add(intern.Name, intern);
 			}
-		}
-
-		private void RegisterStatics()
-		{
-			foreach(idCvar var in StaticList)
-			{
-				Register(var);
-			}
-
-			StaticList.Clear();
 		}
 
 		private void ListByFlags(idCmdArgs args, CvarFlags flags)

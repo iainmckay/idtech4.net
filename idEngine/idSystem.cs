@@ -110,6 +110,8 @@ namespace idTech4
 		public idSystem(string[] args)
 		{
 			idE.System = this;
+
+			InitCvars();
 			
 			_graphics = new GraphicsDeviceManager(this);
 			_rawCommandLineArguments = args;
@@ -1095,7 +1097,6 @@ namespace idTech4
 			//try
 			{
 				InitConsole();
-				InitCvars();
 
 				// clear warning buffer
 				idConsole.ClearWarnings(string.Format("{0} initialization", idE.GameName));
@@ -1107,6 +1108,9 @@ namespace idTech4
 
 				// start file logging right away, before early console or whatever
 				StartupVariable("win_outputDebugString", false);
+
+				// register all static CVars
+				idE.CvarSystem.RegisterStatics();
 
 				// print engine version
 				idConsole.WriteLine(idE.Version);
@@ -1197,12 +1201,12 @@ namespace idTech4
 				idE.CvarSystem.ModifiedFlags = CvarFlags.Archive;
 
 				// init the user command input code
-				idConsole.Warning("TODO: usercmdGen->Init();");
+				idE.UserInput.Init();
 
 				PrintLoadingMessage(idE.Language.Get("#str_04346"));
 
 				// start the sound system, but don't do any hardware operations yet
-				idConsole.Warning("TODO: soundSystem->Init();");
+				idE.SoundSystem.Init();
 
 				PrintLoadingMessage(idE.Language.Get("#str_04347"));
 
@@ -1301,7 +1305,7 @@ namespace idTech4
 
 				_frameTime = _ticNumber * idE.UserCommandMillseconds;
 				//_frameTime = this.Milliseconds;
-				Console.WriteLine("{0} -> {1}", _frameTime, this.Milliseconds);
+				
 				/*idAsyncNetwork::RunFrame();*/
 
 				if(idE.AsyncNetwork.IsActive == true)

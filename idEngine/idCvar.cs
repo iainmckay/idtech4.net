@@ -266,14 +266,8 @@ namespace idTech4
 
 			_internal = this;
 
-			if(idCvarSystem.StaticList != null)
-			{
-				idCvarSystem.StaticList.Add(this);
-			}
-			else
-			{
-				idE.CvarSystem.Register(this);
-			}
+			idE.CvarSystem.Register(this);
+			//idCvarSystem.StaticList.Add(this);
 		}
 		#endregion
 

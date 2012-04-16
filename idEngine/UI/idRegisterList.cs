@@ -103,7 +103,7 @@ namespace idTech4.UI
 				{
 					for(int i = 0; i < regCount; i++)
 					{
-						register.Indexes[i] = window.ParseExpression(parser);
+						register.Indexes[i] = window.ParseExpression(parser, null);
 
 						if(i < (regCount - 1))
 						{

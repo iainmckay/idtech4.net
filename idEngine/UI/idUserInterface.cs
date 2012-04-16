@@ -297,6 +297,16 @@ namespace idTech4.UI
 
 			return true;
 		}
+
+		public void Trigger(int time)
+		{
+			_time = time;
+
+			if(_desktop != null)
+			{
+				_desktop.Trigger();
+			}
+		}
 		#endregion
 		#endregion
 	}
