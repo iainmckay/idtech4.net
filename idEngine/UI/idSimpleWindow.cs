@@ -125,6 +125,7 @@ namespace idTech4.UI
 			_text.Set(win.Text);
 			_rect.Set(win.Rectangle);
 			_backColor.Set(win.BackColor);
+			_materialColor.Set(win.MaterialColor);
 			_foreColor.Set(win.ForeColor);
 			_borderColor.Set(win.BorderColor);
 			_textScale.Set(win.TextScale);
@@ -232,21 +233,18 @@ namespace idTech4.UI
 			DrawBackground(_drawRect);
 			DrawBorderAndCaption(_drawRect);
 
-			// TODO: textShadow
-			/*if ( textShadow ) {
-				idStr shadowText = text;
-				idRectangle shadowRect = textRect;
+			if(_textShadow > 0)
+			{
+				string shadowText = idHelper.RemoveColors(_text);
 
-				shadowText.RemoveColors();
-				shadowRect.x += textShadow;
-				shadowRect.y += textShadow;
+				Rectangle shadowRect = _textRect;
+				shadowRect.X += _textShadow;
+				shadowRect.Y += _textShadow;
 
-				dc->DrawText( shadowText, textScale, textAlign, colorBlack, shadowRect, !( flags & WIN_NOWRAP ), -1 );
+				_context.DrawText(shadowText, _textScale, _textAlign, idColor.Black, shadowRect, _flags.HasFlag(WindowFlags.NoWrap) == false, -1);
 			}
-			 
-			 // TODO: DrawText
-			dc->DrawText(text, textScale, textAlign, foreColor, textRect, !( flags & WIN_NOWRAP ), -1);*/
 
+			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, _flags.HasFlag(WindowFlags.NoWrap) == false, -1);
 			_context.SetTransformInformation(Vector3.Zero, Matrix.Identity);
 
 			if(_flags.HasFlag(WindowFlags.NoClip) == true)
@@ -328,7 +326,7 @@ namespace idTech4.UI
 		#region Private
 		private void CalculateClientRectangle(int offsetX, int offsetY)
 		{
-			_drawRect = _rect.Data;
+			_drawRect = _rect;
 
 			if(_flags.HasFlag(WindowFlags.InvertRectangle) == true)
 			{
@@ -338,7 +336,6 @@ namespace idTech4.UI
 
 			_drawRect.X += offsetX;
 			_drawRect.Y += offsetY;
-
 			_clientRect = _drawRect;
 
 			if((_rect.Height > 0.0f) && (_rect.Width > 0.0f))
@@ -368,20 +365,7 @@ namespace idTech4.UI
 		{
 			if(_backColor.W > 0)
 			{
-				idConsole.WriteLine("DrawFilled");
-			}
-
-			if(_backColor.W > 0)
-			{
 				_context.DrawFilledRectangle(_drawRect.X, _drawRect.Y, _drawRect.Width, _drawRect.Height, _backColor);
-			}
-
-			if(_background != null)
-			{
-				if(_materialColor.W > 0)
-				{
-					idConsole.WriteLine("DrawMaterial");
-				}
 			}
 
 			if(_background != null)

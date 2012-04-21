@@ -1063,10 +1063,11 @@ namespace idTech4.IO
 
 		private void StartBackgroundDownloadThread()
 		{
-			ThreadStart threadStart = new ThreadStart(ProcessBackgroundDownloadThread);
+			// TODO: do we really need this now? - IM
+			/*ThreadStart threadStart = new ThreadStart(ProcessBackgroundDownloadThread);
 			_backgroundDownloadThread = new Thread(threadStart);
 			_backgroundDownloadThread.IsBackground = true;
-			_backgroundDownloadThread.Start();
+			_backgroundDownloadThread.Start();*/
 		}
 
 		/// <summary>

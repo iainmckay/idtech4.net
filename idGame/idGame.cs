@@ -297,6 +297,8 @@ namespace idTech4.Game
 		public idGame()
 		{
 			idR.Game = this;
+
+			InitCvars();
 			//idR.GameEdit = new idGameEdit();
 
 			/*for(int i = 0; i < _userInfo.Length; i++)
@@ -350,8 +352,6 @@ namespace idTech4.Game
 			new idCvar("ui_chat", "0", "player is chatting", CvarFlags.Game | CvarFlags.UserInfo | CvarFlags.Bool | CvarFlags.ReadOnly | CvarFlags.Cheat);
 
 			// change anytime vars
-			new idCvar("developer", "0", "", CvarFlags.Game | CvarFlags.Bool);
-
 			new idCvar("r_aspectRatio", "0", 0, 2, "aspect ratio of view:\n0 = 4:3\n1 = 16:9\n2 = 16:10", CvarFlags.Renderer | CvarFlags.Integer | CvarFlags.Archive);
 
 			new idCvar("g_cinematic", "1", "skips updating entities that aren't marked 'cinematic' '1' during cinematics", CvarFlags.Game | CvarFlags.Bool);
@@ -571,6 +571,7 @@ namespace idTech4.Game
 			new idCvar("net_serverDlBaseURL", "", "base URL for the download redirection", CvarFlags.Game | CvarFlags.Archive);
 			new idCvar("net_serverDlTable", "", "pak names for which download is provided, seperated by ;", CvarFlags.Game | CvarFlags.Archive);
 
+			idE.CvarSystem.RegisterStatics();
 		}
 
 		private void InitAsyncNetwork()
@@ -1469,10 +1470,10 @@ namespace idTech4.Game
 		#region idGame implementation
 		public override void Init()
 		{
+			idE.CvarSystem.RegisterStatics();
+
 			// TODO: initialize processor specific SIMD
 			// idSIMD::InitProcessor( "game", com_forceGenericSIMD.GetBool() );
-
-			InitCvars();
 
 			idConsole.WriteLine("--------- Initializing Game ----------");
 			idConsole.WriteLine("gamename: {0}", idGame.GameVersion);

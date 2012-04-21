@@ -113,7 +113,7 @@ namespace idTech4.UI
 
 			if((_enabled == false) || (_var == null) || ((_var != null) && ((_var.Dictionary != null) || (_var.Evaluate == false))))
 			{
-				//return;
+				return;
 			}
 
 			switch(_type)
@@ -166,7 +166,7 @@ namespace idTech4.UI
 
 			if((_enabled == false) || (_var == null) || ((_var != null) && ((_var.Dictionary != null) || (_var.Evaluate == false))))
 			{
-				//return;
+				return;
 			}
 			
 			v.X = registers[_indexes[0]];

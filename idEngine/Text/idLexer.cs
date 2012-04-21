@@ -347,7 +347,7 @@ namespace idTech4.Text
 				Error("couldn't find expected '{0}'", str);
 				return false;
 			}
-			else if(token.ToString() != str)
+			else if(token.ToString().Equals(str, StringComparison.OrdinalIgnoreCase) == false)
 			{
 				Error("expected '{0}' but found '{1}'", str, token.ToString());
 				return false;
@@ -370,14 +370,14 @@ namespace idTech4.Text
 
 			if(token.Type != type)
 			{
-				Error("expected a {0} but found '{1}'", type.ToString().ToLower(), tokenValue);
+				Error("expected a '{0}' but found '{1}'", type.ToString().ToLower(), tokenValue);
 				return null;
 			}
 			else if(token.Type == TokenType.Number)
 			{
 				if(token.SubType.HasFlag(subType) == false)
 				{
-					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), tokenValue);
+					Error("expected '{0}' but found '{1}'", subType.ToString().ToLower(), tokenValue);
 					return null;
 				}
 			}

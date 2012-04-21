@@ -56,7 +56,7 @@ namespace idTech4.UI
 		private int _typedTime;
 		private string _typed;
 
-		private Dictionary<string, idMaterial> _iconMaterials = new Dictionary<string, idMaterial>();
+		private Dictionary<string, idMaterial> _iconMaterials = new Dictionary<string, idMaterial>(StringComparer.OrdinalIgnoreCase);
 		private idSliderWindow _scroller;
 		#endregion
 
@@ -106,7 +106,7 @@ namespace idTech4.UI
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.Warning("TODO: ListWindow Draw");
+			//idConsole.Warning("TODO: ListWindow Draw");
 			/*idVec4 color;
 			idStr work;
 			int count = listItems.Num();

@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.Text;
 
 using Microsoft.Xna.Framework;
 
@@ -233,17 +234,20 @@ namespace idTech4.UI
 				{
 					return false;
 				}
-				/*TODO: else if(_scripts.Length > 0)
+
+				for(int i = 0; i < _scripts.Length; i++)
 				{
-					return false;
-				}*/
+					if(_scripts[i] != null)
+					{
+						return false;
+					}
+				}
 
 				if(_timeLineEvents.Count > 0)
 				{
 					return false;
 				}
-
-				if(_namedEvents.Count > 0)
+				else if(_namedEvents.Count > 0)
 				{
 					return false;
 				}
@@ -257,6 +261,14 @@ namespace idTech4.UI
 			get
 			{
 				return _visible;
+			}
+		}
+
+		public Vector4 MaterialColor
+		{
+			get
+			{
+				return _materialColor;
 			}
 		}
 
@@ -636,7 +648,7 @@ namespace idTech4.UI
 			{
 				return;
 			}
-
+			
 			// TODO: flags & WIN_SHOWTIME
 			/*if ( flags & WIN_SHOWTIME ) {
 				dc->DrawText(va(" %0.1f seconds\n%s", (float)(time - timeLine) / 1000, gui->State().GetString("name")), 0.35f, 0, dc->colorWhite, idRectangle(100, 0, 80, 80), false);
@@ -654,14 +666,13 @@ namespace idTech4.UI
 			{
 				return;
 			}
-
+			
 			CalculateClientRectangle(0, 0);
 			SetFont();
 
 			// see if this window forces a new aspect ratio
 			_context.SetSize(_forceAspectWidth, _forceAspectHeight);
-
-
+			
 			//FIXME: go to screen coord tracking
 			_drawRect.Offset(x, y);
 			_clientRect.Offset(x, y);
@@ -671,11 +682,10 @@ namespace idTech4.UI
 
 			Vector3 oldOrigin;
 			Matrix oldTransform;
-
+			
 			_context.GetTransformInformation(out oldOrigin, out oldTransform);
 
 			SetupTransforms(x, y);
-
 			DrawBackground(_drawRect);
 			DrawBorderAndCaption(_drawRect);
 
@@ -689,10 +699,10 @@ namespace idTech4.UI
 				DrawText(time, x, y);
 			}
 
-			// TODO: debug draw
-			/*if ( gui_debug.GetInteger() ) {
-				DebugDraw(time, x, y);
-			}*/
+			if(idE.CvarSystem.GetInteger("gui_debug") > 0)
+			{
+				DrawDebug(time, x, y);
+			}
 
 			foreach(DrawWindow drawWindow in _drawWindows)
 			{
@@ -1449,12 +1459,14 @@ namespace idTech4.UI
 
 			while(token.ToString() != "}")
 			{
+				string tokenLower = token.ToString().ToLower();
+
 				// track what was parsed so we can maintain it for the guieditor
 				parser.SetMarker();
 
-				if((token.ToString() == "windowDef") || (token.ToString() == "animationDef"))
+				if((tokenLower == "windowdef") || (tokenLower == "animationdef"))
 				{
-					if(token.ToString() == "animationDef")
+					if(tokenLower == "animationdef")
 					{
 						_visible.Set(false);
 						_rect.Set(new Rectangle(0, 0, 0, 0));
@@ -1485,13 +1497,12 @@ namespace idTech4.UI
 
 						drawWindow = new DrawWindow();
 
-						// TODO: use this again once I get winvar bugs sorted out
-						/*if(window.IsSimple == true)
+						if(window.IsSimple == true)
 						{
 							drawWindow.Simple = new idSimpleWindow(window);
 							_drawWindows.Add(drawWindow);
 						}
-						else*/
+						else
 						{
 							AddChild(window);
 							SetFocus(window, false);
@@ -1501,7 +1512,7 @@ namespace idTech4.UI
 						}
 					}
 				}
-				else if(token.ToString() == "editDef")
+				else if(tokenLower == "editdef")
 				{
 					SaveExpressionParseState();
 
@@ -1520,7 +1531,7 @@ namespace idTech4.UI
 
 					_drawWindows.Add(drawWindow);
 				}
-				else if(token.ToString() == "choiceDef")
+				else if(tokenLower == "choicedef")
 				{
 					SaveExpressionParseState();
 
@@ -1539,7 +1550,7 @@ namespace idTech4.UI
 
 					_drawWindows.Add(drawWindow);
 				}
-				else if(token.ToString() == "sliderDef")
+				else if(tokenLower == "sliderdef")
 				{
 					SaveExpressionParseState();
 
@@ -1558,7 +1569,7 @@ namespace idTech4.UI
 
 					_drawWindows.Add(drawWindow);
 				}
-				else if(token.ToString() == "markerDef")
+				else if(tokenLower == "markerdef")
 				{
 					idConsole.Warning("TODO: markerDef");
 					/*idMarkerWindow *win = new idMarkerWindow(dc, gui);
@@ -1571,7 +1582,7 @@ namespace idTech4.UI
 					dwt.win = win;
 					drawWindows.Append(dwt);*/
 				}
-				else if(token.ToString() == "bindDef")
+				else if(tokenLower == "binddef")
 				{
 					SaveExpressionParseState();
 
@@ -1590,7 +1601,7 @@ namespace idTech4.UI
 
 					_drawWindows.Add(drawWindow);
 				}
-				else if(token.ToString() == "listDef")
+				else if(tokenLower == "listdef")
 				{
 					SaveExpressionParseState();
 
@@ -1609,7 +1620,7 @@ namespace idTech4.UI
 
 					_drawWindows.Add(drawWindow);
 				}
-				else if(token.ToString() == "fieldDef")
+				else if(tokenLower == "fielddef")
 				{
 					idConsole.Warning("TODO: fieldDef");
 					/*idFieldWindow *win = new idFieldWindow(dc, gui);
@@ -1622,7 +1633,7 @@ namespace idTech4.UI
 					dwt.win = win;
 					drawWindows.Append(dwt);*/
 				}
-				else if(token.ToString() == "renderDef")
+				else if(tokenLower == "renderdef")
 				{					
 					SaveExpressionParseState();
 
@@ -1641,7 +1652,7 @@ namespace idTech4.UI
 
 					_drawWindows.Add(drawWindow);
 				}
-				else if(token.ToString() == "gameSSDDef")
+				else if(tokenLower == "gamessddef")
 				{
 					idConsole.Warning("TODO: gameSSDDef");
 					/*idGameSSDWindow *win = new idGameSSDWindow(dc, gui);
@@ -1654,7 +1665,7 @@ namespace idTech4.UI
 					dwt.win = win;
 					drawWindows.Append(dwt);*/
 				}
-				else if(token.ToString() == "gameBearShootDef")
+				else if(tokenLower == "gamebearshootdef")
 				{
 					idConsole.Warning("TODO: gameBearShootDef");
 					/*idGameBearShootWindow *win = new idGameBearShootWindow(dc, gui);
@@ -1667,7 +1678,7 @@ namespace idTech4.UI
 					dwt.win = win;
 					drawWindows.Append(dwt);*/
 				}
-				else if(token.ToString() == "gameBustOutDef")
+				else if(tokenLower == "gamebustoutdef")
 				{
 					idConsole.Warning("TODO: gameBustOutDef");
 					/*idGameBustOutWindow *win = new idGameBustOutWindow(dc, gui);
@@ -1682,7 +1693,7 @@ namespace idTech4.UI
 				}
 				// 
 				//  added new onEvent
-				else if(token.ToString() == "onNamedEvent")
+				else if(tokenLower == "onnamedevent")
 				{
 					// read the event name
 					if((token = parser.ReadToken()) == null)
@@ -1702,7 +1713,7 @@ namespace idTech4.UI
 
 					_namedEvents.Add(ev);
 				}
-				else if(token.ToString() == "onTime")
+				else if(tokenLower == "ontime")
 				{
 					idTimeLineEvent ev = new idTimeLineEvent();
 
@@ -1730,10 +1741,10 @@ namespace idTech4.UI
 					ev.Pending = true;
 					_timeLineEvents.Add(ev);
 				}
-				else if(token.ToString() == "definefloat")
+				else if(tokenLower == "definefloat")
 				{
 					token = parser.ReadToken();
-					string tokenLower = token.ToString().ToLower();
+					tokenLower = token.ToString().ToLower();
 
 					idWinFloat var = new idWinFloat(tokenLower);
 
@@ -1746,10 +1757,10 @@ namespace idTech4.UI
 					// Read in the float 
 					_regList.AddRegister(tokenLower, RegisterType.Float, parser, this, var);
 				}
-				else if(token.ToString() == "definevec4")
+				else if(tokenLower == "definevec4")
 				{
 					token = parser.ReadToken();
-					string tokenLower = token.ToString().ToLower();
+					tokenLower = token.ToString().ToLower();
 
 					idWinVector4 var = new idWinVector4(tokenLower);
 
@@ -1763,10 +1774,10 @@ namespace idTech4.UI
 					_gui.Desktop._definedVariables.Add(var);
 					_gui.Desktop._regList.AddRegister(tokenLower, RegisterType.Vector4, parser, _gui.Desktop, var);
 				}
-				else if(token.ToString() == "float")
+				else if(tokenLower == "float")
 				{
 					token = parser.ReadToken();
-					string tokenLower = token.ToString();
+					tokenLower = token.ToString();
 
 					idWinFloat var = new idWinFloat(tokenLower);
 					_definedVariables.Add(var);
@@ -2468,6 +2479,40 @@ namespace idTech4.UI
 			{
 				_context.DrawRectangle(drawRect.X, drawRect.Y, drawRect.Width, drawRect.Height, _borderSize, _borderColor);
 			}
+		}
+
+		private void DrawDebug(int time, float x, float y)
+		{
+			if(_context == null)
+			{
+				return;
+			}
+
+			_context.ClippingEnabled = false;
+
+			if(idE.CvarSystem.GetInteger("gui_debug") == 1)
+			{
+				_context.DrawRectangle(_drawRect.X, _drawRect.Y, _drawRect.Width, _drawRect.Height, 1, idColor.Red);
+			}
+			else if(idE.CvarSystem.GetInteger("gui_debug") == 2)
+			{
+				string str = this.Text;
+				StringBuilder buffer = new StringBuilder();
+
+				if(str.Length > 0)
+				{
+					buffer.AppendLine(str);
+				}
+
+				buffer.AppendFormat("Rect: {0}, {1}, {2}, {3}\n", _rect.X, _rect.Y, _rect.Width, _rect.Height);
+				buffer.AppendFormat("Draw Rect: {0}, {1}, {2}, {3}\n", _drawRect.X, _drawRect.Y, _drawRect.Width, _drawRect.Height);
+				buffer.AppendFormat("Client Rect: {0}, {1}, {2}, {3}\n", _clientRect.X, _clientRect.Y, _clientRect.Width, _clientRect.Height);
+				//buffer.AppendFormat("Cursor: {0} : {1}\n", this.UserInterface.CursorX, this.UserInterface.CursorY);
+
+				_context.DrawText(buffer.ToString(), _textScale, _textAlign, _foreColor, _textRect, true);
+			}
+
+			_context.ClippingEnabled = true;
 		}
 
 		private void DrawText(int time, int x, int y)

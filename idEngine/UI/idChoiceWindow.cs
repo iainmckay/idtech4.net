@@ -264,7 +264,7 @@ namespace idTech4.UI
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.Warning("TODO: ChoiceWindow Draw");
+			//idConsole.Warning("TODO: ChoiceWindow Draw");
 
 			/*idVec4 color = foreColor;
 

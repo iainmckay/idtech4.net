@@ -89,7 +89,7 @@ namespace idTech4.Text
 		private Dictionary<DeclType, idDeclType> _declTypes = new Dictionary<DeclType, idDeclType>();
 		private List<idDeclFolder> _declFolders = new List<idDeclFolder>();
 
-		private Dictionary<string, idDeclFile> _loadedFiles = new Dictionary<string, idDeclFile>(StringComparer.InvariantCultureIgnoreCase);
+		private Dictionary<string, idDeclFile> _loadedFiles = new Dictionary<string, idDeclFile>(StringComparer.OrdinalIgnoreCase);
 		private Dictionary<DeclType, List<idDecl>> _declsByType = new Dictionary<DeclType, List<idDecl>>();
 
 		private idDeclFile _implicitDecls = new idDeclFile();	// this holds all the decls that were created because explicit

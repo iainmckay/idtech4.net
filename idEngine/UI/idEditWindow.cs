@@ -155,7 +155,7 @@ namespace idTech4.UI
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.Warning("TODO: EditWindow Draw");
+			//idConsole.Warning("TODO: EditWindow Draw");
 
 			UpdateConsoleVariables(true);
 			/*idVec4 color = foreColor;

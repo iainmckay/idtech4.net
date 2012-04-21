@@ -68,7 +68,7 @@ namespace idTech4.Text
 		private LexerPunctuation[] _punctuation;
 
 		// global defines
-		private static Dictionary<string, ScriptDefinition> _globalDefines = new Dictionary<string, ScriptDefinition>();
+		private static Dictionary<string, ScriptDefinition> _globalDefines = new Dictionary<string, ScriptDefinition>(StringComparer.OrdinalIgnoreCase);
 		#endregion
 
 		#region Constructor
@@ -139,7 +139,7 @@ namespace idTech4.Text
 			{
 				Error("couldn't find expected '{0}'", str);
 			}
-			else if(token.ToString() != str)
+			else if(token.ToString().Equals(str, StringComparison.OrdinalIgnoreCase) == false)
 			{
 				Error("expected '{0}' but found '{1}'", str, token.ToString());
 			}
@@ -162,14 +162,14 @@ namespace idTech4.Text
 			}
 			else if(token.Type != type)
 			{
-				Error("expected a {0} but found '{1}'", type.ToString().ToLower(), token.ToString());
+				Error("expected a '{0}' but found '{1}'", type.ToString().ToLower(), token.ToString());
 				return null;
 			}
 			else if(token.Type == TokenType.Number)
 			{
 				if(token.SubType.HasFlag(subType) == false)
 				{
-					Error("expected {0} but found '{1}'", subType.ToString().ToLower(), token.ToString());
+					Error("expected '{0}' but found '{1}'", subType.ToString().ToLower(), token.ToString());
 					return null;
 				}
 			}
@@ -220,7 +220,7 @@ namespace idTech4.Text
 			if(_defineDict == null)
 			{
 				_defines.Clear();
-				_defineDict = new Dictionary<string, ScriptDefinition>();
+				_defineDict = new Dictionary<string, ScriptDefinition>(StringComparer.OrdinalIgnoreCase);
 
 				AddGlobalDefinesToSource();
 			}
@@ -263,7 +263,7 @@ namespace idTech4.Text
 			if(_defineDict == null)
 			{
 				_defines.Clear();
-				_defineDict = new Dictionary<string, ScriptDefinition>();
+				_defineDict = new Dictionary<string, ScriptDefinition>(StringComparer.OrdinalIgnoreCase);
 
 				AddGlobalDefinesToSource();
 			}

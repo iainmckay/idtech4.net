@@ -70,8 +70,8 @@ namespace idTech4
 			}
 
 			_log.AppendText(text);
-			_log.Select(_log.TextLength, 1);
-			_log.ScrollToCaret();
+			//_log.Select(_log.TextLength, 1);
+			//_log.ScrollToCaret();
 		}
 
 		public void Show(int visLevel, bool quitOnClose)

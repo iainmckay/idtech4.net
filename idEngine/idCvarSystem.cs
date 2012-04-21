@@ -111,7 +111,7 @@ namespace idTech4
 		#region Members
 		private bool _initialized;
 		private CvarFlags _modifiedFlags;
-		private Dictionary<string, idInternalCvar> _cvarList = new Dictionary<string, idInternalCvar>(StringComparer.CurrentCultureIgnoreCase);
+		private Dictionary<string, idInternalCvar> _cvarList = new Dictionary<string, idInternalCvar>(StringComparer.OrdinalIgnoreCase);
 
 		internal static List<idCvar> StaticList = new List<idCvar>();
 		#endregion
@@ -302,7 +302,7 @@ namespace idTech4
 
 		public void SetBool(string name, bool value, CvarFlags flags)
 		{
-			SetInternal(name, value.ToString(), flags);
+			SetInternal(name, ((value == true) ? 1 : 0).ToString(), flags);
 		}
 
 		public void SetInteger(string name, int value)

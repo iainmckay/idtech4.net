@@ -169,7 +169,7 @@ namespace idTech4.UI
 				t1 = 1 * scaleY;
 			}
 
-			if(ClipCoordinates(ref x, ref y, ref width, ref height) == true)
+			if(ClipCoordinates(ref x, ref y, ref width, ref height, ref s0, ref t0, ref s1, ref t1) == true)
 			{
 				return;
 			}
@@ -616,12 +616,8 @@ namespace idTech4.UI
 				return false;
 			}
 
-			int count = _clipRectangles.Count;
-
-			while(--count > 0)
+			foreach(Rectangle clipRect in _clipRectangles)
 			{
-				Rectangle clipRect = _clipRectangles.ElementAt(count);
-
 				float ox = x;
 				float oy = y;
 				float ow = width;
@@ -669,8 +665,8 @@ namespace idTech4.UI
 				{
 					height = clipRect.Bottom - y;
 				}
-
-				if(ow > 0.0f)
+				
+				if((s > 0) && (s2 > 0) && (t > 0) && (t2 > 0) && (ow > 0.0f))
 				{
 					float ns1, ns2, nt1, nt2;
 

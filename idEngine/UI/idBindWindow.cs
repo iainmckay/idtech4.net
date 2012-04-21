@@ -74,7 +74,7 @@ namespace idTech4.UI
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.Warning("TODO: BindWindow Draw");
+			//idConsole.Warning("TODO: BindWindow Draw");
 
 			/*idVec4 color = foreColor;
 
@@ -87,7 +87,7 @@ namespace idTech4.UI
 				str = common->GetLanguageDict()->GetString( "#str_07001" );
 			}
 
-			if ( waitingOnKey || ( hover && !noEvents && Contains(gui->CursorX(), gui->CursorY()) ) ) {
+		//	if ( waitingOnKey || ( hover && !noEvents && Contains(gui->CursorX(), gui->CursorY()) ) ) {
 				color = hoverColor;
 			} else {
 				hover = false;

@@ -64,7 +64,7 @@ namespace idTech4.UI
 		#region Constructor
 		public idUserInterfaceManager()
 		{
-			new idCvar("gui_debug", "0", "", CvarFlags.Gui | CvarFlags.Bool);
+			new idCvar("gui_debug", "0", "", CvarFlags.Gui | CvarFlags.Integer);
 			new idCvar("gui_edit", "0", "", CvarFlags.Gui | CvarFlags.Bool);
 			new idCvar("gui_smallFontLimit", "0.30", "", CvarFlags.Gui | CvarFlags.Archive);
 			new idCvar("gui_mediumFontLimit", "0.60", "", CvarFlags.Gui | CvarFlags.Archive);

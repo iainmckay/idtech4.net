@@ -38,7 +38,7 @@ namespace idTech4.UI
 {
 	public sealed class idSliderWindow : idWindow
 	{
-		#region Constructor
+		#region Members
 		private float _low;
 		private float _high;
 		
@@ -179,7 +179,7 @@ namespace idTech4.UI
 
 		public override void Draw(int x, int y)
 		{
-			idConsole.Warning("TODO: SliderWindow Draw");
+			//idConsole.Warning("TODO: SliderWindow Draw");
 			/*idVec4 color = foreColor;
 
 			if(!cvar && !buddyWin)

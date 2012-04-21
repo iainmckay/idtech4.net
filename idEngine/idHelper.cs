@@ -304,7 +304,16 @@ namespace idTech4
 		{
 			try
 			{
-				string[] parts = str.Split(' ');
+				string[] parts = null;
+
+				if(str.Contains(",") == true)
+				{
+					parts = str.Replace(" ", "").Split(',');
+				}
+				else
+				{
+					parts = str.Split(' ');
+				}
 
 				if(parts.Length == 4)
 				{
@@ -327,7 +336,16 @@ namespace idTech4
 		{
 			try
 			{
-				string[] parts = str.Split(' ');
+				string[] parts = null;
+
+				if(str.Contains(",") == true)
+				{
+					parts = str.Replace(" ", "").Split(',');
+				}
+				else
+				{
+					parts = str.Split(' ');
+				}
 
 				if(parts.Length == 2)
 				{
@@ -348,7 +366,16 @@ namespace idTech4
 		{
 			try
 			{
-				string[] parts = str.Split(' ');
+				string[] parts = null;
+
+				if(str.Contains(",") == true)
+				{
+					parts = str.Replace(" ", "").Split(',');
+				}
+				else
+				{
+					parts = str.Split(' ');
+				}
 
 				if(parts.Length == 3)
 				{
@@ -370,7 +397,16 @@ namespace idTech4
 		{
 			try
 			{
-				string[] parts = str.Split(' ');
+				string[] parts = null;
+
+				if(str.Contains(",") == true)
+				{
+					parts = str.Replace(" ", "").Split(',');
+				}
+				else
+				{
+					parts = str.Split(' ');
+				}
 
 				if(parts.Length == 4)
 				{

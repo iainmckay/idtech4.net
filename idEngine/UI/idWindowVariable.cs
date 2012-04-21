@@ -69,10 +69,10 @@ namespace idTech4.UI
 			{
 				if(_name != null)
 				{
-					if((_guiDict != null) && (_name == "*"))
+					if((_guiDict != null) && (_name.StartsWith("*") == true))
 					{
 						throw new Exception("What to do here?");
-						//return _guiDict.GetString(_name[1].ToString());
+						//return _guiDict.GetString(_name[1].ToString());	
 						// return guiDict->GetString(&name[1]);
 					}
 
@@ -116,23 +116,18 @@ namespace idTech4.UI
 		#region Constructor
 		public idWindowVariable()
 		{
-
+			_eval = true;
 		}
 
 		public idWindowVariable(string name)
 		{
 			_name = name;
+			_eval = true;
 		}
 		#endregion
 
 		#region Methods
 		#region Public
-		public void CopyFrom(idWindowVariable var)
-		{
-			_guiDict = var.Dictionary;
-			this.Name = var.Name;
-		}
-
 		public virtual void Init(string name, idWindow win)
 		{
 			string key = name;
@@ -142,7 +137,7 @@ namespace idTech4.UI
 
 			if((length > Prefix.Length) && (key.StartsWith(Prefix) == true))
 			{
-				key = key.Substring(length - Prefix.Length);
+				key = key.Substring(length - Prefix.Length - 1);
 
 				SetGuiInfo(win.UserInterface.State, key);
 				win.AddUpdateVariable(this);
@@ -775,7 +770,7 @@ namespace idTech4.UI
 		#region Overloads
 		public override string ToString()
 		{
-			return _data.ToString();
+			return string.Format("{0} {1}", _data.X, _data.Y);
 		}
 
 		public override bool Equals(object obj)
@@ -891,7 +886,7 @@ namespace idTech4.UI
 		#region Overloads
 		public override string ToString()
 		{
-			return _data.ToString();
+			return string.Format("{0} {1} {2}", _data.X, _data.Y, _data.Z);
 		}
 
 		public override bool Equals(object obj)
@@ -965,6 +960,7 @@ namespace idTech4.UI
 				return _data.X;
 			}
 		}
+		#endregion
 
 		#region Methods
 		#region Public
@@ -1011,12 +1007,11 @@ namespace idTech4.UI
 		#endregion
 		#endregion
 		#endregion
-		#endregion
 
 		#region Overloads
 		public override string ToString()
 		{
-			return _data.ToString();
+			return string.Format("{0} {1} {2} {3}", _data.X, _data.Y, _data.Z, _data.W);
 		}
 
 		public override bool Equals(object obj)
@@ -1084,6 +1079,7 @@ namespace idTech4.UI
 				return ((_data.Length > 0) ? 1.0f : 0);
 			}
 		}
+		#endregion
 
 		#region Methods
 		#region Public
@@ -1134,7 +1130,6 @@ namespace idTech4.UI
 				}
 			}
 		}
-		#endregion
 		#endregion
 		#endregion
 		#endregion

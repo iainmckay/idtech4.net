@@ -98,7 +98,7 @@ namespace idTech4.UI
 		#region Public
 		public override void Draw(int x, int y)
 		{
-			idConsole.Warning("TODO: RenderWindow Draw");
+			//idConsole.Warning("TODO: RenderWindow Draw");
 
 			/*PreRender();
 			Render(time);
