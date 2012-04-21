@@ -262,7 +262,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public override void Draw(int x, int y)
+		public override void Draw(float x, float y)
 		{
 			//idConsole.Warning("TODO: ChoiceWindow Draw");
 

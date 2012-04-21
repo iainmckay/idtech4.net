@@ -109,7 +109,7 @@ namespace idTech4.UI
 			Vector4 v = Vector4.Zero;
 			Vector2 v2 = Vector2.Zero;
 			Vector3 v3 = Vector3.Zero;
-			Rectangle rect = Rectangle.Empty;
+			idRectangle rect = idRectangle.Empty;
 
 			if((_enabled == false) || (_var == null) || ((_var != null) && ((_var.Dictionary != null) || (_var.Evaluate == false))))
 			{
@@ -162,7 +162,7 @@ namespace idTech4.UI
 		public void GetFromRegisters(float[] registers)
 		{
 			Vector4 v;
-			Rectangle rect;
+			idRectangle rect;
 
 			if((_enabled == false) || (_var == null) || ((_var != null) && ((_var.Dictionary != null) || (_var.Evaluate == false))))
 			{
@@ -181,10 +181,10 @@ namespace idTech4.UI
 					break;
 
 				case RegisterType.Rectangle:
-					rect.X = (int) v.X;
-					rect.Y = (int) v.Y;
-					rect.Width = (int) v.Z;
-					rect.Height = (int) v.W;
+					rect.X = v.X;
+					rect.Y = v.Y;
+					rect.Width = v.Z;
+					rect.Height = v.W;
 					
 					((idWinRectangle) _var).Set(rect);
 					break;

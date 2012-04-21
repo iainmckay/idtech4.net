@@ -101,6 +101,14 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public GraphicsDevice GraphicsDevice
+		{
+			get
+			{
+				return _graphicsDevice;
+			}
+		}
+
 		/// <summary>
 		/// Has the renderer been initialized and ready for graphic operations?
 		/// </summary>
@@ -174,7 +182,7 @@ namespace idTech4.Renderer
 		private Vector2 _tiledViewPort;
 
 		private int _currentRenderCrop;
-		private Rectangle[] _renderCrops = new Rectangle[idE.MaxRenderCrops];
+		private idRectangle[] _renderCrops = new idRectangle[idE.MaxRenderCrops];
 
 		private int _stencilIncrement;
 		private int _stencilDecrement;
@@ -419,7 +427,7 @@ namespace idTech4.Renderer
 			idE.GLConfig.VideoHeight = windowHeight;
 
 			_currentRenderCrop = 0;
-			_renderCrops[0] = new Rectangle(0, 0, windowWidth, windowHeight);
+			_renderCrops[0] = new idRectangle(0, 0, windowWidth, windowHeight);
 
 			// screenFraction is just for quickly testing fill rate limitations
 			if(idE.CvarSystem.GetInteger("r_screenFraction") != 100)
@@ -882,16 +890,16 @@ namespace idTech4.Renderer
 		/// <returns></returns>
 		public idScreenRect RenderViewToViewPort(RenderView renderView)
 		{
-			Rectangle renderCrop = _renderCrops[_currentRenderCrop];
+			idRectangle renderCrop = _renderCrops[_currentRenderCrop];
 
 			float widthRatio = (float) renderCrop.Width / idE.VirtualScreenWidth;
 			float heightRatio = (float) renderCrop.Height / idE.VirtualScreenHeight;
 
 			idScreenRect viewPort = new idScreenRect();
-			viewPort.X1 = (int) (renderCrop.X + renderView.X * widthRatio);
-			viewPort.X2 = (int) ((renderCrop.X + idMath.Floor(renderView.X + renderView.Width) * widthRatio + 0.5f) - 1);
-			viewPort.Y1 = (int) ((renderCrop.Y + renderCrop.Height) - idMath.Floor((renderView.Y + renderView.Height) * heightRatio + 0.5f));
-			viewPort.Y2 = (int) ((renderCrop.Y + renderCrop.Height) - idMath.Floor(renderView.Y * heightRatio + 0.5f) - 1);
+			viewPort.X1 = (short) (renderCrop.X + renderView.X * widthRatio);
+			viewPort.X2 = (short) ((renderCrop.X + idMath.Floor(renderView.X + renderView.Width) * widthRatio + 0.5f) - 1);
+			viewPort.Y1 = (short) ((renderCrop.Y + renderCrop.Height) - idMath.Floor((renderView.Y + renderView.Height) * heightRatio + 0.5f));
+			viewPort.Y2 = (short) ((renderCrop.Y + renderCrop.Height) - idMath.Floor(renderView.Y * heightRatio + 0.5f) - 1);
 
 			return viewPort;
 		}
@@ -1194,7 +1202,7 @@ namespace idTech4.Renderer
 
 			/*logFile = NULL;*/
 
-			_renderCrops = new Rectangle[idE.MaxRenderCrops];
+			_renderCrops = new idRectangle[idE.MaxRenderCrops];
 			_currentRenderCrop = 0;
 			_guiRecursionLevel = 0;
 			_guiModel = null;

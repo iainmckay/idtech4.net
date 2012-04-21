@@ -277,7 +277,7 @@ namespace idTech4.UI
 				_desktop.Name = "Desktop";
 				_desktop.Flags = WindowFlags.Desktop;
 				_desktop.Text = string.Format("Invalid GUI: {0}", path);
-				_desktop.Rectangle = new Rectangle(0, 0, 640, 480);
+				_desktop.Rectangle = new idRectangle(0, 0, 640, 480);
 				_desktop.DrawRectangle = _desktop.Rectangle;
 				_desktop.ForeColor = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 				_desktop.BackColor = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);

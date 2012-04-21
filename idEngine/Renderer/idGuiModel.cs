@@ -308,8 +308,8 @@ namespace idTech4.Renderer
 
 				viewDef.Scissor.X1 = 0;
 				viewDef.Scissor.Y1 = 0;
-				viewDef.Scissor.X2 = viewDef.ViewPort.X2 - viewDef.ViewPort.X1;
-				viewDef.Scissor.Y2 = viewDef.ViewPort.Y2 - viewDef.ViewPort.Y1;
+				viewDef.Scissor.X2 = (short) (viewDef.ViewPort.X2 - viewDef.ViewPort.X1);
+				viewDef.Scissor.Y2 = (short) (viewDef.ViewPort.Y2 - viewDef.ViewPort.Y1);
 			}
 			else
 			{
@@ -318,10 +318,10 @@ namespace idTech4.Renderer
 				viewDef.RenderView.Width = idE.RenderSystem.ViewDefinition.RenderView.Width;
 				viewDef.RenderView.Height = idE.RenderSystem.ViewDefinition.RenderView.Height;
 
-				viewDef.ViewPort.X1 = viewDef.RenderView.X;
-				viewDef.ViewPort.X2 = viewDef.RenderView.X + idE.RenderSystem.ViewDefinition.RenderView.Width;
-				viewDef.ViewPort.Y1 = viewDef.RenderView.Y;
-				viewDef.ViewPort.Y2 = viewDef.RenderView.Y += idE.RenderSystem.ViewDefinition.RenderView.Height;
+				viewDef.ViewPort.X1 = (short) viewDef.RenderView.X;
+				viewDef.ViewPort.X2 = (short) (viewDef.RenderView.X + idE.RenderSystem.ViewDefinition.RenderView.Width);
+				viewDef.ViewPort.Y1 = (short) viewDef.RenderView.Y;
+				viewDef.ViewPort.Y2 = (short) (viewDef.RenderView.Y += idE.RenderSystem.ViewDefinition.RenderView.Height);
 
 				viewDef.Scissor.X1 = idE.RenderSystem.ViewDefinition.Scissor.X1;
 				viewDef.Scissor.Y1 = idE.RenderSystem.ViewDefinition.Scissor.Y1;

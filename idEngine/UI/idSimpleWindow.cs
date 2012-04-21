@@ -65,19 +65,19 @@ namespace idTech4.UI
 
 		private idWindow _parent;
 
-		private Rectangle _drawRect; // overall rect
-		private Rectangle _clientRect; // client area
-		private Rectangle _textRect;
+		private idRectangle _drawRect; // overall rect
+		private idRectangle _clientRect; // client area
+		private idRectangle _textRect;
 
 		private Vector2 _origin;
-		private int _fontNumber;
+		private idFontFamily _fontFamily;
 
 		private float _materialScaleX;
 		private float _materialScaleY;
-		private int _borderSize;
+		private float _borderSize;
 		private TextAlign _textAlign;
-		private int _textAlignX;
-		private int _textAlignY;
+		private float _textAlignX;
+		private float _textAlignY;
 		private int _textShadow;
 
 		private idWinString _text = new idWinString("text");
@@ -107,7 +107,7 @@ namespace idTech4.UI
 			_textRect = win.TextRectangle;
 
 			_origin = win.Origin;
-			// TODO: _fontNumber = win.FontNumber;
+			_fontFamily = win.FontFamily;
 			_name = win.Name;
 
 			_materialScaleX = win.MaterialScaleX;
@@ -207,7 +207,7 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
-		public void Draw(int x, int y)
+		public void Draw(float x, float y)
 		{
 			if(_visible == false)
 			{
@@ -216,8 +216,7 @@ namespace idTech4.UI
 
 			CalculateClientRectangle(0, 0);
 
-			// TODO: font
-			// dc->SetFont(fontNum);
+			_context.FontFamily = _fontFamily;
 
 			_drawRect.Offset(x, y);
 			_clientRect.Offset(x, y);
@@ -233,16 +232,16 @@ namespace idTech4.UI
 			DrawBackground(_drawRect);
 			DrawBorderAndCaption(_drawRect);
 
-			if(_textShadow > 0)
+			/*if(_textShadow > 0)
 			{
 				string shadowText = idHelper.RemoveColors(_text);
 
-				Rectangle shadowRect = _textRect;
+				idRectangle shadowRect = _textRect;
 				shadowRect.X += _textShadow;
 				shadowRect.Y += _textShadow;
 
 				_context.DrawText(shadowText, _textScale, _textAlign, idColor.Black, shadowRect, _flags.HasFlag(WindowFlags.NoWrap) == false, -1);
-			}
+			}*/
 
 			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, _flags.HasFlag(WindowFlags.NoWrap) == false, -1);
 			_context.SetTransformInformation(Vector3.Zero, Matrix.Identity);
@@ -324,14 +323,14 @@ namespace idTech4.UI
 		#endregion
 
 		#region Private
-		private void CalculateClientRectangle(int offsetX, int offsetY)
+		private void CalculateClientRectangle(float offsetX, float offsetY)
 		{
 			_drawRect = _rect;
 
 			if(_flags.HasFlag(WindowFlags.InvertRectangle) == true)
 			{
-				_drawRect.X = (int) (_rect.X - _rect.Width);
-				_drawRect.Y = (int) (_rect.Y - _rect.Height);
+				_drawRect.X = _rect.X - _rect.Width;
+				_drawRect.Y = _rect.Y - _rect.Height;
 			}
 
 			_drawRect.X += offsetX;
@@ -361,7 +360,7 @@ namespace idTech4.UI
 			_origin = new Vector2(_rect.X + (_rect.Width / 2), _rect.Y + (_rect.Height / 2));
 		}
 
-		private void DrawBackground(Rectangle drawRect)
+		private void DrawBackground(idRectangle drawRect)
 		{
 			if(_backColor.W > 0)
 			{
@@ -389,8 +388,8 @@ namespace idTech4.UI
 				}
 			}
 		}
-		
-		private void DrawBorderAndCaption(Rectangle drawRect)
+
+		private void DrawBorderAndCaption(idRectangle drawRect)
 		{
 			if(_flags.HasFlag(WindowFlags.Border) == true)
 			{

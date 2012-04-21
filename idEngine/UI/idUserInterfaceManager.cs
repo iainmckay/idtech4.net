@@ -45,7 +45,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public Rectangle ScreenRectangle
+		public idRectangle ScreenRectangle
 		{
 			get
 			{
@@ -55,7 +55,7 @@ namespace idTech4.UI
 		#endregion
 
 		#region Members
-		private Rectangle _screenRect;
+		private idRectangle _screenRect;
 		private idDeviceContext _deviceContext;
 
 		private List<idUserInterface> _guiList = new List<idUserInterface>();
@@ -75,7 +75,7 @@ namespace idTech4.UI
 		#region Public
 		public void Init()
 		{
-			_screenRect = new Rectangle(0, 0, 640, 480);
+			_screenRect = new idRectangle(0, 0, 640, 480);
 
 			_deviceContext = new idDeviceContext();
 			_deviceContext.Init();			

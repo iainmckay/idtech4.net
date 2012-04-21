@@ -72,7 +72,7 @@ namespace idTech4.UI
 			_bindName.Update();
 		}
 
-		public override void Draw(int x, int y)
+		public override void Draw(float x, float y)
 		{
 			//idConsole.Warning("TODO: BindWindow Draw");
 

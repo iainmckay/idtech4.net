@@ -422,6 +422,8 @@ namespace idTech4.Renderer
 			{
 				textureUnit.Type = _type;
 				textureUnit.CurrentTexture = _texture;
+				textureUnit.Filter = _filter;
+				
 			}
 		}
 

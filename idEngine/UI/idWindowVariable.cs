@@ -552,7 +552,7 @@ namespace idTech4.UI
 	public sealed class idWinRectangle : idWindowVariable
 	{
 		#region Properties
-		public Rectangle Data
+		public idRectangle Data
 		{
 			get
 			{
@@ -586,7 +586,7 @@ namespace idTech4.UI
 		#endregion
 
 		#region Members
-		private Rectangle _data;
+		private idRectangle _data;
 		#endregion
 
 		#region Constructor
@@ -616,7 +616,7 @@ namespace idTech4.UI
 			Update();
 		}
 
-		public void Set(Rectangle value)
+		public void Set(idRectangle value)
 		{
 			_data = value;
 
@@ -628,7 +628,7 @@ namespace idTech4.UI
 
 		public void Set(Vector4 value)
 		{
-			_data = new Rectangle((int) value.X, (int) value.Y, (int) value.Z, (int) value.W);
+			_data = new idRectangle(value.X, value.Y, value.Z, value.W);
 		}
 
 		public override void Set(string value)
@@ -647,7 +647,7 @@ namespace idTech4.UI
 
 			if((_guiDict != null) && (s != string.Empty))
 			{
-				Rectangle r = _guiDict.GetRectangle(this.Name);
+				idRectangle r = _guiDict.GetRectangle(this.Name);
 
 				_data.X = r.X;
 				_data.Y = r.Y;
@@ -671,17 +671,17 @@ namespace idTech4.UI
 			return _data.Equals(obj);
 		}
 
-		public static bool operator ==(idWinRectangle v1, Rectangle v2)
+		public static bool operator ==(idWinRectangle v1, idRectangle v2)
 		{
 			return (v1._data == v2);
 		}
 
-		public static bool operator !=(idWinRectangle v1, Rectangle v2)
+		public static bool operator !=(idWinRectangle v1, idRectangle v2)
 		{
 			return (v1._data != v2);
 		}
 
-		public static implicit operator Rectangle(idWinRectangle v)
+		public static implicit operator idRectangle(idWinRectangle v)
 		{
 			return v._data;
 		}

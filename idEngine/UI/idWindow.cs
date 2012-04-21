@@ -94,7 +94,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public int BorderSize
+		public float BorderSize
 		{
 			get
 			{
@@ -114,7 +114,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public Rectangle ClientRectangle
+		public idRectangle ClientRectangle
 		{
 			get
 			{
@@ -130,7 +130,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public Rectangle DrawRectangle
+		public idRectangle DrawRectangle
 		{
 			get
 			{
@@ -163,6 +163,14 @@ namespace idTech4.UI
 			set
 			{
 				_focusedChild = value;
+			}
+		}
+
+		public idFontFamily FontFamily
+		{
+			get
+			{
+				return _fontFamily;
 			}
 		}
 
@@ -326,7 +334,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public Rectangle Rectangle
+		public idRectangle Rectangle
 		{
 			get
 			{
@@ -375,7 +383,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public int TextAlignX
+		public float TextAlignX
 		{
 			get
 			{
@@ -383,7 +391,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public int TextAlignY
+		public float TextAlignY
 		{
 			get
 			{
@@ -407,7 +415,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public Rectangle TextRectangle
+		public idRectangle TextRectangle
 		{
 			get
 			{
@@ -437,27 +445,27 @@ namespace idTech4.UI
 		private int _offsetX;
 		private int _offsetY;
 
-		private string _command;
+		private string _command = string.Empty;
 		private int _timeLine; // time stamp used for various fx
 
 		private float _forceAspectWidth;
 		private float _forceAspectHeight;
 		private float _materialScaleX;
 		private float _materialScaleY;
-		private int _borderSize;
+		private float _borderSize;
 
 		private TextAlign _textAlign;
-		private int _textAlignX;
-		private int _textAlignY;
+		private float _textAlignX;
+		private float _textAlignY;
 		private int _textShadow;
 
 		private float _actualX;						// physical coords
 		private float _actualY;						// ''
 		private int _childID;						// this childs id
 		private int _lastTimeRun;					//
-		private Rectangle _drawRect;				// overall rect
-		private Rectangle _clientRect;				// client area
-		private Rectangle _textRect;
+		private idRectangle _drawRect;				// overall rect
+		private idRectangle _clientRect;				// client area
+		private idRectangle _textRect;
 		private Vector2 _origin;
 		private Vector2 _shear;
 
@@ -613,22 +621,22 @@ namespace idTech4.UI
 			_updateVariables.Add(var);
 		}
 
-		public void ClientToScreen(ref Rectangle rect)
+		public void ClientToScreen(ref idRectangle rect)
 		{
 			int x, y;
 			idWindow p;
 
 			for(p = this, x = 0, y = 0; p != null; p = p.Parent)
 			{
-				x += p.Rectangle.X;
-				y += p.Rectangle.Y;
+				x += (int) p.Rectangle.X;
+				y += (int) p.Rectangle.Y;
 			}
 
 			rect.X += x;
 			rect.Y += y;
 		}
 
-		public virtual void Draw(int x, int y)
+		public virtual void Draw(float x, float y)
 		{
 			int skipShaders = idE.CvarSystem.GetInteger("r_skipGuiShaders");
 
@@ -1122,7 +1130,7 @@ namespace idTech4.UI
 				}
 				else
 				{
-					if(win.Simple.Name.Equals(name) == true)
+					if(win.Simple.Name.Equals(name, StringComparison.OrdinalIgnoreCase) == true)
 					{
 						return win;
 					}
@@ -1469,7 +1477,7 @@ namespace idTech4.UI
 					if(tokenLower == "animationdef")
 					{
 						_visible.Set(false);
-						_rect.Set(new Rectangle(0, 0, 0, 0));
+						_rect.Set(new idRectangle(0, 0, 0, 0));
 					}
 
 					token = parser.ExpectTokenType(TokenType.Name, 0);
@@ -1929,15 +1937,15 @@ namespace idTech4.UI
 			return true;
 		}
 
-		public void ScreenToClient(ref Rectangle rect)
+		public void ScreenToClient(ref idRectangle rect)
 		{
 			int x, y;
 			idWindow p;
 
 			for(p = this, x = 0, y = 0; p != null; p = p.Parent)
 			{
-				x += p.Rectangle.X;
-				y += p.Rectangle.Y;
+				x += (int) p.Rectangle.X;
+				y += (int) p.Rectangle.Y;
 			}
 
 			rect.X -= x;
@@ -2030,7 +2038,7 @@ namespace idTech4.UI
 		#endregion
 
 		#region Protected
-		protected virtual void DrawBackground(Rectangle drawRect)
+		protected virtual void DrawBackground(idRectangle drawRect)
 		{
 			if(_backColor.W != 0)
 			{
@@ -2072,7 +2080,7 @@ namespace idTech4.UI
 
 			if(name == "bordersize")
 			{
-				_borderSize = (int) parser.ParseFloat();
+				_borderSize = parser.ParseFloat();
 			}
 			else if(name == "comment")
 			{
@@ -2196,11 +2204,11 @@ namespace idTech4.UI
 			}
 			else if(name == "textalignx")
 			{
-				_textAlignX = (int) parser.ParseFloat();
+				_textAlignX = parser.ParseFloat();
 			}
 			else if(name == "textaligny")
 			{
-				_textAlignY = (int) parser.ParseFloat();
+				_textAlignY = parser.ParseFloat();
 			}
 			else if(name == "wantenter")
 			{
@@ -2363,14 +2371,14 @@ namespace idTech4.UI
 		#endregion
 
 		#region Private
-		private void CalculateClientRectangle(int offsetX, int offsetY)
+		private void CalculateClientRectangle(float offsetX, float offsetY)
 		{
 			_drawRect = _rect.Data;
 
 			if(_flags.HasFlag(WindowFlags.InvertRectangle) == true)
 			{
-				_drawRect.X = (int) (_rect.X - _rect.Width);
-				_drawRect.Y = (int) (_rect.Y - _rect.Height);
+				_drawRect.X = _rect.X - _rect.Width;
+				_drawRect.Y = _rect.Y - _rect.Height;
 			}
 
 			if((_flags.HasFlag(WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter) == true) && (_parent != null))
@@ -2379,11 +2387,11 @@ namespace idTech4.UI
 				// and ignore the original positioning
 				if(_flags.HasFlag(WindowFlags.HorizontalCenter) == true)
 				{
-					_drawRect.X = (int) ((_parent.Rectangle.Width - _rect.Width) / 2);
+					_drawRect.X = (_parent.Rectangle.Width - _rect.Width) / 2;
 				}
 				else
 				{
-					_drawRect.Y = (int) ((_parent.Rectangle.Height - _rect.Height) / 2);
+					_drawRect.Y = (_parent.Rectangle.Height - _rect.Height) / 2;
 				}
 			}
 
@@ -2415,7 +2423,7 @@ namespace idTech4.UI
 			_origin = new Vector2(_rect.X + (_rect.Width / 2), _rect.Y + (_rect.Height / 2));
 		}
 
-		private void CalculateRectangles(int x, int y)
+		private void CalculateRectangles(float x, float y)
 		{
 			CalculateClientRectangle(x, y);
 
@@ -2473,7 +2481,7 @@ namespace idTech4.UI
 			}
 		}
 		
-		private void DrawBorderAndCaption(Rectangle drawRect)
+		private void DrawBorderAndCaption(idRectangle drawRect)
 		{
 			if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize > 0) && (_borderColor.W > 0))
 			{
@@ -2515,22 +2523,22 @@ namespace idTech4.UI
 			_context.ClippingEnabled = true;
 		}
 
-		private void DrawText(int time, int x, int y)
+		private void DrawText(int time, float x, float y)
 		{
 			if(_text == string.Empty)
 			{
 				return;
 			}
 
-			if(_textShadow > 0)
+			/*if(_textShadow > 0)
 			{
 				string shadowText = idHelper.RemoveColors(_text);
-				Rectangle shadowRect = _textRect;
+				idRectangle shadowRect = _textRect;
 				shadowRect.X += _textShadow;
 				shadowRect.Y += _textShadow;
 
 				_context.DrawText(shadowText, _textScale, _textAlign, idColor.Black, shadowRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
-			}
+			}*/
 
 			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
 

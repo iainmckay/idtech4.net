@@ -35,10 +35,10 @@ namespace idTech4.Renderer
 	public struct idScreenRect
 	{
 		// inclusive pixel bounds inside viewport
-		public int X1;
-		public int X2;
-		public int Y1;
-		public int Y2;
+		public short X1;
+		public short X2;
+		public short Y1;
+		public short Y2;
 
 		// for depth bounds test
 		public float MinZ;

@@ -91,7 +91,7 @@ namespace idTech4.UI
 		private idFontFamily _currentFontFamily;
 		private List<idFontFamily> _fontFamilies = new List<idFontFamily>();
 
-		private Stack<Rectangle> _clipRectangles = new Stack<Rectangle>();
+		private Stack<idRectangle> _clipRectangles = new Stack<idRectangle>();
 		private string _fontLanguage;
 		#endregion
 
@@ -273,15 +273,15 @@ namespace idTech4.UI
 			idE.RenderSystem.DrawStretchPicture(verts.ToArray(), indexes.ToArray(), material, ident);
 		}
 
-		public int DrawText(string text, float textScale, TextAlign textAlign, Vector4 color, Rectangle rectDraw, bool wrap, int cursor = -1, bool calcOnly = false, List<int> breaks = null, int limit = 0)
+		public int DrawText(string text, float textScale, TextAlign textAlign, Vector4 color, idRectangle rectDraw, bool wrap, int cursor = -1, bool calcOnly = false, List<int> breaks = null, int limit = 0)
 		{
-			SetFontByScale(textScale);
-
 			float textWidth = 0;
 
 			float charSkip = MaxCharacterWidth(textScale) + 1;
 			float lineSkip = MaxCharacterHeight(textScale);
 			float cursorSkip = (cursor >= 0) ? charSkip : 0;
+
+			SetFontByScale(textScale);
 
 			// TODO: edit cursor
 			/*if (!calcOnly && !(text && *text)) {
@@ -535,14 +535,14 @@ namespace idTech4.UI
 		{
 			SetFontByScale(scale);
 
-			return (int) (_currentFont.MaxWidth * (scale * _currentFont.GlyphScale));
+			return (int) System.Math.Ceiling(_currentFont.MaxWidth * (scale * _currentFont.GlyphScale));
 		}
 
 		public int MaxCharacterHeight(float scale)
 		{
 			SetFontByScale(scale);
 
-			return (int) (_currentFont.MaxHeight * (scale * _currentFont.GlyphScale));
+			return (int) System.Math.Ceiling(_currentFont.MaxHeight * (scale * _currentFont.GlyphScale));
 		}
 
 		public void PopClipRectangle()
@@ -553,14 +553,14 @@ namespace idTech4.UI
 			}
 		}
 
-		public void PushClipRectangle(Rectangle rect)
+		public void PushClipRectangle(idRectangle rect)
 		{
 			_clipRectangles.Push(rect);
 		}
 
-		public void PushClipRectangle(int x, int y, int width, int height)
+		public void PushClipRectangle(float x, float y, float width, float height)
 		{
-			_clipRectangles.Push(new Rectangle(x, y, width, height));
+			_clipRectangles.Push(new idRectangle(x, y, width, height));
 		}
 
 		public void SetSize(float width, float height)
@@ -616,7 +616,7 @@ namespace idTech4.UI
 				return false;
 			}
 
-			foreach(Rectangle clipRect in _clipRectangles)
+			foreach(idRectangle clipRect in _clipRectangles)
 			{
 				float ox = x;
 				float oy = y;

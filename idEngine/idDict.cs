@@ -206,12 +206,12 @@ namespace idTech4
 			return defaultValue;
 		}
 
-		public Rectangle GetRectangle(string key)
+		public idRectangle GetRectangle(string key)
 		{
-			return GetRectangle(key, Rectangle.Empty);
+			return GetRectangle(key, idRectangle.Empty);
 		}
 
-		public Rectangle GetRectangle(string key, Rectangle defaultValue)
+		public idRectangle GetRectangle(string key, idRectangle defaultValue)
 		{
 			string str;
 
@@ -270,7 +270,7 @@ namespace idTech4
 			Set(key, string.Format("{0} {1} {2} {3}", value.X, value.Y, value.Z, value.W));
 		}
 
-		public void Set(string key, Rectangle value)
+		public void Set(string key, idRectangle value)
 		{
 			Set(key, string.Format("{0} {1} {2} {3}", value.X, value.Y, value.Width, value.Height));
 		}

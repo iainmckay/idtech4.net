@@ -437,12 +437,12 @@ namespace idTech4.Renderer
 
 				if(idE.GLConfig.AnisotropicAvailable == true)
 				{
-					//Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MAX_ANISOTROPY_EXT, this.TextureAnisotropy);
+					idE.RenderSystem.GraphicsDevice.SamplerStates[0].MaxAnisotropy = (int) this.TextureAnisotropy;
 				}
 
 				if(idE.GLConfig.TextureLodBiasAvailable == true)
 				{
-					//Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_LOD_BIAS_EXT, this.TextureLodBias);
+					idE.RenderSystem.GraphicsDevice.SamplerStates[0].MipMapLevelOfDetailBias = this.TextureLodBias;
 				}
 			}
 		}

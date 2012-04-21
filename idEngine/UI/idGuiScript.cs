@@ -261,7 +261,7 @@ namespace idTech4.UI
 							// if its the rectangle they are referencing then adjust it 
 							if((ownerParent != null) && (destParent != null) && (dest == ((owner.Simple != null) ? owner.Simple.GetVariableByName("rect") : owner.Window.GetVariableByName("rect"))))
 							{
-								Rectangle rect = ((idWinRectangle) dest).Data;
+								idRectangle rect = ((idWinRectangle) dest).Data;
 								ownerParent.ClientToScreen(ref rect);
 								destParent.ScreenToClient(ref rect);
 

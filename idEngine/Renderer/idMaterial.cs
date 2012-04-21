@@ -584,7 +584,7 @@ namespace idTech4.Renderer
 				{
 					break;
 				}
-				else if(tokenLower == "qer_editorImage")
+				else if(tokenLower == "qer_editorimage")
 				{
 					_editorImageName = lexer.ReadTokenOnLine().ToString();
 					lexer.SkipRestOfLine();
@@ -710,7 +710,7 @@ namespace idTech4.Renderer
 				{
 					_noFog = true;
 				}
-				else if(tokenLower == "unsmoothedtngents")
+				else if(tokenLower == "unsmoothedtangents")
 				{
 					_unsmoothedTangents = true;
 				}

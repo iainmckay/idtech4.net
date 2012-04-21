@@ -300,7 +300,7 @@ namespace idTech4
 			return pot;
 		}
 
-		public static Rectangle ParseRectangle(string str)
+		public static idRectangle ParseRectangle(string str)
 		{
 			try
 			{
@@ -317,11 +317,11 @@ namespace idTech4
 
 				if(parts.Length == 4)
 				{
-					return new Rectangle(
-						int.Parse(parts[0]),
-						int.Parse(parts[1]),
-						int.Parse(parts[2]),
-						int.Parse(parts[3]));
+					return new idRectangle(
+						float.Parse(parts[0]),
+						float.Parse(parts[1]),
+						float.Parse(parts[2]),
+						float.Parse(parts[3]));
 				}
 			}
 			catch(Exception x)
@@ -329,7 +329,7 @@ namespace idTech4
 				Debug.Write(x.ToString());
 			}
 
-			return Rectangle.Empty;
+			return idRectangle.Empty;
 		}
 
 		public static Vector2 ParseVector2(string str)

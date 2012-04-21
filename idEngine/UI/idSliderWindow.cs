@@ -44,7 +44,7 @@ namespace idTech4.UI
 		
 		private float _thumbWidth;
 		private float _thumbHeight;
-		private Rectangle _thumbRect;
+		private idRectangle _thumbRect;
 		private idMaterial _thumbMaterial;
 		private string _thumbMaterialName;
 
@@ -177,7 +177,7 @@ namespace idTech4.UI
 			}
 		}
 
-		public override void Draw(int x, int y)
+		public override void Draw(float x, float y)
 		{
 			//idConsole.Warning("TODO: SliderWindow Draw");
 			/*idVec4 color = foreColor;
@@ -336,7 +336,7 @@ namespace idTech4.UI
 		#endregion
 
 		#region Protected
-		protected override void DrawBackground(Rectangle drawRect)
+		protected override void DrawBackground(idRectangle drawRect)
 		{
 			if((_cvar == null) && (this.Buddy == null))
 			{
@@ -348,19 +348,19 @@ namespace idTech4.UI
 				return;
 			}
 
-			Rectangle r = this.DrawRectangle;
+			idRectangle r = this.DrawRectangle;
 
 			if(_scrollBar == false)
 			{
 				if(_vertical == true)
 				{
-					r.Y += (int) (_thumbHeight / 2.0f);
-					r.Height -= (int) _thumbHeight;
+					r.Y += _thumbHeight / 2.0f;
+					r.Height -= _thumbHeight;
 				}
 				else
 				{
-					r.X += (int) (_thumbWidth / 2.0f);
-					r.Width -= (int) _thumbWidth;
+					r.X += _thumbWidth / 2.0f;
+					r.Width -= _thumbWidth;
 				}
 			}
 	
