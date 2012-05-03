@@ -123,7 +123,7 @@ namespace idTech4
 		{
 			get
 			{
-				return _flags.HasFlag(CvarFlags.Modified);
+				return ((_flags & CvarFlags.Modified) == CvarFlags.Modified);
 			}
 			set
 			{
@@ -366,9 +366,9 @@ namespace idTech4
 		public void Update(idCvar var)
 		{
 			// if this is a statically declared variable
-			if(var.Flags.HasFlag(CvarFlags.Static) == true)
+			if((var.Flags & CvarFlags.Static) == CvarFlags.Static)
 			{
-				if(_flags.HasFlag(CvarFlags.Static) == true)
+				if((_flags & CvarFlags.Static) == CvarFlags.Static)
 				{
 					// the code has more than one static declaration of the same variable, make sure they have the same properties
 					if(_resetString.ToLower() == var.ToString().ToLower())
@@ -376,7 +376,7 @@ namespace idTech4
 						idConsole.Warning("cvar '{0}' declared multiple times with different initial value", _nameString);
 					}
 
-					if(_flags.HasFlag(CvarFlags.Bool | CvarFlags.Integer | CvarFlags.Float) == false)
+					if((_flags & (CvarFlags.Bool | CvarFlags.Integer | CvarFlags.Float)) == 0)
 					{
 						idConsole.Warning("cvar '{0}' declared multiple times with different type", _nameString);
 					}
@@ -430,7 +430,7 @@ namespace idTech4
 		{
 			bool clamped = false;
 
-			if(_flags.HasFlag(CvarFlags.Bool) == true)
+			if((_flags & CvarFlags.Bool) == CvarFlags.Bool)
 			{
 				bool tmpValue;
 				int tmpValue2;
@@ -453,7 +453,7 @@ namespace idTech4
 					_value = _valueString;
 				}
 			}
-			else if(_flags.HasFlag(CvarFlags.Integer) == true)
+			else if((_flags & CvarFlags.Integer) == CvarFlags.Integer)
 			{
 				int.TryParse(_value, out _intValue);
 
@@ -481,7 +481,7 @@ namespace idTech4
 
 				_floatValue = _intValue;
 			}
-			else if(_flags.HasFlag(CvarFlags.Float) == true)
+			else if((_flags & CvarFlags.Float) == CvarFlags.Float)
 			{
 				float.TryParse(_value, out _floatValue);
 
@@ -544,7 +544,7 @@ namespace idTech4
 		internal void UpdateCheat()
 		{
 			// all variables are considered cheats except for a few types
-			if(_flags.HasFlag(CvarFlags.NoCheat | CvarFlags.Init | CvarFlags.ReadOnly | CvarFlags.Archive | CvarFlags.UserInfo | CvarFlags.ServerInfo | CvarFlags.NetworkSync) == true)
+			if((_flags & (CvarFlags.NoCheat | CvarFlags.Init | CvarFlags.ReadOnly | CvarFlags.Archive | CvarFlags.UserInfo | CvarFlags.ServerInfo | CvarFlags.NetworkSync)) != 0)
 			{
 				_flags &= ~CvarFlags.Cheat;
 			}
@@ -585,13 +585,13 @@ namespace idTech4
 
 			if(force == false)
 			{
-				if(_flags.HasFlag(CvarFlags.ReadOnly) == true)
+				if((_flags & CvarFlags.ReadOnly) == CvarFlags.ReadOnly)
 				{
 					idConsole.WriteLine("{0} is read only.", _nameString);
 					return;
 				}
 
-				if(_flags.HasFlag(CvarFlags.Init) == true)
+				if((_flags & CvarFlags.Init) == CvarFlags.Init)
 				{
 					idConsole.WriteLine("{0} is write protected.", _nameString);
 					return;

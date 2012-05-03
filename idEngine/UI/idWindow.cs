@@ -234,7 +234,7 @@ namespace idTech4.UI
 				{
 					return false;
 				}
-				else if(_flags.HasFlag(WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter) == true)
+				else if((_flags & (WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter)) != 0)
 				{
 					return false;
 				}
@@ -647,7 +647,7 @@ namespace idTech4.UI
 
 			int time = _gui.Time;
 
-			if((_flags.HasFlag(WindowFlags.Desktop) == true) && (skipShaders != 3))
+			if(((_flags & WindowFlags.Desktop) == WindowFlags.Desktop) && (skipShaders != 3))
 			{
 				RunTimeEvents(time);
 			}
@@ -697,7 +697,7 @@ namespace idTech4.UI
 			DrawBackground(_drawRect);
 			DrawBorderAndCaption(_drawRect);
 
-			if(_flags.HasFlag(WindowFlags.NoClip) == false)
+			if((_flags & WindowFlags.NoClip) == 0)
 			{
 				_context.PushClipRectangle(_clientRect);
 			}
@@ -727,7 +727,7 @@ namespace idTech4.UI
 			// Put transforms back to what they were before the children were processed
 			_context.SetTransformInformation(oldOrigin, oldTransform);
 
-			if(_flags.HasFlag(WindowFlags.NoClip) == false)
+			if((_flags & WindowFlags.NoClip) == 0)
 			{
 				_context.PopClipRectangle();
 			}
@@ -1182,7 +1182,7 @@ namespace idTech4.UI
 				}
 			}
 
-			if(_flags.HasFlag(WindowFlags.Desktop) == true)
+			if((_flags & WindowFlags.Desktop) == WindowFlags.Desktop)
 			{
 				CalculateRectangles(0, 0);
 			}
@@ -1195,7 +1195,7 @@ namespace idTech4.UI
 
 		public virtual string HandleEvent(SystemEvent e, ref bool updateVisuals)
 		{
-			if(_flags.HasFlag(WindowFlags.Desktop) == true)
+			if((_flags & WindowFlags.Desktop) == WindowFlags.Desktop)
 			{
 				// TODO: actionup/down
 				/*actionDownRun = false;
@@ -1985,7 +1985,7 @@ namespace idTech4.UI
 			// only one child can have the focus
 			idWindow lastFocus = null;
 
-			if(window.Flags.HasFlag(WindowFlags.CanFocus) == true)
+			if((window.Flags & WindowFlags.CanFocus) == WindowFlags.CanFocus)
 			{
 				lastFocus = this.UserInterface.Desktop.FocusedChild;
 
@@ -2049,7 +2049,7 @@ namespace idTech4.UI
 			{
 				float scaleX, scaleY;
 
-				if(_flags.HasFlag(WindowFlags.NaturalMaterial) == true)
+				if((_flags & WindowFlags.NaturalMaterial) == WindowFlags.NaturalMaterial)
 				{
 					scaleX = _drawRect.Width / _background.ImageWidth;
 					scaleY = _drawRect.Height / _background.ImageHeight;
@@ -2316,7 +2316,7 @@ namespace idTech4.UI
 				EvaluateRegisters();
 			}
 
-			if(_flags.HasFlag(WindowFlags.InTransition) == true)
+			if((_flags & WindowFlags.InTransition) == WindowFlags.InTransition)
 			{
 				Transition();
 			}
@@ -2357,7 +2357,7 @@ namespace idTech4.UI
 
 			if(redraw == true)
 			{
-				if(this.Flags.HasFlag(WindowFlags.Desktop) == true)
+				if((this.Flags & WindowFlags.Desktop) == WindowFlags.Desktop)
 				{
 					Draw(0, 0);
 				}
@@ -2375,17 +2375,17 @@ namespace idTech4.UI
 		{
 			_drawRect = _rect.Data;
 
-			if(_flags.HasFlag(WindowFlags.InvertRectangle) == true)
+			if((_flags & WindowFlags.InvertRectangle) == WindowFlags.InvertRectangle)
 			{
 				_drawRect.X = _rect.X - _rect.Width;
 				_drawRect.Y = _rect.Y - _rect.Height;
 			}
 
-			if((_flags.HasFlag(WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter) == true) && (_parent != null))
+			if(((_flags & (WindowFlags.HorizontalCenter | WindowFlags.VerticalCenter)) != 0) && (_parent != null))
 			{
 				// in this case treat xofs and yofs as absolute top left coords
 				// and ignore the original positioning
-				if(_flags.HasFlag(WindowFlags.HorizontalCenter) == true)
+				if((_flags & WindowFlags.HorizontalCenter) == WindowFlags.HorizontalCenter)
 				{
 					_drawRect.X = (_parent.Rectangle.Width - _rect.Width) / 2;
 				}
@@ -2402,7 +2402,7 @@ namespace idTech4.UI
 
 			if((_rect.Height > 0.0f) && (_rect.Width > 0.0f))
 			{
-				if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize != 0.0f))
+				if(((_flags & WindowFlags.Border) == WindowFlags.Border) && (_borderSize != 0.0f))
 				{
 					_clientRect.X += _borderSize;
 					_clientRect.Y += _borderSize;
@@ -2483,7 +2483,7 @@ namespace idTech4.UI
 		
 		private void DrawBorderAndCaption(idRectangle drawRect)
 		{
-			if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize > 0) && (_borderColor.W > 0))
+			if(((_flags & WindowFlags.Border) == WindowFlags.Border) && (_borderSize > 0) && (_borderColor.W > 0))
 			{
 				_context.DrawRectangle(drawRect.X, drawRect.Y, drawRect.Width, drawRect.Height, _borderSize, _borderColor);
 			}
@@ -2530,17 +2530,17 @@ namespace idTech4.UI
 				return;
 			}
 
-			/*if(_textShadow > 0)
+			if(_textShadow > 0)
 			{
 				string shadowText = idHelper.RemoveColors(_text);
 				idRectangle shadowRect = _textRect;
 				shadowRect.X += _textShadow;
 				shadowRect.Y += _textShadow;
 
-				_context.DrawText(shadowText, _textScale, _textAlign, idColor.Black, shadowRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
-			}*/
+				_context.DrawText(shadowText, _textScale, _textAlign, idColor.Black, shadowRect, (_flags & WindowFlags.NoWrap) == 0, -1);
+			}
 
-			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags.HasFlag(WindowFlags.NoWrap) == false), -1);
+			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags & WindowFlags.NoWrap) == 0, -1);
 
 			// TODO: gui_edit
 			/*if ( gui_edit.GetBool() ) {
@@ -2823,12 +2823,12 @@ namespace idTech4.UI
 				switch(token.Type)
 				{
 					case TokenType.Number:
-						if(token.SubType.HasFlag(TokenSubType.Integer) == true)
+						if((token.SubType & TokenSubType.Integer) == TokenSubType.Integer)
 						{
 							var = new idWinInteger(work);
 							var.Set(token.ToString());
 						}
-						else if(token.SubType.HasFlag(TokenSubType.Float) == true)
+						else if((token.SubType & TokenSubType.Float) == TokenSubType.Float)
 						{
 							var = new idWinFloat(work);
 							var.Set(token.ToString());
@@ -3132,22 +3132,21 @@ namespace idTech4.UI
 			Matrix transform = Matrix.Identity;
 			Vector3 origin = new Vector3(_origin.X + x, _origin.Y + y, 0);
 
-			// TODO: rotate
-			/*if ( rotate ) {
-				static idRotation rot;
-				static idVec3 vec(0, 0, 1);
-				rot.Set( org, vec, rotate );
-				trans = rot.ToMat3();
-			}*/
+			if(_rotate.X > 0)
+			{
+				idRotation rot = new idRotation(origin, new Vector3(0, 0, 1), _rotate.X);
 
-			// TODO: shear
-			/*if ( shear.x || shear.y ) {
-				static idMat3 smat;
-				smat.Identity();
-				smat[0][1] = shear.x;
-				smat[1][0] = shear.y;
-				trans *= smat;
-			}*/
+				transform = rot.ToMatrix();
+			}
+
+			if((_shear.X > 0) || (_shear.Y > 0))
+			{
+				Matrix mat = Matrix.Identity;
+				mat.M12 = _shear.X;
+				mat.M21 = _shear.Y;
+
+				transform *= mat;
+			}
 
 			if(transform != Matrix.Identity)
 			{

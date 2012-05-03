@@ -433,7 +433,7 @@ namespace idTech4
 			{
 				idInternalCvar cvar = kvp.Value;
 
-				if(cvar.Flags.HasFlag(flags) == false)
+				if((cvar.Flags & flags) == 0)
 				{
 					continue;
 				}
@@ -467,11 +467,11 @@ namespace idTech4
 				case ShowMode.Type:
 					foreach(idCvar cvar in list)
 					{
-						if(cvar.Flags.HasFlag(CvarFlags.Bool) == true)
+						if((cvar.Flags & CvarFlags.Bool) == CvarFlags.Bool)
 						{
 							idConsole.WriteLine("{0}{1}bool", cvar.Name.PadRight(32), idColorString.Cyan);
 						}
-						else if(cvar.Flags.HasFlag(CvarFlags.Integer) == true)
+						else if((cvar.Flags & CvarFlags.Integer) == CvarFlags.Integer)
 						{
 							if(cvar.MinValue < cvar.MaxValue)
 							{
@@ -482,7 +482,7 @@ namespace idTech4
 								idConsole.WriteLine("{0}{1}int", cvar.Name.PadRight(32), idColorString.Green);
 							}
 						}
-						else if(cvar.Flags.HasFlag(CvarFlags.Float) == true)
+						else if((cvar.Flags & CvarFlags.Float) == CvarFlags.Float)
 						{
 							if(cvar.MinValue < cvar.MaxValue)
 							{
@@ -525,15 +525,15 @@ namespace idTech4
 
 						string str = string.Empty;
 
-						if(cvar.Flags.HasFlag(CvarFlags.Bool) == true)
+						if((cvar.Flags & CvarFlags.Bool) == CvarFlags.Bool)
 						{
 							str += string.Format("{0}B ", idColorString.Cyan);
 						}
-						else if(cvar.Flags.HasFlag(CvarFlags.Integer) == true)
+						else if((cvar.Flags & CvarFlags.Integer) == CvarFlags.Integer)
 						{
 							str += string.Format("{0}U ", idColorString.Green);
 						}
-						else if(cvar.Flags.HasFlag(CvarFlags.Float) == true)
+						else if((cvar.Flags & CvarFlags.Float) == CvarFlags.Float)
 						{
 							str += string.Format("{0}F ", idColorString.Red);
 						}
@@ -542,27 +542,27 @@ namespace idTech4
 							str += string.Format("{0}S ", idColorString.White);
 						}
 
-						if(cvar.Flags.HasFlag(CvarFlags.System) == true)
+						if((cvar.Flags & CvarFlags.System) == CvarFlags.System)
 						{
 							str += string.Format("{0}SYS  ", idColorString.White);
 						}
-						else if(cvar.Flags.HasFlag(CvarFlags.Renderer) == true)
+						else if((cvar.Flags & CvarFlags.Renderer) == CvarFlags.Renderer)
 						{
 							str += string.Format("{0}RNDR ", idColorString.White);
 						}
-						else if(cvar.Flags.HasFlag(CvarFlags.Sound) == true)
+						else if((cvar.Flags & CvarFlags.Sound) == CvarFlags.Sound)
 						{
 							str += string.Format("{0}SND  ", idColorString.White);
 						}
-						else if(cvar.Flags.HasFlag(CvarFlags.Gui) == true)
+						else if((cvar.Flags & CvarFlags.Gui) == CvarFlags.Gui)
 						{
 							str += string.Format("{0}GUI  ", idColorString.White);
 						}
-						else if(cvar.Flags.HasFlag(CvarFlags.Game) == true)
+						else if((cvar.Flags & CvarFlags.Game) == CvarFlags.Game)
 						{
 							str += string.Format("{0}GAME ", idColorString.White);
 						}
-						else if(cvar.Flags.HasFlag(CvarFlags.Tool) == true)
+						else if((cvar.Flags & CvarFlags.Tool) == CvarFlags.Tool)
 						{
 							str += string.Format("{0}TOOL ", idColorString.White);
 						}
@@ -571,14 +571,14 @@ namespace idTech4
 							str += string.Format("{0}     ", idColorString.White);
 						}
 
-						str += (cvar.Flags.HasFlag(CvarFlags.UserInfo) == true) ? "UI " : "   ";
-						str += (cvar.Flags.HasFlag(CvarFlags.ServerInfo) == true) ? "SI " : "   ";
-						str += (cvar.Flags.HasFlag(CvarFlags.Static) == true) ? "ST " : "   ";
-						str += (cvar.Flags.HasFlag(CvarFlags.Cheat) == true) ? "CH " : "   ";
-						str += (cvar.Flags.HasFlag(CvarFlags.Init) == true) ? "IN " : "   ";
-						str += (cvar.Flags.HasFlag(CvarFlags.ReadOnly) == true) ? "RO " : "   ";
-						str += (cvar.Flags.HasFlag(CvarFlags.Archive) == true) ? "AR " : "   ";
-						str += (cvar.Flags.HasFlag(CvarFlags.Modified) == true) ? "MO " : "   ";
+						str += ((cvar.Flags & CvarFlags.UserInfo) == CvarFlags.UserInfo) ? "UI " : "   ";
+						str += ((cvar.Flags & CvarFlags.ServerInfo) == CvarFlags.ServerInfo) ? "SI " : "   ";
+						str += ((cvar.Flags & CvarFlags.Static) == CvarFlags.Static) ? "ST " : "   ";
+						str += ((cvar.Flags & CvarFlags.Cheat) == CvarFlags.Cheat) ? "CH " : "   ";
+						str += ((cvar.Flags & CvarFlags.Init) == CvarFlags.Init) ? "IN " : "   ";
+						str += ((cvar.Flags & CvarFlags.ReadOnly) == CvarFlags.ReadOnly) ? "RO " : "   ";
+						str += ((cvar.Flags & CvarFlags.Archive) == CvarFlags.Archive) ? "AR " : "   ";
+						str += ((cvar.Flags & CvarFlags.Modified) == CvarFlags.Modified) ? "MO " : "   ";
 
 						idConsole.WriteLine(str);						
 					}
@@ -748,13 +748,13 @@ namespace idTech4
 				idInternalCvar cvar = kvp.Value;
 
 				// don't mess with rom values
-				if(cvar.Flags.HasFlag(CvarFlags.ReadOnly | CvarFlags.Init) == true)
+				if((cvar.Flags & (CvarFlags.ReadOnly | CvarFlags.Init)) != 0)
 				{
 					continue;
 				}
 
 				// throw out any variables the user created
-				if(cvar.Flags.HasFlag(CvarFlags.Static) == false)
+				if((cvar.Flags & CvarFlags.Static) == 0)
 				{
 					toRemove.Add(cvar.Name);
 				}
@@ -786,8 +786,6 @@ namespace idTech4
 	[Flags]
 	public enum CvarFlags
 	{
-		/// <summary>All flags.</summary>
-		All = -1,
 		/// <summary>Variable is a boolean.</summary>
 		Bool = 1 << 0,
 		/// <summary>Variable is an integer.</summary>
@@ -825,6 +823,8 @@ namespace idTech4
 		/// <summary>Set to cause it to be saved to a config file.</summary>
 		Archive = 1 << 17,
 		/// <summary>Set when the variable is modified.</summary>
-		Modified = 1 << 18
+		Modified = 1 << 18,
+		/// <summary>All flags.</summary>
+		All = 1 << 19
 	}
 }

@@ -45,7 +45,7 @@ namespace idTech4
 			{
 				c = (char) key;
 
-				if(modifiers.HasFlag(Keys.Shift) == false)
+				if((modifiers & Keys.Shift) == 0)
 				{
 					c = Char.ToLower(c);
 				}
@@ -76,7 +76,7 @@ namespace idTech4
 					}
 				}
 			}
-			else if(modifiers.HasFlag(Keys.Shift) == true)
+			else if((modifiers & Keys.Shift) == Keys.Shift)
 			{
 				switch(key)
 				{

@@ -167,7 +167,7 @@ namespace idTech4.Text
 			}
 			else if(token.Type == TokenType.Number)
 			{
-				if(token.SubType.HasFlag(subType) == false)
+				if((token.SubType & subType) != subType)
 				{
 					Error("expected '{0}' but found '{1}'", subType.ToString().ToLower(), token.ToString());
 					return null;
@@ -359,7 +359,7 @@ namespace idTech4.Text
 				}
 
 				// recursively concatenate strings that are behind each other still resolving defines
-				if((token.Type == TokenType.String) && (_scriptStack.Peek().Options.HasFlag(LexerOptions.NoStringConcatination) == false))
+				if((token.Type == TokenType.String) && ((_scriptStack.Peek().Options & LexerOptions.NoStringConcatination) == 0))
 				{
 					idToken newToken = ReadToken();
 
@@ -376,7 +376,7 @@ namespace idTech4.Text
 					}
 				}
 
-				if(_scriptStack.Peek().Options.HasFlag(LexerOptions.NoDollarPrecompilation) == false)
+				if((_scriptStack.Peek().Options & LexerOptions.NoDollarPrecompilation) == 0)
 				{
 					// check for special precompiler directives
 					if((token.Type == TokenType.Punctuation) && (token.ToString() == "$"))
@@ -390,7 +390,7 @@ namespace idTech4.Text
 				}
 
 				// if the token is a name
-				if((token.Type == TokenType.Name) && (token.Flags.HasFlag(TokenFlags.RecursiveDefine) == true))
+				if((token.Type == TokenType.Name) && ((token.Flags & TokenFlags.RecursiveDefine) == TokenFlags.RecursiveDefine))
 				{
 					// check if the name is a define macro
 					if(_defineDict.ContainsKey(token.ToString()) == true)
@@ -497,7 +497,7 @@ namespace idTech4.Text
 			// check if the define already exists
 			if(_defineDict.TryGetValue(token.ToString(), out define) == true)
 			{
-				if(define.Flags.HasFlag(DefineFlags.Fixed) == true)
+				if((define.Flags & DefineFlags.Fixed) == DefineFlags.Fixed)
 				{
 					Error("can't redefine '{0}'", token.ToString());
 					return false;
@@ -896,7 +896,7 @@ namespace idTech4.Text
 					Error("#include without file name between < >");
 					return false;
 				}
-				else if(_options.HasFlag(LexerOptions.NoBaseIncludes) == true)
+				else if((_options & LexerOptions.NoBaseIncludes) == LexerOptions.NoBaseIncludes)
 				{
 					return true;
 				}

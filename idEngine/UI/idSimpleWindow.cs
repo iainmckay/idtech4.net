@@ -224,7 +224,7 @@ namespace idTech4.UI
 
 			SetupTransforms(x, y);
 
-			if(_flags.HasFlag(WindowFlags.NoClip) == true)
+			if((_flags & WindowFlags.NoClip) == WindowFlags.NoClip)
 			{
 				_context.ClippingEnabled = false;
 			}
@@ -232,7 +232,7 @@ namespace idTech4.UI
 			DrawBackground(_drawRect);
 			DrawBorderAndCaption(_drawRect);
 
-			/*if(_textShadow > 0)
+			if(_textShadow > 0)
 			{
 				string shadowText = idHelper.RemoveColors(_text);
 
@@ -240,13 +240,13 @@ namespace idTech4.UI
 				shadowRect.X += _textShadow;
 				shadowRect.Y += _textShadow;
 
-				_context.DrawText(shadowText, _textScale, _textAlign, idColor.Black, shadowRect, _flags.HasFlag(WindowFlags.NoWrap) == false, -1);
-			}*/
+				_context.DrawText(shadowText, _textScale, _textAlign, idColor.Black, shadowRect, (_flags & WindowFlags.NoWrap) == 0, -1);
+			}
 
-			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, _flags.HasFlag(WindowFlags.NoWrap) == false, -1);
+			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags & WindowFlags.NoWrap) == 0, -1);
 			_context.SetTransformInformation(Vector3.Zero, Matrix.Identity);
 
-			if(_flags.HasFlag(WindowFlags.NoClip) == true)
+			if((_flags & WindowFlags.NoClip) == WindowFlags.NoClip)
 			{
 				_context.ClippingEnabled = true;
 			}
@@ -327,7 +327,7 @@ namespace idTech4.UI
 		{
 			_drawRect = _rect;
 
-			if(_flags.HasFlag(WindowFlags.InvertRectangle) == true)
+			if((_flags & WindowFlags.InvertRectangle) == WindowFlags.InvertRectangle)
 			{
 				_drawRect.X = _rect.X - _rect.Width;
 				_drawRect.Y = _rect.Y - _rect.Height;
@@ -339,7 +339,7 @@ namespace idTech4.UI
 
 			if((_rect.Height > 0.0f) && (_rect.Width > 0.0f))
 			{
-				if((_flags.HasFlag(WindowFlags.Border) == true) && (_borderSize != 0.0f))
+				if(((_flags & WindowFlags.Border) == WindowFlags.Border) && (_borderSize != 0.0f))
 				{
 					_clientRect.X += _borderSize;
 					_clientRect.Y += _borderSize;
@@ -373,7 +373,7 @@ namespace idTech4.UI
 				{
 					float scaleX, scaleY;
 
-					if(_flags.HasFlag(WindowFlags.NaturalMaterial) == true)
+					if((_flags & WindowFlags.NaturalMaterial) == WindowFlags.NaturalMaterial)
 					{
 						scaleX = _drawRect.Width / _background.ImageWidth;
 						scaleY = _drawRect.Height / _background.ImageHeight;
@@ -391,7 +391,7 @@ namespace idTech4.UI
 
 		private void DrawBorderAndCaption(idRectangle drawRect)
 		{
-			if(_flags.HasFlag(WindowFlags.Border) == true)
+			if((_flags & WindowFlags.Border) == WindowFlags.Border)
 			{
 				if(_borderSize > 0)
 				{

@@ -294,7 +294,7 @@ namespace idTech4.Text
 			}
 
 			// if the type matches
-			if((token.Type == type) && (token.SubType.HasFlag(subType) == true))
+			if((token.Type == type) && ((token.SubType & subType) != 0))
 			{
 				return token;
 			}
@@ -310,12 +310,12 @@ namespace idTech4.Text
 		{
 			_hadError = true;
 
-			if(_options.HasFlag(LexerOptions.NoErrors) == true)
+			if((_options & LexerOptions.NoErrors) == LexerOptions.NoErrors)
 			{
 				return;
 			}
 
-			if(_options.HasFlag(LexerOptions.NoFatalErrors) == true)
+			if((_options & LexerOptions.NoFatalErrors) == LexerOptions.NoFatalErrors)
 			{
 				idConsole.Warning("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
 			}
@@ -375,7 +375,7 @@ namespace idTech4.Text
 			}
 			else if(token.Type == TokenType.Number)
 			{
-				if(token.SubType.HasFlag(subType) == false)
+				if((token.SubType & subType) != subType)
 				{
 					Error("expected '{0}' but found '{1}'", subType.ToString().ToLower(), tokenValue);
 					return null;
@@ -383,7 +383,7 @@ namespace idTech4.Text
 			}
 			else if(token.Type == TokenType.Punctuation)
 			{
-				if(token.SubType.HasFlag(subType) == false)
+				if(token.SubType != subType)
 				{
 					Error("expected '{0}' but found '{1}'", GetPunctuationFromID(subType), tokenValue);
 					return null;
@@ -760,7 +760,7 @@ namespace idTech4.Text
 			char c = GetBufferCharacter(_scriptPosition);
 
 			// if we're keeping everything as whitespace deliminated strings
-			if(_options.HasFlag(LexerOptions.OnlyStrings) == true)
+			if((_options & LexerOptions.OnlyStrings) == LexerOptions.OnlyStrings)
 			{
 				// if there is a leading quote
 				if((c == '"') || (c == '\''))
@@ -784,7 +784,7 @@ namespace idTech4.Text
 				}
 
 				// if names are allowed to start with a number
-				if(_options.HasFlag(LexerOptions.AllowNumberNames) == true)
+				if((_options & LexerOptions.AllowNumberNames) == LexerOptions.AllowNumberNames)
 				{
 					c = GetBufferCharacter(_scriptPosition);
 
@@ -814,7 +814,7 @@ namespace idTech4.Text
 				}
 			}
 			// names may also start with a slash when pathnames are allowed
-			else if((_options.HasFlag(LexerOptions.AllowPathNames) == true) && ((c == '/') || (c == '\\') || (c == '.')))
+			else if(((_options & LexerOptions.AllowPathNames) == LexerOptions.AllowPathNames) && ((c == '/') || (c == '\\') || (c == '.')))
 			{
 				if(ReadName(token) == false)
 				{
@@ -854,7 +854,7 @@ namespace idTech4.Text
 
 		public void Warning(string format, params object[] args)
 		{
-			if(_options.HasFlag(LexerOptions.NoWarnings) == true)
+			if((_options & LexerOptions.NoWarnings) == LexerOptions.NoWarnings)
 			{
 				return;
 			}
@@ -1057,9 +1057,9 @@ namespace idTech4.Text
 			|| ((c >= '0') && (c <= '9'))
 			|| (c == '_')
 				// if treating all tokens as strings, don't parse '-' as a seperate token
-			|| ((_options.HasFlag(LexerOptions.OnlyStrings) == true) && (c == '-'))
+			|| (((_options & LexerOptions.OnlyStrings) == LexerOptions.OnlyStrings) && (c == '-'))
 				// if special path name characters are allowed
-			|| ((_options.HasFlag(LexerOptions.AllowPathNames) == true) && ((c == '/') || (c == '\\') || (c == ':') || (c == '.'))));
+			|| (((_options & LexerOptions.AllowPathNames) == LexerOptions.AllowPathNames) && ((c == '/') || (c == '\\') || (c == ':') || (c == '.'))));
 
 			//the sub type is the length of the name
 			token.SubType = (TokenSubType) token.ToString().Length;
@@ -1214,7 +1214,7 @@ namespace idTech4.Text
 							c = GetBufferCharacter(++_scriptPosition);
 						}
 
-						if(_options.HasFlag(LexerOptions.AllowFloatExceptions) == false)
+						if((_options & LexerOptions.AllowFloatExceptions) == 0)
 						{
 							Error("parsed {0}", token);
 						}
@@ -1222,7 +1222,7 @@ namespace idTech4.Text
 				}
 				else if(dot > 1)
 				{
-					if(_options.HasFlag(LexerOptions.AllowIPAddresses) == false)
+					if((_options & LexerOptions.AllowIPAddresses) == 0)
 					{
 						Error("more than one dot in number");
 						return false;
@@ -1243,7 +1243,7 @@ namespace idTech4.Text
 				}
 			}
 
-			if(token.SubType.HasFlag(TokenSubType.Float) == true)
+			if((token.SubType & TokenSubType.Float) == TokenSubType.Float)
 			{
 				if(c > ' ')
 				{
@@ -1270,7 +1270,7 @@ namespace idTech4.Text
 					token.SubType |= TokenSubType.DoublePrecision;
 				}
 			}
-			else if(token.SubType.HasFlag(TokenSubType.Integer) == true)
+			else if((token.SubType & TokenSubType.Integer) == TokenSubType.Integer)
 			{
 				if(c > ' ')
 				{
@@ -1297,7 +1297,7 @@ namespace idTech4.Text
 					}
 				}
 			}
-			else if(token.SubType.HasFlag(TokenSubType.IPAddress) == true)
+			else if((token.SubType & TokenSubType.IPAddress) == TokenSubType.IPAddress)
 			{
 				if(c == ':')
 				{
@@ -1387,7 +1387,7 @@ namespace idTech4.Text
 			while(true)
 			{
 				// if there is an escape character and escape characters are allowed.
-				if((GetBufferCharacter(_scriptPosition) == '\\') && (_options.HasFlag(LexerOptions.NoStringEscapeCharacters) == false))
+				if((GetBufferCharacter(_scriptPosition) == '\\') && ((_options & LexerOptions.NoStringEscapeCharacters) == 0))
 				{
 					if(ReadEscapeCharacter(out ch) == false)
 					{
@@ -1403,7 +1403,8 @@ namespace idTech4.Text
 					_scriptPosition++;
 
 					// if consecutive strings should not be concatenated
-					if((_options.HasFlag(LexerOptions.NoStringConcatination) == true) && ((_options.HasFlag(LexerOptions.AllowBackslashStringConcatination) == false) || (quote != '"')))
+					if(((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringConcatination) 
+						&& (((_options & LexerOptions.AllowBackslashStringConcatination) == 0) || (quote != '"')))
 					{
 						break;
 					}
@@ -1420,7 +1421,7 @@ namespace idTech4.Text
 						break;
 					}
 
-					if(_options.HasFlag(LexerOptions.NoStringConcatination) == true)
+					if((_options & LexerOptions.NoStringConcatination) == LexerOptions.NoStringConcatination)
 					{
 						if(GetBufferCharacter(_scriptPosition) != '\\')
 						{
@@ -1472,7 +1473,7 @@ namespace idTech4.Text
 
 			if(token.Type == TokenType.Literal)
 			{
-				if(_options.HasFlag(LexerOptions.AllowMultiCharacterLiterals) == false)
+				if((_options & LexerOptions.AllowMultiCharacterLiterals) == 0)
 				{
 					if(token.Length != 1)
 					{

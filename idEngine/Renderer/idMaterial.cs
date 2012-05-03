@@ -481,7 +481,7 @@ namespace idTech4.Renderer
 		/// <returns></returns>
 		public bool TestMaterialFlag(MaterialFlags flag)
 		{
-			return _materialFlags.HasFlag(flag);
+			return ((_materialFlags & flag) != 0);
 		}
 		#endregion
 
@@ -1307,7 +1307,7 @@ namespace idTech4.Renderer
 			{
 				if(tokenLower == infoParameter.Name)
 				{
-					if(infoParameter.SurfaceFlags.HasFlag(SurfaceFlags.TypeMask) == true)
+					if((infoParameter.SurfaceFlags & Renderer.SurfaceFlags.TypeMask) == Renderer.SurfaceFlags.TypeMask)
 					{
 						// ensure we only have one surface type set
 						_surfaceFlags &= ~SurfaceFlags.TypeMask;
@@ -1974,7 +1974,7 @@ namespace idTech4.Renderer
 			string tokenValue = token.ToString();
 			string tokenLower = tokenValue.ToLower();
 
-			// blending combinations.
+			// blending combinations
 			if(tokenLower == "blend")
 			{
 				stage.DrawStateBits = MaterialStates.SourceBlendSourceAlpha | MaterialStates.DestinationBlendOneMinusSourceAlpha;
@@ -1989,7 +1989,7 @@ namespace idTech4.Renderer
 			}
 			else if(tokenLower == "none")
 			{
-				// none is used when defining an alpha mask that doesn't draw.
+				// none is used when defining an alpha mask that doesn't draw
 				stage.DrawStateBits = MaterialStates.SourceBlendZero | MaterialStates.DestinationBlendOne;
 			}
 			else if(tokenLower == "bumpmap")
@@ -2014,6 +2014,8 @@ namespace idTech4.Renderer
 				{
 					return;
 				}
+
+				tokenLower = token.ToString().ToLower();
 
 				MaterialStates destinationBlendMode = GetDestinationBlendMode(tokenLower);
 
@@ -2179,7 +2181,8 @@ namespace idTech4.Renderer
 			// TODO
 			string image = ParsePastImageProgram(lexer);
 
-			// TODO: fragment program images.
+			// TODO: fragment program images.  remember we use a global
+			// sampler state.  it'll ignore these texturemin/max filters.
 			idConsole.Warning("TODO: fragment program images");
 			/*
 			newStage->fragmentProgramImages[unit] = 
@@ -2289,8 +2292,9 @@ namespace idTech4.Renderer
 
 		private void MultiplyTextureMatrix(ref TextureStage textureStage, int[,] registers)
 		{
-			if(textureStage.Matrix == null)
+			if(textureStage.HasMatrix == false)
 			{
+				textureStage.HasMatrix = true;
 				textureStage.Matrix = registers;
 				return;
 			}
@@ -2385,7 +2389,6 @@ namespace idTech4.Renderer
 			else if(name == "GL_ZERO")
 			{
 				return MaterialStates.DestinationBlendZero;
-
 			}
 			else if(name == "GL_SRC_ALPHA")
 			{
@@ -2520,15 +2523,15 @@ namespace idTech4.Renderer
 				}
 				else
 				{
-					MaterialStates drawStateBits = _parsingData.Stages[0].DrawStateBits;
+					MaterialStates drawStateBits = _parsingData.Stages[0].DrawStateBits & MaterialStates.SourceBlendBits;
 
 					if(((drawStateBits & MaterialStates.DestinationBlendBits) != MaterialStates.DestinationBlendZero)
-						|| ((drawStateBits & MaterialStates.SourceBlendBits) == MaterialStates.SourceBlendDestinationColor)
-						|| ((drawStateBits & MaterialStates.SourceBlendBits) == MaterialStates.SourceBlendOneMinusDestinationColor)
-						|| ((drawStateBits & MaterialStates.SourceBlendBits) == MaterialStates.SourceBlendDestinationAlpha)
-						|| ((drawStateBits & MaterialStates.SourceBlendBits) == MaterialStates.SourceBlendOneMinusDestinationAlpha))
+						|| (drawStateBits == MaterialStates.SourceBlendDestinationColor)
+						|| (drawStateBits == MaterialStates.SourceBlendOneMinusDestinationColor)
+						|| (drawStateBits == MaterialStates.SourceBlendDestinationAlpha)
+						|| (drawStateBits == MaterialStates.SourceBlendOneMinusDestinationAlpha))
 					{
-						// blended with the destination.
+						// blended with the destination
 						_coverage = MaterialCoverage.Translucent;
 					}
 					else
@@ -2648,7 +2651,7 @@ namespace idTech4.Renderer
 					_allowOverlays = false;
 				}
 
-				if(this.SurfaceFlags.HasFlag(SurfaceFlags.NoImpact) == true)
+				if((this.SurfaceFlags & Renderer.SurfaceFlags.NoImpact) == Renderer.SurfaceFlags.NoImpact)
 				{
 					_allowOverlays = false;
 				}

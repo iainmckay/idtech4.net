@@ -96,7 +96,7 @@ namespace idTech4.Math
 				return _startValue;
 			}
 
-			if((_extrapolationType.HasFlag(ExtrapolationType.NoStop) == false) && (time > (_startTime + _duration)))
+			if(((_extrapolationType & ExtrapolationType.NoStop) == 0) && (time > (_startTime + _duration)))
 			{
 				time = _startTime + _duration;
 			}

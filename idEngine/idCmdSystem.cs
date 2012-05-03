@@ -257,7 +257,8 @@ namespace idTech4
 			// check registered command functions.
 			if(_commands.TryGetValue(args.Get(0), out cmd) == true)
 			{
-				if((cmd.Flags.HasFlag(CommandFlags.Cheat | CommandFlags.Tool) == true) && (idE.Session.IsMultiplayer == true) && (idE.CvarSystem.GetBool("net_allowCheats") == false))
+				if(((cmd.Flags & (CommandFlags.Cheat | CommandFlags.Tool)) != 0) 
+					&& (idE.Session.IsMultiplayer == true) && (idE.CvarSystem.GetBool("net_allowCheats") == false))
 				{
 					idConsole.WriteLine("Command '{0}' not valid in multiplayer mode.", cmd.Name);
 					return;
@@ -303,7 +304,7 @@ namespace idTech4
 
 			foreach(KeyValuePair<string, CommandDefinition> kvp in _commands)
 			{
-				if(kvp.Value.Flags.HasFlag(flags) == false)
+				if((kvp.Value.Flags & flags) == 0)
 				{
 					continue;
 				}

@@ -38,7 +38,6 @@ using Microsoft.Xna.Framework.Graphics;
 
 using OpenTK.Graphics;
 
-using Tao.DevIl;
 using Tao.OpenGl;
 using Tao.Platform.Windows;
 
@@ -156,7 +155,7 @@ namespace idTech4.Renderer
 		private GraphicsDevice _graphicsDevice;
 		private GraphicsDeviceManager _graphicsDeviceManager;
 
-		
+
 
 		private int _frameCount;											// incremented every frame
 		private int _viewCount;												// incremented every view (twice a scene if subviewed) and every R_MarkFragments call
@@ -452,7 +451,7 @@ namespace idTech4.Renderer
 			//	primaryWorld = NULL;
 
 			// set the time for shader effects in 2D rendering
-			// TODO: frameShaderTime = eventLoop->Milliseconds() * 0.001;
+			_frameShaderTime = idE.EventLoop.Milliseconds * 0.001f;
 
 			//
 			// draw buffer stuff
@@ -568,7 +567,7 @@ namespace idTech4.Renderer
 		{
 			c &= 255;
 
-			if(c == ' ') 
+			if(c == ' ')
 			{
 				return;
 			}
@@ -790,11 +789,11 @@ namespace idTech4.Renderer
 
 			// in case we had an error while doing a tiled rendering
 			_viewPortOffset = Vector2.Zero;
-					
+
 			// input and sound systems need to be tied to the new window
 			// TODO: Sys_InitInput();
 			// TODO: soundSystem->InitHW();
-			
+
 			// stubbed or broken drivers may have reported 0...
 			if(idE.GLConfig.MaxTextureSize <= 0)
 			{
@@ -812,6 +811,8 @@ namespace idTech4.Renderer
 
 			// reset our gamma
 			SetColorMappings();
+
+			idE.ImageManager.ChangeTextureFilter();
 		}
 
 		public void Present()
@@ -841,14 +842,14 @@ namespace idTech4.Renderer
 				{
 					pointSize = 24;
 				}
-				else 
+				else
 				{
 					pointSize = 48;
 				}
 
 				// we also need to adjust the scale based on point size relative to 48 points as the ui scaling is based on a 48 point font.
 				// change the scale to be relative to 1 based on 72 dpi ( so dpi of 144 means a scale of .5 )
-				glyphScale = 1.0f; 		
+				glyphScale = 1.0f;
 				glyphScale *= 48.0f / pointSize;
 
 				filePath = string.Format("{0}/fontImage_{1}.dat", fileName, pointSize);
@@ -951,21 +952,6 @@ namespace idTech4.Renderer
 		/// </summary>
 		private void BeginDrawingView()
 		{
-			Matrix projMatrix = idE.Backend.ViewDefinition.ProjectionMatrix;
-
-			float[] tmpProjMatrix = new float[] {
-				projMatrix.M11, projMatrix.M12, projMatrix.M13, projMatrix.M14,
-				projMatrix.M21, projMatrix.M22, projMatrix.M23, projMatrix.M24,
-				projMatrix.M31, projMatrix.M32, projMatrix.M33, projMatrix.M34,
-				projMatrix.M41, projMatrix.M42, projMatrix.M43, projMatrix.M44
-			};
-
-			// set the modelview matrix for the viewer
-			//Gl.glMatrixMode(Gl.GL_PROJECTION);
-			//Gl.glLoadMatrixf(tmpProjMatrix);
-			//Gl.glMatrixMode(Gl.GL_MODELVIEW);
-
-
 			// set the window clipping
 			_graphicsDevice.Viewport = new Viewport(
 				(int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1,
@@ -979,7 +965,7 @@ namespace idTech4.Renderer
 				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.ViewDefinition.Scissor.Y1,
 				idE.Backend.ViewDefinition.Scissor.X2 + 1 - idE.Backend.ViewDefinition.Scissor.X1,
 				idE.Backend.ViewDefinition.Scissor.Y2 + 1 - idE.Backend.ViewDefinition.Scissor.Y1);
-			
+
 			idE.Backend.CurrentScissor = idE.Backend.ViewDefinition.Scissor;
 
 			// ensures that depth writes are enabled for the depth clear
@@ -1069,20 +1055,20 @@ namespace idTech4.Renderer
 				idE.GLConfig.MaxTextureSize = 2048;
 				idE.GLConfig.TextureNonPowerOfTwoAvailable = false;
 			}
-			
+
 			/*idE.GLConfig.TextureEnvCombineAvailable = CheckExtension("GL_ARB_texture_env_combine");
 			idE.GLConfig.EnvDot3Available = CheckExtension("GL_ARB_texture_env_dot3");
 			idE.GLConfig.TextureEnvAddAvailable = CheckExtension("GL_ARB_texture_env_add");
 			idE.GLConfig.TextureNonPowerOfTwoAvailable = CheckExtension("GL_ARB_texture_non_power_of_two");
 			idE.GLConfig.TextureLodBiasAvailable = true;*/
-			
+
 			// GL_EXT_texture_lod_bias
 			// The actual extension is broken as specificed, storing the state in the texture unit instead
 			// of the texture object.  The behavior in GL 1.4 is the behavior we use.
 			/*if((((idE.GLConfig.VersionF.Major <= 1) && (idE.GLConfig.VersionF.Minor < 4)) == false) || (CheckExtension("GL_EXT_texture_lod") == true))
 			{*/
 			//idConsole.WriteLine("...using {0}", "GL_1.4_texture_lod_bias");
-			
+
 			/*}
 			else
 			{
@@ -1092,7 +1078,7 @@ namespace idTech4.Renderer
 
 			// GL_EXT_shared_texture_palette
 			//idE.GLConfig.SharedTexturePaletteAvailable = CheckExtension("GL_EXT_shared_texture_palette");
-			
+
 			// EXT_stencil_wrap
 			// This isn't very important, but some pathological case might cause a clamp error and give a shadow bug.
 			// Nvidia also believes that future hardware may be able to run faster with this enabled to avoid the
@@ -1162,7 +1148,7 @@ namespace idTech4.Renderer
 
 			return false;
 		}
-		
+
 		private void Clear()
 		{
 			_frameCount = 0;
@@ -1254,30 +1240,73 @@ namespace idTech4.Renderer
 					UnbindIndex();
 				}
 
-				Texture texture = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].CurrentTexture;
-					
+				TextureUnit textureUnit = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit];
+				Texture texture = textureUnit.CurrentTexture;
+
 				if(texture != null)
 				{
 					_basicEffect.Texture = (Texture2D) texture;
 					_basicEffect.TextureEnabled = true;
+
+					switch(textureUnit.Filter)
+					{
+						case TextureFilter.Default:
+							switch(textureUnit.Repeat)
+							{
+								case TextureRepeat.Repeat:
+									_graphicsDevice.SamplerStates[0] = idE.ImageManager.DefaultRepeatTextureSampler;
+									break;
+
+								default:
+									_graphicsDevice.SamplerStates[0] = idE.ImageManager.DefaultClampTextureSampler;
+									break;
+							}
+							break;
+
+						case TextureFilter.Linear:
+							switch(textureUnit.Repeat)
+							{
+								case TextureRepeat.Repeat:
+									_graphicsDevice.SamplerStates[0] = idE.ImageManager.LinearRepeatTextureSampler;
+									break;
+
+								default:
+									_graphicsDevice.SamplerStates[0] = idE.ImageManager.LinearClampTextureSampler;
+									break;
+							}
+							break;
+
+						case TextureFilter.Nearest:
+							switch(textureUnit.Repeat)
+							{
+								case TextureRepeat.Repeat:
+									_graphicsDevice.SamplerStates[0] = idE.ImageManager.LinearRepeatTextureSampler;
+									break;
+
+								default:
+									_graphicsDevice.SamplerStates[0] = idE.ImageManager.LinearClampTextureSampler;
+									break;
+							}
+							break;
+					}
 				}
 				else
 				{
 					_basicEffect.TextureEnabled = false;
 				}
-								
+
 				_basicEffect.View = idE.Backend.ViewDefinition.WorldSpace.ModelViewMatrix;
 				_basicEffect.Projection = idE.Backend.ViewDefinition.ProjectionMatrix;
 				_basicEffect.World = Matrix.Identity;
-				
+
 				foreach(EffectPass p in _basicEffect.CurrentTechnique.Passes)
 				{
 					p.Apply();
 
-					_graphicsDevice.DrawUserIndexedPrimitives<Vertex>(PrimitiveType.TriangleList, 
-						tri.AmbientCache.Data, 0, 
-						tri.AmbientCache.Data.Length, 
-						tri.Indexes, 0, tri.Indexes.Length / 3);				
+					_graphicsDevice.DrawUserIndexedPrimitives<Vertex>(PrimitiveType.TriangleList,
+						tri.AmbientCache.Data, 0,
+						tri.AmbientCache.Data.Length,
+						tri.Indexes, 0, tri.Indexes.Length / 3);
 				}
 			}
 		}
@@ -1537,7 +1566,7 @@ namespace idTech4.Renderer
 			// unset privatePolygonOffset if necessary
 			if((stage.PrivatePolygonOffset > 0) && (surface.Material.TestMaterialFlag(MaterialFlags.PolygonOffset) == false))
 			{
-				//Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
+				// TODO: Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
 			}
 
 			if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
@@ -1548,15 +1577,19 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
 			{
-				//Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
-				//Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
-				//Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
+				idConsole.WriteLine("TODO: TexCoord Screen");
+
+				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2)
 			{
-				//Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
-				//Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
-				//Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
+				idConsole.WriteLine("TODO: TexCoord Screen2");
+
+				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
+				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
+				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
 			{
@@ -1648,8 +1681,47 @@ namespace idTech4.Renderer
 			return true;
 		}
 
+		private float[] GetMaterialTextureMatrix(float[] materialRegisters, TextureStage textureStage)
+		{
+			float[] matrix = new float[16];
+
+			matrix[0] = materialRegisters[textureStage.Matrix[0, 0]];
+			matrix[4] = materialRegisters[textureStage.Matrix[0, 1]];
+			matrix[8] = 0;
+			matrix[12] = materialRegisters[textureStage.Matrix[0, 2]];
+
+			// we attempt to keep scrolls from generating incredibly large texture values, but
+			// center rotations and center scales can still generate offsets that need to be > 1
+			if((matrix[12] < -40) || (matrix[12] > 40))
+			{
+				matrix[12] -= (int) matrix[12];
+			}
+
+			matrix[1] = materialRegisters[textureStage.Matrix[1, 0]];
+			matrix[5] = materialRegisters[textureStage.Matrix[1, 1]];
+			matrix[9] = 0;
+			matrix[13] = materialRegisters[textureStage.Matrix[1, 2]];
+
+			if((matrix[13] < -40) || (matrix[13] > 40))
+			{
+				matrix[13] -= (int) matrix[13];
+			}
+
+			matrix[2] = 0;
+			matrix[6] = 0;
+			matrix[10] = 1;
+			matrix[14] = 0;
+
+			matrix[3] = 0;
+			matrix[7] = 0;
+			matrix[11] = 0;
+			matrix[15] = 1;
+
+			return matrix;
+		}
+
 		/// <summary>
-		/// This handles the flipping needed when the view being rendered is a mirored view.
+		/// This handles the flipping needed when the view being rendered is a mirrored view.
 		/// </summary>
 		/// <param name="type"></param>
 		private void GL_Cull(CullType type)
@@ -1661,35 +1733,35 @@ namespace idTech4.Renderer
 
 			if(type == CullType.TwoSided)
 			{
-				//Gl.glDisable(Gl.GL_CULL_FACE);
+				// TODO: Gl.glDisable(Gl.GL_CULL_FACE);
 			}
 			else
 			{
 				if(idE.Backend.GLState.FaceCulling == CullType.TwoSided)
 				{
-					//Gl.glDisable(Gl.GL_CULL_FACE);
+					// TODO: Gl.glDisable(Gl.GL_CULL_FACE);
 				}
 
 				if(type == CullType.TwoSided)
 				{
 					if(idE.Backend.ViewDefinition.IsMirror == true)
 					{
-						//Gl.glCullFace(Gl.GL_FRONT);
+						// TODO: Gl.glCullFace(Gl.GL_FRONT);
 					}
 					else
 					{
-						//Gl.glCullFace(Gl.GL_BACK);
+						// TODO: Gl.glCullFace(Gl.GL_BACK);
 					}
 				}
 				else
 				{
 					if(idE.Backend.ViewDefinition.IsMirror == true)
 					{
-						//Gl.glCullFace(Gl.GL_BACK);
+						// TODO: Gl.glCullFace(Gl.GL_BACK);
 					}
 					else
 					{
-						//Gl.glCullFace(Gl.GL_FRONT);
+						// TODO: Gl.glCullFace(Gl.GL_FRONT);
 					}
 				}
 			}
@@ -1729,7 +1801,7 @@ namespace idTech4.Renderer
 			int srcFactor;
 			int dstFactor;
 
-			//BlendState blendState = BlendState.AlphaBlend;			
+			BlendState blendState = new BlendState();
 
 			if((idE.CvarSystem.GetBool("r_useStateCaching") == false) || (idE.Backend.GLState.ForceState == true))
 			{
@@ -1748,164 +1820,186 @@ namespace idTech4.Renderer
 				}
 			}
 
-			
 			//
 			// check depthFunc bits
 			//
-			if(diff.HasFlag(MaterialStates.DepthFunctionEqual | MaterialStates.DepthFunctionLess | MaterialStates.DepthFunctionAlways) == true)
+			if((diff & (MaterialStates.DepthFunctionEqual | MaterialStates.DepthFunctionLess | MaterialStates.DepthFunctionAlways)) != 0)
 			{
-				if(state.HasFlag(MaterialStates.DepthFunctionEqual) == true)
+				if((state & MaterialStates.DepthFunctionEqual) == MaterialStates.DepthFunctionEqual)
 				{
-					idConsole.Warning("TODO: DepthFuncEqual");
-					//Gl.glDepthFunc(Gl.GL_EQUAL);
+					//idConsole.Warning("TODO: DepthFuncEqual");
+					//  TODO: Gl.glDepthFunc(Gl.GL_EQUAL);
 				}
-				else if(state.HasFlag(MaterialStates.DepthFunctionAlways) == true)
+				else if((state & MaterialStates.DepthFunctionAlways) == MaterialStates.DepthFunctionAlways)
 				{
 					//idConsole.Warning("TODO: DepthFuncAlways");
-					//Gl.glDepthFunc(Gl.GL_ALWAYS);
+					// TODO: Gl.glDepthFunc(Gl.GL_ALWAYS);
 				}
 				else
 				{
-					idConsole.Warning("TODO: DepthFuncLEqual");
-					//Gl.glDepthFunc(Gl.GL_LEQUAL);
+					//idConsole.Warning("TODO: DepthFuncLEqual");
+					// TODO: Gl.glDepthFunc(Gl.GL_LEQUAL);
 				}
 			}
 
 			//
 			// check blend bits
 			//
-			if(diff.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
+			if((diff & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) != 0)
 			{
 				switch(state & MaterialStates.SourceBlendBits)
 				{
 					case MaterialStates.SourceBlendZero:
-						//blendState.AlphaSourceBlend = Blend.Zero;
+						blendState.AlphaSourceBlend = Blend.Zero;
+						blendState.ColorSourceBlend = Blend.Zero;
 						break;
 					case MaterialStates.SourceBlendOne:
-						//blendState.AlphaSourceBlend = Blend.One;
+						blendState.AlphaSourceBlend = Blend.One;
+						blendState.ColorSourceBlend = Blend.One;
 						break;
 					case MaterialStates.SourceBlendDestinationColor:
-						//blendState.AlphaSourceBlend = Blend.DestinationColor;
+						blendState.AlphaSourceBlend = Blend.DestinationColor;
+						blendState.ColorSourceBlend = Blend.DestinationColor;
 						break;
 					case MaterialStates.SourceBlendOneMinusDestinationColor:
-						idConsole.Warning("TODO: ONE_MINUS_DST_COLOR");
-						srcFactor = Gl.GL_ONE_MINUS_DST_COLOR;
+						blendState.AlphaSourceBlend = Blend.InverseDestinationColor;
+						blendState.ColorSourceBlend = Blend.InverseDestinationColor;
 						break;
 					case MaterialStates.SourceBlendSourceAlpha:
-						//blendState.AlphaSourceBlend = Blend.SourceAlpha;
+						blendState.AlphaSourceBlend = Blend.SourceAlpha;
+						blendState.ColorSourceBlend = Blend.SourceAlpha;
 						break;
 					case MaterialStates.SourceBlendOneMinusSourceAlpha:
-						idConsole.Warning("TODO: GL_ONE_MINUS_SRC_ALPHA");
-						srcFactor = Gl.GL_ONE_MINUS_SRC_ALPHA;
+						blendState.AlphaSourceBlend = Blend.InverseSourceAlpha;
+						blendState.ColorSourceBlend = Blend.InverseSourceAlpha;
 						break;
 					case MaterialStates.SourceBlendDestinationAlpha:
-						//blendState.AlphaSourceBlend = Blend.DestinationAlpha;						
+						blendState.AlphaSourceBlend = Blend.DestinationAlpha;
+						blendState.ColorSourceBlend = Blend.DestinationAlpha;
 						break;
 					case MaterialStates.SourceBlendOneMinusDestinationAlpha:
-						idConsole.Warning("TODO: GL_ONE_MINUS_DST_ALPHA");
-						srcFactor = Gl.GL_ONE_MINUS_DST_ALPHA;
+						blendState.AlphaSourceBlend = Blend.InverseDestinationAlpha;
+						blendState.ColorSourceBlend = Blend.InverseDestinationAlpha;
 						break;
 					case MaterialStates.SourceBlendAlphaSaturate:
-						//blendState.AlphaSourceBlend = Blend.SourceAlphaSaturation;
+						blendState.AlphaSourceBlend = Blend.SourceAlphaSaturation;
+						blendState.ColorSourceBlend = Blend.SourceAlphaSaturation;
 						break;
 					default:
-						//blendState.AlphaSourceBlend = Blend.One;
-						idConsole.Error("GL_State: invalid src blend state bits");
+						idConsole.Error("GL_State: invalid source blend state bits");
 						break;
 				}
 
 				switch(state & MaterialStates.DestinationBlendBits)
 				{
 					case MaterialStates.DestinationBlendZero:
-						//blendState.AlphaDestinationBlend = Blend.Zero;
+						blendState.AlphaDestinationBlend = Blend.Zero;
+						blendState.ColorDestinationBlend = Blend.Zero;
 						break;
 					case MaterialStates.DestinationBlendOne:
-						//blendState.AlphaDestinationBlend = Blend.One;
+						blendState.AlphaDestinationBlend = Blend.One;
+						blendState.ColorDestinationBlend = Blend.One;
 						break;
 					case MaterialStates.DestinationBlendSourceColor:
-						//blendState.AlphaDestinationBlend = Blend.SourceColor;
+						blendState.AlphaDestinationBlend = Blend.SourceColor;
+						blendState.ColorDestinationBlend = Blend.SourceColor;
 						break;
 					case MaterialStates.DestinationBlendOneMinusSourceColor:
-						idConsole.Warning("TODO: ONE_MINUS_SRC_COLOR");
-						dstFactor = Gl.GL_ONE_MINUS_SRC_COLOR;
+						blendState.AlphaDestinationBlend = Blend.InverseSourceColor;
+						blendState.ColorDestinationBlend = Blend.InverseSourceColor;
 						break;
 					case MaterialStates.DestinationBlendSourceAlpha:
-						//blendState.AlphaDestinationBlend = Blend.SourceAlpha;
+						blendState.AlphaDestinationBlend = Blend.SourceAlpha;
+						blendState.ColorDestinationBlend = Blend.SourceAlpha;
 						break;
 					case MaterialStates.DestinationBlendOneMinusSourceAlpha:
-						idConsole.Warning("TODO: ONE_MINUS_SRC_ALPHA");
-						dstFactor = Gl.GL_ONE_MINUS_SRC_ALPHA;
+						blendState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
+						blendState.ColorDestinationBlend = Blend.InverseSourceAlpha;
 						break;
 					case MaterialStates.DestinationBlendDestinationAlpha:
-						//blendState.AlphaDestinationBlend = Blend.DestinationAlpha;
+						blendState.AlphaDestinationBlend = Blend.DestinationAlpha;
+						blendState.ColorDestinationBlend = Blend.DestinationAlpha;
 						break;
 					case MaterialStates.DestinationBlendOneMinusDestinationAlpha:
-						idConsole.Warning("TODO: ONE_MINUS_DST_ALPHA");
-						dstFactor = Gl.GL_ONE_MINUS_DST_ALPHA;
+						blendState.AlphaDestinationBlend = Blend.InverseDestinationAlpha;
+						blendState.ColorDestinationBlend = Blend.InverseDestinationAlpha;
 						break;
 					default:
-						//blendState.AlphaDestinationBlend = Blend.One;
-
 						idConsole.Error("GL_State: invalid dst blend state bits");
 						break;
 				}
-								
-				//Gl.glBlendFunc(srcFactor, dstFactor);
 			}
 
 			//
 			// check depthmask
 			//
-			if(diff.HasFlag(MaterialStates.DepthMask) == true)
+			if((diff & MaterialStates.DepthMask) == MaterialStates.DepthMask)
 			{
 				//idConsole.Warning("TODO: depthmask");
-				if(state.HasFlag(MaterialStates.DepthMask) == true)
+				if((state & MaterialStates.DepthMask) == MaterialStates.DepthMask)
 				{
-					//Gl.glDepthMask(Gl.GL_FALSE);
+					// TODO: Gl.glDepthMask(Gl.GL_FALSE);
 				}
 				else
 				{
-					//Gl.glDepthMask(Gl.GL_TRUE);
+					// TODO: Gl.glDepthMask(Gl.GL_TRUE);
 				}
 			}
 
 			//
 			// check colormask
 			//
-			if(diff.HasFlag(MaterialStates.RedMask | MaterialStates.GreenMask | MaterialStates.BlueMask | MaterialStates.AlphaMask) == true)
+			if((diff & (MaterialStates.RedMask | MaterialStates.GreenMask | MaterialStates.BlueMask | MaterialStates.AlphaMask)) != 0)
 			{
-				int r = (diff.HasFlag(MaterialStates.RedMask) == true) ? 1 : 0;
-				int g = (diff.HasFlag(MaterialStates.GreenMask) == true) ? 1 : 0;
-				int b = (diff.HasFlag(MaterialStates.BlueMask) == true) ? 1 : 0;
-				int a = (diff.HasFlag(MaterialStates.AlphaMask) == true) ? 1 : 0;
+				ColorWriteChannels colorChannels = ColorWriteChannels.None;
 
-				//idConsole.Warning("TODO: glColorMask");
-				//Gl.glColorMask(r, g, b, a);
+				if((diff & MaterialStates.RedMask) == 0)
+				{
+					colorChannels |= ColorWriteChannels.Red;
+				}
+
+				if((diff & MaterialStates.GreenMask) == 0)
+				{
+					colorChannels |= ColorWriteChannels.Green;
+				}
+
+				if((diff & MaterialStates.BlueMask) == 0)
+				{
+					colorChannels |= ColorWriteChannels.Blue;
+				}
+
+				if((diff & MaterialStates.AlphaMask) == 0)
+				{
+					colorChannels |= ColorWriteChannels.Alpha;
+				}
+
+				blendState.ColorWriteChannels = colorChannels;
 			}
 
 			//
 			// fill/line mode
 			//
-			if(diff.HasFlag(MaterialStates.PolygonModeLine) == true)
+			if((diff & MaterialStates.PolygonModeLine) == MaterialStates.PolygonModeLine)
 			{
-				if(state.HasFlag(MaterialStates.PolygonModeLine) == true)
+				if((state & MaterialStates.PolygonModeLine) == MaterialStates.PolygonModeLine)
 				{
-					//Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE);					
+					// TODO: Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE);					
 				}
 				else
 				{
-					//Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
+					// TODO: Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
 				}
 			}
 
 			//
 			// alpha test
 			//
-			if(diff.HasFlag(MaterialStates.AlphaTestBits) == true)
+			if((diff & MaterialStates.AlphaTestBits) == MaterialStates.AlphaTestBits)
 			{
 				switch(state & MaterialStates.AlphaTestBits)
 				{
 					case 0:
+
 						//_graphicsDevice.BlendState = BlendState.Opaque;
 						break;
 
@@ -1932,7 +2026,8 @@ namespace idTech4.Renderer
 				}
 			}
 
-			//_graphicsDevice.BlendState = blendState;
+			_graphicsDevice.BlendState = blendState;
+
 			idE.Backend.GLState.StateBits = state;
 		}
 
@@ -1952,7 +2047,7 @@ namespace idTech4.Renderer
 				case Gl.GL_REPLACE:
 				case Gl.GL_DECAL:
 				case Gl.GL_ADD:
-					//Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, env);
+					// TODO: Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, env);
 					break;
 				default:
 					idConsole.Error("GL_TexEnv: invalid env '{0}' passed\n", env);
@@ -2332,19 +2427,33 @@ namespace idTech4.Renderer
 			}
 		}
 
+
+
+		private void LoadMaterialTextureMatrix(float[] materialRegisters, TextureStage textureStage)
+		{
+			float[] matrix = GetMaterialTextureMatrix(materialRegisters, textureStage);
+
+			// need texture uv transform
+			// TODO: idConsole.WriteLine("TODO: LoadMaterialTextureMatrix");
+			
+			/*qglMatrixMode(GL_TEXTURE);
+			qglLoadMatrixf(matrix);
+			qglMatrixMode(GL_MODELVIEW);*/
+		}
+
 		private void PrepareStageTexturing(MaterialStage stage, DrawSurface surface, Vertex[] position)
 		{
 			// set privatePolygonOffset if necessary
 			if(stage.PrivatePolygonOffset > 0)
 			{
-				//Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
-				//Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * stage.PrivatePolygonOffset);
+				// TODO: Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
+				// TODO: Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * stage.PrivatePolygonOffset);
 			}
 
 			// set the texture matrix if needed
 			if(stage.Texture.HasMatrix == true)
 			{
-				idConsole.Warning("TODO: LoadShaderTextureMatrix(surface.ShaderRegisters, stage.Texture);");
+				LoadMaterialTextureMatrix(surface.MaterialRegisters, stage.Texture);
 			}
 
 			// texgens
@@ -2600,7 +2709,8 @@ namespace idTech4.Renderer
 				}
 
 				// skip if the stage is ( GL_ZERO, GL_ONE ), which is used for some alpha masks
-				if(stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
+				if((stage.DrawStateBits & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits))
+					== (MaterialStates.SourceBlendZero | MaterialStates.DestinationBlendOne))
 				{
 					continue;
 				}
@@ -2718,14 +2828,14 @@ namespace idTech4.Renderer
 					color[3] = registers[stage.Color.Registers[3]];
 
 					// skip the entire stage if an add would be black
-					if((stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
+					if(((stage.DrawStateBits & (MaterialStates.SourceBlendBits & MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne))
 						&& (color[0] <= 0) && (color[1] <= 0) && (color[2] <= 0))
 					{
 						continue;
 					}
 
 					// skip the entire stage if a blend would be completely transparent
-					if((stage.DrawStateBits.HasFlag(MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits) == true)
+					if(((stage.DrawStateBits & (MaterialStates.SourceBlendBits & MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendSourceAlpha | MaterialStates.DestinationBlendOneMinusSourceAlpha))
 						&& (color[3] <= 0))
 					{
 						continue;
@@ -2735,7 +2845,7 @@ namespace idTech4.Renderer
 					if(stage.VertexColor == StageVertexColor.Ignore)
 					{
 						_basicEffect.DiffuseColor = new Vector3(color[0], color[1], color[2]);
-						_basicEffect.Alpha = color[3];						
+						_basicEffect.Alpha = color[3];
 					}
 					else
 					{
@@ -2811,7 +2921,7 @@ namespace idTech4.Renderer
 				// reset polygon offset
 				if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
 				{
-					//Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
+					// TODO: Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
 				}
 
 				// TODO: weapon depth hack
@@ -3031,27 +3141,17 @@ namespace idTech4.Renderer
 		{
 			// TODO: RB_LogComment("--- R_SetDefaultGLState ---\n");
 
-			
-			//Gl.glClearDepth(1.0f);
-			
+
+			// TODO: Gl.glClearDepth(1.0f);
+
 			idE.Backend.GLState = new GLState();
 			idE.Backend.GLState.ForceState = true;
 
-			RasterizerState rasterState = new RasterizerState();
-			rasterState.ScissorTestEnable = true;
-			rasterState.FillMode = FillMode.Solid;
-			rasterState.CullMode = CullMode.CullCounterClockwiseFace;			
-			
-			DepthStencilState depthStencilState = new DepthStencilState();
-			depthStencilState.StencilEnable = false;
-			depthStencilState.DepthBufferFunction = CompareFunction.Always;
-			depthStencilState.DepthBufferEnable = true;
-			depthStencilState.DepthBufferWriteEnable = true;
+			_graphicsDevice.BlendState = BlendState.Opaque;
+			_graphicsDevice.DepthStencilState = DepthStencilState.Default;
+			_graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
+			_graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
 
-			_graphicsDevice.BlendState = BlendState.AlphaBlend;
-			_graphicsDevice.DepthStencilState = depthStencilState;
-			_graphicsDevice.RasterizerState = rasterState;
-			
 			if(idE.CvarSystem.GetBool("r_useScissor") == true)
 			{
 				_graphicsDevice.ScissorRectangle = new Rectangle(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
@@ -3060,25 +3160,15 @@ namespace idTech4.Renderer
 			for(int i = idE.GLConfig.MaxTextureUnits - 1; i >= 0; i--)
 			{
 				GL_SelectTexture(i);
-								
+
 				// object linear texgen is our default
-				//Gl.glTexGenf(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-				//Gl.glTexGenf(Gl.GL_T, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-				//Gl.glTexGenf(Gl.GL_R, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-				//Gl.glTexGenf(Gl.GL_Q, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				// TODO: Gl.glTexGenf(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				// TODO: Gl.glTexGenf(Gl.GL_T, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				// TODO: Gl.glTexGenf(Gl.GL_R, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
+				// TODO: Gl.glTexGenf(Gl.GL_Q, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
 
-				//GL_TextureEnvironment(Gl.GL_MODULATE);
-				//Gl.glDisable(Gl.GL_TEXTURE_2D);
-
-				if(idE.GLConfig.Texture3DAvailable == true)
-				{
-					//Gl.glDisable(Gl.GL_TEXTURE_3D);
-				}
-
-				if(idE.GLConfig.CubeMapAvailable == true)
-				{
-					//Gl.glDisable(Gl.GL_TEXTURE_CUBE_MAP_EXT);
-				}
+				// TODO: GL_TextureEnvironment(Gl.GL_MODULATE);
+				// TODO: Gl.glDisable(Gl.GL_TEXTURE_2D);
 			}
 		}
 
@@ -3764,7 +3854,7 @@ namespace idTech4.Renderer
 		public int MaxTextureUnits;
 		public int MaxTextureCoordinates;
 		public int MaxTextureImageUnits;
-		public float MaxTextureAnisotropy;
+		public int MaxTextureAnisotropy;
 
 		public int ColorBits;
 		public int DepthBits;
@@ -3809,11 +3899,13 @@ namespace idTech4.Renderer
 	}
 
 	internal class TextureUnit
-	{		
+	{
 		public int TexEnv;
 
 		public Texture CurrentTexture;
 		public TextureType Type;
+		public TextureFilter Filter = TextureFilter.Default;
+		public TextureRepeat Repeat = TextureRepeat.Clamp;
 	}
 
 	public class View

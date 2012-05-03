@@ -326,6 +326,7 @@ namespace idTech4.Text
 		#endregion
 	}
 
+	[Flags]
 	public enum TokenType
 	{
 		Unknown = 0,
@@ -336,6 +337,7 @@ namespace idTech4.Text
 		Punctuation = 5
 	}
 
+	[Flags]
 	public enum TokenSubType
 	{
 		Unknown = 0,

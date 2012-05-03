@@ -115,6 +115,7 @@
     <Compile Include="idEventLoop.cs" />
     <Compile Include="idGameConsole.cs" />
     <Compile Include="idLangDict.cs" />
+    <Compile Include="idRectangle.cs" />
     <Compile Include="Input\idUserCommand.cs" />
     <Compile Include="Input\idUserInput.cs" />
     <Compile Include="Math\idExtrapolate.cs" />

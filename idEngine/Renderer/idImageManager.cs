@@ -34,12 +34,13 @@ using System.Text.RegularExpressions;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using Tao.DevIl;
 using Tao.OpenGl;
 
 using idTech4.IO;
 using idTech4.Math;
 using idTech4.Text;
+
+using XTextureFilter = Microsoft.Xna.Framework.Graphics.TextureFilter;
 
 namespace idTech4.Renderer
 {
@@ -77,35 +78,51 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public int MaxTextureFilter
+		public SamplerState DefaultClampTextureSampler
 		{
 			get
 			{
-				return _textureMaxFilter;
+				return _defaultClampTextureSampler;
 			}
 		}
 
-		public int MinTextureFilter
+		public SamplerState DefaultRepeatTextureSampler
 		{
 			get
 			{
-				return _textureMinFilter;
+				return _defaultRepeatTextureSampler;
 			}
 		}
 
-		public float TextureAnisotropy
+		public SamplerState LinearClampTextureSampler
 		{
 			get
 			{
-				return _textureAnisotropy;
+				return _linearClampTextureSampler;
 			}
 		}
 
-		public float TextureLodBias
+		public SamplerState LinearRepeatTextureSampler
 		{
 			get
 			{
-				return _textureLODBias;
+				return _linearRepeatTextureSampler;
+			}
+		}
+
+		public SamplerState NearestClampTextureSampler
+		{
+			get
+			{
+				return _nearestClampTextureSampler;
+			}
+		}
+
+		public SamplerState NearestRepeatTextureSampler
+		{
+			get
+			{
+				return _nearestRepeatTextureSampler;
 			}
 		}
 
@@ -145,11 +162,12 @@ namespace idTech4.Renderer
 		private idImage _specular2DTableImage;			// 2D intensity texture with our specular function with variable specularity
 		private idImage _borderClampImage;				// white inside, black outside
 
-		// default filter modes for images
-		private int _textureMinFilter;
-		private int _textureMaxFilter;
-		private float _textureAnisotropy;
-		private float _textureLODBias;
+		private SamplerState _defaultClampTextureSampler;
+		private SamplerState _linearClampTextureSampler;
+		private SamplerState _nearestClampTextureSampler;
+		private SamplerState _defaultRepeatTextureSampler;
+		private SamplerState _linearRepeatTextureSampler;
+		private SamplerState _nearestRepeatTextureSampler;
 
 		private bool _insideLevelLoad;					// don't actually load images now
 		#endregion
@@ -239,11 +257,6 @@ namespace idTech4.Renderer
 						// note that it is used this level load
 						image.LevelLoadReferenced = true;
 
-						/*if(image.PartialImage != null)
-						{
-							image.PartialImage.LevelLoadReferenced = true;
-						}*/
-
 						return image;
 					}
 
@@ -264,11 +277,6 @@ namespace idTech4.Renderer
 						// the already created one is already the highest quality
 						image.LevelLoadReferenced = true;
 
-						/*if(image.PartialImage != null)
-						{
-							image.PartialImage.LevelLoadReferenced = true;
-						}*/
-
 						return image;
 					}
 
@@ -276,10 +284,6 @@ namespace idTech4.Renderer
 					image.Depth = depth;*/
 					image.LevelLoadReferenced = true;
 
-					/*if(image.PartialImage != null)
-					{
-						image.PartialImage.LevelLoadReferenced = true;
-					}*/
 
 					if((idE.CvarSystem.GetBool("image_preload") == true) && (_insideLevelLoad == false))
 					{
@@ -305,41 +309,6 @@ namespace idTech4.Renderer
 			//
 			image = CreateImage(name, TextureType.TwoD, filter, repeat, depth, cubeMap, allowDownSize);
 			image.LevelLoadReferenced = true;
-
-			// also create a shrunken version if we are going to dynamically cache the full size image
-			/*if(image.ShouldImageBePartialCached == true)
-			{
-				// if we only loaded part of the file, create a new idImage for the shrunken version
-				image.PartialImage = new idImage(name);
-				image.PartialImage.IsPartialImage = true;
-				image.PartialImage.AllowDownSize = allowDownSize;
-				image.PartialImage.Repeat = repeat;
-				image.PartialImage.Depth = depth;
-				image.PartialImage.Type = TextureType.TwoD;
-				image.PartialImage.CubeFiles = cubeMap;
-				image.PartialImage.Filter = filter;
-				image.PartialImage.LevelLoadReferenced = true;
-
-				// we don't bother hooking this into the hash table for lookup, but we do add it to the manager
-				// list for listImages
-				_images.Add(image.PartialImage);
-
-				// let the background file loader know that we can load
-				image.PrecompressedFile = true;
-
-				if((idE.CvarSystem.GetBool("image_preload") == true) && (_insideLevelLoad == false))
-				{
-					image.PartialImage.ActuallyLoadImage(true, false);	// check for precompressed, load is from front end
-
-					idE.DeclManager.MediaPrint("{0}x{1} {2}", image.PartialImage.Width, image.PartialImage.Height, image.Name);
-				}
-				else
-				{
-					idE.DeclManager.MediaPrint(image.Name);
-				}
-
-				return image;
-			}*/
 
 			// load it if we aren't in a level preload
 			if((idE.CvarSystem.GetBool("image_preload") == true) && (_insideLevelLoad == false))
@@ -377,74 +346,7 @@ namespace idTech4.Renderer
 			idE.CvarSystem.ClearModified("image_anisotropy");
 			idE.CvarSystem.ClearModified("image_lodbias");
 
-			string str = idE.CvarSystem.GetString("image_filter");
-			ImageFilter filter;
-
-			if(idImageManager.ImageFilters.TryGetValue(str, out filter) == false)
-			{
-				idConsole.Warning("bad r_textureFilter: '{0}'", str);
-			}
-
-			// set the values for future images
-			_textureMinFilter = filter.Minimize;
-			_textureMaxFilter = filter.Maximize;
-			_textureAnisotropy = idE.CvarSystem.GetFloat("image_anisotropy");
-
-			if(_textureAnisotropy < 1)
-			{
-				_textureAnisotropy = 1;
-			}
-			else if(_textureAnisotropy > idE.GLConfig.MaxTextureAnisotropy)
-			{
-				_textureAnisotropy = idE.GLConfig.MaxTextureAnisotropy;
-			}
-
-			_textureLODBias = idE.CvarSystem.GetFloat("image_lodbias");
-
-			// change all the existing mipmap texture objects with default filtering
-			foreach(idImage image in _images)
-			{
-				int texEnum = Gl.GL_TEXTURE_2D;
-
-				switch(image.Type)
-				{
-					case TextureType.TwoD:
-						texEnum = Gl.GL_TEXTURE_2D;
-						break;
-
-					case TextureType.ThreeD:
-						texEnum = Gl.GL_TEXTURE_3D;
-						break;
-
-					case TextureType.Cubic:
-						texEnum = Gl.GL_TEXTURE_CUBE_MAP_EXT;
-						break;
-				}
-
-				// make sure we don't start a background load
-				if(image.IsLoaded == false)
-				{
-					continue;
-				}
-
-				image.Bind();
-
-				if(image.Filter == TextureFilter.Default)
-				{
-					//Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MIN_FILTER, _textureMinFilter);
-					//Gl.glTexParameterf(texEnum, Gl.GL_TEXTURE_MAG_FILTER, _textureMaxFilter);
-				}
-
-				if(idE.GLConfig.AnisotropicAvailable == true)
-				{
-					idE.RenderSystem.GraphicsDevice.SamplerStates[0].MaxAnisotropy = (int) this.TextureAnisotropy;
-				}
-
-				if(idE.GLConfig.TextureLodBiasAvailable == true)
-				{
-					idE.RenderSystem.GraphicsDevice.SamplerStates[0].MipMapLevelOfDetailBias = this.TextureLodBias;
-				}
-			}
+			SetSamplers();			
 		}
 
 		public void CompleteBackgroundLoading()
@@ -643,85 +545,6 @@ namespace idTech4.Renderer
 			SetNormalPalette();
 			Cmd_ReloadImages(this, new CommandEventArgs(new idCmdArgs("reloadImages reload", false)));
 		}
-
-		/// <summary>
-		/// Used to resample images in a more general than quartering fashion.
-		/// </summary>
-		/// <remarks>
-		/// This will only have filter coverage if the resampled size
-		/// is greater than half the original size.
-		/// <p/>
-		/// If a larger shrinking is needed, use the mipmap function 
-		/// after resampling to the next lower power of two.
-		/// </remarks>
-		/// <param name="data"></param>
-		/// <param name="width"></param>
-		/// <param name="height"></param>
-		/// <param name="scaledWidth"></param>
-		/// <param name="scaledHeight"></param>
-		/// <returns></returns>
-		public byte[] ResampleTexture(byte[] data, int width, int height, int scaledWidth, int scaledHeight)
-		{
-			int maxDimension = 4096;
-
-			if(scaledWidth > maxDimension)
-			{
-				scaledWidth = maxDimension;
-			}
-
-			if(scaledHeight > maxDimension)
-			{
-				scaledHeight = maxDimension;
-			}
-
-			byte[] resampledData = new byte[scaledWidth * scaledHeight * 4];
-
-			int fracStep = width * 0x10000 / scaledWidth;
-			int frac = fracStep >> 2;
-
-			int[] p1 = new int[maxDimension];
-			int[] p2 = new int[maxDimension];
-
-			byte pix1, pix2, pix3, pix4;
-			int rowOffset, rowOffset2;
-			int resampledOffset = 0;
-
-			for(int i = 0; i < scaledWidth; i++)
-			{
-				p1[i] = 4 * (frac >> 16);
-				frac += fracStep;
-			}
-
-			frac = 3 * (fracStep >> 2);
-
-			for(int i = 0; i < scaledWidth; i++)
-			{
-				p2[i] = 4 * (frac >> 16);
-				frac += fracStep;
-			}
-
-			for(int i = 0; i < scaledHeight; i++, resampledOffset += (scaledWidth * 4))
-			{
-				rowOffset = 4 * width * (int) ((i + 0.25f) * height / scaledHeight);
-				rowOffset2 = 4 * width * (int) ((i + 0.75f) * height / scaledHeight);
-				frac = fracStep >> 1;
-
-				for(int j = 0; j < scaledWidth; j++)
-				{
-					pix1 = (byte) (rowOffset + p1[j]);
-					pix2 = (byte) (rowOffset + p2[j]);
-					pix3 = (byte) (rowOffset2 + p1[j]);
-					pix4 = (byte) (rowOffset2 + p2[j]);
-
-					resampledData[resampledOffset + (j * 4)] = (byte) ((data[pix1] + data[pix2] + data[pix3] + data[pix4]) >> 2);
-					resampledData[resampledOffset + (j * 4 + 1)] = (byte) ((data[pix1 + 1] + data[pix2 + 1] + data[pix3 + 1] + data[pix4 + 1]) >> 2);
-					resampledData[resampledOffset + (j * 4 + 2)] = (byte) ((data[pix1 + 2] + data[pix2 + 2] + data[pix3 + 2] + data[pix4 + 2]) >> 2);
-					resampledData[resampledOffset + (j * 4 + 3)] = (byte) ((data[pix1 + 3] + data[pix2 + 3] + data[pix3 + 3] + data[pix4 + 3]) >> 2);
-				}
-			}
-
-			return resampledData;
-		}
 		#endregion
 
 		#region Static
@@ -820,123 +643,7 @@ namespace idTech4.Renderer
 
 			//Gl.glTexParameterfv(Gl.GL_TEXTURE_2D, Gl.GL_TEXTURE_BORDER_COLOR, color);
 		}
-
-		/*/// <summary>
-		/// Non-square cube sides are not allowed.
-		/// </summary>
-		/// <param name="image"></param>
-		/// <param name="?"></param>
-		/// <param name="filter"></param>
-		/// <param name="allowDownSize"></param>
-		/// <param name="depth"></param>
-		public void GenerateCubeImage(idImage image, byte[][,,], TextureFilter filter, bool allowDownSize, TextureDepth depth)
-		{
-			image.Purge();
 		
-			image.Filter = filter;
-			image.AllowDownSize = allowDownSize;
-			image.Depth = depth;
-			image.Type = TextureType.Cubic;
-
-			// if we don't have a rendering context, just return after we
-			// have filled in the parms.  We must have the values set, or
-			// an image match from a shader before OpenGL starts would miss
-			// the generated texture
-			if(idE.GLConfig.IsInitialized == false)
-			{
-				return;
-			}
-
-			if(idE.GLConfig.CubeMapAvailable == false)
-			{
-				return;
-			}
-
-			
-	width = height = size;
-
-	// generate the texture number
-	qglGenTextures( 1, &texnum );
-
-	// select proper internal format before we resample
-	internalFormat = SelectInternalFormat( pic, 6, width, height, depth, &isMonochrome );
-
-	// don't bother with downsample for now
-	scaled_width = width;
-	scaled_height = height;
-
-	uploadHeight = scaled_height;
-	uploadWidth = scaled_width;
-
-	Bind();
-
-	// no other clamp mode makes sense
-	qglTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	qglTexParameteri(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-	// set the minimize / maximize filtering
-	switch( filter ) {
-	case TF_DEFAULT:
-		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, globalImages->textureMinFilter );
-		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, globalImages->textureMaxFilter );
-		break;
-	case TF_LINEAR:
-		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		break;
-	case TF_NEAREST:
-		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-		qglTexParameterf(GL_TEXTURE_CUBE_MAP_EXT, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-		break;
-	default:
-		common->FatalError( "R_CreateImage: bad texture filter" );
-	}
-
-	// upload the base level
-	// FIXME: support GL_COLOR_INDEX8_EXT?
-	for ( i = 0 ; i < 6 ; i++ ) {
-		qglTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+i, 0, internalFormat, scaled_width, scaled_height, 0, 
-			GL_RGBA, GL_UNSIGNED_BYTE, pic[i] );
-	}
-
-
-	// create and upload the mip map levels
-	int		miplevel;
-	byte	*shrunk[6];
-
-	for ( i = 0 ; i < 6 ; i++ ) {
-		shrunk[i] = R_MipMap( pic[i], scaled_width, scaled_height, false );
-	}
-
-	miplevel = 1;
-	while ( scaled_width > 1 ) {
-		for ( i = 0 ; i < 6 ; i++ ) {
-			byte	*shrunken;
-
-			qglTexImage2D( GL_TEXTURE_CUBE_MAP_POSITIVE_X_EXT+i, miplevel, internalFormat, 
-				scaled_width / 2, scaled_height / 2, 0, 
-				GL_RGBA, GL_UNSIGNED_BYTE, shrunk[i] );
-
-			if ( scaled_width > 2 ) {
-				shrunken = R_MipMap( shrunk[i], scaled_width/2, scaled_height/2, false );
-			} else {
-				shrunken = NULL;
-			}
-
-			R_StaticFree( shrunk[i] );
-			shrunk[i] = shrunken;
-		}
-
-		scaled_width >>= 1;
-		scaled_height >>= 1;
-		miplevel++;
-	}
-
-	// see if we messed anything up
-	GL_CheckErrors();
-}*/
-
-
 		public static void GenerateDefaultImage(idImage image)
 		{
 			image.MakeDefault();
@@ -1361,8 +1068,6 @@ namespace idTech4.Renderer
 			// TODO: timestamp
 			timeStamp = DateTime.Now;
 			
-
-
 			return idE.System.Content.Load<Texture2D>(name);
 		}
 
@@ -1405,7 +1110,7 @@ namespace idTech4.Renderer
 		private void InitCvars()
 		{
 			new idCvar("image_filter", "GL_LINEAR_MIPMAP_LINEAR", ImageFilters.Keys.ToArray(), "changes texture filtering on mipmapped images", new ArgCompletion_String(ImageFilters.Keys.ToArray()), CvarFlags.Renderer | CvarFlags.Archive);
-			new idCvar("image_anisotropy", "1", "set the maximum texture anisotropy if available", CvarFlags.Renderer | CvarFlags.Archive);
+			new idCvar("image_anisotropy", "1", "set the maximum texture anisotropy if available", CvarFlags.Integer | CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_lodbias", "0", "change lod bias on mipmapped images", CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_downSize", "0", "controls texture downsampling", CvarFlags.Renderer | CvarFlags.Archive);
 			new idCvar("image_forceDownSize", "0", "", CvarFlags.Renderer | CvarFlags.Archive | CvarFlags.Bool);
@@ -1435,63 +1140,14 @@ namespace idTech4.Renderer
 
 		private void InitFilters()
 		{
-			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", Gl.GL_LINEAR_MIPMAP_NEAREST, Gl.GL_LINEAR));
-			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", Gl.GL_LINEAR_MIPMAP_LINEAR, Gl.GL_LINEAR));
-			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", Gl.GL_NEAREST, Gl.GL_NEAREST));
-			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", Gl.GL_LINEAR, Gl.GL_LINEAR));
-			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", Gl.GL_NEAREST_MIPMAP_NEAREST, Gl.GL_NEAREST));
-			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", Gl.GL_NEAREST_MIPMAP_LINEAR, Gl.GL_NEAREST));
+			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", XTextureFilter.MinLinearMagPointMipPoint));
+			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", XTextureFilter.MinLinearMagPointMipLinear));
+			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", XTextureFilter.PointMipLinear));
+			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", XTextureFilter.LinearMipPoint));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", XTextureFilter.MinPointMagLinearMipPoint));
+			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", XTextureFilter.MinPointMagLinearMipLinear));
 		}
-
-		private byte[] LoadTGA(string name, ref int width, ref int height, ref DateTime timeStamp)
-		{
-			byte[] data = idE.FileSystem.ReadFile(name, out timeStamp);
-
-			if(data == null)
-			{
-				return null;
-			}
-
-			byte[] retData = null;
-
-			int image = Il.ilGenImage();
-			Il.ilBindImage(image);
-
-			if(Il.ilLoadL(Il.IL_TGA, data, data.Length) == true)
-			{
-				int bitsPerPixel = Il.ilGetInteger(Il.IL_IMAGE_BYTES_PER_PIXEL);
-
-				width = Il.ilGetInteger(Il.IL_IMAGE_WIDTH);
-				height = Il.ilGetInteger(Il.IL_IMAGE_HEIGHT);
-				byte[] tmp = new byte[width * height * bitsPerPixel];
-
-				IntPtr ptr = Il.ilGetData();
-				Marshal.Copy(ptr, tmp, 0, tmp.Length);
-
-				// if this is only 3 bytes per pixel, copy to 4 bytes
-				if(bitsPerPixel == 3)
-				{
-					retData = new byte[width * height * 4];
-
-					for(int i = 0, j = 0; i < tmp.Length; i += 3, j += 4)
-					{
-						retData[j] = tmp[i];
-						retData[j + 1] = tmp[i + 1];
-						retData[j + 2] = tmp[i + 2];
-						retData[j + 3] = 0;
-					}
-				}
-				else
-				{
-					retData = tmp;
-				}
-			}
-
-			Il.ilDeleteImages(1, ref image);
-
-			return retData;
-		}
-
+		
 		private void SetNormalPalette()
 		{
 			idConsole.Warning("TODO: SetNormalPalette");
@@ -1589,6 +1245,89 @@ namespace idTech4.Renderer
 
 			qglEnable( GL_SHARED_TEXTURE_PALETTE_EXT );*/
 		}
+
+		private void SetSamplers()
+		{
+			string str = idE.CvarSystem.GetString("image_filter");
+			ImageFilter filter;
+
+			if(idImageManager.ImageFilters.TryGetValue(str, out filter) == false)
+			{
+				idConsole.Warning("bad r_textureFilter: '{0}'", str);
+			}
+			
+			// set the values for future images
+			_defaultClampTextureSampler = new SamplerState();
+			_defaultClampTextureSampler.Filter = filter.Filter;
+			_defaultClampTextureSampler.AddressU = TextureAddressMode.Clamp;
+			_defaultClampTextureSampler.AddressV = TextureAddressMode.Clamp;
+			_defaultClampTextureSampler.AddressW = TextureAddressMode.Clamp;
+
+			_defaultRepeatTextureSampler = new SamplerState();
+			_defaultRepeatTextureSampler.Filter = filter.Filter;
+			_defaultRepeatTextureSampler.AddressU = TextureAddressMode.Wrap;
+			_defaultRepeatTextureSampler.AddressV = TextureAddressMode.Wrap;
+			_defaultRepeatTextureSampler.AddressW = TextureAddressMode.Wrap;
+
+			_linearClampTextureSampler = new SamplerState();
+			_linearClampTextureSampler.Filter = XTextureFilter.Linear;
+			_linearClampTextureSampler.AddressU = TextureAddressMode.Clamp;
+			_linearClampTextureSampler.AddressV = TextureAddressMode.Clamp;
+			_linearClampTextureSampler.AddressW = TextureAddressMode.Clamp;
+
+			_linearRepeatTextureSampler = new SamplerState();
+			_linearRepeatTextureSampler.Filter = XTextureFilter.Linear;
+			_linearRepeatTextureSampler.AddressU = TextureAddressMode.Wrap;
+			_linearRepeatTextureSampler.AddressV = TextureAddressMode.Wrap;
+			_linearRepeatTextureSampler.AddressW = TextureAddressMode.Wrap;
+
+			_nearestClampTextureSampler = new SamplerState();
+			_nearestClampTextureSampler.Filter = XTextureFilter.Point;
+			_nearestClampTextureSampler.AddressU = TextureAddressMode.Clamp;
+			_nearestClampTextureSampler.AddressV = TextureAddressMode.Clamp;
+			_nearestClampTextureSampler.AddressW = TextureAddressMode.Clamp;
+
+			_nearestRepeatTextureSampler = new SamplerState();
+			_nearestRepeatTextureSampler.Filter = XTextureFilter.Point;
+			_nearestRepeatTextureSampler.AddressU = TextureAddressMode.Wrap;
+			_nearestRepeatTextureSampler.AddressV = TextureAddressMode.Wrap;
+			_nearestRepeatTextureSampler.AddressW = TextureAddressMode.Wrap;
+			
+			if(idE.GLConfig.AnisotropicAvailable == true)
+			{
+				int anisotropy = idE.CvarSystem.GetInteger("image_anisotropy");
+
+				if(anisotropy < 1)
+				{
+					anisotropy = 1;
+				}
+				else if(anisotropy > idE.GLConfig.MaxTextureAnisotropy)
+				{
+					anisotropy = idE.GLConfig.MaxTextureAnisotropy;
+				}
+
+				_defaultClampTextureSampler.MaxAnisotropy = anisotropy;
+				_linearClampTextureSampler.MaxAnisotropy = anisotropy;
+				_nearestClampTextureSampler.MaxAnisotropy = anisotropy;
+
+				_defaultRepeatTextureSampler.MaxAnisotropy = anisotropy;
+				_linearRepeatTextureSampler.MaxAnisotropy = anisotropy;
+				_nearestRepeatTextureSampler.MaxAnisotropy = anisotropy;
+			}
+
+			if(idE.GLConfig.TextureLodBiasAvailable == true)
+			{
+				float lodBias = idE.CvarSystem.GetFloat("image_lodbias");
+
+				_defaultClampTextureSampler.MipMapLevelOfDetailBias = lodBias;
+				_linearClampTextureSampler.MipMapLevelOfDetailBias = lodBias;
+				_nearestClampTextureSampler.MipMapLevelOfDetailBias = lodBias;
+
+				_defaultRepeatTextureSampler.MipMapLevelOfDetailBias = lodBias;
+				_linearRepeatTextureSampler.MipMapLevelOfDetailBias = lodBias;
+				_nearestRepeatTextureSampler.MipMapLevelOfDetailBias = lodBias;
+			}
+		}
 		#endregion
 
 		#region Command handlers
@@ -1640,14 +1379,12 @@ namespace idTech4.Renderer
 	public struct ImageFilter
 	{
 		public string Label;
-		public int Minimize;
-		public int Maximize;
+		public XTextureFilter Filter;
 
-		public ImageFilter(string label, int min, int max)
+		public ImageFilter(string label, XTextureFilter filter)
 		{
 			this.Label = label;
-			this.Minimize = min;
-			this.Maximize = max;
+			this.Filter = filter;
 		}
 	}
 }

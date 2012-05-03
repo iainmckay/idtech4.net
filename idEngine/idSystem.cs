@@ -914,15 +914,15 @@ namespace idTech4
 
 			string capabilities = string.Empty;
 
-			if(caps.HasFlag(CpuCapabilities.AMD) == true)
+			if((caps & CpuCapabilities.AMD) == CpuCapabilities.AMD)
 			{
 				capabilities += "AMD CPU";
 			}
-			else if(caps.HasFlag(CpuCapabilities.Intel) == true)
+			else if((caps & CpuCapabilities.Intel) == CpuCapabilities.Intel)
 			{
 				capabilities += "Intel CPU";
 			}
-			else if(caps.HasFlag(CpuCapabilities.Unsupported) == true)
+			else if((caps & CpuCapabilities.Unsupported) == CpuCapabilities.Unsupported)
 			{
 				capabilities += "unsupported CPU";
 			}
