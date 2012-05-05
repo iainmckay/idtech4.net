@@ -116,8 +116,10 @@ namespace idTech4
 		public static readonly idImageManager ImageManager = new idImageManager();
 		public static readonly idUserInterfaceManager UIManager = new idUserInterfaceManager();
 		public static readonly idEventLoop EventLoop = new idEventLoop();
-		public static readonly idUserInput UserInput = new idUserInput();
+		public static readonly idInputSystem Input = new idInputSystem();
 		public static readonly idSoundSystem SoundSystem = new idSoundSystem();
+
+		public static readonly idUserCommandGenerator UserCommandGenerator = new idUserCommandGenerator();
 		#endregion
 
 		#region Internal

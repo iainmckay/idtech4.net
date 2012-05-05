@@ -217,7 +217,7 @@ namespace idTech4
 				if(idE.CvarSystem.GetBool("com_asyncInput") == false)
 				{
 					// early exit, won't do RunGameTic .. but still need to update mouse position for GUIs
-					// TODO: usercmdGen->GetDirectUsercmd();
+					idE.UserCommandGenerator.GetDirectCommand();
 				}
 			}
 

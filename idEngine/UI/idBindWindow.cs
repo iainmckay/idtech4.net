@@ -147,7 +147,7 @@ namespace idTech4.UI
 			_bindName.SetGuiInfo(this.UserInterface.State, _bindName.ToString());
 			_bindName.Update();
 
-			//bindName = state.GetString("bind");
+			// TODO: bindName = state.GetString("bind");
 
 			this.Flags |= WindowFlags.HoldCapture | WindowFlags.CanFocus;
 		}

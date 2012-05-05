@@ -1116,7 +1116,7 @@ namespace idTech4
 				idConsole.WriteLine(idE.Version);
 
 				// initialize key input/binding, done early so bind command exists
-				// TODO: idKeyInput::Init();
+				idE.Input.Init();
 
 				// init the console so we can take prints
 				idE.Console.Init();
@@ -1201,7 +1201,7 @@ namespace idTech4
 				idE.CvarSystem.ModifiedFlags = CvarFlags.Archive;
 
 				// init the user command input code
-				idE.UserInput.Init();
+				idE.UserCommandGenerator.Init();
 
 				PrintLoadingMessage(idE.Language.Get("#str_04346"));
 
