@@ -39,6 +39,22 @@ namespace idTech4.UI
 	public sealed class idUserInterface
 	{
 		#region Properties
+		public float CursorX
+		{
+			get
+			{
+				return _cursorX;
+			}
+		}
+
+		public float CursorY
+		{
+			get
+			{
+				return _cursorY;
+			}
+		}
+
 		public idWindow Desktop
 		{
 			get
@@ -179,8 +195,20 @@ namespace idTech4.UI
 				_time = time;
 				
 				idE.UIManager.Context.PushClipRectangle(idE.UIManager.ScreenRectangle);
-				_desktop.Draw(0, 0);
+				this.Desktop.Draw(0, 0);
 				idE.UIManager.Context.PopClipRectangle();
+			}
+		}
+
+		public void DrawCursor()
+		{
+			if((this.Desktop == null) || ((this.Desktop.Flags & WindowFlags.MenuInterface) == WindowFlags.MenuInterface))
+			{
+				idE.UIManager.Context.DrawCursor(ref _cursorX, ref _cursorY, 32.0f);
+			}
+			else
+			{
+				idE.UIManager.Context.DrawCursor(ref _cursorX, ref _cursorY, 64.0f);
 			}
 		}
 
@@ -194,28 +222,33 @@ namespace idTech4.UI
 		{
 			_time = time;
 
-			// TODO
-			/*if ( bindHandler && event->evType == SE_KEY && event->evValue2 == 1 ) {
-				const char *ret = bindHandler->HandleEvent( event, updateVisuals );
-				bindHandler = NULL;
+			if((_bindHandler != null) && (e.Type == SystemEventType.Key) && (e.Value2 == 1))
+			{
+				string ret = _bindHandler.HandleEvent(e, ref updateVisuals);
+				_bindHandler = null;
+				
 				return ret;
 			}
 
-			if ( event->evType == SE_MOUSE ) {
-				cursorX += event->evValue;
-				cursorY += event->evValue2;
-
-				if (cursorX < 0) {
-					cursorX = 0;
-				}
-				if (cursorY < 0) {
-					cursorY = 0;
-				}
-			}*/
-
-			if(_desktop != null)
+			if(e.Type == SystemEventType.Mouse)
 			{
-				_desktop.HandleEvent(e, ref updateVisuals);
+				_cursorX += e.Value;
+				_cursorY += e.Value2;
+
+				if(_cursorX < 0)
+				{
+					_cursorX = 0;
+				}
+
+				if(_cursorY < 0)
+				{
+					_cursorY = 0;
+				}
+			}
+
+			if(this.Desktop != null)
+			{
+				this.Desktop.HandleEvent(e, ref updateVisuals);
 			}
 
 			return string.Empty;
@@ -223,7 +256,7 @@ namespace idTech4.UI
 
 		public void HandleNamedEvent(string name)
 		{
-			_desktop.RunNamedEvent(name);
+			this.Desktop.RunNamedEvent(name);
 		}
 
 		public bool InitFromFile(string path, bool rebuild = true, bool cache = true)

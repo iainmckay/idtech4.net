@@ -49,6 +49,8 @@ namespace idTech4
 		// all events will have this subtracted from their time
 		private int _initialTimeOffset;
 
+		private Queue<SystemEvent> _events = new Queue<SystemEvent>();
+
 		private Stream _journalFile;
 		private Stream _journalDataFile;
 		#endregion
@@ -94,6 +96,11 @@ namespace idTech4
 
 				idConsole.WriteLine("Couldn't open journal files");
 			}
+		}
+
+		public void Queue(SystemEventType type, int value, int value2)
+		{
+			_events.Enqueue(new SystemEvent(type, value, value2));
 		}
 
 		public bool RunEventLoop()
@@ -167,13 +174,11 @@ namespace idTech4
 			else*/
 			{
 				// return if we have data
-				// TODO: event queue
-				/*if(eventHead > eventTail)
+				if(_events.Count > 0)
 				{
-					eventTail++;
-					return eventQue[(eventTail - 1) & MASK_QUED_EVENTS];
+					return _events.Dequeue();
 				}
-				 else */
+				else 
 				{
 					// return the empty event 
 					ev = new SystemEvent(SystemEventType.None);
@@ -204,27 +209,85 @@ namespace idTech4
 
 		private void ProcessEvent(SystemEvent ev)
 		{
-			// TODO: process event
-			// track key up / down states
-			/*if ( ev.evType == SE_KEY ) {
-				idKeyInput::PreliminaryKeyEvent( ev.evValue, ( ev.evValue2 != 0 ) );
-			}
-
-			if ( ev.evType == SE_CONSOLE ) {
+			if(ev.Type == SystemEventType.Console)
+			{
 				// from a text console outside the game window
-				cmdSystem->BufferCommandText( CMD_EXEC_APPEND, (char *)ev.evPtr );
-				cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "\n" );
-			} else */
+				// TODO: console
+				//cmdSystem->BufferCommandText( CMD_EXEC_APPEND, (char *)ev.evPtr );
+				//cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "\n" );
+			} 
+			else 
 			{
 				idE.Session.ProcessEvent(ev);
 			}
-
-			// free any block data
-			/*if ( ev.evPtr ) {
-				Mem_Free( ev.evPtr );
-			}*/
 		}
 		#endregion
 		#endregion
+	}
+
+	public sealed class SystemEvent : EventArgs
+	{
+		#region Properties
+		public SystemEventType Type
+		{
+			get
+			{
+				return _type;
+			}
+		}
+
+		public int Value
+		{
+			get
+			{
+				return _value;
+			}
+		}
+
+		public int Value2
+		{
+			get
+			{
+				return _value2;
+			}
+		}
+		#endregion
+
+		#region Members
+		private SystemEventType _type;
+		private int _value;
+		private int _value2;
+		#endregion
+
+		#region Constructor
+		public SystemEvent(SystemEventType type)
+			: base()
+		{
+			_type = type;
+		}
+
+		public SystemEvent(SystemEventType type, int value, int value2)
+		{
+			_type = type;
+			_value = value;
+			_value2 = value2;
+		}
+		#endregion
+	}
+
+	public enum SystemEventType
+	{
+		/// <summary>EventTime is still valid.</summary>
+		None,
+		/// <summary>Value is a key code, Value2 is the down flag.</summary>
+		Key,
+		/// <summary>Value is an ascii character.</summary>
+		Char,
+		/// <summary>Value and Value2 are relative signed x / y moves.</summary>
+		Mouse,
+		/// <summary>Value is an axis number and Value2 is the current state (-127 to 127).</summary>
+		JoystickAxis,
+		/// <summary>Ptr is a char*, from typing something at a non-game console.</summary>
+		Console
 	}
 }

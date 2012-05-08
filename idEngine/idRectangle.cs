@@ -38,6 +38,19 @@ namespace idTech4
 			this.Height = height;
 		}
 
+		public bool Contains(float x, float y)
+		{
+			if((this.Width == 0) && (this.Height == 0))
+			{
+				return false;
+			}
+
+			return ((x >= this.X)
+				&& (x <= this.Right)
+				&& (y >= this.Y)
+				&& (y <= this.Bottom));
+		}
+
 		public void Offset(float x, float y)
 		{
 			this.X += x;

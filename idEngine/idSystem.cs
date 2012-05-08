@@ -258,7 +258,7 @@ namespace idTech4
 			{
 				idE.CmdSystem.BufferCommandText(Execute.Now, "vid_restart partial windowed\n");
 			}
-
+			
 			Shutdown();
 			Sys_Error(errorMessage);
 		}
@@ -583,6 +583,11 @@ namespace idTech4
 
 		private void PrintLoadingMessage(string msg)
 		{
+			if(idE.RenderSystem.IsRunning == false)
+			{
+				return;
+			}
+
 			idE.RenderSystem.BeginFrame(idE.RenderSystem.ScreenWidth, idE.RenderSystem.ScreenHeight);
 			idE.RenderSystem.DrawStretchPicture(0, 0, idE.VirtualScreenWidth, idE.VirtualScreenHeight, 0, 0, 1, 1, idE.DeclManager.FindMaterial("splashScreen"));
 			idE.RenderSystem.DrawSmallString((640 - msg.Length * idE.SmallCharacterWidth) / 2, 410, msg, new Vector4(0.0f, 0.81f, 0.94f, 1.0f), true, idE.DeclManager.FindMaterial("textures/bigchars"));
@@ -1287,7 +1292,7 @@ namespace idTech4
 			//try
 			{
 				// pump all the events
-				// TODO: Sys_GenerateEvents();
+				idE.Input.Update();
 
 				// write config file if anything changed
 				// TODO: WriteConfiguration(); 
@@ -1357,46 +1362,5 @@ namespace idTech4
 			}
 		}
 		#endregion
-	}
-
-	public sealed class SystemEvent : EventArgs
-	{
-		#region Properties
-		public SystemEventType Type
-		{
-			get
-			{
-				return _type;
-			}
-		}
-		#endregion
-
-		#region Members
-		private SystemEventType _type;
-		#endregion
-
-		#region Constructor
-		public SystemEvent(SystemEventType type)
-			: base()
-		{
-			_type = type;
-		}
-		#endregion
-	}
-
-	public enum SystemEventType
-	{
-		/// <summary>EventTime is still valid.</summary>
-		None,
-		/// <summary>Value is a key code, Value2 is the down flag.</summary>
-		Key,
-		/// <summary>Value is an ascii character.</summary>
-		Char,
-		/// <summary>Value and Value2 are relative signed x / y moves.</summary>
-		Mouse,
-		/// <summary>Value is an axis number and Value2 is the current state (-127 to 127).</summary>
-		JoystickAxis,
-		/// <summary>Ptr is a char*, from typing something at a non-game console.</summary>
-		Console
 	}
 }

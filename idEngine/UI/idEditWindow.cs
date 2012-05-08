@@ -497,8 +497,10 @@ namespace idTech4.UI
 		#endregion
 
 		#region Protected
-		protected override void GainFocus()
+		protected override void OnFocusGained()
 		{
+			base.OnFocusGained();
+
 			idConsole.Warning("TODO: EditWindow GainFocus");
 			/*cursorPos = text.Length();
 			EnsureCursorVisible();*/

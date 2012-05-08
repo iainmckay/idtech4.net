@@ -51,6 +51,18 @@ namespace idTech4.UI
 			}
 		}
 
+		public Cursor Cursor
+		{
+			get
+			{
+				return _cursor;
+			}
+			set
+			{
+				_cursor = value;
+			}
+		}
+
 		public idFontFamily FontFamily
 		{
 			get
@@ -85,7 +97,10 @@ namespace idTech4.UI
 		private bool _enableClipping;
 		private bool _mbcs;
 
+		private Cursor _cursor;
+
 		private idMaterial _whiteImage;
+		private idMaterial[] _cursorImages = new idMaterial[(int) Cursor.Count];
 
 		private idFont _currentFont;
 		private idFontFamily _currentFontFamily;
@@ -104,6 +119,34 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
+		public void DrawCursor(ref float x, ref float y, float size)
+		{
+			if(x < 0)
+			{
+				x = 0;
+			}
+
+			if(x >= _videoWidth)
+			{
+				x = _videoWidth;
+			}
+
+			if(y < 0)
+			{
+				y = 0;
+			}
+
+			if(y >= _videoHeight)
+			{
+				y = _videoHeight;
+			}
+
+			idE.RenderSystem.Color = idColor.White;
+
+			AdjustCoordinates(ref x, ref y, ref size, ref size);
+			DrawStretchPicture(x, y, size, size, 0, 0, 1, 1, _cursorImages[(int) _cursor]);
+		}
+
 		public void DrawFilledRectangle(float x, float y, float width, float height, Vector4 color)
 		{
 			if(color.W == 0.0f)
@@ -498,36 +541,33 @@ namespace idTech4.UI
 
 			_currentFontFamily = _fontFamilies[0];
 			/*
-			colorPurple = idVec4(1, 0, 1, 1);
-			colorOrange = idVec4(1, 1, 0, 1);
-			colorYellow = idVec4(0, 1, 1, 1);
-			colorGreen = idVec4(0, 1, 0, 1);
-			colorBlue = idVec4(0, 0, 1, 1);
-			colorRed = idVec4(1, 0, 0, 1);
-			colorWhite = idVec4(1, 1, 1, 1);
-			colorBlack = idVec4(0, 0, 0, 1);
-			colorNone = idVec4(0, 0, 0, 0);
-			cursorImages[CURSOR_ARROW] = declManager->FindMaterial("ui/assets/guicursor_arrow.tga");
-			cursorImages[CURSOR_HAND] = declManager->FindMaterial("ui/assets/guicursor_hand.tga");
-			scrollBarImages[SCROLLBAR_HBACK] = declManager->FindMaterial("ui/assets/scrollbarh.tga");
+			 * TODO*/
+
+			_cursorImages[(int) Cursor.Arrow] = idE.DeclManager.FindMaterial("ui/assets/guicursor_arrow.tga");
+			_cursorImages[(int) Cursor.Hand] = idE.DeclManager.FindMaterial("ui/assets/guicursor_hand.tga");
+			_cursorImages[(int) Cursor.Arrow].Sort = (float) MaterialSort.Gui;
+			_cursorImages[(int) Cursor.Hand].Sort = (float) MaterialSort.Gui;
+
+			/*scrollBarImages[SCROLLBAR_HBACK] = declManager->FindMaterial("ui/assets/scrollbarh.tga");
 			scrollBarImages[SCROLLBAR_VBACK] = declManager->FindMaterial("ui/assets/scrollbarv.tga");
 			scrollBarImages[SCROLLBAR_THUMB] = declManager->FindMaterial("ui/assets/scrollbar_thumb.tga");
 			scrollBarImages[SCROLLBAR_RIGHT] = declManager->FindMaterial("ui/assets/scrollbar_right.tga");
 			scrollBarImages[SCROLLBAR_LEFT] = declManager->FindMaterial("ui/assets/scrollbar_left.tga");
 			scrollBarImages[SCROLLBAR_UP] = declManager->FindMaterial("ui/assets/scrollbar_up.tga");
-			scrollBarImages[SCROLLBAR_DOWN] = declManager->FindMaterial("ui/assets/scrollbar_down.tga");
-			cursorImages[CURSOR_ARROW]->SetSort( SS_GUI );
-			cursorImages[CURSOR_HAND]->SetSort( SS_GUI );
-			scrollBarImages[SCROLLBAR_HBACK]->SetSort( SS_GUI );
+			scrollBarImages[SCROLLBAR_DOWN] = declManager->FindMaterial("ui/assets/scrollbar_down.tga");*/
+
+			/*crollBarImages[SCROLLBAR_HBACK]->SetSort( SS_GUI );
 			scrollBarImages[SCROLLBAR_VBACK]->SetSort( SS_GUI );
 			scrollBarImages[SCROLLBAR_THUMB]->SetSort( SS_GUI );
 			scrollBarImages[SCROLLBAR_RIGHT]->SetSort( SS_GUI );
 			scrollBarImages[SCROLLBAR_LEFT]->SetSort( SS_GUI );
 			scrollBarImages[SCROLLBAR_UP]->SetSort( SS_GUI );
-			scrollBarImages[SCROLLBAR_DOWN]->SetSort( SS_GUI );
-			cursor = CURSOR_ARROW;
-			overStrikeMode = true;*/
+			scrollBarImages[SCROLLBAR_DOWN]->SetSort( SS_GUI );*/
 
+			_cursor = Cursor.Arrow;
+
+			/*overStrikeMode = true;*/
+			
 			_initialized = true;
 		}
 

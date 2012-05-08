@@ -36,9 +36,50 @@ namespace idTech4.Input
 {
 	public class idInputSystem
 	{
+		#region Properties
+		public int MouseX
+		{
+			get
+			{
+				return _mouseX;
+			}
+		}
+
+		public int MouseY
+		{
+			get
+			{
+				return _mouseY;
+			}
+		}
+
+		public int MouseDeltaX
+		{
+			get
+			{
+				return _mouseDeltaX;
+			}
+		}
+
+		public int MouseDeltaY
+		{
+			get
+			{
+				return _mouseDeltaY;
+			}
+		}
+		#endregion
+
 		#region Members
 		private bool _initialized;
+
+		private int _mouseX;
+		private int _mouseY;
+		private int _mouseDeltaX;
+		private int _mouseDeltaY;
+
 		private Key[] _keyState = new Key[(int) Keys.MaxButtons];
+		private Key[] _previousKeyState = new Key[(int) Keys.MaxButtons];
 		#endregion
 
 		#region Key map
@@ -263,6 +304,11 @@ namespace idTech4.Input
 			return Keys.None;
 		}
 
+		public bool IsKeyDown(Keys key)
+		{
+			return _keyState[(int) key].Down;
+		}
+
 		public void SetBinding(Keys key, string binding)
 		{
 			if((key == Keys.None) || (key == Keys.MaxButtons))
@@ -284,6 +330,15 @@ namespace idTech4.Input
 			// file write will be triggered at the next oportunity
 			idE.CvarSystem.ModifiedFlags = CvarFlags.Archive;
 		}
+
+		public void Update()
+		{
+			if(idE.System.IsActive == true)
+			{
+				ProcessKeyboard();
+				ProcessMouse();
+			}
+		}
 		#endregion
 
 		#region Private
@@ -291,11 +346,74 @@ namespace idTech4.Input
 		{
 			idE.CmdSystem.AddCommand("bind", "binds a command to a key", CommandFlags.System, Cmd_Bind /* TODO: idKeyInput::ArgCompletion_KeyName */ );
 			idE.CmdSystem.AddCommand("unbindall", "unbinds any commands from all keys", CommandFlags.System, Cmd_UnbindAll);
+
 			// TODO: commands
 			/*cmdSystem->AddCommand( "bindunbindtwo", Key_BindUnBindTwo_f, CMD_FL_SYSTEM, "binds a key but unbinds it first if there are more than two binds" );
-			cmdSystem->AddCommand( "unbind", Key_Unbind_f, CMD_FL_SYSTEM, "unbinds any command from a key", idKeyInput::ArgCompletion_KeyName );
-			
+			cmdSystem->AddCommand( "unbind", Key_Unbind_f, CMD_FL_SYSTEM, "unbinds any command from a key", idKeyInput::ArgCompletion_KeyName );			
 			cmdSystem->AddCommand( "listBinds", Key_ListBinds_f, CMD_FL_SYSTEM, "lists key bindings" );*/
+		}
+
+		private void ProcessKeyboard()
+		{
+			KeyboardState keyState = Keyboard.GetState();
+			MouseState mouseState = Mouse.GetState();
+
+			int mouse1 = (int) Keys.Mouse1;
+			int mouse2 = (int) Keys.Mouse2;
+			int mouse3 = (int) Keys.Mouse3;
+
+			_previousKeyState = (Key[]) _keyState.Clone();
+
+			foreach(Keys key in Enum.GetValues(typeof(Keys)))
+			{
+				if(key != Keys.MaxButtons)
+				{
+					_keyState[(int) key].Down = false;
+				}
+			}
+
+			foreach(Keys key in keyState.GetPressedKeys())
+			{
+				_keyState[(int) key].Down = true;
+			}
+
+			_keyState[mouse1].Down = (mouseState.LeftButton == ButtonState.Pressed);
+			_keyState[mouse2].Down = (mouseState.MiddleButton == ButtonState.Pressed);
+			_keyState[mouse3].Down = (mouseState.RightButton == ButtonState.Pressed);
+
+			foreach(Keys key in Enum.GetValues(typeof(Keys)))
+			{
+				if(key != Keys.MaxButtons)
+				{
+					int keyCode = (int) key;
+
+					if(_previousKeyState[keyCode].Down != _keyState[keyCode].Down)
+					{
+						idE.EventLoop.Queue(SystemEventType.Key, keyCode, (_keyState[keyCode].Down == true) ? 1 : 0);
+					}
+				}
+			}
+		}
+
+		private void ProcessMouse()
+		{			
+			MouseState state = Mouse.GetState();
+
+			int screenHalfWidth = idE.RenderSystem.ScreenWidth / 2;
+			int screenHalfHeight = idE.RenderSystem.ScreenHeight / 2;
+			
+			_mouseDeltaX = (state.X - screenHalfWidth);
+			_mouseDeltaY = (state.Y - screenHalfHeight);
+
+			_mouseX += _mouseDeltaX;
+			_mouseY += _mouseDeltaY;
+
+			if((_mouseDeltaX != 0) || (_mouseDeltaY != 0))
+			{
+				idE.EventLoop.Queue(SystemEventType.Mouse, _mouseDeltaX, _mouseDeltaY);
+			}
+			
+			Mouse.SetPosition(screenHalfWidth, screenHalfHeight);
 		}
 		#endregion
 
@@ -312,7 +430,7 @@ namespace idTech4.Input
 
 				if(key == Keys.None)
 				{
-					idConsole.WriteLine("\"{0}\" isn't a valid key", e.Args.Get(0));
+					idConsole.WriteLine("\"{0}\" isn't a valid key", e.Args.Get(1));
 				}
 				else
 				{

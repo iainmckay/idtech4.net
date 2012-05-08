@@ -31,6 +31,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Input;
 using idTech4.Math;
 using idTech4.Renderer;
 using idTech4.Text;
@@ -114,11 +115,85 @@ namespace idTech4.UI
 			}
 		}
 
+		public idWindow CaptureChild
+		{
+			get
+			{
+				if((this.Flags & WindowFlags.Desktop) == WindowFlags.Desktop)
+				{
+					return this.UserInterface.Desktop._captureChild;
+				}
+
+				return null;
+			}
+			set
+			{
+				if(value == null)
+				{
+					_captureChild = value;
+				}
+				else
+				{
+					// only one child can have the focus
+					idWindow last = null;
+					int c = _children.Count;
+
+					for(int i = 0; i < c; i++)
+					{
+						if((_children[i].Flags & WindowFlags.Capture) == WindowFlags.Capture)
+						{
+							last = _children[i];
+							last.HandleCaptureLost();
+
+							break;
+						}
+					}
+
+					value.Flags |= WindowFlags.Capture;
+					value.HandleCaptureGained();
+
+					this.UserInterface.Desktop._captureChild = value;
+				}
+			}
+		}
+
+		public int ChildCount
+		{
+			get
+			{
+				return _drawWindows.Count;
+			}
+		}
+
 		public idRectangle ClientRectangle
 		{
 			get
 			{
 				return _clientRect;
+			}
+		}
+
+		public string Command
+		{
+			get
+			{
+				return _command;
+			}
+			set
+			{
+				_command = value;
+			}
+		}
+
+		public Cursor Cursor
+		{
+			get
+			{
+				return _cursor;
+			}
+			set
+			{
+				_cursor = value;
 			}
 		}
 
@@ -199,6 +274,18 @@ namespace idTech4.UI
 			get
 			{
 				return _hideCursor;
+			}
+		}
+
+		public bool Hover
+		{
+			get
+			{
+				return _hover;
+			}
+			set
+			{
+				_hover = value;
 			}
 		}
 
@@ -308,6 +395,14 @@ namespace idTech4.UI
 			set
 			{
 				_name = value;
+			}
+		}
+
+		public bool NoEvents
+		{
+			get
+			{
+				return _noEvents;
 			}
 		}
 
@@ -445,6 +540,8 @@ namespace idTech4.UI
 		private int _offsetX;
 		private int _offsetY;
 
+		private Cursor _cursor;
+
 		private string _command = string.Empty;
 		private int _timeLine; // time stamp used for various fx
 
@@ -453,6 +550,10 @@ namespace idTech4.UI
 		private float _materialScaleX;
 		private float _materialScaleY;
 		private float _borderSize;
+
+		private bool _hover;
+		private bool _actionDownRun;
+		private bool _actionUpRun;
 
 		private TextAlign _textAlign;
 		private float _textAlignX;
@@ -621,6 +722,31 @@ namespace idTech4.UI
 			_updateVariables.Add(var);
 		}
 
+		public void BringToTop(idWindow window)
+		{
+			if((window != null) && ((window.Flags & WindowFlags.Modal) == 0))
+			{
+				return;
+			}
+
+			int c = _children.Count;
+
+			for(int i = 0; i < c; i++)
+			{
+				if(_children[i] == window)
+				{
+					// this is it move from i - 1 to 0 to i to 1 then shove this one into 0
+					for(int j = i + 1; j < c; j++)
+					{
+						_children[j - 1] = _children[j];
+					}
+
+					_children[c - 1] = window;
+					break;
+				}
+			}
+		}
+
 		public void ClientToScreen(ref idRectangle rect)
 		{
 			int x, y;
@@ -636,18 +762,26 @@ namespace idTech4.UI
 			rect.Y += y;
 		}
 
+		public bool Contains(idRectangle rect, float x, float y)
+		{
+			rect.X += _actualX - _drawRect.X;
+			rect.Y += _actualY - _drawRect.Y;
+
+			return rect.Contains(x, y);
+		}
+
 		public virtual void Draw(float x, float y)
 		{
 			int skipShaders = idE.CvarSystem.GetInteger("r_skipGuiShaders");
 
-			if((skipShaders == 1) || (_context == null))
+			if((skipShaders == 1) || (this.DeviceContext == null))
 			{
 				return;
 			}
 
-			int time = _gui.Time;
+			int time = this.UserInterface.Time;
 
-			if(((_flags & WindowFlags.Desktop) == WindowFlags.Desktop) && (skipShaders != 3))
+			if(((this.Flags & WindowFlags.Desktop) == WindowFlags.Desktop) && (skipShaders != 3))
 			{
 				RunTimeEvents(time);
 			}
@@ -656,19 +790,18 @@ namespace idTech4.UI
 			{
 				return;
 			}
-			
-			// TODO: flags & WIN_SHOWTIME
-			/*if ( flags & WIN_SHOWTIME ) {
-				dc->DrawText(va(" %0.1f seconds\n%s", (float)(time - timeLine) / 1000, gui->State().GetString("name")), 0.35f, 0, dc->colorWhite, idRectangle(100, 0, 80, 80), false);
-			}*/
 
-			// TODO: flags & WIN_SHOWCOORDS
-			/*if ( flags & WIN_SHOWCOORDS ) {
-				dc->EnableClipping(false);
-				sprintf(str, "x: %i y: %i  cursorx: %i cursory: %i", (int)rect.x(), (int)rect.y(), (int)gui->CursorX(), (int)gui->CursorY());
-				dc->DrawText(str, 0.25f, 0, dc->colorWhite, idRectangle(0, 0, 100, 20), false);
-				dc->EnableClipping(true);
-			}*/
+			if((this.Flags & WindowFlags.ShowTime) == WindowFlags.ShowTime)
+			{
+				this.DeviceContext.DrawText(string.Format("{0:0} seconds\n{1}", (float) (_timeLine - _timeLine) / 1000, this.UserInterface.State.GetString("name")), 0.35f, 0, idColor.White, new idRectangle(100, 0, 80, 80), false);
+			}
+
+			if((this.Flags & WindowFlags.ShowCoordinates) == WindowFlags.ShowCoordinates)
+			{
+				this.DeviceContext.ClippingEnabled = false;
+				this.DeviceContext.DrawText(string.Format("x: {0} y: {1} cursorx: {2} cursory: {3}", (int) _rect.X, (int) _rect.Y, (int) this.UserInterface.CursorX, (int) this.UserInterface.CursorY), 0.25f, 0, idColor.White, new idRectangle(0, 0, 100, 20), false);
+				this.DeviceContext.ClippingEnabled = true;
+			}
 
 			if(_visible == false)
 			{
@@ -691,7 +824,7 @@ namespace idTech4.UI
 			Vector3 oldOrigin;
 			Matrix oldTransform;
 			
-			_context.GetTransformInformation(out oldOrigin, out oldTransform);
+			this.DeviceContext.GetTransformInformation(out oldOrigin, out oldTransform);
 
 			SetupTransforms(x, y);
 			DrawBackground(_drawRect);
@@ -699,7 +832,7 @@ namespace idTech4.UI
 
 			if((_flags & WindowFlags.NoClip) == 0)
 			{
-				_context.PushClipRectangle(_clientRect);
+				this.DeviceContext.PushClipRectangle(_clientRect);
 			}
 
 			if(skipShaders < 5)
@@ -725,30 +858,57 @@ namespace idTech4.UI
 			}
 
 			// Put transforms back to what they were before the children were processed
-			_context.SetTransformInformation(oldOrigin, oldTransform);
+			this.DeviceContext.SetTransformInformation(oldOrigin, oldTransform);
 
-			if((_flags & WindowFlags.NoClip) == 0)
+			if((this.Flags & WindowFlags.NoClip) == 0)
 			{
-				_context.PopClipRectangle();
+				this.DeviceContext.PopClipRectangle();
 			}
 
-			// TODO
-			/*if (gui_edit.GetBool()  || (flags & WIN_DESKTOP && !( flags & WIN_NOCURSOR )  && !hideCursor && (gui->Active() || ( flags & WIN_MENUGUI ) ))) {
-				dc->SetTransformInfo(vec3_origin, mat3_identity);
-				gui->DrawCursor();
+			if((idE.CvarSystem.GetBool("gui_edit") == true)
+				|| (((this.Flags & WindowFlags.Desktop) == WindowFlags.Desktop) 
+						&& ((this.Flags & WindowFlags.NoCursor) == 0)
+						&& (this.HideCursor == false)
+						&& ((this.UserInterface.IsActive == true) || ((this.Flags & WindowFlags.MenuInterface) == WindowFlags.MenuInterface))))
+			{
+				this.DeviceContext.SetTransformInformation(Vector3.Zero, Matrix.Identity);
+				this.UserInterface.DrawCursor();
 			}
 
-			if (gui_debug.GetInteger() && flags & WIN_DESKTOP) {
-				dc->EnableClipping(false);
-				sprintf(str, "x: %1.f y: %1.f",  gui->CursorX(), gui->CursorY());
-				dc->DrawText(str, 0.25, 0, dc->colorWhite, idRectangle(0, 0, 100, 20), false);
-				dc->DrawText(gui->GetSourceFile(), 0.25, 0, dc->colorWhite, idRectangle(0, 20, 300, 20), false);
-				dc->EnableClipping(true);
-			}*/
-
+			if((idE.CvarSystem.GetBool("gui_debug") == true) && ((this.Flags & WindowFlags.Desktop) == WindowFlags.Desktop))
+			{
+				this.DeviceContext.ClippingEnabled = false;
+				this.DeviceContext.DrawText(string.Format("x: {0:00} y: {1:00}", this.UserInterface.CursorX, this.UserInterface.CursorY), 0.25f, 0, idColor.White, new idRectangle(0, 0, 100, 20), false);
+				this.DeviceContext.DrawText(this.UserInterface.SourceFile, 0.25f, 0, idColor.White, new idRectangle(0, 20, 300, 20), false);
+				this.DeviceContext.ClippingEnabled = true;
+			}
+			
 			_drawRect.Offset(-x, -y);
 			_clientRect.Offset(-x, -y);
 			_textRect.Offset(-x, -y);
+		}
+
+		/// <summary>
+		/// Returns the child window at the given index.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <returns></returns>
+		public idWindow GetChild(int index)
+		{
+			return _drawWindows[index].Window;
+		}
+
+		public int GetChildIndex(idWindow window)
+		{
+			for(int find = 0; find < _drawWindows.Count; find++)
+			{
+				if(_drawWindows[find].Window == window)
+				{
+					return find;
+				}
+			}
+
+			return -1;
 		}
 
 		public idWindowVariable GetVariableByName(string name)
@@ -1197,9 +1357,8 @@ namespace idTech4.UI
 		{
 			if((_flags & WindowFlags.Desktop) == WindowFlags.Desktop)
 			{
-				// TODO: actionup/down
-				/*actionDownRun = false;
-				actionUpRun = false;*/
+				_actionDownRun = false;
+				_actionUpRun = false;
 
 				if((_expressionRegisters.Count > 0) && (_ops.Count > 0))
 				{
@@ -1209,218 +1368,30 @@ namespace idTech4.UI
 				RunTimeEvents(_gui.Time);
 				CalculateRectangles(0, 0);
 
-				// TODO: dc->SetCursor( idDeviceContext::CURSOR_ARROW );
+				this.DeviceContext.Cursor = Cursor.Arrow;
 			}
-
-			// TODO
-			/*if (visible && !noEvents) {
-
-				if (event->evType == SE_KEY) {
-					EvalRegs(-1, true);
-					if (updateVisuals) {
-						*updateVisuals = true;
+						
+			if((_visible == true) && (_noEvents == false))
+			{
+				if(e.Type == SystemEventType.Key)
+				{
+					string keyReturn = HandleKeyEvent(e, (Keys) e.Value, (e.Value2 == 1), ref updateVisuals);
+					
+					if(keyReturn != string.Empty)
+					{
+						return keyReturn;
 					}
+				} 
+				else if(e.Type == SystemEventType.Mouse)
+				{
+					string mouseReturn = HandleMouseEvent(e.Value, e.Value2, ref updateVisuals);
 
-					if (event->evValue == K_MOUSE1) {
-
-						if (!event->evValue2 && GetCaptureChild()) {
-							GetCaptureChild()->LoseCapture();
-							gui->GetDesktop()->captureChild = NULL;
-							return "";
-						} 
-
-						int c = children.Num();
-						while (--c >= 0) {
-							if (children[c]->visible && children[c]->Contains(children[c]->drawRect, gui->CursorX(), gui->CursorY()) && !(children[c]->noEvents)) {
-								idWindow *child = children[c];
-								if (event->evValue2) {
-									BringToTop(child);
-									SetFocus(child);
-									if (child->flags & WIN_HOLDCAPTURE) {
-										SetCapture(child);
-									}
-								}
-								if (child->Contains(child->clientRect, gui->CursorX(), gui->CursorY())) {
-									//if ((gui_edit.GetBool() && (child->flags & WIN_SELECTED)) || (!gui_edit.GetBool() && (child->flags & WIN_MOVABLE))) {
-									//	SetCapture(child);
-									//}
-									SetFocus(child);
-									const char *childRet = child->HandleEvent(event, updateVisuals);
-									if (childRet && *childRet) {
-										return childRet;
-									} 
-									if (child->flags & WIN_MODAL) {
-										return "";
-									}
-								} else {
-									if (event->evValue2) {
-										SetFocus(child);
-										bool capture = true;
-										if (capture && ((child->flags & WIN_MOVABLE) || gui_edit.GetBool())) {
-											SetCapture(child);
-										}
-										return "";
-									} else {
-									}
-								}
-							}
-						}
-						if (event->evValue2 && !actionDownRun) {
-							actionDownRun = RunScript( ON_ACTION );
-						} else if (!actionUpRun) {
-							actionUpRun = RunScript( ON_ACTIONRELEASE );
-						}
-					} else if (event->evValue == K_MOUSE2) {
-
-						if (!event->evValue2 && GetCaptureChild()) {
-							GetCaptureChild()->LoseCapture();
-							gui->GetDesktop()->captureChild = NULL;
-							return "";
-						}
-
-						int c = children.Num();
-						while (--c >= 0) {
-							if (children[c]->visible && children[c]->Contains(children[c]->drawRect, gui->CursorX(), gui->CursorY()) && !(children[c]->noEvents)) {
-								idWindow *child = children[c];
-								if (event->evValue2) {
-									BringToTop(child);
-									SetFocus(child);
-								}
-								if (child->Contains(child->clientRect,gui->CursorX(), gui->CursorY()) || GetCaptureChild() == child) {
-									if ((gui_edit.GetBool() && (child->flags & WIN_SELECTED)) || (!gui_edit.GetBool() && (child->flags & WIN_MOVABLE))) {
-										SetCapture(child);
-									}
-									const char *childRet = child->HandleEvent(event, updateVisuals);
-									if (childRet && *childRet) {
-										return childRet;
-									} 
-									if (child->flags & WIN_MODAL) {
-										return "";
-									}
-								}
-							}
-						}
-					} else if (event->evValue == K_MOUSE3) {
-						if (gui_edit.GetBool()) {
-							int c = children.Num();
-							for (int i = 0; i < c; i++) {
-								if (children[i]->drawRect.Contains(gui->CursorX(), gui->CursorY())) {
-									if (event->evValue2) {
-										children[i]->flags ^= WIN_SELECTED;
-										if (children[i]->flags & WIN_SELECTED) {
-											flags &= ~WIN_SELECTED;
-											return "childsel";
-										}
-									}
-								}
-							}
-						}
-					} else if (event->evValue == K_TAB && event->evValue2) {
-						if (GetFocusedChild()) {
-							const char *childRet = GetFocusedChild()->HandleEvent(event, updateVisuals);
-							if (childRet && *childRet) {
-								return childRet;
-							}
-
-							// If the window didn't handle the tab, then move the focus to the next window
-							// or the previous window if shift is held down
-
-							int direction = 1;
-							if ( idKeyInput::IsDown( K_SHIFT ) ) {
-								direction = -1;
-							}
-
-							idWindow *currentFocus = GetFocusedChild();
-							idWindow *child = GetFocusedChild();
-							idWindow *parent = child->GetParent();
-							while ( parent ) {
-								bool foundFocus = false;
-								bool recurse = false;
-								int index = 0;
-								if ( child ) {
-									index = parent->GetChildIndex( child ) + direction;
-								} else if ( direction < 0 ) {
-									index = parent->GetChildCount() - 1;
-								}
-								while ( index < parent->GetChildCount() && index >= 0) {
-									idWindow *testWindow = parent->GetChild( index );
-									if ( testWindow == currentFocus ) {
-										// we managed to wrap around and get back to our starting window
-										foundFocus = true;
-										break;
-									}
-									if ( testWindow && !testWindow->noEvents && testWindow->visible ) {
-										if ( testWindow->flags & WIN_CANFOCUS ) {
-											SetFocus( testWindow );
-											foundFocus = true;
-											break;
-										} else if ( testWindow->GetChildCount() > 0 ) {
-											parent = testWindow;
-											child = NULL;
-											recurse = true;
-											break;
-										}
-									}
-									index += direction;
-								}
-								if ( foundFocus ) {
-									// We found a child to focus on
-									break;
-								} else if ( recurse ) {
-									// We found a child with children
-									continue;
-								} else {
-									// We didn't find anything, so go back up to our parent
-									child = parent;
-									parent = child->GetParent();
-									if ( parent == gui->GetDesktop() ) {
-										// We got back to the desktop, so wrap around but don't actually go to the desktop
-										parent = NULL;
-										child = NULL;
-									}
-								}
-							}
-						}
-					} else if (event->evValue == K_ESCAPE && event->evValue2) {
-						if (GetFocusedChild()) {
-							const char *childRet = GetFocusedChild()->HandleEvent(event, updateVisuals);
-							if (childRet && *childRet) {
-								return childRet;
-							}
-						}
-						RunScript( ON_ESC );
-					} else if (event->evValue == K_ENTER ) {
-						if (GetFocusedChild()) {
-							const char *childRet = GetFocusedChild()->HandleEvent(event, updateVisuals);
-							if (childRet && *childRet) {
-								return childRet;
-							}
-						}
-						if ( flags & WIN_WANTENTER ) {
-							if ( event->evValue2 ) {
-								RunScript( ON_ACTION );
-							} else {
-								RunScript( ON_ACTIONRELEASE );
-							}
-						}
-					} else {
-						if (GetFocusedChild()) {
-							const char *childRet = GetFocusedChild()->HandleEvent(event, updateVisuals);
-							if (childRet && *childRet) {
-								return childRet;
-							}
-						}
+					if(mouseReturn != string.Empty)
+					{
+						return mouseReturn;
 					}
-
-				} else if (event->evType == SE_MOUSE) {
-					if (updateVisuals) {
-						*updateVisuals = true;
-					}
-					const char *mouseRet = RouteMouseCoords(event->evValue, event->evValue2);
-					if (mouseRet && *mouseRet) {
-						return mouseRet;
-					}
-				} else if (event->evType == SE_NONE) {
+				}
+				/*} else if (event->evType == SE_NONE) {
 				} else if (event->evType == SE_CHAR) {
 					if (GetFocusedChild()) {
 						const char *childRet = GetFocusedChild()->HandleEvent(event, updateVisuals);
@@ -1428,10 +1399,10 @@ namespace idTech4.UI
 							return childRet;
 						}
 					}
-				}
+				}*/
 			}
-
-			gui->GetReturnCmd() = cmd;
+		
+			/*gui->GetReturnCmd() = cmd;
 			if ( gui->GetPendingCmd().Length() ) {
 				gui->GetReturnCmd() += " ; ";
 				gui->GetReturnCmd() += gui->GetPendingCmd();
@@ -1970,7 +1941,7 @@ namespace idTech4.UI
 
 			if(_scripts[(int) ScriptName.Action] != null)
 			{
-				// TODO: cursor = idDeviceContext::CURSOR_HAND;
+				this.Cursor = UI.Cursor.Hand;
 				this.Flags |= WindowFlags.CanFocus;
 			}
 		}
@@ -1991,8 +1962,7 @@ namespace idTech4.UI
 
 				if(lastFocus != null)
 				{
-					lastFocus.Flags &= ~WindowFlags.Focus;
-					lastFocus.LoseFocus();
+					lastFocus.HandleFocusLost();
 				}
 
 				//  call on lose focus
@@ -2010,8 +1980,7 @@ namespace idTech4.UI
 					// w->RunScript(ON_MOUSEENTER);
 				}
 
-				window.Flags |= WindowFlags.Focus;
-				window.GainFocus();
+				window.HandleFocusGained();
 
 				this.UserInterface.Desktop.FocusedChild = window;
 			}
@@ -2064,12 +2033,12 @@ namespace idTech4.UI
 			}
 		}
 
-		protected virtual void GainFocus()
+		protected virtual void OnFocusGained()
 		{
 
 		}
 
-		protected virtual void LoseFocus()
+		protected virtual void OnFocusLost()
 		{
 
 		}
@@ -2244,59 +2213,83 @@ namespace idTech4.UI
 
 		protected virtual string RouteMouseCoordinates(float x, float y)
 		{
-			idConsole.Warning("TODO: RouteMouseCoordinates");
-			/*idStr str;
-			if (GetCaptureChild()) {
+			if(this.CaptureChild != null)
+			{
 				//FIXME: unkludge this whole mechanism
-				return GetCaptureChild()->RouteMouseCoords(xd, yd);
+				return this.CaptureChild.RouteMouseCoordinates(x, y);
+			}
+
+			if((x == -2000) || (y == -2000))
+			{
+				return string.Empty;
 			}
 	
-			if (xd == -2000 || yd == -2000) {
-				return "";
-			}
+			int c = _children.Count;
+			string str = string.Empty;
 
-			int c = children.Num();
-			while (c > 0) {
-				idWindow *child = children[--c];
-				if (child->visible && !child->noEvents && child->Contains(child->drawRect, gui->CursorX(), gui->CursorY())) {
+			while(c > 0)
+			{
+				idWindow child = _children[--c];
 
-					dc->SetCursor(child->cursor);
-					child->hover = true;
+				if((child.IsVisible == true)
+					&& (child.NoEvents == false)
+					&& (child.Contains(child.DrawRectangle, this.UserInterface.CursorX, this.UserInterface.CursorY) == true))
+				{
+					this.DeviceContext.Cursor = child.Cursor;
 
-					if (overChild != child) {
-						if (overChild) {
-							overChild->MouseExit();
-							str = overChild->cmd;
-							if (str.Length()) {
-								gui->GetDesktop()->AddCommand(str);
-								overChild->cmd = "";
+					if(_overChild != child)
+					{
+						if(_overChild != null)
+						{
+							_overChild.HandleMouseExit();
+
+							str = _overChild.Command;
+
+							if(str != string.Empty)
+							{
+								this.UserInterface.Desktop.AddCommand(str);
+								_overChild.Command = string.Empty;
 							}
 						}
-						overChild = child;
-						overChild->MouseEnter();
-						str = overChild->cmd;
-						if (str.Length()) {
-							gui->GetDesktop()->AddCommand(str);
-							overChild->cmd = "";
+
+						_overChild = child;
+						_overChild.HandleMouseEnter();
+
+						str = _overChild.Command;
+
+						if(str != string.Empty)
+						{
+							this.UserInterface.Desktop.AddCommand(str);
+							_overChild.Command = string.Empty;
 						}
-					} else {
-						if (!(child->flags & WIN_HOLDCAPTURE)) {
-							child->RouteMouseCoords(xd, yd);
+					} 
+					else 
+					{
+						if((child.Flags & WindowFlags.HoldCapture) == 0)
+						{
+							child.RouteMouseCoordinates(x, y);
 						}
 					}
-					return "";
+
+					return string.Empty;
 				}
 			}
-			if (overChild) {
-				overChild->MouseExit();
-				str = overChild->cmd;
-				if (str.Length()) {
-					gui->GetDesktop()->AddCommand(str);
-					overChild->cmd = "";
+
+			if(_overChild != null)
+			{
+				_overChild.HandleMouseExit();
+
+				str = _overChild.Command;
+
+				if(str != string.Empty)
+				{
+					this.UserInterface.Desktop.AddCommand(str);
+					_overChild.Command = string.Empty;
 				}
-				overChild = NULL;
+
+				_overChild = null;
 			}
-			return "";*/
+
 			return string.Empty;
 		}
 
@@ -2515,7 +2508,7 @@ namespace idTech4.UI
 				buffer.AppendFormat("Rect: {0}, {1}, {2}, {3}\n", _rect.X, _rect.Y, _rect.Width, _rect.Height);
 				buffer.AppendFormat("Draw Rect: {0}, {1}, {2}, {3}\n", _drawRect.X, _drawRect.Y, _drawRect.Width, _drawRect.Height);
 				buffer.AppendFormat("Client Rect: {0}, {1}, {2}, {3}\n", _clientRect.X, _clientRect.Y, _clientRect.Width, _clientRect.Height);
-				//buffer.AppendFormat("Cursor: {0} : {1}\n", this.UserInterface.CursorX, this.UserInterface.CursorY);
+				buffer.AppendFormat("Cursor: {0} : {1}\n", this.UserInterface.CursorX, this.UserInterface.CursorY);
 
 				_context.DrawText(buffer.ToString(), _textScale, _textAlign, _foreColor, _textRect, true);
 			}
@@ -2542,13 +2535,13 @@ namespace idTech4.UI
 
 			_context.DrawText(_text, _textScale, _textAlign, _foreColor, _textRect, (_flags & WindowFlags.NoWrap) == 0, -1);
 
-			// TODO: gui_edit
-			/*if ( gui_edit.GetBool() ) {
-				dc->EnableClipping( false );
-				dc->DrawText( va( "x: %i  y: %i", ( int )rect.x(), ( int )rect.y() ), 0.25, 0, dc->colorWhite, idRectangle( rect.x(), rect.y() - 15, 100, 20 ), false );
-				dc->DrawText( va( "w: %i  h: %i", ( int )rect.w(), ( int )rect.h() ), 0.25, 0, dc->colorWhite, idRectangle( rect.x() + rect.w(), rect.w() + rect.h() + 5, 100, 20 ), false );
-				dc->EnableClipping( true );
-			}*/
+			if(idE.CvarSystem.GetBool("gui_edit") == true)
+			{
+				this.DeviceContext.ClippingEnabled = false;
+				this.DeviceContext.DrawText(string.Format("x: {0} y:{1}", (int) _rect.X, (int) _rect.Y), 0.25f, 0, idColor.White, new idRectangle(_rect.X, _rect.Y - 15, 100, 20), false);
+				this.DeviceContext.DrawText(string.Format("w: {0} h:{1}", (int) _rect.Width, (int) _rect.Height), 0.25f, 0, idColor.White, new idRectangle(_rect.X + _rect.Width, _rect.Width + _rect.Height + 5, 100, 20), false);
+				this.DeviceContext.ClippingEnabled = true;
+			}
 		}
 
 		private int EmitOperation(object a, int b, WindowExpressionOperationType opType)
@@ -2607,6 +2600,360 @@ namespace idTech4.UI
 			return i;
 		}
 
+		private void HandleCaptureGained()
+		{
+
+		}
+
+		private void HandleCaptureLost()
+		{
+			this.Flags &= ~WindowFlags.Capture;
+		}
+
+		private void HandleFocusGained()
+		{
+			this.Flags |= WindowFlags.Focus;
+		}
+
+		private void HandleFocusLost()
+		{
+			this.Flags &= ~WindowFlags.Focus;
+		}
+
+		private string HandleKeyEvent(SystemEvent e, Keys key, bool down, ref bool updateVisuals)
+		{
+			EvaluateRegisters(-1, true);
+
+			updateVisuals = true;
+
+			if(key == Keys.Mouse1)
+			{
+				if((down == false) && (this.CaptureChild != null))
+				{
+					this.CaptureChild.HandleCaptureLost();
+					this.UserInterface.Desktop.CaptureChild = null;
+
+					return string.Empty;
+				}
+
+				int c = _children.Count;
+
+				while(--c >= 0)
+				{
+					idWindow child = _children[c];
+
+					if((child.IsVisible == true) 
+						&& (child.Contains(child.DrawRectangle, this.UserInterface.CursorX, this.UserInterface.CursorY) == true)
+						&& (child.NoEvents == false))
+					{
+						if(down == true)
+						{
+							BringToTop(child);
+							SetFocus(child);
+
+							if((child.Flags & WindowFlags.HoldCapture) == WindowFlags.HoldCapture)
+							{
+								this.CaptureChild = child;
+							}
+						}
+
+						if(child.Contains(child.ClientRectangle, this.UserInterface.CursorX, this.UserInterface.CursorY) == true)
+						{
+							//if ((gui_edit.GetBool() && (child->flags & WIN_SELECTED)) || (!gui_edit.GetBool() && (child->flags & WIN_MOVABLE))) {
+							//	SetCapture(child);
+							//}
+								
+							SetFocus(child);
+							string childReturn = child.HandleEvent(e, ref updateVisuals);
+
+							if(childReturn != string.Empty)
+							{
+								return childReturn;
+							}
+
+							if((child.Flags & WindowFlags.Modal) == WindowFlags.Modal)
+							{
+								return string.Empty;
+							}
+						}
+						else
+						{
+							if(down == true)
+							{
+								SetFocus(child);
+
+								bool capture = true;
+
+								if((capture == true) && (((child.Flags & WindowFlags.Movable) == WindowFlags.Movable) || (idE.CvarSystem.GetBool("gui_edit") == true)))
+								{
+									this.CaptureChild = child;
+								}
+
+								return string.Empty;
+							}
+						}
+					}
+				}
+
+				if((down == true) && (_actionDownRun == false))
+				{
+					_actionDownRun = RunScript(ScriptName.Action);
+				}
+				else if(_actionUpRun == false)
+				{
+					_actionUpRun = RunScript(ScriptName.ActionRelease);
+				}
+			} 
+			else if (key == Keys.Mouse2)
+			{
+				if((down == false) && (this.CaptureChild != null))
+				{
+					this.CaptureChild.HandleCaptureLost();
+					this.UserInterface.Desktop.CaptureChild = null;
+
+					return string.Empty;
+				}
+
+				int c = _children.Count;
+
+				while(--c >= 0)
+				{
+					idWindow child = _children[c];
+
+					if((child.IsVisible == true) 
+						&& (child.Contains(child.DrawRectangle, this.UserInterface.CursorX, this.UserInterface.CursorY) == true)
+						&& (child.NoEvents == false))
+					{
+						if(down == true)
+						{
+							BringToTop(child);
+							SetFocus(child);
+						}
+
+						if((child.Contains(child.ClientRectangle, this.UserInterface.CursorX, this.UserInterface.CursorY) == true)
+							|| (this.CaptureChild == child))
+						{
+							if(((idE.CvarSystem.GetBool("gui_edit") == true) && ((child.Flags & WindowFlags.Selected) == WindowFlags.Selected))
+								|| (idE.CvarSystem.GetBool("gui_edit") == false) && ((child.Flags & WindowFlags.Movable) == WindowFlags.Movable))
+							{
+								this.CaptureChild = child;
+							}
+
+							string childReturn = child.HandleEvent(e, ref updateVisuals);
+
+							if(childReturn != string.Empty)
+							{
+								return childReturn;
+							}
+
+							if((child.Flags & WindowFlags.Modal) == WindowFlags.Modal)
+							{
+								return string.Empty;
+							}
+						}
+					}
+				}
+			} 
+			else if(key == Keys.Mouse3)
+			{
+				if(idE.CvarSystem.GetBool("gui_edit") == true)
+				{
+					int c = _children.Count;
+
+					for(int i = 0; i < c; i++)
+					{
+						if(_children[i].DrawRectangle.Contains(this.UserInterface.CursorX, this.UserInterface.CursorY) == true)
+						{
+							if(down == true)
+							{
+								_children[i].Flags ^= WindowFlags.Selected;
+
+								if((_children[i].Flags & WindowFlags.Selected) == WindowFlags.Selected)
+								{
+									this.Flags &= ~WindowFlags.Selected;
+									return "childsel";
+								}
+							}
+						}
+					}
+				}
+			} 
+			else if((key == Keys.Tab) && (down == true))
+			{
+				if(this.FocusedChild != null)
+				{
+					string childRet = this.FocusedChild.HandleEvent(e, ref updateVisuals);
+
+					if(childRet != string.Empty)
+					{
+						return childRet;
+					}
+
+					// If the window didn't handle the tab, then move the focus to the next window
+					// or the previous window if shift is held down
+					int direction = 1;
+
+					if(idE.Input.IsKeyDown(Keys.LeftShift) == true)
+					{
+						direction = -1;
+					}
+
+					idWindow currentFocus = this.FocusedChild;
+					idWindow child = this.FocusedChild;
+					idWindow parent = child.Parent;
+
+					while(parent != null)
+					{
+						bool foundFocus = false;
+						bool recurse = false;
+						int index = 0;
+
+						if(child != null)
+						{
+							index = parent.GetChildIndex(child) + direction;
+						}
+						else if(direction < 0)
+						{
+							index = parent.ChildCount - 1;
+						}
+
+						while((index < parent.ChildCount) && (index >= 0))
+						{
+							idWindow testWindow = parent.GetChild(index);
+
+							if(testWindow == currentFocus)
+							{
+								// we managed to wrap around and get back to our starting window
+								foundFocus = true;
+								break;
+							}
+							else if((testWindow != null) && (testWindow.NoEvents == false) && (testWindow.IsVisible == true))
+							{
+								if((testWindow.Flags & WindowFlags.CanFocus) == WindowFlags.CanFocus)
+								{
+									SetFocus(testWindow);
+									foundFocus = true;
+									break;
+								}
+								else if(testWindow.ChildCount > 0)
+								{
+									parent = testWindow;
+									child = null;
+									recurse = true;
+									break;
+								}
+							}
+
+							index += direction;
+						}
+
+						if(foundFocus == true)
+						{
+							// we found a child to focus on
+							break;
+						} 
+						else if(recurse == true) 
+						{
+							// we found a child with children
+							continue;
+						} 
+						else 
+						{
+							// we didn't find anything, so go back up to our parent
+							child = parent;
+							parent = child.Parent;
+
+							if(parent == this.UserInterface.Desktop)
+							{
+								// we got back to the desktop, so wrap around but don't actually go to the desktop
+								parent = null;
+								child = null;
+							}
+						}
+					}
+				}
+			} 
+			else if((key == Keys.Escape) && (down == true))
+			{
+				if(this.FocusedChild != null)
+				{
+					string childRet = this.FocusedChild.HandleEvent(e, ref updateVisuals);
+
+					if(childRet != string.Empty)
+					{
+						return childRet;
+					}
+				}
+
+				RunScript(ScriptName.Escape);
+			}
+			else if(key == Keys.Enter)
+			{
+				if(this.FocusedChild != null)
+				{
+					string childRet = this.FocusedChild.HandleEvent(e, ref updateVisuals);
+
+					if(childRet != string.Empty)
+					{
+						return childRet;
+					}
+				}
+
+				if((this.Flags & WindowFlags.WantEnter) == WindowFlags.WantEnter)
+				{
+					if(down == true)
+					{
+						RunScript(ScriptName.Action);
+					}
+					else
+					{
+						RunScript(ScriptName.ActionRelease);
+					}
+				}
+			}
+			else
+			{
+				if(this.FocusedChild != null)
+				{
+					string childRet = this.FocusedChild.HandleEvent(e, ref updateVisuals);
+
+					if(childRet != string.Empty)
+					{
+						return childRet;
+					}
+				}
+			}
+
+			return string.Empty;
+		}
+		
+		private void HandleMouseEnter()
+		{
+			this.Hover = true;
+
+			if(_noEvents == false)
+			{
+				RunScript(ScriptName.MouseEnter);
+			}
+		}
+
+		private string HandleMouseEvent(int deltaX, int deltaY, ref bool updateVisuals)
+		{
+			updateVisuals = true;
+
+			return RouteMouseCoordinates(deltaX, deltaY);
+		}
+
+		private void HandleMouseExit()
+		{
+			this.Hover = false;
+
+			if(_noEvents == false)
+			{
+				RunScript(ScriptName.MouseExit);
+			}
+		}
+
 		private void Init()
 		{
 			_childID = 0;
@@ -2620,7 +2967,7 @@ namespace idTech4.UI
 			_offsetX = 0;
 			_offsetY = 0;
 			
-			/*cursor = 0;*/
+			_cursor = Cursor.Arrow;
 			_forceAspectWidth = 640;
 			_forceAspectHeight = 480;
 			_materialScaleX = 1;
@@ -2661,9 +3008,8 @@ namespace idTech4.UI
 			saveRegs = NULL;*/
 			_timeLine = -1;
 			_textShadow = 0;
-
-			/*hover = false;*/
-
+			_hover = false;
+			
 			for(int i = 0; i < _scripts.Length; i++)
 			{
 				_scripts[i] = null;
@@ -2695,8 +3041,7 @@ namespace idTech4.UI
 
 			if((token = parser.ReadToken()) == null)
 			{
-				// we won't get EOF in a real file, but we can
-				// when parsing from generated strings
+				// we won't get EOF in a real file, but we can when parsing from generated strings
 				return a;
 			}
 
@@ -3310,6 +3655,13 @@ namespace idTech4.UI
 		Left,
 		Center,
 		Right
+	}
+
+	public enum Cursor
+	{
+		Arrow,
+		Hand,
+		Count
 	}
 
 	public enum WindowExpressionOperationType

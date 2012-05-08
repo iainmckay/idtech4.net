@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Input;
 
 namespace idTech4.Input
@@ -59,6 +60,7 @@ namespace idTech4.Input
 
 		private Impulse _impulse;
 		private UserCommandFlags _flags;
+		private Vector3 _viewAngles;
 
 		private bool[] _keyState;
 		private int[] _commandButtonState;
@@ -238,6 +240,59 @@ namespace idTech4.Input
 			new idCvar("m_showMouseRate", "0", "shows mouse movement", CvarFlags.System | CvarFlags.Bool);
 		}
 
+		private void MakeCurrent()
+		{
+			Vector3 oldAngles = _viewAngles;
+
+			if(this.Inhibited == false)
+			{
+				// update toggled key states
+				// TODO: toggled
+				/*toggled_crouch.SetKeyState( ButtonState( UB_DOWN ), in_toggleCrouch.GetBool() );
+				toggled_run.SetKeyState( ButtonState( UB_SPEED ), in_toggleRun.GetBool() && idAsyncNetwork::IsActive() );
+				toggled_zoom.SetKeyState( ButtonState( UB_ZOOM ), in_toggleZoom.GetBool() );*/
+
+				// TODO: keyboard gen
+				// keyboard angle adjustment
+				/*AdjustAngles();
+
+				// set button bits
+				CmdButtons();
+
+				// get basic movement from keyboard
+				KeyMove();*/
+
+				// get basic movement from mouse
+				// TODO: MouseMove();
+
+				// get basic movement from joystick
+				/*JoystickMove();
+
+				// check to make sure the angles haven't wrapped
+				if ( viewangles[PITCH] - oldAngles[PITCH] > 90 ) {
+					viewangles[PITCH] = oldAngles[PITCH] + 90;
+				} else if ( oldAngles[PITCH] - viewangles[PITCH] > 90 ) {
+					viewangles[PITCH] = oldAngles[PITCH] - 90;
+				} */
+			}
+			else
+			{
+				_mouseDeltaX = 0;
+				_mouseDeltaY = 0;
+			}
+
+			// TODO: input
+			/*for ( i = 0; i < 3; i++ ) {
+				cmd.angles[i] = ANGLE2SHORT( viewangles[i] );
+			}*/
+
+			_currentCommand.MouseX = (short) _mouseX;
+			_currentCommand.MouseY = (short) _mouseY;
+
+			_flags = _currentCommand.Flags;
+			_impulse = _currentCommand.Impulse;
+		}
+
 		private idUserCommand ProcessInput()
 		{
 			// initialize current usercmd
@@ -256,7 +311,7 @@ namespace idTech4.Input
 			// TODO: Joystick();
 
 			// create the usercmd
-			//MakeCurrent(cmd);
+			MakeCurrent();
 
 			return _currentCommand;
 		}
@@ -303,15 +358,15 @@ namespace idTech4.Input
 		{
 			MouseState state = Mouse.GetState();
 
-			ProcessKey(Keys.Mouse1, state.LeftButton == ButtonState.Pressed);
-			ProcessKey(Keys.Mouse2, state.MiddleButton == ButtonState.Pressed);
-			ProcessKey(Keys.Mouse3, state.RightButton == ButtonState.Pressed);
+			ProcessKey(Keys.Mouse1, idE.Input.IsKeyDown(Keys.Mouse1));
+			ProcessKey(Keys.Mouse2, idE.Input.IsKeyDown(Keys.Mouse2));
+			ProcessKey(Keys.Mouse3, idE.Input.IsKeyDown(Keys.Mouse3));
 
-			_mouseDeltaX += (state.X - _mouseX);
-			_mouseDeltaY += (state.Y - _mouseY);
+			_mouseDeltaX = idE.Input.MouseDeltaX;
+			_mouseDeltaY = idE.Input.MouseDeltaY;
 
-			_mouseX = state.X;
-			_mouseY = state.Y;
+			_mouseX = idE.Input.MouseX;
+			_mouseY = idE.Input.MouseY;
 
 			// TODO: mouse wheel
 			/*

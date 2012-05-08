@@ -123,7 +123,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return idE.GLConfig.VideoWidth;
+				return _graphicsDevice.Viewport.Width;
 			}
 		}
 
@@ -131,7 +131,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return idE.GLConfig.VideoHeight;
+				return _graphicsDevice.Viewport.Height;
 			}
 		}
 
