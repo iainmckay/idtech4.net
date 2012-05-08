@@ -258,7 +258,7 @@ namespace idTech4
 
 		public override string ToString()
 		{
-			return Get(1, -1, false);
+			return Get(0, -1, false);
 		}
 		#endregion
 	}

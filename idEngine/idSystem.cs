@@ -141,6 +141,7 @@ namespace idTech4
 			{
 				if(args.Get(0).ToLower() != "set")
 				{
+					final.Add(args);
 					continue;
 				}
 
@@ -149,13 +150,9 @@ namespace idTech4
 				if((match == null) || (StringComparer.InvariantCultureIgnoreCase.Compare(s, match) == 0))
 				{
 					idE.CvarSystem.SetString(s, args.Get(2));
-
-					if(once == false)
-					{
-						final.Add(args);
-					}
 				}
-				else
+
+				if(once == false)
 				{
 					final.Add(args);
 				}
@@ -671,7 +668,7 @@ namespace idTech4
 				}
 
 				// directly as tokenized so nothing gets screwed
-				idE.CmdSystem.BufferCommandText(Execute.Append, args.ToString());
+				idE.CmdSystem.BufferCommandArgs(Execute.Append, args);
 			}
 
 			return added;

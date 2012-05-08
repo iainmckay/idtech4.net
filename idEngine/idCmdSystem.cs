@@ -143,6 +143,21 @@ namespace idTech4
 			}
 		}
 
+		public void BufferCommandArgs(Execute exec, idCmdArgs args)
+		{
+			switch(exec)
+			{
+				case Execute.Now:
+					ExecuteTokenizedString(args);
+					break;
+
+				case Execute.Append:
+					AppendCommandText("_execTokenized\n");
+					_tokenizedCommands.Add(args);
+					break;
+			}
+		}
+
 		/// <summary>
 		/// Adds command text to the command buffer.
 		/// </summary>
@@ -161,7 +176,7 @@ namespace idTech4
 		{
 			if(text.EndsWith("\n") == false)
 			{
-				text += '\n';
+				text += "\n";
 			}
 
 			switch(exec)
@@ -212,9 +227,8 @@ namespace idTech4
 						break;
 					}
 				}
-
-
-				string cmd = _cmdBuffer.ToString().Substring(0, i + 1);
+				
+				string cmd = _cmdBuffer.ToString().Substring(0, i);
 				_cmdBuffer = _cmdBuffer.Remove(0, i + 1);
 
 				if(cmd == "_execTokenized")
@@ -284,7 +298,7 @@ namespace idTech4
 
 		private void InsertCommandText(string text)
 		{
-			_cmdBuffer = _cmdBuffer.Insert(0, text + '\n');
+			_cmdBuffer = _cmdBuffer.Insert(0, text + "\n");
 		}
 
 		private void AppendCommandText(string text)
