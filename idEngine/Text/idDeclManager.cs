@@ -108,6 +108,21 @@ namespace idTech4.Text
 
 		#region Methods
 		#region Public
+		public void BeginLevelLoad()
+		{
+			_insideLevelLoad = true;
+
+			// clear all the referencedThisLevel flags and purge all the data
+			// so the next reference will cause a reparse
+			foreach(KeyValuePair<DeclType, List<idDecl>> kvp in _declsByType)
+			{
+				foreach(idDecl decl in kvp.Value)
+				{
+					decl.Purge();
+				}
+			}
+		}
+
 		public void Init()
 		{
 			idConsole.WriteLine("----- Initializing Decls -----");
@@ -258,6 +273,16 @@ namespace idTech4.Text
 			}
 		}
 
+		public int GetDeclCount(DeclType type)
+		{
+			if(_declsByType[type] == null)
+			{
+				idConsole.FatalError("idDeclManager::GetDeclCount: bad type: {0}", type);
+			}
+
+			return _declsByType[type].Count;
+		}
+
 		public DeclType GetDeclTypeFromName(string name)
 		{
 			DeclType tmp;
@@ -295,6 +320,14 @@ namespace idTech4.Text
 			}
 
 			return decl;
+		}
+
+		public void EndLevelLoad()
+		{
+			_insideLevelLoad = false;
+
+			// we don't need to do anything here, but the image manager, model manager,
+			// and sound sample manager will need to free media that was not referenced
 		}
 
 		/// <summary>

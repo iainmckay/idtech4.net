@@ -69,21 +69,26 @@ namespace idTech4
 			(Platform.Is64Bit == true) ? "x86" : "x64",
 			idVersion.BuildDate, idVersion.BuildTime);
 
+		public const string ProcFileExtension = "proc";
+		public const string ProcFileID = "mapProcFile003";
+
 		public const int GlyphStart = 0;
 		public const int GlyphEnd = 255;
 		public const int GlyphCharacterStart = 32;
 		public const int GlyphCharacterEnd = 127;
 		public const int GlyphsPerFont = GlyphEnd - GlyphStart + 1;
 
-		public const int MaxPrintMessageSize = 4096;
+		public const int MaxAsynchronousClients = 32;
 		public const int MaxCommandArgs = 64;
 		public const int MaxCommandStringLength = 2048;
-		public const int MaxWarningList = 256;				
-		public const int MaxUserCommandRelay = 10;
+		public const int MaxDeclTypes = 32;
 		public const int MaxEntityMaterialParameters = 12;
 		public const int MaxExpressionRegisters = 4096;
 		public const int MaxGlobalMaterialParameters = 12;
+		public const int MaxPrintMessageSize = 4096;
 		public const int MaxRenderCrops = 8;
+		public const int MaxUserCommandRelay = 10;
+		public const int MaxWarningList = 256;	
 
 		// all drawing is done to a 640 x 480 virtual screen size
 		// and will be automatically scaled to the real resolution
@@ -113,6 +118,7 @@ namespace idTech4
 		public static readonly idCmdSystem CmdSystem = new idCmdSystem();
 		public static readonly idDeclManager DeclManager = new idDeclManager();
 		public static readonly idRenderSystem RenderSystem = new idRenderSystem();
+		public static readonly idRenderModelManager RenderModelManager = new idRenderModelManager();
 		public static readonly idImageManager ImageManager = new idImageManager();
 		public static readonly idUserInterfaceManager UIManager = new idUserInterfaceManager();
 		public static readonly idEventLoop EventLoop = new idEventLoop();

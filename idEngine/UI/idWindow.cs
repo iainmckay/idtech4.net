@@ -1945,13 +1945,8 @@ namespace idTech4.UI
 				this.Flags |= WindowFlags.CanFocus;
 			}
 		}
-
-		public idWindow SetFocus(idWindow window)
-		{
-			return SetFocus(window, true);
-		}
-
-		public idWindow SetFocus(idWindow window, bool scripts)
+		
+		public idWindow SetFocus(idWindow window, bool scripts = true)
 		{
 			// only one child can have the focus
 			idWindow lastFocus = null;
@@ -1991,6 +1986,41 @@ namespace idTech4.UI
 		public void StartTransition()
 		{
 			this.Flags |= WindowFlags.InTransition;
+		}
+
+		public virtual void StateChanged(bool redraw)
+		{
+			UpdateVariables();
+
+			if((_expressionRegisters.Count > 0) && (_ops.Count > 0))
+			{
+				EvaluateRegisters();
+			}
+
+			foreach(DrawWindow drawWindow in _drawWindows)
+			{
+				if(drawWindow.Window != null)
+				{
+					drawWindow.Window.StateChanged(redraw);
+				}
+				else
+				{
+					drawWindow.Simple.StateChanged(redraw);
+				}
+			}
+
+			if(redraw == true)
+			{
+				if((this.Flags & WindowFlags.Desktop) == WindowFlags.Desktop)
+				{
+					Draw(0, 0);
+				}
+
+				// TODO: cinematic
+				/*if ( background && background->CinematicLength() ) {
+					background->UpdateCinematic( gui->GetTime() );
+				}*/
+			}
 		}
 
 		public void Trigger()
@@ -2325,41 +2355,6 @@ namespace idTech4.UI
 			}
 
 			return true;
-		}
-
-		protected virtual void StateChanged(bool redraw)
-		{
-			UpdateVariables();
-
-			if((_expressionRegisters.Count > 0) && (_ops.Count > 0))
-			{
-				EvaluateRegisters();
-			}
-
-			foreach(DrawWindow drawWindow in _drawWindows)
-			{
-				if(drawWindow.Window != null)
-				{
-					drawWindow.Window.StateChanged(redraw);
-				}
-				else
-				{
-					drawWindow.Simple.StateChanged(redraw);
-				}
-			}
-
-			if(redraw == true)
-			{
-				if((this.Flags & WindowFlags.Desktop) == WindowFlags.Desktop)
-				{
-					Draw(0, 0);
-				}
-
-				// TODO: cinematic
-				/*if ( background && background->CinematicLength() ) {
-					background->UpdateCinematic( gui->GetTime() );
-				}*/
-			}	
 		}
 		#endregion
 

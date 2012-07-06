@@ -64,6 +64,11 @@ namespace idTech4
 
 		#region Methods
 		#region Public
+		public void ClearEvents()
+		{
+			_events.Clear();
+		}
+
 		public void Init()
 		{
 			_initialTimeOffset = idE.System.Milliseconds;

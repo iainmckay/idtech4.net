@@ -1529,7 +1529,7 @@ namespace idTech4.Game
 			idConsole.WriteLine("--------------------------------------");
 		}
 
-		public /*override*/ GameReturn RunFrame(idUserCommand[] userCommands)
+		public override GameReturn RunFrame(idUserCommand[] userCommands)
 		{
 			GameReturn gameReturn = new GameReturn();
 			/*idPlayer player = this.LocalPlayer;
@@ -1732,10 +1732,10 @@ namespace idTech4.Game
 			return gameReturn;
 		}
 
-		public /*override*/ bool Draw(int clientIndex)
+		public override bool Draw(int clientIndex)
 		{
 			return true;
-			//return _gameRules.Draw(clientIndex);
+			// TODO: return _gameRules.Draw(clientIndex);
 		}
 
 		public /*override*/ void HandleMainMenuCommands(string menuCommand, idUserInterface gui)
@@ -1750,11 +1750,11 @@ namespace idTech4.Game
 			return gameType;
 		}
 
-		public /*override*/ string GetMapLoadingGui(string defaultGui)
+		public override string GetMapLoadingInterface(string defaultInterface)
 		{
 			idConsole.DeveloperWriteLine("GetMapLoadingGui");
 
-			return defaultGui;
+			return defaultInterface;
 		}
 
 		/// <summary>
@@ -2055,9 +2055,14 @@ namespace idTech4.Game
 			}
 		}
 
-		public /*override*/ idDict SetUserInfo(int clientIndex, idDict userInfo, bool isClient, bool canModify)
+		public override void SetPersistentPlayerInformation(int clientIndex, idDict playerInfo)
 		{
-			idConsole.WriteLine("SetUserInfo");
+			idConsole.Warning("TODO: SetPersistentPlayerInformation");
+		}
+
+		public override idDict SetUserInformation(int clientIndex, idDict userInfo, bool isClient, bool canModify)
+		{
+			idConsole.WriteLine("TODO: SetUserInfo");
 
 			bool modifiedInfo = false;
 
@@ -2176,6 +2181,11 @@ namespace idTech4.Game
 			outMsg.WriteLong(_spawnIds[clientIndex]);
 
 			idR.NetworkSystem.ServerSendReliableMessage(-1, outMsg);*/
+		}
+
+		public override void SpawnPlayer(int clientIndex)
+		{
+			idConsole.Warning("TODO: SpawnPlayer");
 		}
 		#endregion
 	}

@@ -406,11 +406,11 @@ namespace idTech4.Text
 			return "unknown punctuation";
 		}
 
-		public bool LoadFile(string fileName, bool osPath)
+		public bool LoadFile(string fileName, bool osPath = false)
 		{
 			if(this.IsLoaded == true)
 			{
-				idConsole.Error("idLexer.LoadFile: another script already loaded");
+				idConsole.Error("idLexer.LoadFile: another script is already loaded");
 				return false;
 			}
 

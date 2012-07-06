@@ -35,23 +35,44 @@ namespace idTech4.Net
 	internal sealed class idAsyncNetwork
 	{
 		#region Properties
+		public idAsyncClient Client
+		{
+			get
+			{
+				return _client;
+			}
+		}
+
 		public bool IsActive
 		{
 			get
 			{
-				// TODO: return (server.IsActive() || client.IsActive());
-				return false;
+				return ((this.Server.IsActive == true) || (this.Client.IsActive == true));
+			}
+		}
+
+		public idAsyncServer Server
+		{
+			get
+			{
+				return _server;
 			}
 		}
 		#endregion
 
 		#region Members
 		private int _realTime;
+
+		private idAsyncClient _client;
+		private idAsyncServer _server;
 		#endregion
 
 		#region Constructor
 		public idAsyncNetwork()
 		{
+			_client = new idAsyncClient();
+			_server = new idAsyncServer();
+
 			new idCvar("net_verbose", "0", 0, 2, "1 = verbose output, 2 = even more verbose output", new ArgCompletion_Integer(0, 2), CvarFlags.System | CvarFlags.Integer | CvarFlags.NoCheat);
 			new idCvar("net_allowCheats", "0", "Allow cheats in network game", CvarFlags.System | CvarFlags.Bool | CvarFlags.NetworkSync);
 #if ID_DEDICATED

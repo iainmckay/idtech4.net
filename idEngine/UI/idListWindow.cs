@@ -382,6 +382,12 @@ namespace idTech4.UI
 			return ret;*/
 			return string.Empty;
 		}
+
+		public override void StateChanged(bool redraw)
+		{
+			idConsole.Warning("TODO: ListWindow StateChanged");
+			// TODO: UpdateList();
+		}
 		#endregion
 
 		#region Protected
@@ -559,12 +565,6 @@ namespace idTech4.UI
 			}*/
 
 			this.Flags |= WindowFlags.CanFocus;
-		}
-
-		protected override void StateChanged(bool redraw)
-		{
-			idConsole.Warning("TODO: ListWindow StateChanged");
-			// TODO: UpdateList();
 		}
 		#endregion
 		#endregion

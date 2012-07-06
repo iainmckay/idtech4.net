@@ -34,6 +34,7 @@ using System.Text;
 using idTech4.Sound;
 using idTech4.Text;
 using idTech4.Text.Decl;
+using idTech4.UI;
 
 namespace idTech4.Renderer
 {
@@ -150,6 +151,14 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public idUserInterface GlobalInterface
+		{
+			get
+			{
+				return _userInterface;
+			}
+		}
+
 		/// <summary>
 		/// true if the material will draw any non light interaction stages.
 		/// </summary>
@@ -210,7 +219,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return ((_stageCount > 0)/* TODO: || (_entityGui != 0) || (_gui != Nullable)*/);
+				return ((_stageCount > 0)/* TODO: || (_entityGui != 0)*/ || (_userInterface != null));
 			}
 		}
 
@@ -294,6 +303,8 @@ namespace idTech4.Renderer
 		private string _description;			// description
 		private string _renderBump;				// renderbump command options, without the "renderbump" at the start
 
+		private idUserInterface _userInterface;
+
 		private ContentFlags _contentFlags;
 		private SurfaceFlags _surfaceFlags;
 		private MaterialFlags _materialFlags;
@@ -339,6 +350,8 @@ namespace idTech4.Renderer
 		private float[] _constantRegisters;		// null if _ops ever reference globalParms or entityParms
 
 		private MaterialParsingData _parsingData;
+
+		private int _referenceCount;
 		#endregion
 
 		#region Constructor
@@ -350,6 +363,19 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region Public
+		public void AddReference()
+		{
+			_referenceCount++;
+
+			foreach(MaterialStage stage in _stages)
+			{
+				if(stage.Texture.Image != null)
+				{
+					stage.Texture.Image.AddReference();
+				}
+			}
+		}
+
 		public void EvaluateRegisters(ref float[] registers, float[] shaderParms, View view)
 		{
 			EvaluateRegisters(ref registers, shaderParms, view, null);

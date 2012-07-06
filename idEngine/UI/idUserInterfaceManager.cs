@@ -32,6 +32,9 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Renderer;
+using idTech4.Text;
+
 namespace idTech4.UI
 {
 	public sealed class idUserInterfaceManager
@@ -73,6 +76,58 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Public
+		public void BeginLevelLoad()
+		{
+			foreach(idUserInterface userInterface in _guiList)
+			{
+				if((userInterface.Desktop.Flags & WindowFlags.MenuInterface) == 0)
+				{
+					userInterface.ClearReferences();
+				}
+			}
+		}
+
+		public void EndLevelLoad()
+		{
+			int c = _guiList.Count;
+
+			for(int i = 0; i < c; i++)
+			{
+				if(_guiList[i].ReferenceCount == 0)
+				{
+					// common->Printf( "purging %s.\n", guis[i]->GetSourceFile() );
+
+					// use this to make sure no materials still reference this gui
+					bool remove = true;
+
+					for(int j = 0; j < idE.DeclManager.GetDeclCount(DeclType.Material); j++)
+					{
+						idMaterial material = (idMaterial) idE.DeclManager.DeclByIndex(DeclType.Material, j, false);
+
+						if(material.GlobalInterface == _guiList[i])
+						{
+							remove = false;
+							break;
+						}
+					}
+
+					if(remove == true)
+					{
+						_guiList[i].Dispose();
+						_guiList.RemoveAt(i);
+						
+						i--;
+						c--;
+					}
+				}
+			}
+		}
+
+		public bool Exists(string path)
+		{
+			return idE.FileSystem.FileExists(path);
+		}
+		
 		public void Init()
 		{
 			_screenRect = new idRectangle(0, 0, 640, 480);

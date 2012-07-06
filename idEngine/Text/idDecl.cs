@@ -333,6 +333,23 @@ namespace idTech4.Text
 			return true;
 		}
 
+		public void Purge()
+		{
+			// never purge things that were referenced outside level load,
+			// like the console and menu graphics
+			if(this.ParsedOutsideLevelLoad == true)
+			{
+				return;
+			}
+
+			_referencedThisLevel = false;
+
+			MakeDefault();
+
+			// the next Find() for this will re-parse the real data
+			_state = DeclState.Unparsed;
+		}
+
 		public virtual string GetDefaultDefinition()
 		{
 			return "{ }";

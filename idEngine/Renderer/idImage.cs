@@ -209,6 +209,7 @@ namespace idTech4.Renderer
 		private bool _defaulted;				// true if the default image was generated because a file couldn't be loaded
 		private bool _allowDownSize;			// this also doubles as a don't-partially-load flag
 
+		private int _referenceCount;
 		private bool _referencedOutsideLevelLoad;
 		private bool _levelLoadReferenced;		// for determining if it needs to be purged
 
@@ -325,6 +326,11 @@ namespace idTech4.Renderer
 				_width = _texture.Width;
 				_height = _texture.Height;
 			}
+		}
+
+		public void AddReference()
+		{
+			_referenceCount++;
 		}
 
 		/// <summary>
@@ -718,7 +724,7 @@ namespace idTech4.Renderer
 		}
 		#endregion
 
-		#region Private		
+		#region Private
 		private void StartBackgroundLoad()
 		{
 			if(idE.CvarSystem.GetBool("image_showBackgroundLoads") == true)

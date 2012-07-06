@@ -340,6 +340,19 @@ namespace idTech4
 			return Array.FindAll(_cvarList.Keys.ToArray(), filter);
 		}
 
+		public void CopyCvarsToDictionary(idDict dict, CvarFlags flags)
+		{
+			dict.Clear();
+
+			foreach(KeyValuePair<string, idInternalCvar> cvar in _cvarList)
+			{
+				if((cvar.Value.Flags & flags) != 0)
+				{
+					dict.Set(cvar.Value.Name, cvar.ToString());
+				}
+			}
+		}
+
 		public string[] ArgCompletion(string name, string argText)
 		{
 			idCmdArgs args = new idCmdArgs(argText, true);

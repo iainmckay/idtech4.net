@@ -30,45 +30,51 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using idTech4.Input;
-
-namespace idTech4.Game
+namespace idTech4.Renderer
 {
-	public abstract class idBaseGame
+	public sealed class idRenderModelManager
 	{
-		public abstract bool Draw(int clientIndex);
+		#region Members
+		private Dictionary<string, idRenderModel> _models = new Dictionary<string, idRenderModel>(StringComparer.OrdinalIgnoreCase);
+		#endregion
+
+		#region Constructor
+		public idRenderModelManager()
+		{
+			new idCvar("r_mergeModelSurfaces", "1", "combine model surfaces with the same material", CvarFlags.Bool | CvarFlags.Renderer);
+			new idCvar("r_slopVertex", "0.01", "merge xyz coordinates this far apart", CvarFlags.Renderer);
+			new idCvar("r_slopTexCoord", "0.001", "merge texture coordinates this far apart", CvarFlags.Renderer);
+			new idCvar("r_slopNormal", "0.02", "merge normals that dot less than this", CvarFlags.Renderer);
+		}
+		#endregion
+
+		#region Methods
+		#region Public
+		/// <summary>
+		/// World map parsing will add all the inline models with this call.
+		/// </summary>
+		/// <param name="model"></param>
+		public void AddModel(idRenderModel model)
+		{
+			_models.Add(model.Name, model);
+		}
 
 		/// <summary>
-		/// Initialize the game for the first time.
+		/// Allocates a new empty render model.
 		/// </summary>
-		public abstract void Init();
-
-		public abstract string GetMapLoadingInterface(string defaultInterface);
-
-		public abstract GameReturn RunFrame(idUserCommand[] userCommands);
-
-		public abstract void SetPersistentPlayerInformation(int clientIndex, idDict playerInfo);
-		public abstract idDict SetUserInformation(int clientIndex, idDict userInfo, bool isClient, bool canModify);
-
-		public abstract void SpawnPlayer(int clientIndex);
+		/// <returns></returns>
+		public idRenderModel AllocateModel()
+		{
+			return new idStaticRenderModel();
+		}
+		#endregion
+		#endregion
 	}
 
-	public struct GameReturn
+	public struct RenderModelSurface
 	{
-		/// <summary>"map", "disconnect", "victory", etc.</summary>
-		public string SessionCommand;
-		/// <summary>Used to check for network game divergence.</summary>
-		public int ConsistencyHash;
-
-		public int Health;
-		public int HeartRate;
-		public int Stamina;
-		public int Combat;
-
-		/// <summary>
-		/// Used when cinematics are skipped to prevent session from simulating several game frames to
-		/// keep the game time in sync with real time.
-		/// </summary>
-		public bool SyncNextGameFrame;
+		public int ID;
+		public idMaterial Material;
+		public Surface Geometry;
 	}
 }

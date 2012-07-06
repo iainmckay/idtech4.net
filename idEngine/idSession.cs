@@ -27,11 +27,13 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Input;
 using idTech4.Renderer;
 using idTech4.UI;
 
@@ -48,6 +50,37 @@ namespace idTech4
 			get
 			{
 				return idE.AsyncNetwork.IsActive;
+			}
+		}
+
+		public int LocalClientIndex
+		{
+			get
+			{
+				if(idE.AsyncNetwork.Client.IsActive == true)
+				{
+					idConsole.Warning("TODO: return idAsyncNetwork::client.GetLocalClientNum();");
+				}
+				else if(idE.AsyncNetwork.Server.IsActive == true)
+				{
+					idConsole.Warning("TODO: serverDrawClient");
+
+					if(idE.CvarSystem.GetInteger("net_serverDedicated") == 0)
+					{
+						return 0;
+					}
+
+					
+		/*} else if ( idAsyncNetwork::server.IsClientInGame( idAsyncNetwork::serverDrawClient.GetInteger() ) ) {
+			return idAsyncNetwork::serverDrawClient.GetInteger();
+		} */
+					else
+					{
+						return -1;
+					}
+				}
+				
+				return 0;
 			}
 		}
 		#endregion
@@ -80,14 +113,23 @@ namespace idTech4
 		private int _wipeStopTic;
 		private bool _wipeHold;
 
+		private bool _insideExecuteMapChange;
 		private bool _insideScreenUpdate;
+
+		private bool _loadingSaveGame;	// currently loading map from a SaveGame
+		/*idFile* savegameFile;		// this is the savegame file to load from
+		int savegameVersion;*/
+
+		// from serverInfo
+		private int _clientCount;
 
 		// watchdog to force the main menu to restart
 		private int _emptyDrawCount;
 
 		// this is the information required to be set before ExecuteMapChange() is called,
 		// which can be saved off at any time with the following commands so it can all be played back
-		//mapSpawnData_t		mapSpawnData;
+		private MapSpawnData _mapSpawnData = new MapSpawnData();
+
 		private string _currentMapName; // for checking reload on same level
 		private bool _mapSpawned; // cleared on Stop()
 		#endregion
@@ -107,6 +149,8 @@ namespace idTech4
 			new idCvar("com_aviDemoTics", "2", 1, 60, "", CvarFlags.System | CvarFlags.Integer);
 			new idCvar("com_wipeSeconds", "1", "", CvarFlags.System);
 			new idCvar("com_guid", "", "", CvarFlags.System | CvarFlags.Archive | CvarFlags.ReadOnly);
+
+			ClearWipe();
 		}
 		#endregion
 
@@ -352,9 +396,11 @@ namespace idTech4
 			// TODO: commands
 			/*cmdSystem->AddCommand( "writePrecache", Sess_WritePrecache_f, CMD_FL_SYSTEM|CMD_FL_CHEAT, "writes precache commands" );
 
-	#ifndef	ID_DEDICATED
-		cmdSy/stem->AddCommand( "map", Session_Map_f, CMD_FL_SYSTEM, "loads a map", idCmdSystem::ArgCompletion_MapName );
-		cmdSystem->AddCommand( "devmap", Session_DevMap_f, CMD_FL_SYSTEM, "loads a map in developer mode", idCmdSystem::ArgCompletion_MapName );
+	#ifndef	ID_DEDICATED*/
+
+			idE.CmdSystem.AddCommand("map", "loads a map", CommandFlags.System, Cmd_Map /* TODO: idCmdSystem::ArgCompletion_MapName*/);
+
+		/*cmdSystem->AddCommand( "devmap", Session_DevMap_f, CMD_FL_SYSTEM, "loads a map in developer mode", idCmdSystem::ArgCompletion_MapName );
 		cmdSystem->AddCommand( "testmap", Session_TestMap_f, CMD_FL_SYSTEM, "tests a map", idCmdSystem::ArgCompletion_MapName );
 
 		cmdSystem->AddCommand( "writeCmdDemo", Session_WriteCmdDemo_f, CMD_FL_SYSTEM, "writes a command demo" );
@@ -410,12 +456,11 @@ namespace idTech4
 			guiMainMenu_MapList->Config(guiMainMenu, "mapList");
 			idAsyncNetwork::client.serverList.GUIConfig(guiMainMenu, "serverList");*/
 
-			// TODO: other gui
-			/*_guiRestartMenu = idE.UIManager.FindInterface("guis/restart.gui", true, false, true);
+			_guiRestartMenu = idE.UIManager.FindInterface("guis/restart.gui", true, false, true);
 			_guiGameOver = idE.UIManager.FindInterface("guis/gameover.gui", true, false, true);
 			_guiMsg = idE.UIManager.FindInterface("guis/msg.gui", true, false, true);
 			_guiTakeNotes = idE.UIManager.FindInterface("guis/takeNotes.gui", true, false, true);
-			_guiIntro = idE.UIManager.FindInterface("guis/intro.gui", true, false, true);*/
+			_guiIntro = idE.UIManager.FindInterface("guis/intro.gui", true, false, true);
 
 			_whiteMaterial = idE.DeclManager.FindMaterial("_white");
 
@@ -471,7 +516,7 @@ namespace idTech4
 				ProcessMenuEvent(ev);
 				return true;
 			}
-
+			
 			idConsole.WriteLine("TODO: process event");
 			// if we aren't in a game, force the console to take it
 			/*if ( !mapSpawned ) {
@@ -565,7 +610,48 @@ namespace idTech4
 			idE.Console.Close();
 		}
 
-		public void UpdateScreen(bool outOfSequence)
+		public void StartNewGame(string mapName, bool devMap)
+		{
+#if ID_DEDICATED
+			idConsole.WriteLine("Dedicated servers cannot start singleplayer games." );
+#else
+			
+			if(idE.AsyncNetwork.Server.IsActive == true)
+			{
+				idConsole.WriteLine("Server running, use si_map / serverMapRestart");
+				return;
+			}
+
+			if(idE.AsyncNetwork.Client.IsActive == true)
+			{
+				idConsole.WriteLine("Client running, disconnect from server first");
+				return;
+			}
+
+			// clear the userInfo so the player starts out with the defaults
+			_mapSpawnData.UserInformation[0].Clear();
+			_mapSpawnData.PersistentPlayerInformation[0].Clear();						
+			_mapSpawnData.ServerInformation.Clear();
+			_mapSpawnData.SyncedCvars.Clear();
+
+			idE.CvarSystem.CopyCvarsToDictionary(_mapSpawnData.UserInformation[0], CvarFlags.UserInfo);
+			idE.CvarSystem.CopyCvarsToDictionary(_mapSpawnData.ServerInformation, CvarFlags.ServerInfo);
+			idE.CvarSystem.CopyCvarsToDictionary(_mapSpawnData.SyncedCvars, CvarFlags.NetworkSync);
+
+			_mapSpawnData.ServerInformation.Set("si_gameType", "singleplayer");
+
+			// set the devmap key so any play testing items will be given at
+			// spawn time to set approximately the right weapons and ammo
+			if(devMap == true)
+			{
+				_mapSpawnData.ServerInformation.Set("devmap", "1");
+			}
+			
+			MoveToNewMap(mapName);
+#endif
+		}
+
+		public void UpdateScreen(bool outOfSequence = true)
 		{
 			if(_insideScreenUpdate == true)
 			{
@@ -573,13 +659,6 @@ namespace idTech4
 			}
 
 			_insideScreenUpdate = true;
-
-			// if this is a long-operation update and we are in windowed mode,
-			// release the mouse capture back to the desktop
-			// TODO
-			/*if ( outOfSequence ) {
-				Sys_GrabMouseCursor( false );
-			}*/
 
 			idE.RenderSystem.BeginFrame(idE.RenderSystem.ScreenWidth, idE.RenderSystem.ScreenHeight);
 
@@ -598,6 +677,13 @@ namespace idTech4
 		#endregion
 
 		#region Private
+		private void ClearWipe()
+		{
+			_wipeHold = false;
+			_wipeStopTic = 0;
+			_wipeStartTic = _wipeStopTic + 1;
+		}
+
 		private void DispatchCommand(idUserInterface gui, string menuCommand)
 		{
 			DispatchCommand(gui, menuCommand, true);
@@ -651,47 +737,45 @@ namespace idTech4
 			}
 		}
 
-
 		private void Draw()
 		{			
 			bool fullConsole = false;
 
-			/*if(insideExecuteMapChange)
+			if(_insideExecuteMapChange == true)
 			{
-				if(guiLoading)
+				if(_guiLoading != null)
 				{
-					guiLoading->Redraw(com_frameTime);
+					_guiLoading.Draw(idE.System.FrameTime);
 				}
-				if(guiActive == guiMsg)
+				
+				if(_guiActive == _guiMsg)
 				{
-					guiMsg->Redraw(com_frameTime);
+					_guiMsg.Draw(idE.System.FrameTime);
 				}
 			}
-			else if(guiTest)
+			else if(_guiTest != null)
 			{
 				// if testing a gui, clear the screen and draw it
 				// clear the background, in case the tested gui is transparent
-				// NOTE that you can't use this for aviGame recording, it will tick at real com_frameTime between screenshots..
-				renderSystem->SetColor(colorBlack);
-				renderSystem->DrawStretchPic(0, 0, 640, 480, 0, 0, 1, 1, declManager->FindMaterial("_white"));
-				guiTest->Redraw(com_frameTime);
-			}
-			else*/
-			if((_guiActive != null) && (_guiActive.State.GetBool("gameDraw") == false))
-			{
+				// NOTE that you can't use this for aviGame recording, it will tick at real com_frameTime between screenshots.
+				idE.RenderSystem.Color = idColor.Black;
+				idE.RenderSystem.DrawStretchPicture(0, 0, 640, 480, 0, 0, 1, 1, idE.DeclManager.FindMaterial("_white"));
 
+				_guiTest.Draw(idE.System.FrameTime);
+			}
+			else if((_guiActive != null) && (_guiActive.State.GetBool("gameDraw") == false))
+			{
 				// draw the frozen gui in the background
-				// TODO
-				/*if(guiActive == guiMsg && guiMsgRestore)
+				if((_guiActive == _guiMsg) && (_guiMsgRestore != null))
 				{
-					guiMsgRestore->Redraw(com_frameTime);
-				}*/
+					_guiMsgRestore.Draw(idE.System.FrameTime);
+				}
 
 				// draw the menus full screen
-				/*if(guiActive == guiTakeNotes && !com_skipGameDraw.GetBool())
+				if((_guiActive == _guiTakeNotes) && (idE.CvarSystem.GetBool("com_skipGameDraw") == false))
 				{
-					game->Draw(GetLocalClientNum());
-				}*/
+					idE.Game.Draw(this.LocalClientIndex);
+				}
 
 				_guiActive.Draw(idE.System.FrameTime);
 			}
@@ -699,31 +783,35 @@ namespace idTech4
 			{
 				rw->RenderScene(&currentDemoRenderView);
 				renderSystem->DrawDemoPics();
-			}
-			else if(mapSpawned)
+			}*/
+			else if(_mapSpawned == true)
 			{
 				bool gameDraw = false;
+
 				// normal drawing for both single and multi player
-				if(!com_skipGameDraw.GetBool() && GetLocalClientNum() >= 0)
+				if((idE.CvarSystem.GetBool("com_skipGameDraw") == false) && (this.LocalClientIndex >= 0))
 				{
 					// draw the game view
-					int start = Sys_Milliseconds();
-					gameDraw = game->Draw(GetLocalClientNum());
-					int end = Sys_Milliseconds();
-					time_gameDraw += (end - start);	// note time used for com_speeds
+					int start = idE.System.Milliseconds;
+					gameDraw = idE.Game.Draw(this.LocalClientIndex);
+					int end = idE.System.Milliseconds;
+
+					// TODO: time_gameDraw += (end - start);	// note time used for com_speeds
 				}
-				if(!gameDraw)
+
+				if(gameDraw == false)
 				{
-					renderSystem->SetColor(colorBlack);
-					renderSystem->DrawStretchPic(0, 0, 640, 480, 0, 0, 1, 1, declManager->FindMaterial("_white"));
+					idE.RenderSystem.Color = idColor.Black;
+					idE.RenderSystem.DrawStretchPicture(0, 0, 640, 480, 0, 0, 1, 1, idE.DeclManager.FindMaterial("_white"));
 				}
 
 				// save off the 2D drawing from the game
-				if(writeDemo)
+				// TODO: writedemo
+				/*if(writeDemo)
 				{
 					renderSystem->WriteDemoPics();
-				}
-			}*/
+				}*/
+			}
 			else
 			{
 				if(idE.CvarSystem.GetBool("com_allowConsole") == true)
@@ -758,17 +846,333 @@ namespace idTech4
 	
 			fullConsole = false;
 
-			/*// draw the wipe material on top of this if it hasn't completed yet
+			// draw the wipe material on top of this if it hasn't completed yet
 			DrawWipeModel();
 
 			// draw debug graphs
-			DrawCmdGraph();*/
+			// TODO: DrawCmdGraph();
 
 			// draw the half console / notify console on top of everything
 			if(fullConsole == false)
 			{
 				idE.Console.Draw(false);
 			}
+		}
+
+		/// <summary>
+		/// Draw the fade material over everything that has been drawn.
+		/// </summary>
+		private void DrawWipeModel()
+		{
+			int latchedTic = idE.System.TicNumber;
+
+			if(_wipeStartTic >= _wipeStopTic)
+			{
+				return;
+			}
+
+			if((_wipeHold == false) && (latchedTic >= _wipeStopTic))
+			{
+				return;
+			}
+
+			float fade = (float) ((latchedTic - _wipeStartTic) / (_wipeStopTic - _wipeStartTic));
+
+			idE.RenderSystem.Color = new Vector4(1, 1, 1, fade);
+			idE.RenderSystem.DrawStretchPicture(0, 0, 640, 480, 0, 0, 1, 1, _wipeMaterial);
+		}
+
+		/// <summary>
+		/// Performs the initialization of a game based on mapSpawnData, used for both single
+		/// player and multiplayer, but not for renderDemos, which don't create a game at all.
+		/// </summary>
+		/// <param name="noFadeWipe"></param>
+		private void ExecuteMapChange(bool noFadeWipe = false)
+		{
+			bool	reloadingSameMap;
+
+			// close console and remove any prints from the notify lines
+			idE.Console.Close();
+
+			if(this.IsMultiplayer == true)
+			{
+				// make sure the mp GUI isn't up, or when players get back in the
+				// map, mpGame's menu and the gui will be out of sync.
+				SetUserInterface(null, null);
+			}
+
+			// mute sound
+			// TODO: soundSystem->SetMute( true );
+
+			// clear all menu sounds
+			// TODO: menuSoundWorld->ClearAllSoundEmitters();
+
+			// unpause the game sound world
+			// NOTE: we UnPause again later down. not sure this is needed
+			// TODO: sound
+			/*if ( sw->IsPaused() ) {
+				sw->UnPause();
+			}*/
+
+			if(noFadeWipe == false)
+			{
+				// capture the current screen and start a wipe
+				// TODO: StartWipe( "wipeMaterial", true );
+
+				// immediately complete the wipe to fade out the level transition
+				// run the wipe to completion
+				// TODO: CompleteWipe();
+			}
+
+			// extract the map name from serverinfo
+			string mapString = _mapSpawnData.ServerInformation.GetString("si_map");
+			string mapFullName = string.Format("maps/{0}", Path.GetFileNameWithoutExtension(mapString));
+
+			// shut down the existing game if it is running
+			// TODO: UnloadMap();
+
+			// don't do the deferred caching if we are reloading the same map
+			if(mapFullName == _currentMapName)
+			{
+				reloadingSameMap = true;
+			}
+			else
+			{
+				reloadingSameMap = false;
+				_currentMapName = mapFullName;
+			}
+
+			// note which media we are going to need to load
+			if(reloadingSameMap == false)
+			{
+				idE.DeclManager.BeginLevelLoad();
+				idE.RenderSystem.BeginLevelLoad();
+				// TODO: soundSystem->BeginLevelLoad();
+			}
+
+			idE.UIManager.BeginLevelLoad();
+			// TODO: idE.UIManager.Reload(true);
+
+			// set the loading gui that we will wipe to
+			LoadLoadingInterface(mapString);
+
+			// cause prints to force screen updates as a pacifier,
+			// and draw the loading gui instead of game draws
+			_insideExecuteMapChange = true;
+
+			// if this works out we will probably want all the sizes in a def file although this solution will 
+			// work for new maps etc. after the first load. we can also drop the sizes into the default.cfg
+			
+			// TODO: bytesneeded
+			/*fileSystem->ResetReadCount();
+			if ( !reloadingSameMap  ) {
+				bytesNeededForMapLoad = GetBytesNeededForMapLoad( mapString.c_str() );
+			} else {
+				bytesNeededForMapLoad = 30 * 1024 * 1024;
+			}*/
+
+			ClearWipe();
+
+			// let the loading gui spin for 1 second to animate out
+			ShowLoadingInterface();
+
+			// note any warning prints that happen during the load process
+			idConsole.ClearWarnings(mapString);
+
+			// if net play, we get the number of clients during mapSpawnInfo processing
+			if(idE.AsyncNetwork.IsActive == false)
+			{
+				_clientCount = 1;
+			} 
+	
+			int start = idE.System.Milliseconds;
+
+			idConsole.WriteLine("--------- Map Initialization ---------");
+			idConsole.WriteLine("Map: {0}", mapString);
+
+			// let the renderSystem load all the geometry
+			if(_renderWorld.InitFromMap(mapFullName) == false)
+			{
+				idConsole.Error("couldn't load {0}", mapFullName);
+			}
+
+			// for the synchronous networking we needed to roll the angles over from
+			// level to level, but now we can just clear everything
+			idE.UserCommandGenerator.InitForNewMap();
+
+			_mapSpawnData.MapSpawnUserCommand = new idUserCommand[idE.MaxAsynchronousClients];
+
+			for(int i = 0; i < _mapSpawnData.MapSpawnUserCommand.Length; i++)
+			{
+				_mapSpawnData.MapSpawnUserCommand[i] = new idUserCommand();
+			}
+
+			// set the user info
+			for(int i = 0; i < _clientCount; i++)
+			{
+				idE.Game.SetUserInformation(i, _mapSpawnData.UserInformation[i], idE.AsyncNetwork.Client.IsActive, false);
+				idE.Game.SetPersistentPlayerInformation(i, _mapSpawnData.PersistentPlayerInformation[i]);
+			}
+
+			// load and spawn all other entities ( from a savegame possibly )
+			// TODO: save game
+			/*if ( loadingSaveGame && savegameFile ) {
+				if ( game->InitFromSaveGame( fullMapName + ".map", rw, sw, savegameFile ) == false ) {
+					// If the loadgame failed, restart the map with the player persistent data
+					loadingSaveGame = false;
+					fileSystem->CloseFile( savegameFile );
+					savegameFile = NULL;
+
+					game->SetServerInfo( mapSpawnData.serverInfo );
+					game->InitFromNewMap( fullMapName + ".map", rw, sw, idAsyncNetwork::server.IsActive(), idAsyncNetwork::client.IsActive(), Sys_Milliseconds() );
+				}
+			} else */
+			{
+				// TODO: game
+				/*game->SetServerInfo( mapSpawnData.serverInfo );
+				game->InitFromNewMap( fullMapName + ".map", rw, sw, idAsyncNetwork::server.IsActive(), idAsyncNetwork::client.IsActive(), Sys_Milliseconds() );*/
+			}
+
+			if((idE.AsyncNetwork.IsActive == false) && (_loadingSaveGame == false))
+			{
+				// spawn players
+				for(int i = 0; i < _clientCount; i++)
+				{
+					idE.Game.SpawnPlayer(i);
+				}
+			}
+
+			// actually purge/load the media
+			if(reloadingSameMap == false)
+			{
+				idE.RenderSystem.EndLevelLoad();
+				// TODO: :soundSystem->EndLevelLoad( mapString.c_str() );
+				idE.DeclManager.EndLevelLoad();
+
+				// TODO: SetBytesNeededForMapLoad( mapString.c_str(), fileSystem->GetReadCount() );
+			}
+
+			idE.UIManager.EndLevelLoad();
+
+			if((idE.AsyncNetwork.IsActive == false) && (_loadingSaveGame == false))
+			{
+				// run a few frames to allow everything to settle
+				for(int i = 0; i < 10; i++)
+				{
+					idE.Game.RunFrame(_mapSpawnData.MapSpawnUserCommand);
+				}
+			}
+
+			int msec = idE.System.Milliseconds - start;
+
+			idConsole.WriteLine("-----------------------------------");
+			idConsole.WriteLine("{0} msec to load {1}", msec, mapString);
+
+			// let the renderSystem generate interactions now that everything is spawned
+			_renderWorld.GenerateInteractions();
+
+			idConsole.PrintWarnings();
+
+			if((_guiLoading != null) /* TODO: bytesNeededForMapLoad*/) 
+			{
+				float pct = _guiLoading.State.GetFloat("map_loading");
+
+				if(pct < 0.0f)
+				{
+					pct = 0.0f;
+				}
+
+				while(pct < 1.0f)
+				{
+					_guiLoading.State.Set("map_loading", pct);
+					_guiLoading.StateChanged(idE.System.FrameTime);
+
+					// TODO: Sys_GenerateEvents();
+					UpdateScreen();
+					
+					pct += 0.05f;
+				}
+			}
+
+			// capture the current screen and start a wipe
+			// TODO: StartWipe( "wipe2Material" );
+
+			idE.UserCommandGenerator.Clear();
+
+			// start saving commands for possible writeCmdDemo usage
+			// TODO: log index
+			/*logIndex = 0;
+			statIndex = 0;
+			lastSaveIndex = 0;*/
+
+			// don't bother spinning over all the tics we spent loading
+			// TODO: lastGameTic = latchedTicNumber = com_ticNumber;
+
+			// remove any prints from the notify lines
+			// TODO: console->ClearNotifyLines();
+
+			// stop drawing the laoding screen
+			_insideExecuteMapChange = false;
+			
+			// TODO: sound system
+			// set the game sound world for playback
+			/*soundSystem->SetPlayingSoundWorld( sw );
+
+			// when loading a save game the sound is paused
+			if ( sw->IsPaused() ) {
+				// unpause the game sound world
+				sw->UnPause();
+			}*/
+
+			// restart entity sound playback
+			// TODO: soundSystem->SetMute( false );
+
+			// we are valid for game draws now
+			_mapSpawned = true;
+
+			idE.EventLoop.ClearEvents();
+		}
+
+		private void LoadLoadingInterface(string mapName)
+		{
+			// load / program a gui to stay up on the screen while loading
+			string mapPath = string.Format("guis/map/{0}.gui", Path.GetFileNameWithoutExtension(mapName));
+
+			// give the gamecode a chance to override
+			mapPath = idE.Game.GetMapLoadingInterface(mapPath);
+
+			if(idE.UIManager.Exists(mapPath) == true)
+			{
+				_guiLoading = idE.UIManager.FindInterface(mapPath, true, false, true);
+			}
+			else
+			{
+				_guiLoading = idE.UIManager.FindInterface("guis/map/loading.gui", true, false, true);
+			}
+
+			_guiLoading.State.Set("map_loading", 0.0f);
+	}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// Leaves the existing userinfo and serverinfo.
+		/// </remarks>
+		/// <param name="mapName"></param>
+		private void MoveToNewMap(string mapName)
+		{
+			_mapSpawnData.ServerInformation.Set("si_map", mapName);
+
+			ExecuteMapChange();
+
+			if(_mapSpawnData.ServerInformation.GetBool("devmap") == false)
+			{
+				// Autosave at the beginning of the level
+				// TODO: SaveGame( GetAutoSaveName( mapName ), true );
+			}
+
+			this.SetUserInterface(null, null);
 		}
 
 		private bool ProcessMenuEvent(SystemEvent ev)
@@ -831,7 +1235,90 @@ namespace idTech4
 			
 			_guiMainMenu.State.Set("driver_prompt", "0");
 		}
+
+		private void ShowLoadingInterface()
+		{
+			if(idE.System.TicNumber == 0)
+			{
+				return;
+			}
+
+			idE.Console.Close();
+
+	// introduced in D3XP code. don't think it actually fixes anything, but doesn't hurt either
+	// Try and prevent the while loop from being skipped over (long hitch on the main thread?)
+			int stop = idE.System.Milliseconds + 1000;
+			int force = 10;
+
+			// TODO: 
+			/*while((idE.System.Milliseconds < stop) || (force-- > 0))
+			{
+				com_frameTime = com_ticNumber * USERCMD_MSEC;
+
+				Frame();
+				UpdateScreen(false);
+			}*/
+		}
 		#endregion
+
+		#region Commands
+		private void Cmd_Map(object sender, CommandEventArgs e)
+		{
+			string map = e.Args.Get(1);
+
+			if(map == string.Empty)
+			{
+				return;
+			}
+
+			map = Path.GetFileNameWithoutExtension(map);
+
+			// make sure the level exists before trying to change, so that
+			// a typo at the server console won't end the game
+			// handle addon packs through reloadEngine
+			string mapPath = string.Format("maps/{0}.map", map);
+
+			if(idE.FileSystem.FileExists(mapPath) == false)
+			{
+				idConsole.WriteLine("Can't find map {0}", mapPath);
+			}
+			else
+			{
+
+				// TODO: FIND_ADDON
+				/*case FIND_ADDON:
+					common->Printf( "map %s is in an addon pak - reloading\n", string.c_str() );
+					rl_args.AppendArg( "map" );
+					rl_args.AppendArg( map );
+					cmdSystem->SetupReloadEngine( rl_args );
+					return;*/
+			}
+
+			idE.CvarSystem.SetBool("developer", false);
+			idE.Session.StartNewGame(map, true);
+		}
+		#endregion
+		#endregion
+
+		#region MapSpawnData
+		private class MapSpawnData
+		{
+			public idDict ServerInformation = new idDict();
+			public idDict SyncedCvars = new idDict();
+			public idDict[] UserInformation = new idDict[idE.MaxAsynchronousClients];
+			public idDict[] PersistentPlayerInformation = new idDict[idE.MaxAsynchronousClients];
+			public idUserCommand[] MapSpawnUserCommand = new idUserCommand[idE.MaxAsynchronousClients]; // needed for tracking delta angles
+		
+			public MapSpawnData()
+			{
+				for(int i = 0; i < idE.MaxAsynchronousClients; i++)
+				{
+					UserInformation[i] = new idDict();
+					PersistentPlayerInformation[i] = new idDict();
+					MapSpawnUserCommand[i] = new idUserCommand();
+				}
+			}
+		}
 		#endregion
 	}
 }

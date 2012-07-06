@@ -218,6 +218,21 @@ namespace idTech4.Input
 		{
 			_initialized = true;
 		}
+
+		public void InitForNewMap()
+		{
+			_flags = 0;
+			_impulse = 0;
+
+			// TODO
+			/*toggled_crouch.Clear();
+			toggled_run.Clear();
+			toggled_zoom.Clear();
+			toggled_run.on = in_alwaysRun.GetBool();*/
+
+			Clear();
+			// TODO: ClearAngles();
+		}
 		#endregion
 
 		#region Private

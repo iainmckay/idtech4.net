@@ -1,8 +1,8 @@
 using System; 
 namespace idTech4 { 
  public class idVersion { 
-   public const int BuildCount   = 663; 
-   public const string BuildDate   = "16/03/2012"; 
-   public const string BuildTime   = "17:37:06.26"; 
+   public const int BuildCount   = 1374; 
+   public const string BuildDate   = "06/07/2012"; 
+   public const string BuildTime   = "22:25:09.26"; 
  } 
 } 

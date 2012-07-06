@@ -30,45 +30,34 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using idTech4.Input;
-
-namespace idTech4.Game
+namespace idTech4.Renderer
 {
-	public abstract class idBaseGame
+	public class idStaticRenderModel : idRenderModel
 	{
-		public abstract bool Draw(int clientIndex);
+		#region Members
+		private List<RenderModelSurface> _surfaces = new List<RenderModelSurface>();
+		private idBounds _bounds;
+		private int _overlaysAdded;
 
-		/// <summary>
-		/// Initialize the game for the first time.
-		/// </summary>
-		public abstract void Init();
+		private int _lastModifiedFrame;
+		private int _lastArchivedFrame;
 
-		public abstract string GetMapLoadingInterface(string defaultInterface);
+		private string _name;
+		private List<Surface> _shadowHull;
+		private bool _isStaticWordModel;
+		private bool _defaulted;
+		private bool _purged; // eventually we will have dynamic reloading.
+		private bool _fastLoad; // don't generate tangents and shadow data.
+		private bool _reloadable; // if not, reloadModels won't check timestamp
+		private bool _levelLoadReferenced; // for determining if it needs to be freed.
+		#endregion
 
-		public abstract GameReturn RunFrame(idUserCommand[] userCommands);
-
-		public abstract void SetPersistentPlayerInformation(int clientIndex, idDict playerInfo);
-		public abstract idDict SetUserInformation(int clientIndex, idDict userInfo, bool isClient, bool canModify);
-
-		public abstract void SpawnPlayer(int clientIndex);
-	}
-
-	public struct GameReturn
-	{
-		/// <summary>"map", "disconnect", "victory", etc.</summary>
-		public string SessionCommand;
-		/// <summary>Used to check for network game divergence.</summary>
-		public int ConsistencyHash;
-
-		public int Health;
-		public int HeartRate;
-		public int Stamina;
-		public int Combat;
-
-		/// <summary>
-		/// Used when cinematics are skipped to prevent session from simulating several game frames to
-		/// keep the game time in sync with real time.
-		/// </summary>
-		public bool SyncNextGameFrame;
+		#region Constructor
+		public idStaticRenderModel()
+		{
+			_name = "<undefined>";
+			_reloadable = true;
+		}
+		#endregion
 	}
 }

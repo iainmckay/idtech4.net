@@ -36,7 +36,7 @@ using idTech4.Text;
 
 namespace idTech4.UI
 {
-	public sealed class idUserInterface
+	public sealed class idUserInterface : IDisposable
 	{
 		#region Properties
 		public float CursorX
@@ -103,6 +103,14 @@ namespace idTech4.UI
 			}
 		}
 
+		public int ReferenceCount
+		{
+			get
+			{
+				return _referenceCount;
+			}
+		}
+
 		public string SourceFile
 		{
 			get
@@ -164,6 +172,11 @@ namespace idTech4.UI
 		#region Public
 		public string Activate(bool activate, int time)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			_time = time;
 			_active = activate;
 
@@ -180,11 +193,31 @@ namespace idTech4.UI
 
 		public void AddReference()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			_referenceCount++;
+		}
+
+		public void ClearReferences()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
+			_referenceCount = 0;
 		}
 
 		public void Draw(int time)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			if(idE.CvarSystem.GetInteger("r_skipGuiShaders") > 5)
 			{
 				return;
@@ -202,6 +235,11 @@ namespace idTech4.UI
 
 		public void DrawCursor()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			if((this.Desktop == null) || ((this.Desktop.Flags & WindowFlags.MenuInterface) == WindowFlags.MenuInterface))
 			{
 				idE.UIManager.Context.DrawCursor(ref _cursorX, ref _cursorY, 32.0f);
@@ -214,12 +252,22 @@ namespace idTech4.UI
 
 		public string HandleEvent(SystemEvent e, int time)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			bool updateVisuals = false;
 			return HandleEvent(e, time, ref updateVisuals);
 		}
 
 		public string HandleEvent(SystemEvent e, int time, ref bool updateVisuals)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			_time = time;
 
 			if((_bindHandler != null) && (e.Type == SystemEventType.Key) && (e.Value2 == 1))
@@ -256,11 +304,21 @@ namespace idTech4.UI
 
 		public void HandleNamedEvent(string name)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			this.Desktop.RunNamedEvent(name);
 		}
 
 		public bool InitFromFile(string path, bool rebuild = true, bool cache = true)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			if(path == string.Empty)
 			{
 				return false;
@@ -331,8 +389,44 @@ namespace idTech4.UI
 			return true;
 		}
 
+		public void StateChanged(int time, bool redraw = false)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
+			_time = time;
+
+			if(this.Desktop != null)
+			{
+				this.Desktop.StateChanged(redraw);
+			}
+
+			if(this.State.GetBool("noninteractive") == true)
+			{
+				_interactive = false;
+			}
+			else
+			{
+				if(this.Desktop != null)
+				{
+					_interactive = this.Desktop.IsInteractive;
+				}
+				else
+				{
+					_interactive = false;
+				}
+			}
+		}
+
 		public void Trigger(int time)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			_time = time;
 
 			if(_desktop != null)
@@ -341,6 +435,28 @@ namespace idTech4.UI
 			}
 		}
 		#endregion
+		#endregion
+
+		#region IDisposable implementation
+		public bool Disposed
+		{
+			get
+			{
+				return _disposed;
+			}
+		}
+
+		private bool _disposed;
+
+		public void Dispose()
+		{
+			Dispose(true);
+		}
+
+		private void Dispose(bool disposing)
+		{
+			_disposed = true;
+		}
 		#endregion
 	}
 

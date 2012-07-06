@@ -64,6 +64,14 @@ namespace idTech4
 				return 0;
 			}
 		}
+
+		public int TicNumber
+		{
+			get
+			{
+				return _ticNumber;
+			}
+		}
 		#endregion
 
 		#region Internal

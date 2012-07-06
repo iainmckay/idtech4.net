@@ -196,6 +196,8 @@ namespace idTech4.Renderer
 		private FrameData _frameData = new FrameData();
 		private float _frameShaderTime;										// shader time for all non-world 2D rendering
 
+		private int _staticAllocCount;
+
 		// vertex cache
 		private List<VertexCache> _dynamicVertexCache = new List<VertexCache>();
 
@@ -471,6 +473,13 @@ namespace idTech4.Renderer
 			_frameData.Commands.Enqueue(cmd);
 		}
 
+		public void BeginLevelLoad()
+		{
+			idConsole.Warning("TODO: idRenderSystem.BeginLevelLoad");
+			/*idE.RenderModelManager.BeginLevelLoad();
+			idE.ImageManager.BeginLevelLoad();*/
+		}
+
 		/// <summary>
 		/// Creates a new renderWorld to be used for drawing.
 		/// </summary>
@@ -716,6 +725,19 @@ namespace idTech4.Renderer
 				if ( r_showDemo.GetBool() ) {
 					common->Printf( "write DC_END_FRAME\n" );
 				}
+			}*/
+		}
+
+		public void EndLevelLoad()
+		{
+			idConsole.Warning("TODO: idRenderSystem.EndLevelLoad");
+
+			/*idE.RenderModelManager.EndLevelLoad();
+			idE.ImageManager.EndLevelLoad();*/
+
+			// TODO: 
+			/*if ( r_forceLoadImages.GetBool() ) {
+				RB_ShowImages();
 			}*/
 		}
 
@@ -1154,8 +1176,7 @@ namespace idTech4.Renderer
 			_frameCount = 0;
 			_viewCount = 0;
 
-			// TODO
-			/*staticAllocCount = 0;*/
+			_staticAllocCount = 0;
 			_frameShaderTime = 0;
 
 			_viewPortOffset = Vector2.Zero;
@@ -1411,28 +1432,12 @@ namespace idTech4.Renderer
 				return;
 			}
 
-			// skip render context sets the wgl context to NULL,
-			// which should factor out the API cost, under the assumption
-			// that all gl calls just return if the context isn't valid
-
-			// TODO: r_skipRenderContext
-			/*if ( r_skipRenderContext.GetBool() && backEnd.viewDef->viewEntitys ) {
-				GLimp_DeactivateContext();
-			}*/
-
 			// TODO: backEnd.pc.c_surfaces += backEnd.viewDef->numDrawSurfs;
 
 			// TODO: RB_ShowOverdraw();
 
 			// render the scene, jumping to the hardware specific interaction renderers
 			DrawViewActual();
-
-			// restore the context for 2D drawing if we were stubbing it out
-			// TODO: r_skipRenderContext
-			/*if ( r_skipRenderContext.GetBool() && backEnd.viewDef->viewEntitys ) {
-				GLimp_ActivateContext();
-				RB_SetDefaultGLState();
-			}*/
 		}
 
 		private void DrawViewActual()
@@ -4126,9 +4131,13 @@ namespace idTech4.Renderer
 
 	public struct Surface
 	{
-		/*idBounds					bounds;					// for culling
+		/// <summary>
+		/// Used for culling.
+		/// </summary>
+		public idBounds Bounds;
+		
 
-	int							ambientViewCount;		// if == tr.viewCount, it is visible this view
+	/*int							ambientViewCount;		// if == tr.viewCount, it is visible this view
 
 	bool						generateNormals;		// create normals from geometry, instead of using explicit ones
 	bool						tangentsCalculated;		// set when the vertex tangents have been calculated
@@ -4138,7 +4147,11 @@ namespace idTech4.Renderer
 														// pointers into the original surface, and should not be freed*/
 
 		public Vertex[] Vertices;
-		public int[] Indexes;							// for shadows, this has both front and rear end caps and silhouette planes
+		
+		/// <summary>
+		/// For shadows, this has both front and rear end caps and silhouette planes.
+		/// </summary>
+		public int[] Indexes;
 
 		/*
 		glIndex_t *					silIndexes;				// indexes changed to be the first vertex with same XYZ, ignoring normal and texcoords
@@ -4155,19 +4168,39 @@ namespace idTech4.Renderer
 		idPlane *					facePlanes;				// [numIndexes/3] plane equations
 
 		dominantTri_t *				dominantTris;			// [numVerts] for deformed surface fast tangent calculation
+		*/
+	
+		/// <summary>
+		/// Shadow volumes with front caps omitted.
+		/// </summary>
+		public int ShadowIndexesNoFrontCapsCount;
 
-		int							numShadowIndexesNoFrontCaps;	// shadow volumes with front caps omitted
-		int							numShadowIndexesNoCaps;			// shadow volumes with the front and rear caps omitted
+		/// <summary>
+		/// Shadow volumes with the front and rear caps omitted.
+		/// </summary>
+		public int ShadowIndexesNoCapsCount;
 
-		int							shadowCapPlaneBits;		// bits 0-5 are set when that plane of the interacting light has triangles
-															// projected on it, which means that if the view is on the outside of that
-															// plane, we need to draw the rear caps of the shadow volume
-															// turboShadows will have SHADOW_CAP_INFINITE
+		/// <summary>
+		/// Plane flags.
+		/// </summary>
+		/// <remarks>
+		/// Bits 0-5 are set when that plane of the interacting light has triangles
+		/// projected on it, which means that if the view is on the outside of that
+		/// plane, we need to draw the rear caps of the shadow volume
+		/// turboShadows will have SHADOW_CAP_INFINITE.
+		/// </remarks>
+		public int ShadowCapPlaneBits;
 
-		shadowCache_t *				shadowVertexes;			// these will be copied to shadowCache when it is going to be drawn.
-															// these are NULL when vertex programs are available
 
-		struct srfTriangles_s *		ambientSurface;			// for light interactions, point back at the original surface that generated
+		/// <summary>
+		/// These will be copied to shadowCache when it is going to be drawn. 
+		/// </summary>
+		/// <remarks>
+		/// NULL when vertex programs are available.
+		/// </remarks>
+		public ShadowVertex[] ShadowVertices;	
+
+		/*struct srfTriangles_s *		ambientSurface;			// for light interactions, point back at the original surface that generated
 															// the interaction, which we will get the ambientCache from
 
 		struct srfTriangles_s *		nextDeferredFree;		// chain of tris to free next frame
@@ -4219,6 +4252,27 @@ namespace idTech4.Renderer
 		public Vector3 Normal;
 		//public Vector3[] Tangents;
 		public Color Color;
+		#endregion
+	}
+
+	public struct ShadowVertex : IVertexType
+	{
+		#region Vertex declaration
+		public VertexDeclaration VertexDeclaration
+		{
+			get
+			{
+				return new VertexDeclaration(
+					new VertexElement[] {
+						new VertexElement(0, VertexElementFormat.Vector4, VertexElementUsage.Position, 0)
+					}
+				);
+			}
+		}
+		#endregion
+
+		#region Fields
+		public Vector4 Position; // we use homogenous coordinate tricks
 		#endregion
 	}
 
@@ -4292,7 +4346,7 @@ namespace idTech4.Renderer
 		SetBuffer,
 		CopyRender,
 		SwapBuffers		// can't just assume swap at end of list because
-		// of forced list submission before syncs
+						// of forced list submission before syncs
 	}
 
 	public enum GLProgramType

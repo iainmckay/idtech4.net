@@ -176,6 +176,54 @@ namespace idTech4
 			return expanded;
 		}
 
+		public bool AddPoint(Vector4 point)
+		{
+			return AddPoint(new Vector3(point.X, point.Y, point.Z));
+		}
+
+		public bool AddPoint(Vector3 point)
+		{
+			bool expanded = false;
+
+			if(point.X < this.Min.X)
+			{
+				this.Min.X = point.X;
+				expanded = true;
+			}
+
+			if(point.X > this.Max.X)
+			{
+				this.Max.X = point.X;
+				expanded = true;
+			}
+
+			if(point.Y < this.Min.Y)
+			{
+				this.Min.Y = point.Y;
+				expanded = true;
+			}
+
+			if(point.Y> this.Max.Y)
+			{
+				this.Max.Y = point.Y;
+				expanded = true;
+			}
+
+			if(point.Z < this.Min.Z)
+			{
+				this.Min.Z = point.Z;
+				expanded = true;
+			}
+
+			if(point.Z > this.Max.Z)
+			{
+				this.Max.Z = point.Z;
+				expanded = true;
+			}
+
+			return expanded;
+		}
+
 		public void Clear()
 		{
 			this.Min = new Vector3(idMath.Infinity, idMath.Infinity, idMath.Infinity);
