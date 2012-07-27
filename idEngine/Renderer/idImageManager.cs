@@ -183,6 +183,102 @@ namespace idTech4.Renderer
 		#region Methods
 		#region Public
 		/// <summary>
+		/// Mark all file based images as currently unused,
+		/// but don't free anything.  Calls to ImageFromFile() will
+		/// either mark the image as used, or create a new image without
+		/// loading the actual data.
+		/// </summary>
+		public void BeginLevelLoad()
+		{
+			_insideLevelLoad = true;
+
+			foreach(idImage image in _images)
+			{
+				// generator function images are always kept around
+				if(image.Generator != null)
+				{
+					continue;
+				}
+
+				if(idE.CvarSystem.GetBool("com_purgeAll") == true)
+				{
+					image.Purge();
+				}
+
+				image.LevelLoadReferenced = false;;
+			}
+		}
+
+		/// <summary>
+		/// Free all images marked as unused, and load all images that are necessary.
+		/// This architecture prevents us from having the union of two level's
+		/// worth of data present at one time.
+		/// </summary>
+		public void EndLevelLoad()
+		{
+			_insideLevelLoad = false;
+
+			if(idE.CvarSystem.GetInteger("net_serverDedicated") != 0)
+			{
+				return;
+			}
+
+			idConsole.WriteLine("----- idImageManager::EndLevelLoad -----");
+
+			int start = idE.System.Milliseconds;
+			int	purgeCount = 0;
+			int	keepCount = 0;
+			int	loadCount = 0;
+
+			// purge the ones we don't need
+			foreach(idImage image in _images)
+			{
+				if(image.Generator != null)
+				{
+					continue;
+				}
+
+				if((image.LevelLoadReferenced == false) && (image.ReferencedOutsideLevelLoad == false))
+				{
+					purgeCount++;
+					image.Purge();
+				}
+				else if(image.IsLoaded == true)
+				{
+					keepCount++;
+				}
+			}
+
+			// load the ones we do need, if we are preloading
+			foreach(idImage image in _images)
+			{
+				if(image.Generator != null)
+				{
+					continue;
+				}
+
+				if((image.LevelLoadReferenced == true) && (image.IsLoaded == false))
+				{
+					loadCount++;
+					image.ActuallyLoadImage(true, false);
+
+					if((loadCount & 15) == 0)
+					{
+						// TODO: session->PacifierUpdate();
+					}
+				}
+			}
+
+			int end = idE.System.Milliseconds;
+
+			idConsole.WriteLine("{0} purged from previous", purgeCount);
+			idConsole.WriteLine("{0} kept from previous", keepCount);
+			idConsole.WriteLine("{0} new loaded", loadCount);
+			idConsole.WriteLine("all images loaded in {0:0} seconds", (end - start) * 0.001);
+			idConsole.WriteLine("----------------------------------------");
+		}
+
+		/// <summary>
 		/// Finds or loads the given image, always returning a valid image pointer.
 		/// Loading of the image may be deferred for dynamic loading.
 		/// </summary>
@@ -1067,7 +1163,9 @@ namespace idTech4.Renderer
 		{
 			// TODO: timestamp
 			timeStamp = DateTime.Now;
-			
+
+			idConsole.WriteLine("TODO: this doesn't add to hash");
+
 			return idE.System.Content.Load<Texture2D>(name);
 		}
 

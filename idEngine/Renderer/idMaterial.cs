@@ -793,35 +793,26 @@ namespace idTech4.Renderer
 				// diffusemap for stage shortcut.
 				else if(tokenLower == "diffusemap")
 				{
-					idConsole.Warning("TODO: idMaterial keyword diffuseMap");
-					/*str = R_ParsePastImageProgram( src );
-					idStr::snPrintf( buffer, sizeof( buffer ), "blend diffusemap\nmap %s\n}\n", str );
-					newSrc.LoadMemory( buffer, strlen(buffer), "diffusemap" );
-					newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
-					ParseStage( newSrc, trpDefault );
-					newSrc.FreeSource();*/
+					idLexer newLexer = new idLexer(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowPathNames);
+					newLexer.LoadMemory(string.Format("blend diffusemap\nmap {0}\n}}\n", ParsePastImageProgram(lexer)), "diffusemap");
+
+					ParseStage(newLexer, textureRepeatDefault);
 				}
 				// specularmap for stage shortcut.
 				else if(tokenLower == "specularmap")
 				{
-					idConsole.Warning("TODO: idMaterial keyword specularMap");
-					/*str = R_ParsePastImageProgram( src );
-					idStr::snPrintf( buffer, sizeof( buffer ), "blend specularmap\nmap %s\n}\n", str );
-					newSrc.LoadMemory( buffer, strlen(buffer), "specularmap" );
-					newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
-					ParseStage( newSrc, trpDefault );
-					newSrc.FreeSource();*/
+					idLexer newLexer = new idLexer(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowPathNames);
+					newLexer.LoadMemory(string.Format("blend specularmap\nmap {0}\n}}\n", ParsePastImageProgram(lexer)), "specularmap");
+
+					ParseStage(newLexer, textureRepeatDefault);
 				}
 				// normalmap for stage shortcut.
 				else if(tokenLower == "bumpmap")
 				{
-					idConsole.Warning("TODO: idMaterial keyword bumpMap");
-					/*str = R_ParsePastImageProgram( src );
-					idStr::snPrintf( buffer, sizeof( buffer ), "blend bumpmap\nmap %s\n}\n", str );
-					newSrc.LoadMemory( buffer, strlen(buffer), "bumpmap" );
-					newSrc.SetFlags( LEXFL_NOFATALERRORS | LEXFL_NOSTRINGCONCAT | LEXFL_NOSTRINGESCAPECHARS | LEXFL_ALLOWPATHNAMES );
-					ParseStage( newSrc, trpDefault );
-					newSrc.FreeSource();*/
+					idLexer newLexer = new idLexer(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowPathNames);
+					newLexer.LoadMemory(string.Format("blend bumpmap\nmap {0}\n}}\n", ParsePastImageProgram(lexer)), "bumpmap");
+
+					ParseStage(newLexer, textureRepeatDefault);
 				}
 				// DECAL_MACRO for backwards compatibility with the preprocessor macros.
 				else if(tokenLower == "decal_macro")

@@ -99,14 +99,11 @@
     <Reference Include="System.Net">
       <Private>False</Private>
     </Reference>
-    <Reference Include="Tao.DevIl, Version=1.6.8.3, Culture=neutral, PublicKeyToken=7ec4053013524957, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>C:\Program Files (x86)\TaoFramework\bin\Tao.DevIl.dll</HintPath>
-    </Reference>
   </ItemGroup>
   <ItemGroup>
     <Compile Include="CollisionManager\idCollisionModelManager.cs" />
     <Compile Include="Game\idBaseGame.cs" />
+    <Compile Include="Geometry\idWinding.cs" />
     <Compile Include="idBounds.cs" />
     <Compile Include="idCmdArgs.cs" />
     <Compile Include="idCvar.cs" />
@@ -118,6 +115,7 @@
     <Compile Include="idRectangle.cs" />
     <Compile Include="Input\idUserCommandGenerator.cs" />
     <Compile Include="Input\idInputSystem.cs" />
+    <Compile Include="Math\idAngles.cs" />
     <Compile Include="Math\idExtrapolate.cs" />
     <Compile Include="Math\idInterpolateAccelerationDecelerationLinear.cs" />
     <Compile Include="Math\idMath.cs" />
@@ -129,10 +127,11 @@
     <Compile Include="Renderer\idRenderModelManager.cs" />
     <Compile Include="Renderer\idRenderWorld.cs" />
     <Compile Include="Renderer\idScreenRect.cs" />
-    <Compile Include="Renderer\idStaticRenderModel.cs" />
+    <Compile Include="Renderer\idRenderModel_Static.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />
     <Compile Include="Sound\idSoundSystem.cs" />
     <Compile Include="Sound\idSoundWorld.cs" />
+    <Compile Include="Text\Decl\idDeclEntity.cs" />
     <Compile Include="Text\Decl\idDeclParticle.cs" />
     <Compile Include="Text\Decl\idDeclSkin.cs" />
     <Compile Include="Text\idDecl.cs" />
@@ -164,6 +163,7 @@
     <Compile Include="Text\idDeclFile.cs" />
     <Compile Include="Text\idImageProgramParser.cs" />
     <Compile Include="Text\idLexer.cs" />
+    <Compile Include="Text\idMapFile.cs" />
     <Compile Include="Text\idScriptParser.cs" />
     <Compile Include="Text\idToken.cs" />
     <Compile Include="UI\idBindWindow.cs" />

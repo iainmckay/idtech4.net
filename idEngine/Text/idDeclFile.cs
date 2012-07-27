@@ -32,7 +32,7 @@ using System.Text;
 
 namespace idTech4.Text
 {
-	internal sealed class idDeclFile
+	public sealed class idDeclFile
 	{
 		#region Constants
 		public const LexerOptions LexerOptions = Text.LexerOptions.NoStringConcatination | Text.LexerOptions.NoStringEscapeCharacters

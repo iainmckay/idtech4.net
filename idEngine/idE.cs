@@ -72,6 +72,8 @@ namespace idTech4
 		public const string ProcFileExtension = "proc";
 		public const string ProcFileID = "mapProcFile003";
 
+		public const int GameEntityBits = 12;
+
 		public const int GlyphStart = 0;
 		public const int GlyphEnd = 255;
 		public const int GlyphCharacterStart = 32;
@@ -84,11 +86,14 @@ namespace idTech4
 		public const int MaxDeclTypes = 32;
 		public const int MaxEntityMaterialParameters = 12;
 		public const int MaxExpressionRegisters = 4096;
+		public const int MaxGameEntities = 4096;
 		public const int MaxGlobalMaterialParameters = 12;
+		public const int MaxNetworkClients = 32;
 		public const int MaxPrintMessageSize = 4096;
 		public const int MaxRenderCrops = 8;
+		public const int MaxRenderEntityGui = 3;
 		public const int MaxUserCommandRelay = 10;
-		public const int MaxWarningList = 256;	
+		public const int MaxWarningList = 256;
 
 		// all drawing is done to a 640 x 480 virtual screen size
 		// and will be automatically scaled to the real resolution
@@ -124,6 +129,7 @@ namespace idTech4
 		public static readonly idEventLoop EventLoop = new idEventLoop();
 		public static readonly idInputSystem Input = new idInputSystem();
 		public static readonly idSoundSystem SoundSystem = new idSoundSystem();
+		public static readonly idAsyncNetwork AsyncNetwork = new idAsyncNetwork();
 
 		public static readonly idUserCommandGenerator UserCommandGenerator = new idUserCommandGenerator();
 		#endregion
@@ -134,8 +140,7 @@ namespace idTech4
 
 		internal static idGameConsole Console = new idGameConsole();
 		internal static SystemConsole SystemConsole = new SystemConsole();
-		internal static idAsyncNetwork AsyncNetwork = new idAsyncNetwork();
-
+		
 		internal static BackEndState Backend = new BackEndState(); // TODO: refactor in to render library so we can support XNA more easily.
 		internal static GLConfig GLConfig = new GLConfig();
 		#endregion

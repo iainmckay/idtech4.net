@@ -32,9 +32,17 @@ using System.Text;
 
 namespace idTech4.Renderer
 {
-	public abstract class idRenderModel
+	public abstract class idRenderModel : IDisposable
 	{
 		#region Properties
+		/// <summary>
+		/// If the load failed for any reason, this will return true.
+		/// </summary>
+		public abstract bool IsDefaultModel
+		{
+			get;
+		}
+
 		public bool IsLevelLoadReferenced
 		{
 			get;
@@ -47,11 +55,48 @@ namespace idTech4.Renderer
 		}
 
 		/// <summary>
+		/// Models parsed from inside map files or dynamically created cannot be reloaded by reloadmodels.
+		/// </summary>
+		public abstract bool IsReloadable
+		{
+			get;
+		}
+			
+		/// <summary>
+		/// Models of the form "_area*" may have a prelight shadow model associated with it.
+		/// </summary>
+		public abstract bool IsStaticWordModel
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Reports the amount of memory (roughly) consumed by the model.
+		/// </summary>
+		/// <returns></returns>
+		public abstract int MemoryUsage
+		{
+			get;
+		}
+
+		/// <summary>
 		/// Gets the name of the model.
 		/// </summary>
 		public abstract string Name
 		{
 			get;
+		}
+		#endregion
+
+		#region Constructor
+		public idRenderModel()
+		{
+
+		}
+
+		~idRenderModel()
+		{
+			Dispose(false);
 		}
 		#endregion
 
@@ -107,12 +152,8 @@ namespace idTech4.Renderer
 		/// Upon exit, the model will absolutely be valid, but possibly as a default model.
 		/// </remarks>
 		public abstract void LoadModel();
-				
-		/// <summary>
-		/// Reports the amount of memory (roughly) consumed by the model.
-		/// </summary>
-		/// <returns></returns>
-		public abstract int Memory();
+
+		public abstract void MakeDefault();
 
 		/// <summary>
 		/// renderBump uses this to load the very high poly count models, skipping the
@@ -223,6 +264,40 @@ namespace idTech4.Renderer
 	virtual void				ReadFromDemoFile( class idDemoFile *f ) = 0;
 	virtual void				WriteToDemoFile( class idDemoFile *f ) = 0;
 };*/
+		#endregion
+		#endregion
+
+		#region IDisposable implementation
+		#region Properties
+		public bool Disposed
+		{
+			get
+			{
+				return _disposed;
+			}
+		}
+		#endregion
+
+		#region Members
+		private bool _disposed;
+		#endregion
+
+		#region Methods
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if(disposing == true)
+			{
+				PurgeModel();
+			}
+
+			_disposed = true;
+		}
 		#endregion
 		#endregion
 	}

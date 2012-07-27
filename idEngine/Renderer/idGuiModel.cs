@@ -406,8 +406,7 @@ namespace idTech4.Renderer
 				return;
 			}
 
-			RenderEntity renderEntity = new RenderEntity();
-			renderEntity.Init();
+			idRenderEntity renderEntity = new idRenderEntity();
 			renderEntity.MaterialParameters[0] = surface.Color.X;
 			renderEntity.MaterialParameters[1] = surface.Color.Y;
 			renderEntity.MaterialParameters[2] = surface.Color.Z;

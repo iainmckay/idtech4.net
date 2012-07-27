@@ -166,6 +166,11 @@ namespace idTech4.UI
 			_referenceCount = 1;
 			_state = new idDict();
 		}
+
+		~idUserInterface()
+		{
+			Dispose(false);
+		}
 		#endregion
 
 		#region Methods
@@ -451,6 +456,7 @@ namespace idTech4.UI
 		public void Dispose()
 		{
 			Dispose(true);
+			GC.SuppressFinalize(this);
 		}
 
 		private void Dispose(bool disposing)

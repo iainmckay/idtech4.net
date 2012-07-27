@@ -36,12 +36,10 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
 
-using OpenTK.Graphics;
-
 using Tao.OpenGl;
-using Tao.Platform.Windows;
 
 using idTech4.Math;
+using idTech4.Text.Decl;
 
 namespace idTech4.Renderer
 {
@@ -119,6 +117,30 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public idRenderView PrimaryRenderView
+		{
+			get
+			{
+				return _primaryRenderView;
+			}
+			set
+			{
+				_primaryRenderView = value;
+			}
+		}
+
+		public idRenderWorld PrimaryRenderWorld
+		{
+			get
+			{
+				return _primaryRenderWorld;
+			}
+			set
+			{
+				_primaryRenderWorld = value;
+			}
+		}
+
 		public int ScreenWidth
 		{
 			get
@@ -154,9 +176,7 @@ namespace idTech4.Renderer
 
 		private GraphicsDevice _graphicsDevice;
 		private GraphicsDeviceManager _graphicsDeviceManager;
-
-
-
+		
 		private int _frameCount;											// incremented every frame
 		private int _viewCount;												// incremented every view (twice a scene if subviewed) and every R_MarkFragments call
 		private float _sortOffset;											// for determinist sorting of equal sort materials
@@ -174,8 +194,8 @@ namespace idTech4.Renderer
 		private float _backEndRendererMaxLight;								// 1.0 for standard, unlimited for floats
 
 		private ushort[] _gammaTable = new ushort[256];						// brightness / gamma modify this
-		// determines how much overbrighting needs
-		// to be done post-process
+																			// determines how much overbrighting needs
+																			// to be done post-process
 
 		private Vector2 _viewPortOffset;									// for doing larger-than-window tiled renderings
 		private Vector2 _tiledViewPort;
@@ -197,6 +217,11 @@ namespace idTech4.Renderer
 		private float _frameShaderTime;										// shader time for all non-world 2D rendering
 
 		private int _staticAllocCount;
+
+		// many console commands need to know which world they should operate on
+		private idRenderWorld _primaryRenderWorld;
+		private idRenderView _primaryRenderView;
+		private View _primaryView;
 
 		// vertex cache
 		private List<VertexCache> _dynamicVertexCache = new List<VertexCache>();
@@ -240,8 +265,25 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Methods
+		#region Debug Visualization
+		public void DebugClearLines(int time)
+		{
+			idConsole.DeveloperWriteLine("TODO: DebugClearLines");
+		}
+
+		public void DebugClearPolygons(int time)
+		{
+			idConsole.DeveloperWriteLine("TODO: DebugClearPolygons");
+		}
+
+		public void DebugClearText(int time)
+		{
+			idConsole.DeveloperWriteLine("TODO: DebugClearText");
+		}
+		#endregion
+
 		#region Public
-		public void AddDrawSurface(Surface surface, ViewEntity space, RenderEntity renderEntity, idMaterial material, idScreenRect scissor)
+		public void AddDrawSurface(Surface surface, ViewEntity space, idRenderEntity renderEntity, idMaterial material, idScreenRect scissor)
 		{
 			float[] materialParameters;
 
@@ -475,9 +517,8 @@ namespace idTech4.Renderer
 
 		public void BeginLevelLoad()
 		{
-			idConsole.Warning("TODO: idRenderSystem.BeginLevelLoad");
-			/*idE.RenderModelManager.BeginLevelLoad();
-			idE.ImageManager.BeginLevelLoad();*/
+			idE.RenderModelManager.BeginLevelLoad();
+			idE.ImageManager.BeginLevelLoad();
 		}
 
 		/// <summary>
@@ -730,10 +771,8 @@ namespace idTech4.Renderer
 
 		public void EndLevelLoad()
 		{
-			idConsole.Warning("TODO: idRenderSystem.EndLevelLoad");
-
-			/*idE.RenderModelManager.EndLevelLoad();
-			idE.ImageManager.EndLevelLoad();*/
+			idE.RenderModelManager.EndLevelLoad();
+			idE.ImageManager.EndLevelLoad();
 
 			// TODO: 
 			/*if ( r_forceLoadImages.GetBool() ) {
@@ -785,7 +824,7 @@ namespace idTech4.Renderer
 
 			InitMaterials();
 
-			/*// TODO: renderModelManager->Init();*/
+			idE.RenderModelManager.Init();
 
 			// set the identity space
 			_identitySpace = new ViewEntity();
@@ -911,7 +950,7 @@ namespace idTech4.Renderer
 		/// </summary>
 		/// <param name="renderView"></param>
 		/// <returns></returns>
-		public idScreenRect RenderViewToViewPort(RenderView renderView)
+		public idScreenRect RenderViewToViewPort(idRenderView renderView)
 		{
 			idRectangle renderCrop = _renderCrops[_currentRenderCrop];
 
@@ -3428,7 +3467,7 @@ namespace idTech4.Renderer
 
 		private void NV20_BumpAndLightFragment()
 		{
-			if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
+			/*if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
 			{
 				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.BumpAndLight);
 			}
@@ -3491,12 +3530,12 @@ namespace idTech4.Renderer
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
 				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_SPARE0_NV,
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
-			}
+			}/
 		}
 
 		private void NV20_DiffuseAndSpecularColorFragment()
 		{
-			if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
+			/if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
 			{
 				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseAndSpecularColor);
 			}
@@ -3567,12 +3606,12 @@ namespace idTech4.Renderer
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
 				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
-			}
+			}/
 		}
 
 		private void NV20_DiffuseColorFragment()
 		{
-			if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
+			/if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
 			{
 				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseColor);
 			}
@@ -3610,12 +3649,12 @@ namespace idTech4.Renderer
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
 				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
-			}
+			}*/
 		}
 
 		private void NV20_SpecularColorFragment()
 		{
-			if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
+			/*if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
 			{
 				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.SpecularColor);
 			}
@@ -3697,7 +3736,7 @@ namespace idTech4.Renderer
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
 				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
 					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
-			}
+			}*/
 		}
 		#endregion
 
@@ -3915,7 +3954,7 @@ namespace idTech4.Renderer
 
 	public class View
 	{
-		public RenderView RenderView;
+		public idRenderView RenderView;
 
 		public Matrix ProjectionMatrix;
 		public ViewEntity WorldSpace;
@@ -3923,18 +3962,31 @@ namespace idTech4.Renderer
 
 		public float FloatTime;
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// Used to find the portalArea that view flooding will take place from.
+		/// for a normal view, the initialViewOrigin will be renderView.viewOrg,
+		/// but a mirror may put the projection origin outside
+		/// of any valid area, or in an unconnected area of the map, so the view
+		/// area must be based on a point just off the surface of the mirror/subview.
+		/// <para/>
+		/// It may be possible to get a failed portal pass if the plane of the
+		/// mirror intersects a portal, and the initialViewAreaOrigin is on
+		/// a different side than the renderView.viewOrg is.
+		/// </remarks>
 		public Vector3 InitialViewAreaOrigin;
-		// Used to find the portalArea that view flooding will take place from.
-		// for a normal view, the initialViewOrigin will be renderView.viewOrg,
-		// but a mirror may put the projection origin outside
-		// of any valid area, or in an unconnected area of the map, so the view
-		// area must be based on a point just off the surface of the mirror / subview.
-		// It may be possible to get a failed portal pass if the plane of the
-		// mirror intersects a portal, and the initialViewAreaOrigin is on
-		// a different side than the renderView.viewOrg is.
 
-		public bool IsSubview;				// true if this view is not the main view
-		public bool IsMirror;				// the portal is a mirror, invert the face culling
+		/// <summary>
+		/// True if this view is not the main view.
+		/// </summary>
+		public bool IsSubview;
+
+		/// <summary>
+		/// True if the portal is a mirror, invert the face culling.
+		/// </summary>
+		public bool IsMirror;
 		public bool IsXraySubview;
 		public bool IsEditor;
 
@@ -3943,18 +3995,28 @@ namespace idTech4.Renderer
 													// of the plane is the visible side
 		 * */
 
-		public idScreenRect ViewPort; // in real pixels and proper Y flip
+		/// <summary>
+		/// In real pixels and proper Y flip.
+		/// </summary>
+		public idScreenRect ViewPort; // i
+
+		/// <summary>
+		/// For scissor clipping, local inside renderView viewport.
+		/// </summary>
+		/// <remarks>
+		/// Subviews may only be rendering part of the main view
+		/// these are real physical pixel values, possibly scaled and offset from the
+		/// renderView x/y/width/height
+		/// </remarks>
 		public idScreenRect Scissor;
-		// for scissor clipping, local inside renderView viewport
-		// subviews may only be rendering part of the main view
-		// these are real physical pixel values, possibly scaled and offset from the
-		// renderView x/y/width/height
 
 		/*struct viewDef_s *	superView;				// never go into an infinite subview loop 
 		struct drawSurf_s *	subviewSurface;*/
 
-		// drawSurfs are the visible surfaces of the viewEntities, sorted
-		// by the material sort parameter
+		/// <summary>
+		/// DrawSurfs are the visible surfaces of the viewEntities, sorted
+		/// by the material sort parameter
+		/// </summary>
 		public List<DrawSurface> DrawSurfaces = new List<DrawSurface>();
 
 		/*struct viewLight_s	*viewLights;			// chain of all viewLights effecting view
@@ -3974,46 +4036,17 @@ namespace idTech4.Renderer
 		// when the light is behind a closed door.
 */
 	}
-
-	public struct RenderView
-	{
-		// player views will set this to a non-zero integer for model suppress / allow
-		// subviews (mirrors, cameras, etc) will always clear it to zero
-		public int ViewID;
-
-		// sized from 0 to SCREEN_WIDTH / SCREEN_HEIGHT (640/480), not actual resolution
-		public int X;
-		public int Y;
-		public int Width;
-		public int Height;
-
-		/*float					fov_x, fov_y;*/
-
-		public Vector3 ViewOrigin;
-		public Matrix ViewAxis;						// transformation matrix, view looks down the positive X axis
-
-		/*bool					cramZNear;			// for cinematics, we want to set ZNear much lower
-		bool					forceUpdate;		// for an update 
-
-		// time in milliseconds for shader effects and other time dependent rendering issues
-		int						time;*/
-
-		/// <summary>Can be used in any way by the shader.</summary>
-		public float[] MaterialParameters;
-
-		/// <summary>Used to override everything draw.</summary>
-		public idMaterial GlobalMaterial;
-	}
-
-	public struct RenderEntity
+	
+	public class idRenderEntity
 	{
 
 		/*idRenderModel *			hModel;				// this can only be null if callback is set
+		*/
 
-		int						entityNum;
-		int						bodyId;
+		public int EntityIndex;
+		public int BodyID;
 
-		// Entities that are expensive to generate, like skeletal models, can be
+		/*// Entities that are expensive to generate, like skeletal models, can be
 		// deferred until their bounds are found to be in view, in the frustum
 		// of a shadowing light that is in view, or contacted by a trace / overlay test.
 		// This is also used to do visual cueing on items in the view
@@ -4030,31 +4063,80 @@ namespace idTech4.Renderer
 		// player bodies and possibly player shadows should be suppressed in views from
 		// that player's eyes, but will show up in mirrors and other subviews
 		// security cameras could suppress their model in their subviews if we add a way
-		// of specifying a view number for a remoteRenderMap view
-		int						suppressSurfaceInViewID;
-		int						suppressShadowInViewID;
+		// of specifying a view number for a remoteRenderMap view*/
 
-		// world models for the player and weapons will not cast shadows from view weapon
-		// muzzle flashes
-		int						suppressShadowInLightID;
+		/// <summary>
+		/// Suppress the model in the given view.
+		/// </summary>
+		/// <remarks>
+		/// Security cameras could suppress their model in their subviews if we add a way
+		/// of specifying a view number for a remoteRenderMap view.
+		/// </remarks>
+		public int SuppressSurfaceInViewID;
 
-		// if non-zero, the surface and shadow (if it casts one)
-		// will only show up in the specific view, ie: player weapons
-		int						allowSurfaceInViewID;
+		/// <summary>
+		/// Suppress shadows from this entity in the given view.
+		/// </summary>
+		/// <remarks>
+		/// Player bodies and possibly player shadows should be suppressed in views from
+		/// that player's eyes, but will show up in mirrors and other subviews.
+		/// </remarks>
+		public int SuppressShadowInViewID;
 
-		// positioning
-		// axis rotation vectors must be unit length for many
-		// R_LocalToGlobal functions to work, so don't scale models!
-		// axis vectors are [0] = forward, [1] = left, [2] = up
-		idVec3					origin;
-		idMat3					axis;
+		/// <summary>
+		/// Suppress shadows for the given light.
+		/// </summary>
+		/// <remarks>
+		/// World models for the player and weapons will not cast shadows from view weapon
+		/// muzzle flashes.
+		/// </remarks>
+		public int SuppressShadowInLightID;
 
-		// texturing
-		const idMaterial *		customShader;			// if non-0, all surfaces will use this
-		const idMaterial *		referenceShader;		// used so flares can reference the proper light shader
-		const idDeclSkin *		customSkin;				// 0 for no remappings
-		class idSoundEmitter *	referenceSound;			// for shader sound tables, allowing effects to vary with sounds*/
-		public float[] MaterialParameters;				// can be used in any way by material or model generation
+		/// <summary>
+		/// Draw the model only in this view.
+		/// </summary>
+		/// <remarks>
+		/// If non-zero, the surface and shadow (if it casts one)
+		/// will only show up in the specific view, ie: player weapons.
+		/// </remarks>
+		public int AllowSurfaceInViewID;
+
+		/// <summary>
+		/// Position.
+		/// </summary>
+		public Vector3 Origin;
+
+		/// <summary>
+		/// Orientation.
+		/// </summary>
+		/// <remarks>
+		/// Axis rotation vectors must be unit length for many R_LocalToGlobal functions to work, so don't scale models!
+		/// <para/>
+		/// Axis vectors are [0] = forward, [1] = left, [2] = up.
+		/// </remarks>
+		public Matrix Axis;
+
+		/// <summary>
+		/// Force a specific material.
+		/// </summary>
+		public idMaterial CustomMaterial;
+
+		/// <summary>
+		/// Used so flares can reference the proper light material.
+		/// </summary>
+		public idMaterial ReferenceMaterial;
+
+		/// <summary>
+		/// Force a specific skin.
+		/// </summary>
+		public idDeclSkin CustomSkin;
+
+		/*class idSoundEmitter *	referenceSound;			// for shader sound tables, allowing effects to vary with sounds*/
+
+		/// <summary>
+		/// Can be used in any way by material or model generation.
+		/// </summary>
+		public float[] MaterialParameters = new float[idE.MaxEntityMaterialParameters];
 
 		// networking: see WriteGUIToSnapshot / ReadGUIFromSnapshot
 		/*class idUserInterface * gui[ MAX_RENDERENTITY_GUI ];
@@ -4063,30 +4145,117 @@ namespace idTech4.Renderer
 
 		int						numJoints;
 		idJointMat *			joints;					// array of joints that will modify vertices.
-														// NULL if non-deformable model.  NOT freed by renderer
+														// NULL if non-deformable model.  NOT freed by renderer*/
 
-		float					modelDepthHack;			// squash depth range so particle effects don't clip into walls
+		/// <summary>
+		/// Squash depth range so particle effects don't clip into walls.
+		/// </summary>
+		public float ModelDepthHack;
 
-		// options to override surface shader flags (replace with material parameters?)
-		bool					noSelfShadow;			// cast shadows onto other objects,but not self
-		bool					noShadow;				// no shadow at all
+		/// <summary>
+		/// Cast shadows onto other objects,but not self.
+		/// </summary>
+		/// <remarks>
+		/// Overrides surface material flags.
+		/// </remarks>
+		public bool NoSelfShadow;
 
-		bool					noDynamicInteractions;	// don't create any light / shadow interactions after
-														// the level load is completed.  This is a performance hack
-														// for the gigantic outdoor meshes in the monorail map, so
-														// all the lights in the moving monorail don't touch the meshes*/
+		/// <summary>
+		/// No shadows at all.
+		/// </summary>
+		/// <remarks>
+		/// Overrides surface material flags.
+		/// </remarks>
+		public bool NoShadow;
 
-		public bool WeaponDepthHack;					// squash depth range so view weapons don't poke into walls
-		// this automatically implies noShadow
+		/// <summary>
+		/// Don't create any light / shadow interactions after the level load is completed.
+		/// </summary>
+		/// <remarks>
+		/// This is a performance hack for the gigantic outdoor meshes in the monorail 
+		/// map, so all the lights in the moving monorail don't touch the meshes
+		/// </remarks>
+		public bool NoDynamicInteractions;
+
+		/// <summary>
+		/// Squash depth range so view weapons don't poke into walls.
+		/// </summary>
+		/// <remarks>
+		/// This automatically implies noShadow.
+		/// </remarks>
+		public bool WeaponDepthHack;
+					// 
 		/*int						forceUpdate;			// force an update (NOTE: not a bool to keep this struct a multiple of 4 bytes)
 		int						timeGroup;
-		int						xrayIndex;
-	} renderEntity_t;*/
+		int						xrayIndex;*/
+	}
 
-		public void Init()
-		{
-			MaterialParameters = new float[idE.MaxEntityMaterialParameters];
-		}
+	public class idRenderView
+	{
+		/// <summary>
+		/// Model/Subview suppression.
+		/// </summary>
+		/// <remarks>
+		/// Player views will set this to a non-zero integer for model suppress/allow.
+		/// <para/>
+		/// Subviews (mirrors, cameras, etc) will always clear it to zero.
+		/// </remarks>
+		public int ViewID;
+
+		/// <summary>
+		/// Sized from 0 to SCREEN_WIDTH / SCREEN_HEIGHT (640/480), not actual resolution.
+		/// </summary>
+		public int X;
+
+		/// <summary>
+		/// Sized from 0 to SCREEN_WIDTH / SCREEN_HEIGHT (640/480), not actual resolution.
+		/// </summary>
+		public int Y;
+
+		/// <summary>
+		/// Sized from 0 to SCREEN_WIDTH / SCREEN_HEIGHT (640/480), not actual resolution.
+		/// </summary>
+		public int Width;
+
+		/// <summary>
+		/// Sized from 0 to SCREEN_WIDTH / SCREEN_HEIGHT (640/480), not actual resolution.
+		/// </summary>
+		public int Height;
+
+		public float FovX;
+		public float FovY;
+
+		public Vector3 ViewOrigin;
+
+		/// <summary>
+		/// Transformation matrix, view looks down the positive X axis.
+		/// </summary>
+		public Matrix ViewAxis;
+
+		/// <summary>
+		/// For cinematics, we want to set ZNear much lower.
+		/// </summary>
+		public bool CramZNear;
+
+		/// <summary>
+		/// Force an update.
+		/// </summary>
+		public bool ForceUpdate;
+
+		/// <summary>
+		/// Time in milliseconds for material effects and other time dependent rendering issues.
+		/// </summary>
+		public int Time;
+
+		/// <summary>
+		/// Can be used in any way by the material.
+		/// </summary>
+		public float[] MaterialParameters = new float[idE.MaxGlobalMaterialParameters];
+
+		/// <summary>
+		/// Override everything when drawing.
+		/// </summary>
+		public idMaterial GlobalMaterial;
 	}
 
 	public struct ViewEntity
@@ -4129,8 +4298,14 @@ namespace idTech4.Renderer
 		 * */
 	}
 
-	public struct Surface
+	// TODO: IM - making this a class is possibly a bit heavy handed
+	public class Surface : IDisposable
 	{
+		~Surface()
+		{
+			Dispose(false);
+		}
+
 		/// <summary>
 		/// Used for culling.
 		/// </summary>
@@ -4212,6 +4387,47 @@ namespace idTech4.Renderer
 		/*struct vertCache_s *		lightingCache;			// lightingCache_t
 		struct vertCache_s *		shadowCache;			// shadowCache_t
 	*/
+
+		#region IDisposable implementation
+		#region Properties
+		public bool Disposed
+		{
+			get
+			{
+				return _disposed;
+			}
+		}
+		#endregion
+
+		#region Members
+		private bool _disposed;
+		#endregion
+
+		#region Methods
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("Surface");
+			}
+
+			this.Bounds = idBounds.Zero;
+			this.Indexes = null;
+			this.Vertices = null;
+			this.ShadowVertices = null;
+			this.IndexCache = null;
+			this.AmbientCache = null;
+
+			_disposed = true;
+		}
+		#endregion
+		#endregion
 	}
 
 	public struct Z : IVertexType

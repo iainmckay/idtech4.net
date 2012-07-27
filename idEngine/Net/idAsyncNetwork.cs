@@ -32,7 +32,7 @@ using System.Text;
 
 namespace idTech4.Net
 {
-	internal sealed class idAsyncNetwork
+	public sealed class idAsyncNetwork
 	{
 		#region Properties
 		public idAsyncClient Client

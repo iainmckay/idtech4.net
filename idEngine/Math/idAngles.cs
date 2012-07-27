@@ -30,34 +30,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-namespace idTech4.Renderer
+namespace idTech4.Math
 {
-	public class idStaticRenderModel : idRenderModel
+	public struct idAngles
 	{
-		#region Members
-		private List<RenderModelSurface> _surfaces = new List<RenderModelSurface>();
-		private idBounds _bounds;
-		private int _overlaysAdded;
-
-		private int _lastModifiedFrame;
-		private int _lastArchivedFrame;
-
-		private string _name;
-		private List<Surface> _shadowHull;
-		private bool _isStaticWordModel;
-		private bool _defaulted;
-		private bool _purged; // eventually we will have dynamic reloading.
-		private bool _fastLoad; // don't generate tangents and shadow data.
-		private bool _reloadable; // if not, reloadModels won't check timestamp
-		private bool _levelLoadReferenced; // for determining if it needs to be freed.
-		#endregion
-
-		#region Constructor
-		public idStaticRenderModel()
-		{
-			_name = "<undefined>";
-			_reloadable = true;
-		}
-		#endregion
 	}
 }

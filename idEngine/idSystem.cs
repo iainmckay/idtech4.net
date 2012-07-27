@@ -250,7 +250,7 @@ namespace idTech4
 
 				_errorEntered = ErrorType.None;
 
-				throw new Exception(errorMessage);
+				// TODO throw new Exception(errorMessage);
 			}
 			else
 			{

@@ -176,7 +176,7 @@ namespace idTech4.Game.Rules
 				idR.Game.PlayerStates[clientIndex].InGame = true;
 
 				// can't use PrintMessageEvent as clients don't know the nickname yet
-				idR.Game.ServerSendChatMessage(-1, idR.Language.GetString("#str_02047"), string.Format(idR.Language.GetString("#str_07177"), idR.Game.UserInfo[clientIndex].GetString("ui_name")));
+				idR.Game.ServerSendChatMessage(-1, idR.Language.Get("#str_02047"), string.Format(idR.Language.Get("#str_07177"), idR.Game.UserInfo[clientIndex].GetString("ui_name")));
 			}
 		}
 
@@ -512,11 +512,11 @@ namespace idTech4.Game.Rules
 
 			if((player.IsReady != newReady) && (this.State == MultiplayerGameState.WarmUp) && (player.WantToSpectate == false))
 			{
-				this.AddChatLine(idR.Language.GetString("#str_07180"), player.Info.GetString("ui_name"), (newReady == true) ? idR.Language.GetString("#str_04300") : idR.Language.GetString("#str_04301"));
+				this.AddChatLine(idR.Language.Get("#str_07180"), player.Info.GetString("ui_name"), (newReady == true) ? idR.Language.Get("#str_04300") : idR.Language.Get("#str_04301"));
 			}
 
 			player.IsReady = newReady;
-			player.IsChatting = player.Info.GetBool("ui_chat", "0");
+			player.IsChatting = player.Info.GetBool("ui_chat", false);
 
 			UpdatePlayerSkin(player, false);
 			
@@ -542,7 +542,7 @@ namespace idTech4.Game.Rules
 
 		public override void MapPopulate()
 		{
-			idR.CvarSystem.Set("r_skipSpecular", false);
+			idR.CvarSystem.SetBool("r_skipSpecular", false);
 
 			base.MapPopulate();
 		}
@@ -591,7 +591,8 @@ namespace idTech4.Game.Rules
 			}
 
 			// mp game sounds
-			foreach(string sound in idStrings.GlobalSoundStrings)
+			// TODO: mp game sounds
+			/*foreach(string sound in idStrings.GlobalSoundStrings)
 			{
 				idFile f = idR.FileSystem.OpenFileRead(sound);
 
@@ -599,12 +600,12 @@ namespace idTech4.Game.Rules
 				{
 					idR.FileSystem.CloseFile(f);
 				}
-			}
+			}*/
 
 			// mp guis. just make sure we hit all of them
 			foreach(string iface in idStrings.MultiplayerInterfaces)
 			{
-				idR.UIManager.FindGui(iface, true);
+				idR.UIManager.FindInterface(iface, true);
 			}
 		}
 		#endregion

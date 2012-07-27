@@ -43,13 +43,47 @@ namespace idTech4.Game
 		/// </summary>
 		public abstract void Init();
 
+		/// <summary>
+		/// Caches media referenced from in key/value pairs in the given dictionary.
+		/// </summary>
+		/// <remarks>
+		/// This is called after parsing an EntityDef and for each entity spawnArgs before
+		/// merging the entitydef.  It could be done post-merge, but that would
+		/// avoid the fast pre-cache check associated with each entityDef.
+		/// </remarks>
+		/// <param name="dict"></param>
+		public abstract void CacheDictionaryMedia(idDict dict);
+
 		public abstract string GetMapLoadingInterface(string defaultInterface);
 
+		/// <summary>
+		/// Runs a game frame, may return a session command for level changing, etc.
+		/// </summary>
+		/// <param name="userCommands"></param>
+		/// <returns></returns>
 		public abstract GameReturn RunFrame(idUserCommand[] userCommands);
 
+		/// <summary>
+		/// The session calls this right before a new level is loaded.
+		/// </summary>
+		/// <param name="clientIndex"></param>
+		/// <param name="playerInfo"></param>
 		public abstract void SetPersistentPlayerInformation(int clientIndex, idDict playerInfo);
+
+		/// <summary>
+		/// Sets the user info for a client.
+		/// </summary>
+		/// <param name="clientIndex"></param>
+		/// <param name="userInfo"></param>
+		/// <param name="isClient"></param>
+		/// <param name="canModify">If true, the game can modify the user info.  Never true on a network client.</param>
+		/// <returns></returns>
 		public abstract idDict SetUserInformation(int clientIndex, idDict userInfo, bool isClient, bool canModify);
 
+		/// <summary>
+		/// Spawns the player entity to be used by the client.
+		/// </summary>
+		/// <param name="clientIndex"></param>
 		public abstract void SpawnPlayer(int clientIndex);
 	}
 

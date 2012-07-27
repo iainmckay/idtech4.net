@@ -69,9 +69,12 @@ namespace idTech4
 				return;
 			}
 
-			_log.AppendText(text);
-			//_log.Select(_log.TextLength, 1);
-			//_log.ScrollToCaret();
+			if(_log.Disposing == false)
+			{
+				_log.AppendText(text);
+				//_log.Select(_log.TextLength, 1);
+				//_log.ScrollToCaret();
+			}
 		}
 
 		public void Show(int visLevel, bool quitOnClose)

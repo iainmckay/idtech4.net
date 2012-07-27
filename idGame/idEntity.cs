@@ -5,6 +5,8 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Renderer;
+using idTech4.Text;
 using idTech4.Text.Decl;
 
 namespace idTech4.Game
@@ -12,10 +14,7 @@ namespace idTech4.Game
 	public class idEntity : IDisposable
 	{
 		#region Properties
-		/// <summary>
-		/// Index in to the entity list.
-		/// </summary>
-		public int Index
+		public Matrix Axis
 		{
 			get
 			{
@@ -23,8 +22,9 @@ namespace idTech4.Game
 				{
 					throw new ObjectDisposedException("idEntity");
 				}
-				
-				return _entityIndex;
+
+				// TODO
+				return Matrix.Identity;
 			}
 			set
 			{
@@ -33,10 +33,17 @@ namespace idTech4.Game
 					throw new ObjectDisposedException("idEntity");
 				}
 
-				_entityIndex = value;
+				// TODO
+				/*if ( GetPhysics()->IsType( idPhysics_Actor::Type ) ) {
+		static_cast<idActor *>(this)->viewAxis = axis;
+	} else {
+		GetPhysics()->SetAxis( axis );
+	}*/
+
+				UpdateVisuals();
 			}
 		}
-
+		
 		/// <summary>
 		/// Index into the entity def list.
 		/// </summary>
@@ -69,10 +76,95 @@ namespace idTech4.Game
 
 				return idR.DeclManager.DeclByIndex(DeclType.EntityDef, this.DefIndex, false).Name;
 			}
+		}		
+		
+		/// <summary>
+		/// During cinematics, entity will only think if cinematic is true.
+		/// </summary>
+		public bool Cinematic
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				return _cinematic;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				_cinematic = value;
+			}
+		}
+
+		public string ClassName
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				return _className;
+			}
+		}
+
+		public int Health
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				return _health;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				_health = value;
+			}
 		}
 
 		/// <summary>
-		/// Name of the entity;
+		/// Index in to the entity list.
+		/// </summary>
+		public int Index
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				return _entityIndex;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				_entityIndex = value;
+			}
+		}
+
+		/// <summary>
+		/// Name of the entity.
 		/// </summary>
 		public string Name
 		{
@@ -115,7 +207,7 @@ namespace idTech4.Game
 			}
 		}
 
-		public string ClassName
+		public Vector3 Origin
 		{
 			get
 			{
@@ -124,7 +216,76 @@ namespace idTech4.Game
 					throw new ObjectDisposedException("idEntity");
 				}
 
-				return _className;
+				// TODO:
+				return Vector3.Zero;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				// TODO GetPhysics()->SetOrigin(org);
+
+				UpdateVisuals();
+			}
+		}
+
+		/// <summary>
+		/// For camera views from this entity.
+		/// </summary>
+		public idRenderView RenderView
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				return _renderView;
+			}
+		}
+
+		/// <summary>
+		/// Used to present a model to the renderer
+		/// </summary>
+		public idRenderEntity RenderEntity
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				return _renderEntity;
+			}
+		}
+
+		public idDeclSkin Skin
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				return _renderEntity.CustomSkin;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idEntity");
+				}
+
+				_renderEntity.CustomSkin = value;
+
+
+				UpdateVisuals();
 			}
 		}
 
@@ -164,167 +325,6 @@ namespace idTech4.Game
 				}
 
 				_spawnNode = value;
-			}
-		}
-
-		/// <summary>
-		/// During cinematics, entity will only think if cinematic is true.
-		/// </summary>
-		public bool Cinematic
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				return _cinematic;
-			}
-			set
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				_cinematic = value;
-			}
-		}
-
-		public int Health
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				return _health;
-			}
-			set
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				_health = value;
-			}
-		}
-
-		/// <summary>
-		/// For camera views from this entity.
-		/// </summary>
-		// TODO
-		/*public idRenderView RenderView
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				return _renderView;
-			}
-		}*/
-
-		/// <summary>
-		/// Used to present a model to the renderer
-		/// </summary>
-		// TODO
-		/*public idRenderEntity RenderEntity
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				return _renderEntity;
-			}
-		}*/
-
-		public idDeclSkin Skin
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				return _renderEntity.CustomSkin;
-			}
-			set
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				_renderEntity.CustomSkin = value;
-
-
-				UpdateVisuals();
-			}
-		}
-
-		public Vector3 Origin
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				// TODO:
-				return Vector3.Zero;
-			}
-			set
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				// TODO GetPhysics()->SetOrigin(org);
-
-				UpdateVisuals();
-			}
-		}
-
-		public Matrix Axis
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				// TODO
-				return Matrix.Identity;
-			}
-			set
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idEntity");
-				}
-
-				// TODO
-				/*if ( GetPhysics()->IsType( idPhysics_Actor::Type ) ) {
-		static_cast<idActor *>(this)->viewAxis = axis;
-	} else {
-		GetPhysics()->SetAxis( axis );
-	}*/
-
-				UpdateVisuals();
 			}
 		}
 		#endregion
@@ -374,18 +374,10 @@ namespace idTech4.Game
 
 			thinkFlags = 0;
 			dormantStart = 0;*/
-			_cinematic = false;
-			/*renderView = NULL;
-			cameraTarget = NULL;
-			health = 0;
-
-			physics = NULL;
-			bindMaster = NULL;
+	
+			/*
 			bindJoint = INVALID_JOINT;
 			bindBody = -1;
-			teamMaster = NULL;
-			teamChain = NULL;
-			signals = NULL;
 
 			memset(PVSAreas, 0, sizeof(PVSAreas));
 			numPVSAreas = -1;
@@ -407,13 +399,6 @@ namespace idTech4.Game
 
 		#region Methods
 		#region Private
-		private void UpdateVisuals()
-		{
-			// TODO
-			/*UpdateModel();
-			UpdateSound();*/
-		}
-
 		private void InitDefaultPhysics(Vector3 origin, Matrix axis)
 		{
 			// TODO
@@ -493,14 +478,65 @@ namespace idTech4.Game
 
 			physics = &defaultPhysicsObj;*/
 		}
+
+		private void UpdateVisuals()
+		{
+			// TODO
+			/*UpdateModel();
+			UpdateSound();*/
+		}
 		#endregion
 
 		#region Public
-		public virtual void Think()
+		public bool GetMasterPosition(out Vector3 masterOrigin, out Matrix masterAxis)
+		{
+			Vector3 localOrigin;
+			Matrix localAxis;
+
+			// TODO
+			/*idAnimator	*masterAnimator;
+
+			if ( bindMaster ) {
+				// if bound to a joint of an animated model
+				if ( bindJoint != INVALID_JOINT ) {
+					masterAnimator = bindMaster->GetAnimator();
+					if ( !masterAnimator ) {
+						masterOrigin = vec3_origin;
+						masterAxis = mat3_identity;
+						return false;
+					} else {
+						masterAnimator->GetJointTransform( bindJoint, gameLocal.time, masterOrigin, masterAxis );
+						masterAxis *= bindMaster->renderEntity.axis;
+						masterOrigin = bindMaster->renderEntity.origin + masterOrigin * bindMaster->renderEntity.axis;
+					}
+				} else if ( bindBody >= 0 && bindMaster->GetPhysics() ) {
+					masterOrigin = bindMaster->GetPhysics()->GetOrigin( bindBody );
+					masterAxis = bindMaster->GetPhysics()->GetAxis( bindBody );
+				} else {
+					masterOrigin = bindMaster->renderEntity.origin;
+					masterAxis = bindMaster->renderEntity.axis;
+				}
+				return true;
+			} 
+			else*/
+			{
+				masterOrigin = Vector3.Zero;
+				masterAxis = Matrix.Identity;
+
+				return false;
+			}
+		}
+
+		public virtual void Hide()
 		{
 			// TODO
-			/*RunPhysics();
-			Present();*/
+			/*if(!IsHidden())
+			{
+				fl.hidden = true;
+				FreeModelDef();
+				UpdateVisuals();
+			}*/
+
 		}
 
 		public virtual void Spawn()
@@ -531,8 +567,8 @@ namespace idTech4.Game
 			TODO
 			FixupLocalizedStrings();
 			*/
-			// parse static models the same way the editor display does
 
+			// parse static models the same way the editor display does
 			idR.GameEdit.ParseSpawnArgsToRenderEntity(_spawnArgs, _renderEntity);
 
 			_renderEntity.EntityIndex = this.Index;
@@ -603,8 +639,7 @@ namespace idTech4.Game
 
 			Vector3 origin = _renderEntity.Origin;
 			Matrix axis = _renderEntity.Axis;
-
-
+			
 			InitDefaultPhysics(origin, axis);
 
 			this.Origin = origin;
@@ -634,7 +669,7 @@ namespace idTech4.Game
 				ConstructScriptObject();
 			}*/
 		}
-
+				
 		public virtual void Show()
 		{
 			// TODO
@@ -645,55 +680,11 @@ namespace idTech4.Game
 	}*/
 		}
 
-		public virtual void Hide()
+		public virtual void Think()
 		{
 			// TODO
-			/*if(!IsHidden())
-			{
-				fl.hidden = true;
-				FreeModelDef();
-				UpdateVisuals();
-			}*/
-
-		}
-
-		public bool GetMasterPosition(out Vector3 masterOrigin, out Matrix masterAxis)
-		{
-			Vector3 localOrigin;
-			Matrix localAxis;
-
-			// TODO
-			/*idAnimator	*masterAnimator;
-
-			if ( bindMaster ) {
-				// if bound to a joint of an animated model
-				if ( bindJoint != INVALID_JOINT ) {
-					masterAnimator = bindMaster->GetAnimator();
-					if ( !masterAnimator ) {
-						masterOrigin = vec3_origin;
-						masterAxis = mat3_identity;
-						return false;
-					} else {
-						masterAnimator->GetJointTransform( bindJoint, gameLocal.time, masterOrigin, masterAxis );
-						masterAxis *= bindMaster->renderEntity.axis;
-						masterOrigin = bindMaster->renderEntity.origin + masterOrigin * bindMaster->renderEntity.axis;
-					}
-				} else if ( bindBody >= 0 && bindMaster->GetPhysics() ) {
-					masterOrigin = bindMaster->GetPhysics()->GetOrigin( bindBody );
-					masterAxis = bindMaster->GetPhysics()->GetAxis( bindBody );
-				} else {
-					masterOrigin = bindMaster->renderEntity.origin;
-					masterAxis = bindMaster->renderEntity.axis;
-				}
-				return true;
-			} 
-			else*/
-			{
-				masterOrigin = Vector3.Zero;
-				masterAxis = Matrix.Identity;
-
-				return false;
-			}
+			/*RunPhysics();
+			Present();*/
 		}
 		#endregion
 		#endregion

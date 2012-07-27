@@ -67,12 +67,7 @@ namespace idTech4
 			return _dict.ContainsKey(key);
 		}
 
-		public bool GetBool(string key)
-		{
-			return GetBool(key, false);
-		}
-
-		public bool GetBool(string key, bool defaultValue)
+		public bool GetBool(string key, bool defaultValue = false)
 		{
 			string str;
 
@@ -97,13 +92,8 @@ namespace idTech4
 
 			return defaultValue;
 		}
-
-		public float GetFloat(string key)
-		{
-			return GetFloat(key, 0);
-		}
-
-		public float GetFloat(string key, float defaultValue)
+		
+		public float GetFloat(string key, float defaultValue = 0)
 		{
 			string str;
 
@@ -118,12 +108,7 @@ namespace idTech4
 			return defaultValue;
 		}
 
-		public int GetInteger(string key)
-		{
-			return GetInteger(key, 0);
-		}
-
-		public int GetInteger(string key, int defaultValue)
+		public int GetInteger(string key, int defaultValue = 0)
 		{
 			string str;
 
@@ -223,6 +208,24 @@ namespace idTech4
 			return defaultValue;
 		}
 
+		public IEnumerable<KeyValuePair<string, string>> MatchPrefix(string prefix)
+		{
+			return _dict.Where(o => o.Key.StartsWith(prefix));
+		}
+
+		public void Remove(string key)
+		{
+			_dict.Remove(key);
+		}
+
+		public void Remove(string[] keys)
+		{
+			foreach(string key in keys)
+			{
+				Remove(key);
+			}
+		}
+
 		public void Set(string key, string value)
 		{
 			if((key == null) || (key == string.Empty))
@@ -273,6 +276,21 @@ namespace idTech4
 		public void Set(string key, idRectangle value)
 		{
 			Set(key, string.Format("{0} {1} {2} {3}", value.X, value.Y, value.Width, value.Height));
+		}
+
+		/// <summary>
+		/// Copy key/value pairs from other another dict not present in this instance.
+		/// </summary>
+		/// <param name="dict"></param>
+		public void SetDefaults(idDict dict)
+		{
+			foreach(KeyValuePair<string, string> kvp in dict._dict)
+			{
+				if(_dict.ContainsKey(kvp.Key) == false)
+				{
+					_dict.Add(kvp.Key, kvp.Value);
+				}
+			}
 		}
 
 		public void TransferKeyValues(idDict source)

@@ -7,7 +7,7 @@ using idTech4.Game.Rules;
 
 namespace idTech4.Game.Entities
 {
-	public class idActor : idAFEntityGibbable
+	public class idActor : idAFEntity_Gibbable
 	{
 		#region Properties
 		public PlayerTeam Team

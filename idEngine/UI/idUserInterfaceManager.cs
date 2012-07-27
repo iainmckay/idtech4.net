@@ -136,12 +136,7 @@ namespace idTech4.UI
 			_deviceContext.Init();			
 		}
 
-		public idUserInterface FindInterface(string path)
-		{
-			return FindInterface(path, false, false, false);
-		}
-
-		public idUserInterface FindInterface(string path, bool autoLoad, bool needUnique, bool forceNotUnique)
+		public idUserInterface FindInterface(string path, bool autoLoad = false, bool needUnique = false, bool forceNotUnique = false)
 		{
 			foreach(idUserInterface gui in _guiList)
 			{

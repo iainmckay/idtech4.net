@@ -41,10 +41,24 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Entities\idActor.cs" />
+    <Compile Include="Entities\idAFEntity.cs" />
+    <Compile Include="Entities\idAFEntity_Gibbable.cs" />
+    <Compile Include="Entities\idAnimatedEntity.cs" />
+    <Compile Include="Entities\idPlayer.cs" />
+    <Compile Include="Entities\idPlayerStart.cs" />
+    <Compile Include="Entities\idWorldSpawn.cs" />
+    <Compile Include="idEntity.cs" />
+    <Compile Include="idGameRules.cs" />
     <Compile Include="idR.cs" />
     <Compile Include="idGame.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="idTypes.cs" />
+    <Compile Include="Rules\Deathmatch.cs" />
+    <Compile Include="Rules\Multiplayer.cs" />
+    <Compile Include="Rules\Singleplayer.cs" />
+    <Compile Include="Rules\TeamDeathmatch.cs" />
+    <Compile Include="Rules\Tournament.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\idEngine\idEngine.csproj">

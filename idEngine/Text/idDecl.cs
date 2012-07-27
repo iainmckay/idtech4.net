@@ -37,90 +37,21 @@ namespace idTech4.Text
 {
 	public abstract class idDecl
 	{
+
 		#region Properties
 		#region Public
 		/// <summary>
-		/// Gets the index in the per-type list.
+		/// Gets if this decl was ever used.
 		/// </summary>
-		public int Index
+		public bool EverReferenced
 		{
 			get
 			{
-				return _index;
+				return _everReferenced;
 			}
 			internal set
 			{
-				_index = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets the size in bytes that this type consumes.
-		/// </summary>
-		public int Size
-		{
-			get
-			{
-				return 0;
-
-				// TODO: how to do this in .net?
-				//return Marshal.SizeOf(this);
-			}
-		}
-
-		/// <summary>
-		/// Gets the name of this decl.
-		/// </summary>
-		public string Name
-		{
-			get
-			{
-				return _name;
-			}
-			internal set
-			{
-				_name = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets the type of this decl.
-		/// </summary>
-		public DeclType Type
-		{
-			get
-			{
-				return _type;
-			}
-			internal set
-			{
-				_type = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets the state of this decl.
-		/// </summary>
-		public DeclState State
-		{
-			get
-			{
-				return _state;
-			}
-			internal set
-			{
-				_state = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets the line number where the actual declaration token starts.
-		/// </summary>
-		public int LineNumber
-		{
-			get
-			{
-				return _sourceLine;
+				_everReferenced = value;
 			}
 		}
 
@@ -137,6 +68,58 @@ namespace idTech4.Text
 				}
 
 				return _sourceFile.FileName;
+			}
+		}
+
+		/// <summary>
+		/// Gets the index in the per-type list.
+		/// </summary>
+		public int Index
+		{
+			get
+			{
+				return _index;
+			}
+			internal set
+			{
+				_index = value;
+			}
+		}
+
+		/// <summary>
+		/// True if the decl was defaulted or the text was created with a call to SetDefaultText.
+		/// </summary>
+		public bool IsImplicit
+		{
+			get
+			{
+				return (this.SourceFile == idE.DeclManager.ImplicitDeclFile);
+			}
+		}
+
+		/// <summary>
+		/// Gets the line number where the actual declaration token starts.
+		/// </summary>
+		public int LineNumber
+		{
+			get
+			{
+				return _sourceLine;
+			}
+		}
+
+		/// <summary>
+		/// Gets the name of this decl.
+		/// </summary>
+		public string Name
+		{
+			get
+			{
+				return _name;
+			}
+			internal set
+			{
+				_name = value;
 			}
 		}
 
@@ -159,21 +142,6 @@ namespace idTech4.Text
 		}
 
 		/// <summary>
-		/// Gets if this decl was ever used.
-		/// </summary>
-		public bool EverReferenced
-		{
-			get
-			{
-				return _everReferenced;
-			}
-			internal set
-			{
-				_everReferenced = value;
-			}
-		}
-
-		/// <summary>
 		/// Gets if this decl was used for the current level.
 		/// </summary>
 		public bool ReferencedThisLevel
@@ -185,6 +153,50 @@ namespace idTech4.Text
 			internal set
 			{
 				_referencedThisLevel = value;
+			}
+		}
+
+		/// <summary>
+		/// Gets the size in bytes that this type consumes.
+		/// </summary>
+		public int Size
+		{
+			get
+			{
+				return 0;
+
+				// TODO: how to do this in .net?
+				//return Marshal.SizeOf(this);
+			}
+		}
+		
+		/// <summary>
+		/// Gets the state of this decl.
+		/// </summary>
+		public DeclState State
+		{
+			get
+			{
+				return _state;
+			}
+			internal set
+			{
+				_state = value;
+			}
+		}
+		
+		/// <summary>
+		/// Gets the type of this decl.
+		/// </summary>
+		public DeclType Type
+		{
+			get
+			{
+				return _type;
+			}
+			internal set
+			{
+				_type = value;
 			}
 		}
 		#endregion
@@ -323,33 +335,6 @@ namespace idTech4.Text
 			}
 		}
 
-		public virtual bool Parse(string text)
-		{
-			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
-			lexer.LoadMemory(text, this.FileName, this.LineNumber);
-			lexer.SkipUntilString("{");
-			lexer.SkipBracedSection(false);
-
-			return true;
-		}
-
-		public void Purge()
-		{
-			// never purge things that were referenced outside level load,
-			// like the console and menu graphics
-			if(this.ParsedOutsideLevelLoad == true)
-			{
-				return;
-			}
-
-			_referencedThisLevel = false;
-
-			MakeDefault();
-
-			// the next Find() for this will re-parse the real data
-			_state = DeclState.Unparsed;
-		}
-
 		public virtual string GetDefaultDefinition()
 		{
 			return "{ }";
@@ -378,21 +363,48 @@ namespace idTech4.Text
 
 			// parse
 			Parse(defaultText);
-			
+
 			// we could still eventually hit the recursion if we have enough Error() calls inside Parse...
 			_recursionLevel--;
+		}
+
+		public virtual bool Parse(string text)
+		{
+			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
+			lexer.LoadMemory(text, this.FileName, this.LineNumber);
+			lexer.SkipUntilString("{");
+			lexer.SkipBracedSection(false);
+
+			return true;
+		}
+
+		public void Purge()
+		{
+			// never purge things that were referenced outside level load,
+			// like the console and menu graphics
+			if(this.ParsedOutsideLevelLoad == true)
+			{
+				return;
+			}
+
+			_referencedThisLevel = false;
+
+			MakeDefault();
+
+			// the next Find() for this will re-parse the real data
+			_state = DeclState.Unparsed;
 		}
 		#endregion
 
 		#region Protected
-		protected virtual bool GenerateDefaultText()
-		{
-			return false;
-		}
-
 		protected virtual void ClearData()
 		{
 
+		}
+
+		protected virtual bool GenerateDefaultText()
+		{
+			return false;
 		}
 		#endregion
 

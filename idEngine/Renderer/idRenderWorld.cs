@@ -33,6 +33,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Geometry;
 using idTech4.Text;
 
 namespace idTech4.Renderer
@@ -44,18 +45,44 @@ namespace idTech4.Renderer
 		public const int AreaSolid = -1;
 		#endregion
 
+		#region Properties
+		#region Scene Rendering
+		/// <summary>
+		/// Sets the current view so any calls to the render world will use the correct parms.
+		/// </summary>
+		/// <remarks>
+		/// Some calls to material functions use the current renderview time when servicing cinematics.  
+		/// This ensures that any parms accessed (such as time) are properly set.
+		/// </remarks>
+		public idRenderView RenderView
+		{
+			get
+			{
+				return idE.RenderSystem.PrimaryRenderView;
+			}
+			set
+			{
+				idE.RenderSystem.PrimaryRenderView = value;
+			}
+		}
+		#endregion
+		#endregion
+
 		#region Members
 		private string _mapName; // ie: maps/tim_dm2.proc, written to demoFile
 		// TODO: ID_TIME_T					mapTimeStamp;			// for fast reloads of the same level
 
-		private List<AreaNode> _areaNodes = new List<AreaNode>();
+		private AreaNode[] _areaNodes = null;
+		private PortalArea[] _portalAreas = null;
+		private DoublePortal[] _doublePortals = null;
 
-		private List<PortalArea> _portalAreas = new List<PortalArea>();
-		private List<DoublePortal> _doublePortals = new List<DoublePortal>();
+		private int _areaNodeCount;
+		private int _portalAreaCount;
+		private int _interAreaPortalCount;
+		
+		private int _connectedAreaNumber; // incremented every time a door portal state changes
 
-		/*int						connectedAreaNum;		// incremented every time a door portal state changes*/
-
-		private List<idScreenRect> _areaScreenRect = new List<idScreenRect>();
+		private idScreenRect[] _areaScreenRect = null;
 		private List<idRenderModel> _localModels = new List<idRenderModel>();
 
 		/*idList<idRenderEntityLocal*>	entityDefs;
@@ -91,21 +118,7 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Methods
-		#region Public
-		/// <summary>
-		/// Force the generation of all light / surface interactions at the start of a level.
-		/// If this isn't called, they will all be dynamically generated
-		/// </summary>
-		public void GenerateInteractions()
-		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException("idRenderWorld");
-			}
-
-			idConsole.Warning("TODO: idRenderWorld.GenerateInteractions");
-		}
-
+		#region General
 		/// <summary>
 		/// 
 		/// </summary>
@@ -134,7 +147,9 @@ namespace idTech4.Renderer
 			}
 
 			// load it
-			string fileName = string.Format("{0}.{1}", Path.GetFileNameWithoutExtension(name), idE.ProcFileExtension);
+			string fileName = string.Format("{0}.{1}",
+				Path.Combine(Path.GetDirectoryName(name), Path.GetFileNameWithoutExtension(name)),
+				idE.ProcFileExtension);
 
 			// if we are reloading the same map, check the timestamp
 			// and try to skip all the work
@@ -227,7 +242,7 @@ namespace idTech4.Renderer
 			}
 
 			// if it was a trivial map without any areas, create a single area
-			if(_portalAreas.Count == 0)
+			if(_portalAreaCount == 0)
 			{
 				ClearWorld();
 			}
@@ -243,14 +258,129 @@ namespace idTech4.Renderer
 		}
 		#endregion
 
+		#region Entity and Light Defs
+		/// <summary>
+		/// Force the generation of all light / surface interactions at the start of a level.
+		/// If this isn't called, they will all be dynamically generated
+		/// </summary>
+		public void GenerateInteractions()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderWorld");
+			}
+
+			idConsole.Warning("TODO: idRenderWorld.GenerateInteractions");
+		}
+		#endregion
+
+		#region Scene Rendering
+
+		#endregion
+
+		#region Debug Visualization
+		public void DebugClearLines(int time)
+		{
+			idE.RenderSystem.DebugClearLines(time);
+		}
+
+		public void DebugClearPolygons(int time)
+		{
+			idE.RenderSystem.DebugClearPolygons(time);
+		}
+		#endregion
+
 		#region Private
+		private void AddWorldModelEntities()
+		{
+			idConsole.DeveloperWriteLine("TODO: AddWorldModelEntities");
+			// add the world model for each portal area
+			// we can't just call AddEntityDef, because that would place the references
+			// based on the bounding box, rather than explicitly into the correct area
+			for(int i = 0; i < _portalAreaCount; i++)
+			{
+
+
+				/*idRenderEntityLocal	*def;
+				int			index;
+
+				def = new idRenderEntityLocal;
+
+				// try and reuse a free spot
+				index = entityDefs.FindNull();
+				if ( index == -1 ) {
+					index = entityDefs.Append(def);
+				} else {
+					entityDefs[index] = def;
+				}
+
+				def->index = index;
+				def->world = this;
+
+				def->parms.hModel = renderModelManager->FindModel( va("_area%i", i ) );
+				if ( def->parms.hModel->IsDefaultModel() || !def->parms.hModel->IsStaticWorldModel() ) {
+					common->Error( "idRenderWorldLocal::InitFromMap: bad area model lookup" );
+				}
+
+				idRenderModel *hModel = def->parms.hModel;
+
+				for ( int j = 0; j < hModel->NumSurfaces(); j++ ) {
+					const modelSurface_t *surf = hModel->Surface( j );
+
+					if ( surf->shader->GetName() == idStr( "textures/smf/portal_sky" ) ) {
+						def->needsPortalSky = true;
+					}
+				}
+
+				def->referenceBounds = def->parms.hModel->Bounds();
+
+				def->parms.axis[0][0] = 1;
+				def->parms.axis[1][1] = 1;
+				def->parms.axis[2][2] = 1;
+
+				R_AxisToModelMatrix( def->parms.axis, def->parms.origin, def->modelMatrix );
+
+				// in case an explicit shader is used on the world, we don't
+				// want it to have a 0 alpha or color
+				def->parms.shaderParms[0] =
+				def->parms.shaderParms[1] =
+				def->parms.shaderParms[2] =
+				def->parms.shaderParms[3] = 1;
+
+				AddEntityRefToArea( def, &portalAreas[i] );
+			}
+		}*/
+			}
+		}
+
+		private void ClearPortalStates()
+		{
+			// all portals start off open
+			for(int i = 0; i < _interAreaPortalCount; i++)
+			{
+				_doublePortals[i].BlockingBits = PortalConnection.BlockNone;
+			}
+
+			// flood fill all area connections
+			for(int i = 0; i < _portalAreaCount; i++)
+			{
+				for(int j = 0; j < 3; j++)
+				{
+					_connectedAreaNumber++;
+
+					FloodConnectedAreas(_portalAreas[i], j);
+				}
+			}
+		}
+
 		/// <summary>
 		/// Sets up for a single area world.
 		/// </summary>
 		private void ClearWorld()
 		{
-			_areaScreenRect.Clear();
-			_portalAreas.Clear();			
+			_portalAreaCount = 1;
+			_areaScreenRect = new idScreenRect[] { new idScreenRect() };
+			_portalAreas = new PortalArea[] { new PortalArea() };
 
 			SetupAreaReferences();
 
@@ -261,8 +391,8 @@ namespace idTech4.Renderer
 			areaNode.Children[0] = -1;
 			areaNode.Children[1] = -1;
 
-			_areaNodes.Clear();
-			_areaNodes.Add(areaNode);
+			_areaNodes = new AreaNode[1];
+			_areaNodes[0] = areaNode;
 		}
 
 		private int CommonChildrenArea(AreaNode node)
@@ -303,8 +433,25 @@ namespace idTech4.Renderer
 				common = idRenderWorld.ChildrenHaveMultipleAreas;
 			}
 
-
 			return (node.CommonChildrenArea = common);
+		}
+
+		private void FloodConnectedAreas(PortalArea area, int portalAttributeIndex)
+		{
+			if(area.ConnectedAreaNumber[portalAttributeIndex] == _connectedAreaNumber)
+			{
+				return;
+			}
+
+			area.ConnectedAreaNumber[portalAttributeIndex] = _connectedAreaNumber;
+
+			for(Portal p = area.Portals; p != null; p = p.Next)
+			{
+				if((p.DoublePortal.BlockingBits & ((PortalConnection) (1 << portalAttributeIndex))) == 0)
+				{
+					FloodConnectedAreas(_portalAreas[p.IntoArea], portalAttributeIndex);
+				}
+			}
 		}
 
 		private void FreeWorld()
@@ -371,29 +518,35 @@ namespace idTech4.Renderer
 		{
 			lexer.ExpectTokenString("{");
 
-			int portalAreaCount = lexer.ParseInt();
+			_portalAreaCount = lexer.ParseInt();
 
-			if(portalAreaCount < 0)
+			if(_portalAreaCount < 0)
 			{
 				lexer.Error("ParseInterAreaPortals: bad portalAreaCount");
 			}
 
-			_portalAreas.Clear();
-			_areaScreenRect.Clear();
+			_portalAreas = new PortalArea[_portalAreaCount];
+			_areaScreenRect = new idScreenRect[_portalAreaCount];
+
+			for(int i = 0; i < _portalAreaCount; i++)
+			{
+				_portalAreas[i] = new PortalArea();
+				_areaScreenRect[i] = new idScreenRect();
+			}
 
 			// set the doubly linked lists
 			SetupAreaReferences();
 
-			int interAreaPortalCount = lexer.ParseInt();
+			_interAreaPortalCount = lexer.ParseInt();
 
-			if(interAreaPortalCount < 0)
+			if(_interAreaPortalCount < 0)
 			{
 				lexer.Error("ParseInterAreaPortals: bad interAreaPortalCount");
 			}
 
-			_doublePortals.Clear();
+			_doublePortals = new DoublePortal[_interAreaPortalCount];
 
-			for(int i = 0; i < interAreaPortalCount; i++)
+			for(int i = 0; i < _interAreaPortalCount; i++)
 			{
 				int pointCount = lexer.ParseInt();
 				int a1 = lexer.ParseInt();
@@ -405,13 +558,13 @@ namespace idTech4.Renderer
 				{
 					float[] tmp = lexer.Parse1DMatrix(3);
 
-					w[j][0] = tmp[0];
-					w[j][1] = tmp[1];
-					w[j][2] = tmp[2];
+					w[j,0] = tmp[0];
+					w[j,1] = tmp[1];
+					w[j,2] = tmp[2];
 
 					// no texture coordinates
-					w[j][3] = 0;
-					w[j][4] = 0;
+					w[j,3] = 0;
+					w[j,4] = 0;
 				}
 
 				// add the portal to a1
@@ -419,7 +572,7 @@ namespace idTech4.Renderer
 				p.IntoArea = a2;
 				p.DoublePortal = _doublePortals[i];
 				p.Winding = w;
-				p.Plane = w.Plane;
+				p.Plane = w.GetPlane();
 				p.Next = _portalAreas[a1].Portals;
 
 				_portalAreas[a1].Portals = p;
@@ -496,28 +649,26 @@ namespace idTech4.Renderer
 		{
 			lexer.ExpectTokenString("{");
 
-			int areaNodeCount = lexer.ParseInt();
+			_areaNodeCount = lexer.ParseInt();
 
-			if(areaNodeCount < 0)
+			if(_areaNodeCount < 0)
 			{
 				lexer.Error("ParseNodes: bad areaNodeCount");
 			}
 
-			_areaNodes.Clear();
+			_areaNodes = new AreaNode[_areaNodeCount];
 
 			float[] tmp;
 			AreaNode node;
 
-			for(int i = 0; i < areaNodeCount; i++)
+			for(int i = 0; i < _areaNodeCount; i++)
 			{
-				node = new AreaNode();
+				node = _areaNodes[i];
 				tmp = lexer.Parse1DMatrix(4);
 				
 				node.Plane = new Plane(tmp[0], tmp[1], tmp[2], tmp[3]);
 				node.Children[0] = lexer.ParseInt();
 				node.Children[1] = lexer.ParseInt();
-
-				_areaNodes.Add(node);
 			}
 
 			lexer.ExpectTokenString("}");
@@ -566,6 +717,24 @@ namespace idTech4.Renderer
 
 			return model;
 		}
+
+		private void SetupAreaReferences()
+		{
+			_connectedAreaNumber = 0;
+
+			for(int i = 0; i < _portalAreaCount; i++)
+			{
+				_portalAreas[i].AreaNumber = i;
+
+				// TODO: biggie!
+				/*portalAreas[i].lightRefs.areaNext =
+				portalAreas[i].lightRefs.areaPrev =
+					&portalAreas[i].lightRefs;
+				portalAreas[i].entityRefs.areaNext =
+				portalAreas[i].entityRefs.areaPrev =
+					&portalAreas[i].entityRefs;*/
+			}
+		}
 		#endregion
 		#endregion
 
@@ -595,16 +764,29 @@ namespace idTech4.Renderer
 		{
 			// free all the entityDefs, lightDefs, portals, etc
 			FreeWorld();
-
-			// TODO: dispose
-			/*
+					
 			// free up the debug lines, polys, and text
-			RB_ClearDebugPolygons(0);
-			RB_ClearDebugLines(0);
-			RB_ClearDebugText(0);*/
+			idE.RenderSystem.DebugClearPolygons(0);
+			idE.RenderSystem.DebugClearLines(0);
+			idE.RenderSystem.DebugClearText(0);
 		}
 		#endregion
 		#endregion
+	}
+
+	[Flags]
+	public enum PortalConnection : byte
+	{
+		BlockNone = 0,
+
+		BlockView = 1,
+
+		/// <summary>Game map location strings often stop in hallways.</summary>
+		BlockLocation = 2,
+		/// <summary>Windows between pressurized and unpresurized areas.</summary>
+		BlockAir = 4,
+
+		BlockAll = (1 << 3) - 1
 	}
 
 	public class Portal
@@ -639,7 +821,7 @@ namespace idTech4.Renderer
 		/// <summary>
 		/// PS_BLOCK_VIEW, PS_BLOCK_AIR, etc, set by doors that shut them off.
 		/// </summary>
-		public int BlockingBits;
+		public PortalConnection BlockingBits;
 
 		// a portal will be considered closed if it is past the
 		// fog-out point in a fog volume.  We only support a single

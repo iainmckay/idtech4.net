@@ -7,17 +7,17 @@ using idTech4.Game.Entities;
 
 namespace idTech4.Game.Rules
 {
-	public class Tourney : Multiplayer
+	public class Tournament : Multiplayer
 	{
 		#region Constructor
-		public Tourney()
+		public Tournament()
 			: base()
 		{
 
 		}
 		#endregion
 
-		#region idGameRules implementation
+		#region Multiplayer implementation
 		public override void SpawnPlayer(int clientIndex)
 		{
 			base.SpawnPlayer(clientIndex);

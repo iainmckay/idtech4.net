@@ -90,7 +90,7 @@ namespace idTech4.Game
 
 	public struct SpawnPoint
 	{
-		/*public idEntity Entity;
-		public int Distance;*/
+		public idEntity Entity;
+		public int Distance;
 	}
 }

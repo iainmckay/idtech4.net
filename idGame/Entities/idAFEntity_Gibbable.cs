@@ -5,10 +5,10 @@ using System.Text;
 
 namespace idTech4.Game.Entities
 {
-	public class idAFEntityGibbable : idAFEntity
+	public class idAFEntity_Gibbable : idAFEntity
 	{
 		#region Constructor
-		public idAFEntityGibbable() : base()
+		public idAFEntity_Gibbable() : base()
 		{
 			// TODO
 			/*skeletonModel = NULL;

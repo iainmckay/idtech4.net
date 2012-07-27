@@ -4,11 +4,13 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
+using idTech4.Game.Entities;
+using idTech4.Game.Rules;
 using idTech4.Input;
 using idTech4.Renderer;
 using idTech4.Sound;
 using idTech4.Text;
-
+using idTech4.Text.Decl;
 using idTech4.UI;
 
 namespace idTech4.Game
@@ -46,72 +48,28 @@ namespace idTech4.Game
 		#endregion
 
 		#region Properties
-		/// <summary>
-		/// Current time in msec.
-		/// </summary>
-		public int Time
+		public int ClientCount
 		{
 			get
 			{
-				return _time;
+				return _clientCount;
 			}
 		}
 
-		/// <summary>
-		/// Keeps track of whether we're spawning, shutting down, or normal gameplay.
-		/// </summary>
-		public GameState State
+		// TODO
+		/*public idClip Clip
 		{
 			get
 			{
-				return _gameState;
-			}
-		}
-
-		/// <summary>
-		/// Nothing in the game tic should EVER make a decision based on what the
-		/// local client number is, it shouldn't even be aware that there is a
-		/// draw phase even happening.  This just returns client 0, which will
-		/// be correct for single player.
-		/// </summary>
-		/*public idPlayer LocalPlayer
-		{
-			get
-			{
-				if(_localClientIndex < 0)
-				{
-					return null;
-				}
-
-				if((_entities[_localClientIndex] == null) || ((_entities[_localClientIndex] is idPlayer) == false))
-				{
-					// not fully in game yet
-					return null;
-				}
-
-				return (idPlayer) _entities[_localClientIndex];
+				return _clip;
 			}
 		}*/
 
-		/// <summary>
-		/// Number of the local client. MP: -1 on a dedicated.
-		/// </summary>
-		public int LocalClientIndex
+		public idEntity[] Entities
 		{
 			get
 			{
-				return _localClientIndex;
-			}
-		}
-
-		/// <summary>
-		/// Is the game running for a dedicated or listen server?
-		/// </summary>
-		public bool IsServer
-		{
-			get
-			{
-				return _isServer;
+				return _entities;
 			}
 		}
 
@@ -119,8 +77,8 @@ namespace idTech4.Game
 		/// Is the game run for a client.
 		/// </summary>
 		/// <remarks>
-		// Discriminates between the RunFrame path and the ClientPrediction path
-		// NOTE: on a listen server, isClient is false.
+		/// Discriminates between the RunFrame path and the ClientPrediction path
+		/// NOTE: on a listen server, isClient is false.
 		/// </remarks>
 		public bool IsClient
 		{
@@ -142,6 +100,61 @@ namespace idTech4.Game
 		}
 
 		/// <summary>
+		/// Is the game running for a dedicated or listen server?
+		/// </summary>
+		public bool IsServer
+		{
+			get
+			{
+				return _isServer;
+			}
+		}
+
+		/// <summary>
+		/// Number of the local client. MP: -1 on a dedicated.
+		/// </summary>
+		public int LocalClientIndex
+		{
+			get
+			{
+				return _localClientIndex;
+			}
+		}
+
+		/// <summary>
+		/// Nothing in the game tic should EVER make a decision based on what the
+		/// local client number is, it shouldn't even be aware that there is a
+		/// draw phase even happening.  This just returns client 0, which will
+		/// be correct for single player.
+		/// </summary>
+		public idPlayer LocalPlayer
+		{
+			get
+			{
+				if(_localClientIndex < 0)
+				{
+					return null;
+				}
+
+				if((_entities[_localClientIndex] == null) || ((_entities[_localClientIndex] is idPlayer) == false))
+				{
+					// not fully in game yet
+					return null;
+				}
+
+				return (idPlayer) _entities[_localClientIndex];
+			}
+		}
+
+		public PlayerState[] PlayerStates
+		{
+			get
+			{
+				return _playerStates;
+			}
+		}
+
+		/// <summary>
 		/// All drawing is done to this world.
 		/// </summary>
 		public idRenderWorld RenderWorld
@@ -149,6 +162,22 @@ namespace idTech4.Game
 			get
 			{
 				return _currentRenderWorld;
+			}
+		}
+
+		public idGameRules Rules
+		{
+			get
+			{
+				return _gameRules;
+			}
+		}
+
+		public idDict ServerInfo
+		{
+			get
+			{
+				return _serverInfo;
 			}
 		}
 
@@ -163,51 +192,33 @@ namespace idTech4.Game
 			}
 		}
 
-		public int ClientCount
+		/// <summary>
+		/// Keeps track of whether we're spawning, shutting down, or normal gameplay.
+		/// </summary>
+		public GameState State
 		{
 			get
 			{
-				return _clientCount;
+				return _gameState;
 			}
 		}
 
-		/*public idEntity[] Entities
+		/// <summary>
+		/// Current time in msec.
+		/// </summary>
+		public int Time
 		{
 			get
 			{
-				return _entities;
+				return _time;
 			}
-		}*/
+		}
 
-		/*public idDict[] UserInfo
+		public idDict[] UserInfo
 		{
 			get
 			{
 				return _userInfo;
-			}
-		}*/
-
-		/*public PlayerState[] PlayerStates
-		{
-			get
-			{
-				return _playerStates;
-			}
-		}*/
-
-		public idDict ServerInfo
-		{
-			get
-			{
-				return _serverInfo;
-			}
-		}
-
-		/*public idGameRules Rules
-		{
-			get
-			{
-				return _gameRules;
 			}
 		}
 
@@ -221,21 +232,12 @@ namespace idTech4.Game
 			{
 				_world = value;
 			}
-		}*/
-
-		// TODO
-		/*public idClip Clip
-		{
-			get
-			{
-				return _clip;
-			}
-		}*/
+		}
 		#endregion
 
 		#region Members
 		private GameState _gameState;
-		/*private idGameRules _gameRules;*/
+		private idGameRules _gameRules;
 
 		private int _time;
 		private int _previousTime; // time in msec of last frame
@@ -256,10 +258,10 @@ namespace idTech4.Game
 		private int _firstFreeIndex;
 
 		private SpawnPoint[] _spawnPoints = new SpawnPoint[] { };
-		/*private idEntity[] _initialSpawnPoints = new idEntity[] { };*/
+		private idEntity[] _initialSpawnPoints = new idEntity[] { };
 		private int _currentInitialSpawnPoint;
 
-		/*private idWorldSpawn _world;*/
+		private idWorldSpawn _world;
 
 		private Random _random;
 
@@ -267,22 +269,22 @@ namespace idTech4.Game
 
 		// name of the map, empty string if no map loaded.
 		private string _currentMapFileName;
-		/*private idMapFile _currentMapFile;*/
+		private idMapFile _currentMapFile;
 
 		private idRenderWorld _currentRenderWorld;
 		private idSoundWorld _currentSoundWorld;
 
 		private idDict _serverInfo = new idDict();
-		/*private idDict[] _userInfo = new idDict[idR.MaxClients];
-		private idDict[] _persistentPlayerInfo = new idDict[idR.MaxClients];*/
+		private idDict[] _userInfo = new idDict[idR.MaxClients];
+		private idDict[] _persistentPlayerInfo = new idDict[idR.MaxClients];
 
 		// this was moved out of mpgame because of the changes that were made to implement
 		// the abstracted game rules.  CreateGameType gets called multiple times and would reset
 		// this array would be reset and null references would ensue.
-		/*private PlayerState[] _playerStates = new PlayerState[idR.MaxClients];
+		private PlayerState[] _playerStates = new PlayerState[idR.MaxClients];
 
 		private idEntity[] _entities = null;
-		private LinkedList<idEntity> _spawnedEntities = new LinkedList<idEntity>();*/
+		private LinkedList<idEntity> _spawnedEntities = new LinkedList<idEntity>();
 		private int[] _spawnIds = null;
 		private idUserCommand[] _userCommands = null;
 
@@ -576,6 +578,7 @@ namespace idTech4.Game
 
 		private void InitAsyncNetwork()
 		{
+			idConsole.DeveloperWriteLine("TODO: InitAsyncNetwork");
 			// TODO
 			/*_clientDeclRemap = new List<int>[idR.MaxClients, 32];
 
@@ -606,7 +609,7 @@ namespace idTech4.Game
 		{
 			_serverInfo.Clear();
 
-			/*for(int i = 0; i < _userInfo.Length; i++)
+			for(int i = 0; i < _userInfo.Length; i++)
 			{
 				_userInfo[i].Clear();
 				_persistentPlayerInfo[i].Clear();
@@ -620,9 +623,9 @@ namespace idTech4.Game
 			_spawnCount = idGame.InitialSpawnCount;
 			_localClientIndex = 0;
 
-			_currentMapFileName = string.Empty;*/
+			_currentMapFileName = string.Empty;
 
-			/*if(_currentMapFile != null)
+			if(_currentMapFile != null)
 			{
 				_currentMapFile.Dispose();
 				_currentMapFile = null;
@@ -636,16 +639,16 @@ namespace idTech4.Game
 			for(int i = 0; i < _playerStates.Length; i++)
 			{
 				_playerStates[i] = new PlayerState();
-			}*/
+			}
 
 			_spawnArgs.Clear();
+			_spawnedEntities.Clear();
 
 			_gameState = GameState.Uninitialized;
-
 			_firstFreeIndex = 0;
 			_entityCount = 0;
 
-			/*_spawnedEntities.Clear();*/
+			
 
 			/*activeEntities.Clear();
 			numEntitiesToDeactivate = 0;
@@ -656,8 +659,9 @@ namespace idTech4.Game
 
 			_random = new Random(0);
 
+			_world = null;
 			/*
-			world = NULL;
+			
 			frameCommandThread = NULL;
 			testmodel = NULL;
 			testFx = NULL;*/
@@ -693,6 +697,7 @@ namespace idTech4.Game
 			influenceActive = false;*/
 
 			_realClientTime = 0;
+
 			/*isNewFrame = true;
 			clientSmoothing = 0.1f;
 			entityDefBits = 0;
@@ -715,19 +720,18 @@ namespace idTech4.Game
 
 		private void CreateGameRules()
 		{
-			/*if(_gameRules != null)
+			if(_gameRules != null)
 			{
 				_gameRules.Dispose();
 				_gameRules = null;
-			}*/
+			}
 
 			string gameType = _serverInfo.GetString("si_gameType");
-			gameType = "deathmatch";
-
+			
 			switch(gameType.ToLower())
 			{
 				case "deathmatch":
-					/*_gameRules = new Deathmatch();*/
+					_gameRules = new Deathmatch();
 					break;
 
 				case "tourney":
@@ -736,7 +740,7 @@ namespace idTech4.Game
 					throw new Exception(gameType + " gametype not handled");
 
 				default:
-					/*_gameRules = new Singleplayer();*/
+					_gameRules = new Singleplayer();
 					break;
 			}
 
@@ -754,7 +758,7 @@ namespace idTech4.Game
 
 		private void LoadMap(string mapName, int randomSeed)
 		{
-			/*bool isSameMap = ((_currentMapFile != null) && (_currentMapFileName.ToLower() == mapName.ToLower()));
+			bool isSameMap = ((_currentMapFile != null) && (_currentMapFileName.ToLower() == mapName.ToLower()));
 
 			// clear the sound system
 			_currentSoundWorld.ClearAllSoundEmitters();
@@ -813,8 +817,8 @@ namespace idTech4.Game
 			// even if they aren't all used, so numbers inside that
 			// range are NEVER anything but clients
 
-			/*_entityCount = idR.MaxClients;
-			_firstFreeIndex = idR.MaxClients;*/
+			_entityCount = idR.MaxClients;
+			_firstFreeIndex = idR.MaxClients;
 
 			// reset the random number generator.
 			_random = new Random((this.IsMultiplayer == true) ? randomSeed : 0);
@@ -868,24 +872,23 @@ namespace idTech4.Game
 			smokeParticles->Init();*/
 
 			// cache miscellanious media references
-			//FindEntityDef("preCacheExtras", false);
+			FindEntityDef("preCacheExtras", false);
 
-			/*if(isSameMap == false)
+			if(isSameMap == false)
 			{
 				_currentMapFile.RemovePrimitiveData();
-			}*/
+			}
 		}
 
 		private void MapPopulate()
 		{
-			/*_gameRules.MapPopulate();*/
+			_gameRules.MapPopulate();
 
-			// TODO
 			// parse the key/value pairs and spawn entities
 			SpawnMapEntities();
 
 			// mark location entities in all connected areas
-			/*SpreadLocations();*/
+			/* TODO: SpreadLocations();*/
 
 			// prepare the list of randomized initial spawn spots
 			RandomizeInitialSpawns();
@@ -908,7 +911,7 @@ namespace idTech4.Game
 		{
 			idConsole.WriteLine("Spawning entities");
 
-			/*if(_currentMapFile == null)
+			if(_currentMapFile == null)
 			{
 				idConsole.WriteLine("No mapfile present");
 				return;
@@ -959,7 +962,7 @@ namespace idTech4.Game
 				}
 			}
 
-			idConsole.WriteLine("...{0} entities spawned, {1} inhibited", count, inhibitCount);*/
+			idConsole.WriteLine("...{0} entities spawned, {1} inhibited", count, inhibitCount);
 		}
 
 		private bool InhibitEntitySpawn(idDict args)
@@ -1016,12 +1019,12 @@ namespace idTech4.Game
 			}
 
 			List<SpawnPoint> points = new List<SpawnPoint>();
-			/*List<idEntity> initialPoints = new List<idEntity>();
+			List<idEntity> initialPoints = new List<idEntity>();
 
 			SpawnPoint point = new SpawnPoint();
-			point.Entity = FindEntityUsingDef(null, "info_player_deathmatch");*/
+			point.Entity = FindEntityUsingDef(null, "info_player_deathmatch");
 
-			/*while(point.Entity != null)
+			while(point.Entity != null)
 			{
 				points.Add(point);
 
@@ -1034,18 +1037,18 @@ namespace idTech4.Game
 
 				point = new SpawnPoint();
 				point.Entity = FindEntityUsingDef(ent, "info_player_deathmatch");
-			}*/
-			
+			}
+
 			if(points.Count == 0)
 			{
 				idConsole.Warning("no info_player_deathmatch in map");
 				return;
 			}
 
-			//idConsole.WriteLine("{0} spawns ({1} initials)", points.Count, initialPoints.Count);
+			idConsole.WriteLine("{0} spawns ({1} initials)", points.Count, initialPoints.Count);
 
 			// if there are no initial spots in the map, consider they can all be used as initial
-			/*if(initialPoints.Count == 0)
+			if(initialPoints.Count == 0)
 			{
 				idConsole.Warning("no info_player_deathmatch entities marked initial in map");
 
@@ -1065,7 +1068,7 @@ namespace idTech4.Game
 
 				_initialSpawnPoints[i] = _initialSpawnPoints[j];
 				_initialSpawnPoints[j] = ent;
-			}*/
+			}
 
 			// reset the counter
 			_currentInitialSpawnPoint = 0;
@@ -1073,8 +1076,7 @@ namespace idTech4.Game
 
 		private void InitClientDeclRemap(int clientIndex)
 		{
-			// TODO
-			/*for(int type = 0; type < idR.DeclManager.GetDeclTypeCount(); type++)
+			for(int type = 0; type < idR.DeclManager.GetDeclTypeCount(); type++)
 			{
 				// only implicit materials and sound shaders decls are used
 				DeclType declType = (DeclType) type;
@@ -1102,7 +1104,7 @@ namespace idTech4.Game
 
 					_clientDeclRemap[clientIndex, type].Add(i);
 				}
-			}*/
+			}
 		}
 
 		/// <summary>
@@ -1113,18 +1115,9 @@ namespace idTech4.Game
 		/// </summary>
 		/// <param name="player"></param>
 		/// <returns></returns>
-		/*public idEntity SelectInitialSpawnPoint(idPlayer player)
+		public idEntity SelectInitialSpawnPoint(idPlayer player)
 		{
-			// TODO
-			/*idEntity *idGameLocal::SelectInitialSpawnPoint( idPlayer *player ) {
-				int				i, j, which;
-				spawnSpot_t		spot;
-				idVec3			pos;
-				float			dist;
-				bool			alone;
-			*/
-
-			/*if((this.IsMultiplayer == false) || (_spawnPoints.Length == 0))
+			if((this.IsMultiplayer == false) || (_spawnPoints.Length == 0))
 			{
 				idEntity ent = FindEntityUsingDef(null, "info_player_start");
 
@@ -1187,38 +1180,38 @@ namespace idTech4.Game
 		// choose a random one in the top half
 		which = random.RandomInt( spawnSpots.Num() / 2 );
 		spot = spawnSpots[ which ];*/
-			/*}
+			}
 
 			// TODO: return spot.ent;
 			return null;
-		}*/
+		}
 
-		/*public idDeclEntityDef FindEntityDef(string name, bool makeDefault)
+		public idDeclEntity FindEntityDef(string name, bool makeDefault)
 		{
-			idDeclEntityDef decl = null;
+			idDeclEntity decl = null;
 
 			// TODO: refactor in to mpgame
 			if(this.IsMultiplayer == true)
 			{
-				decl = idR.DeclManager.FindType<idDeclEntityDef>(DeclType.EntityDef, string.Format("{0}_mp", name), false);
+				decl = idR.DeclManager.FindType<idDeclEntity>(DeclType.EntityDef, string.Format("{0}_mp", name), false);
 			}
 
 			if(decl == null)
 			{
-				decl = idR.DeclManager.FindType<idDeclEntityDef>(DeclType.EntityDef, name, makeDefault);
+				decl = idR.DeclManager.FindType<idDeclEntity>(DeclType.EntityDef, name, makeDefault);
 			}
 
 			return decl;
-		}*/
+		}
 
 		public idDict FindEntityDefDict(string name, bool makeDefault)
 		{
-			/*idDeclEntityDef decl = FindEntityDef(name, makeDefault);
+			idDeclEntity decl = FindEntityDef(name, makeDefault);
 
 			if(decl.Dict != null)
 			{
 				return decl.Dict;
-			}*/
+			}
 
 			return null;
 		}
@@ -1233,7 +1226,7 @@ namespace idTech4.Game
 		/// <param name="from"></param>
 		/// <param name="match"></param>
 		/// <returns></returns>
-		/*public idEntity FindEntityUsingDef(idEntity from, string match)
+		public idEntity FindEntityUsingDef(idEntity from, string match)
 		{
 			idEntity ent = null;
 			LinkedListNode<idEntity> node = null;
@@ -1276,16 +1269,10 @@ namespace idTech4.Game
 
 			return null;
 		}
-
-		public idEntity SpawnEntityDef(idDict args)
+		
+		public idEntity SpawnEntityDef(idDict args, bool setDefaults = true)
 		{
-			return SpawnEntityDef(args, true);
-		}
-
-		public idEntity SpawnEntityDef(idDict args, bool setDefaults)
-		{
-			// TODO
-			/*_spawnArgs = args;
+			_spawnArgs = args;
 
 			string error = string.Empty;
 			string name = string.Empty;
@@ -1299,7 +1286,7 @@ namespace idTech4.Game
 			name = _spawnArgs.GetString("name", "");
 			className = _spawnArgs.GetString("classname");
 
-			idDeclEntityDef def = FindEntityDef(className, false);
+			idDeclEntity def = FindEntityDef(className, false);
 
 			if(def == null)
 			{
@@ -1353,6 +1340,7 @@ namespace idTech4.Game
 				return ent;
 			}
 
+			idConsole.DeveloperWriteLine("TODO: Spawnfunc");
 			// TODO: spawnfunc
 			// check if we should call a script function to spawn
 			/*spawnArgs.GetString( "spawnfunc", NULL, &spawn );
@@ -1369,11 +1357,11 @@ namespace idTech4.Game
 
 			Warning( "%s doesn't include a spawnfunc or spawnclass%s.", classname, error.c_str() );
 			return false;*/
-		/*
+		
 			return null;
-		}*/
+		}
 
-		/*private void SpawnPlayer(int clientIndex)
+		private void SpawnPlayer(int clientIndex)
 		{
 			idConsole.WriteLine("SpawnPlayer: {0}", clientIndex);
 
@@ -1407,6 +1395,7 @@ namespace idTech4.Game
 
 		public void ServerSendChatMessage(int to, string name, string text)
 		{
+			idConsole.DeveloperWriteLine("TODO: ServerSendChatMessage");
 			// TODO: 
 			/*idBitMsg outMsg = new idBitMsg();
 			outMsg.InitGame();
@@ -1420,10 +1409,10 @@ namespace idTech4.Game
 			if((to == -1) || (to == _localClientIndex))
 			{
 				((Multiplayer) _gameRules).AddChatLine("{0}^0: {1}", name, text);
-			}*//*
-		}*/
+			}*/		
+		}
 
-		/*public void RegisterEntity(idEntity entity)
+		public void RegisterEntity(idEntity entity)
 		{
 			int entitySpawnIndex;
 
@@ -1464,7 +1453,7 @@ namespace idTech4.Game
 			{
 				_entityCount++;
 			}
-		}*/
+		}
 		#endregion
 
 		#region idGame implementation
@@ -1495,10 +1484,15 @@ namespace idTech4.Game
 			*/
 			Clear();
 
-			/*idEvent::Init();
+			idConsole.DeveloperWriteLine("TODO: events, class, console");
+			/*
+			TODO: 
+			idEvent::Init();
 			idClass::Init();
 
 			InitConsoleCommands();*/
+
+			idConsole.DeveloperWriteLine("TODO: AAS");
 
 			// TODO: AAS
 			/*
@@ -1532,20 +1526,20 @@ namespace idTech4.Game
 		public override GameReturn RunFrame(idUserCommand[] userCommands)
 		{
 			GameReturn gameReturn = new GameReturn();
-			/*idPlayer player = this.LocalPlayer;
+			idPlayer player = this.LocalPlayer;
 
 			// set the user commands for this frame
-			_userCommands = (idUserCommand[]) userCommands.Clone();*/
+			_userCommands = (idUserCommand[]) userCommands.Clone();
 
 			if((this.IsMultiplayer == false) && (idR.CvarSystem.GetBool("g_stopTime") == true))
 			{
 				// clear any debug lines from a previous frame
-				// TODO: _currentRenderWorld.DebugClearLines(_time + 1);
+				_currentRenderWorld.DebugClearLines(_time + 1);
 
-				/*if(player != null)
+				if(player != null)
 				{
 					player.Think();
-				}*/
+				}
 			}
 			else
 			{
@@ -1569,41 +1563,41 @@ namespace idTech4.Game
 					// are influenced by the player's actions
 					_random.Next();
 
-					/*if(player != null)*/
+					if(player != null)
 					{
 						// update the renderview so that any gui videos play from the right frame
-						/* TODO: idRenderView view = player.RenderView;
+						idRenderView view = player.RenderView;
 
 						if(view != null)
 						{
 							_currentRenderWorld.RenderView = view;
-						}*/
+						}
 					}
 
 					// clear any debug lines from a previous frame
-					// TODO: _currentRenderWorld.DebugClearLines(_time);
+					_currentRenderWorld.DebugClearLines(_time);
 
 					// clear any debug polygons from a previous frame
-					// TODO: _currentRenderWorld.DebugClearPolygons(_time);
+					_currentRenderWorld.DebugClearPolygons(_time);
 
 					// free old smoke particles
 					// TODO: smokeParticles->FreeSmokes();
 
 					// TODO
 					// process events on the server
-					/*ServerProcessEntityNetworkEventQueue();
+					/*ServerProcessEntityNetworkEventQueue();*/
 
 					// update our gravity vector if needed.
-					UpdateGravity();
+					/* TODO: UpdateGravity();
 
 					// create a merged pvs for all players
-					SetupPlayerPVS();
+					TODO: SetupPlayerPVS();
 
 					// sort the active entity list
-					SortActiveEntityList();
+					TODO: SortActiveEntityList();*/
 
-					timer_think.Clear();
-					timer_think.Start();*/
+					/*timer_think.Clear();
+					TODO: timer_think.Start();*/
 
 					// let entities think
 					if(idR.CvarSystem.GetFloat("g_timeentities") > 0)
@@ -1674,7 +1668,7 @@ namespace idTech4.Game
 					// free the player pvs
 					FreePlayerPVS();*/
 
-					/*_gameRules.Run();*/
+					_gameRules.Run();
 
 					// display how long it took to calculate the current game frame
 					/*if ( g_frametime.GetBool() ) {
@@ -1734,8 +1728,7 @@ namespace idTech4.Game
 
 		public override bool Draw(int clientIndex)
 		{
-			return true;
-			// TODO: return _gameRules.Draw(clientIndex);
+			return _gameRules.Draw(clientIndex);
 		}
 
 		public /*override*/ void HandleMainMenuCommands(string menuCommand, idUserInterface gui)
@@ -1763,10 +1756,8 @@ namespace idTech4.Game
 		/// avoid the fast pre-cache check associated with each entityDef.
 		/// </summary>
 		/// <param name="dict"></param>
-		public /*override */void CacheDictionaryMedia(idDict dict)
-		{
-			idConsole.DeveloperWriteLine("CacheDictionaryMedia");
-
+		public override void CacheDictionaryMedia(idDict dict)
+		{			
 			/*idKeyValue kv = null;
 			// TODO
 			/*if ( dict == NULL ) {
@@ -1780,217 +1771,119 @@ namespace idTech4.Game
 				GetShakeSounds( dict );
 			}*/
 
-			/*kv = dict.MatchPrefix("model", null);
-
-			// TODO
-			/*while(kv != null)
+			#region Model
+			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("model"))
 			{
-				idConsole.WriteLine("BLAH: {0}", kv.Value);
-				if(kv.Value != string.Empty)
+				idConsole.WriteLine("BLAH: {0} -> {1}", kvp.Key, kvp.Value);
+				
+				// precache model/animations
+				if(idR.DeclManager.FindType<idDecl>(DeclType.ModelDef, kvp.Value, false) == null)
 				{
-					idR.DeclManager.MediaPrint(string.Format("TODO: Precaching model {0}", kv.Value));
-					
-					// precache model/animations
-					// TODO
-					if(idR.DeclManager.FindType<idDecl>(DeclType.ModelDef, kv.Value, false) == null)
-					{
-						// precache the render model
-						idR.RenderModelManager.FindModel(kv.Value);
+					// precache the render model
+					idR.RenderModelManager.FindModel(kvp.Value);
 
-						// precache .cm files only
-						idR.CollisionModelManager.LoadModel(kv.Value, true);
-					}
-
-					kv = dict.MatchPrefix("model", kv);
+					// precache .cm files only
+					idConsole.DeveloperWriteLine("TODO: idR.CollisionModelManager.LoadModel(kvp.Value, true);");
 				}
-			}*/
-
-			/*kv = dict.FindKey("s_shader");
-
-			if((kv != null) && (kv.Value != string.Empty))
-			{
-				idR.DeclManager.FindType<idDecl>(DeclType.Sound, kv.Value);
 			}
+			#endregion
 
-			kv = dict.MatchPrefix("snd", null);
-
-			while(kv != null)
+			#region Gui
+			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("gui"))
 			{
-				if(kv.Value != string.Empty)
+				string keyLower = kvp.Key.ToLower();
+
+				if((keyLower == "gui_noninteractive")
+					|| (keyLower.StartsWith("gui_parm") == true)
+					|| (keyLower == "gui_inventory"))
 				{
-					idR.DeclManager.FindType<idDecl>(DeclType.Sound, kv.Value);
+					// unfortunate flag names, they aren't actually a gui
 				}
-
-				kv = dict.MatchPrefix("snd", kv);
-			}
-
-			kv = dict.MatchPrefix("gui", null);
-
-			while(kv != null)
-			{
-				if(kv.Value != string.Empty)
+				else
 				{
-					if((kv.Key.ToLower() == "gui_noninteractive")
-						|| (kv.Key.ToLower().StartsWith("gui_parm") == true)
-						|| (kv.Key.ToLower() == "gui_inventory"))
-					{
-						// unfortunate flag names, they aren't actually a gui
-					}
-					else
-					{
-						idR.DeclManager.MediaPrint(string.Format("Precaching gui {0}", kv.Value));
+					idR.DeclManager.MediaPrint(string.Format("Precaching gui {0}", kvp.Value));
 
-						idUserInterface gui = idR.UIManager.Alloc();
+					idUserInterface gui = new idUserInterface();
 
-						if(gui != null)
-						{
-							gui.InitFromFile(kv.Value);
-							idR.UIManager.DeAlloc(gui);
-						}
+					if(gui != null)
+					{
+						gui.InitFromFile(kvp.Value);
+						gui.Dispose();
 					}
 				}
-
-				kv = dict.MatchPrefix("gui", kv);
 			}
+			#endregion
 
-			kv = dict.FindKey("texture");
-
-			if((kv != null) && (kv.Value != string.Empty))
+			#region Fx
+			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("fx"))
 			{
-				idR.DeclManager.FindType<idDecl>(DeclType.Material, kv.Value);
+				idR.DeclManager.MediaPrint(string.Format("Precaching fx {0}", kvp.Value));
+				idR.DeclManager.FindType<idDecl>(DeclType.Fx, kvp.Value);
 			}
+			#endregion
 
-			kv = dict.MatchPrefix("mtr", null);
-
-			while(kv != null)
+			#region Smoke
+			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("smoke"))
 			{
-				if(kv.Value != string.Empty)
+				string prtName = kvp.Value;
+				int dash = prtName.IndexOf('-');
+
+				if(dash > 0)
 				{
-					idR.DeclManager.FindType<idMaterial>(DeclType.Material, kv.Value);
+					prtName = prtName.Substring(0, dash);
 				}
 
-				kv = dict.MatchPrefix("mtr", kv);
+				idR.DeclManager.FindType<idDecl>(DeclType.Particle, prtName);
+			}
+			#endregion
+
+			#region Skin
+			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("skin"))
+			{
+				idR.DeclManager.MediaPrint(string.Format("Precaching skin {0}", kvp.Value));
+				idR.DeclManager.FindType<idDecl>(DeclType.Skin, kvp.Value);
+			}
+			#endregion
+
+			#region Def
+			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("def"))
+			{
+				FindEntityDef(kvp.Value, false);
+			}
+			#endregion
+
+			#region Misc
+			string value = dict.GetString("s_shader");
+
+			if(value != string.Empty)
+			{
+				idR.DeclManager.FindType<idDecl>(DeclType.Sound, value);
 			}
 
-			kv = dict.MatchPrefix("inv_icon", null);
+			value = dict.GetString("texture");
 
-			while(kv != null)
+			if(value != string.Empty)
 			{
-				if(kv.Value != string.Empty)
+				idR.DeclManager.FindType<idDecl>(DeclType.Material, value);
+			}
+
+			Dictionary<string, DeclType> cacheElements = new Dictionary<string, DeclType>() {
+				{ "snd", DeclType.Sound },
+				{ "mtr", DeclType.Material },
+				{ "inv_icon", DeclType.Material },
+				{ "pda_name", DeclType.Pda },
+				{ "video", DeclType.Video },
+				{ "audio", DeclType.Audio }
+			};
+
+			foreach(KeyValuePair<string, DeclType> element in cacheElements)
+			{
+				foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix(element.Key))
 				{
-					idR.DeclManager.FindType<idMaterial>(DeclType.Material, kv.Value);
+					idR.DeclManager.FindType<idDecl>(element.Value, kvp.Value);
 				}
-
-				kv = dict.MatchPrefix("inv_icon", kv);
 			}
-
-			// handles teleport fx.. this is not ideal but the actual decision on which fx to use
-			// is handled by script code based on the teleport number
-			kv = dict.MatchPrefix("teleport", null);
-
-			if((kv != null) && (kv.Value != string.Empty))
-			{
-				int teleportType = 0;
-
-				Int32.TryParse(kv.Value, out teleportType);
-				string p = (teleportType > 0) ? string.Format("fx/teleporter{0}.fx", teleportType) : "fx/teleporter.fx";
-
-				idR.DeclManager.FindType<idDecl>(DeclType.Fx, p);
-			}
-
-			kv = dict.MatchPrefix("fx", null);
-
-			while(kv != null)
-			{
-				if(kv.Value != string.Empty)
-				{
-					idR.DeclManager.MediaPrint(string.Format("Precaching fx {0}", kv.Value));
-					idR.DeclManager.FindType<idDecl>(DeclType.Fx, kv.Value);
-				}
-
-				kv = dict.MatchPrefix("fx", kv);
-			}
-
-			kv = dict.MatchPrefix("smoke", null);
-
-			while(kv != null)
-			{
-				if(kv.Value != string.Empty)
-				{
-					string prtName = kv.Value;
-					int dash = prtName.IndexOf('-');
-
-					if(dash > 0)
-					{
-						prtName = prtName.Substring(0, dash);
-					}
-
-					idR.DeclManager.FindType<idDecl>(DeclType.Particle, prtName);
-				}
-
-				kv = dict.MatchPrefix("smoke", kv);
-			}
-
-			kv = dict.MatchPrefix("skin", null);
-
-			while(kv != null)
-			{
-				if(kv.Value != string.Empty)
-				{
-					idR.DeclManager.MediaPrint(string.Format("Precaching skin {0}", kv.Value));
-					idR.DeclManager.FindType<idDecl>(DeclType.Skin, kv.Value);
-				}
-
-				kv = dict.MatchPrefix("skin", kv);
-			}
-
-			kv = dict.MatchPrefix("def", null);
-
-			while(kv != null)
-			{
-				if(kv.Value != string.Empty)
-				{
-					FindEntityDef(kv.Value, false);
-				}
-
-				kv = dict.MatchPrefix("def", kv);
-			}
-
-			kv = dict.MatchPrefix("pda_name", null);
-
-			while(kv != null)
-			{
-				if(kv.Value != string.Empty)
-				{
-					idR.DeclManager.FindType<idDecl>(DeclType.Pda, kv.Value);
-				}
-
-				kv = dict.MatchPrefix("pda_name", kv);
-			}
-
-			kv = dict.MatchPrefix("video", null);
-
-			while(kv != null)
-			{
-				if(kv.Value != string.Empty)
-				{
-					idR.DeclManager.FindType<idDecl>(DeclType.Video, kv.Value);
-				}
-
-				kv = dict.MatchPrefix("video", kv);
-			}
-
-			kv = dict.MatchPrefix("audio", null);
-
-			while(kv != null)
-			{
-				if(kv.Value != string.Empty)
-				{
-					idR.DeclManager.FindType<idDecl>(DeclType.Audio, kv.Value);
-				}
-
-				kv = dict.MatchPrefix("audio", kv);
-			}*/
+			#endregion
 		}
 
 		public /*override*/ void InitFromNewMap(string mapName, idRenderWorld renderWorld, idSoundWorld soundWorld, bool isServer, bool isClient, int randomSeed)
@@ -2019,8 +1912,8 @@ namespace idTech4.Game
 
 			MapPopulate();
 
-			/*_gameRules.Reset();
-			_gameRules.Precache();*/
+			_gameRules.Reset();
+			_gameRules.Precache();
 
 			// free up any unused animations
 			// TODO: animationLib.FlushUnusedAnims();
@@ -2037,14 +1930,13 @@ namespace idTech4.Game
 
 		public /*override*/ void SetServerInfo(idDict serverInfo)
 		{
-			idConsole.WriteLine("SetServerInfo");
-
 			_serverInfo = serverInfo;
 
 			CreateGameRules();
 
 			if(this.IsClient == false)
 			{
+				idConsole.DeveloperWriteLine("TODO: SetServerInfo");
 				// TODO
 				/*idBitMsg outMsg = new idBitMsg();
 				outMsg.InitGame();
@@ -2062,13 +1954,11 @@ namespace idTech4.Game
 
 		public override idDict SetUserInformation(int clientIndex, idDict userInfo, bool isClient, bool canModify)
 		{
-			idConsole.WriteLine("TODO: SetUserInfo");
-
 			bool modifiedInfo = false;
 
 			_isClient = isClient;
 
-			/*if((clientIndex >= 0) && (clientIndex < idR.MaxClients))
+			if((clientIndex >= 0) && (clientIndex < idR.MaxClients))
 			{
 				_userInfo[clientIndex] = userInfo;
 
@@ -2094,7 +1984,7 @@ namespace idTech4.Game
 							continue;
 						}
 
-						/*if((_entities[i] != null) && (_entities[i] is idPlayer))
+						if((_entities[i] != null) && (_entities[i] is idPlayer))
 						{
 							if(_userInfo[clientIndex].GetString("ui_name").ToLower() == _userInfo[i].GetString("ui_name"))
 							{
@@ -2103,11 +1993,11 @@ namespace idTech4.Game
 								i = -1; // rescan
 								continue;
 							}
-						}*/
-				/*	}
+						}
+					}
 				}
 
-				/*if((_entities[clientIndex] != null) && (_entities[clientIndex] is idPlayer))
+				if((_entities[clientIndex] != null) && (_entities[clientIndex] is idPlayer))
 				{
 					modifiedInfo |= ((idPlayer) _entities[clientIndex]).UserInfoChanged(canModify);
 					modifiedInfo |= idR.Game.Rules.UserInfoChanged(clientIndex, canModify);
@@ -2117,13 +2007,13 @@ namespace idTech4.Game
 				{
 					// now mark this client in game
 					_gameRules.EnterGame(clientIndex);
-				}*/
-			/*}
+				}
+			}
 
 			if(modifiedInfo == true)
 			{
 				return _userInfo[clientIndex];
-			}*/
+			}
 
 			return null;
 		}
@@ -2133,7 +2023,7 @@ namespace idTech4.Game
 			idConsole.DeveloperWriteLine("ServerClientConnect");
 
 			// make sure no parasite entity is left
-			/*if(_entities[clientIndex] != null)
+			if(_entities[clientIndex] != null)
 			{
 				idConsole.DeveloperWriteLine("ServerClientConnect: remove old player entity");
 
@@ -2143,18 +2033,17 @@ namespace idTech4.Game
 
 			_userInfo[clientIndex].Clear();
 			_playerStates[clientIndex].Clear();
-			_gameRules.ClientConnect(clientIndex);*/
+			_gameRules.ClientConnect(clientIndex);
 
 			idConsole.WriteLine("client {0} connected.", clientIndex);
 		}
 
 		public /*override*/ void ServerClientBegin(int clientIndex)
 		{
-			idConsole.DeveloperWriteLine("ServerClientBegin");
-
 			// initialize the decl remap
 			InitClientDeclRemap(clientIndex);
 
+			idConsole.DeveloperWriteLine("TODO: ServerClientBegin");
 			// send message to initialize decl remap at the client (this is always the very first reliable game message)
 			// TODO
 			/*idBitMsg outMsg = new idBitMsg();
@@ -2162,7 +2051,7 @@ namespace idTech4.Game
 			outMsg.BeginWriting();
 			outMsg.WriteByte((int) GameReliableMessage.InitDeclRemap);
 
-			idR.NetworkSystem.ServerSendReliableMessage(clientIndex, outMsg);
+			idR.NetworkSystem.ServerSendReliableMessage(clientIndex, outMsg);*/
 
 			// spawn the player
 			SpawnPlayer(clientIndex);
@@ -2173,14 +2062,14 @@ namespace idTech4.Game
 			}
 
 			// send message to spawn the player at the clients
-			outMsg = new idBitMsg();
+			/*outMsg = new idBitMsg();
 			outMsg.InitGame();
 			outMsg.BeginWriting();
 			outMsg.WriteByte((int) GameReliableMessage.SpawnPlayer);
 			outMsg.WriteByte(clientIndex);
-			outMsg.WriteLong(_spawnIds[clientIndex]);
+			outMsg.WriteLong(_spawnIds[clientIndex]);*/
 
-			idR.NetworkSystem.ServerSendReliableMessage(-1, outMsg);*/
+			/*idR.NetworkSystem.ServerSendReliableMessage(-1, outMsg);*/
 		}
 
 		public override void SpawnPlayer(int clientIndex)

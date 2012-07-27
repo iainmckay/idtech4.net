@@ -69,6 +69,16 @@ namespace idTech4.Text
 	public sealed class idDeclManager
 	{
 		#region Properties
+		#region Public
+		public idDeclFile ImplicitDeclFile
+		{
+			get
+			{
+				return _implicitDecls;
+			}
+		}
+		#endregion
+
 		#region Internal
 		internal int Indent
 		{
@@ -142,10 +152,10 @@ namespace idTech4.Text
 			RegisterDeclType("material", DeclType.Material, new idDeclAllocator<idMaterial>());
 			RegisterDeclType("skin", DeclType.Skin, new idDeclAllocator<idDeclSkin>());
 			/*RegisterDeclType("sound", DeclType.Sound, new idDeclAllocator<idSoundShader>());
-
-			RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntityDef>());
-			RegisterDeclType("mapDef", DeclType.MapDef, new idDeclAllocator<idDeclEntityDef>());
-			RegisterDeclType("fx", DeclType.Fx, new idDeclAllocator<idDeclFX>());*/
+			/*/
+			RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntity>());
+			RegisterDeclType("mapDef", DeclType.MapDef, new idDeclAllocator<idDeclEntity>());
+			/*RegisterDeclType("fx", DeclType.Fx, new idDeclAllocator<idDeclFX>());*/
 			RegisterDeclType("particle", DeclType.Particle, new idDeclAllocator<idDeclParticle>());
 			/*RegisterDeclType("articulatedFigure", DeclType.Af, new idDeclAllocator<idDeclAF>());
 			RegisterDeclType("pda", DeclType.Pda, new idDeclAllocator<idDeclPDA>());*/
@@ -283,6 +293,11 @@ namespace idTech4.Text
 			return _declsByType[type].Count;
 		}
 
+		public int GetDeclTypeCount()
+		{
+			return _declTypes.Count;
+		}
+
 		public DeclType GetDeclTypeFromName(string name)
 		{
 			DeclType tmp;
@@ -307,9 +322,9 @@ namespace idTech4.Text
 				idConsole.FatalError("idDeclManager.DeclByIndex: bad type: {0}", type.ToString().ToLower());
 			}
 
-			if((index <= 0) || (index >= _declsByType[type].Count))
+			if((index < 0) || (index >= _declsByType[type].Count))
 			{
-				idConsole.Error("idDeclManager.DeclByIndex: out of range");
+				idConsole.Error("idDeclManager.DeclByIndex: out of range [{0}: {1} < {2}]", type, index, _declsByType[type].Count);
 			}
 
 			idDecl decl = _declsByType[type][index];

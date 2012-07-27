@@ -926,7 +926,7 @@ namespace idTech4
 
 			// extract the map name from serverinfo
 			string mapString = _mapSpawnData.ServerInformation.GetString("si_map");
-			string mapFullName = string.Format("maps/{0}", Path.GetFileNameWithoutExtension(mapString));
+			string mapFullName = string.Format("maps/{0}", Path.Combine(Path.GetDirectoryName(mapString), Path.GetFileNameWithoutExtension(mapString)));
 
 			// shut down the existing game if it is running
 			// TODO: UnloadMap();
@@ -1271,7 +1271,7 @@ namespace idTech4
 				return;
 			}
 
-			map = Path.GetFileNameWithoutExtension(map);
+			map = Path.Combine(Path.GetDirectoryName(map), Path.GetFileNameWithoutExtension(map));
 
 			// make sure the level exists before trying to change, so that
 			// a typo at the server console won't end the game

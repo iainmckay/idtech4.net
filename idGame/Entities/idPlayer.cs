@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework;
 
 using idTech4.Game;
 using idTech4.Game.Rules;
+using idTech4.Math;
 using idTech4.Text.Decl;
 using idTech4.UI;
 
@@ -27,19 +28,19 @@ namespace idTech4.Game.Entities
 
 		#region Properties
 		#region General
-		public idDict Info
-		{
-			get
-			{
-				return idR.Game.UserInfo[this.Index];
-			}
-		}
-
 		public idUserInterface Hud
 		{
 			get
 			{
 				return _hud;
+			}
+		}
+
+		public idDict Info
+		{
+			get
+			{
+				return idR.Game.UserInfo[this.Index];
 			}
 		}
 
@@ -53,78 +54,15 @@ namespace idTech4.Game.Entities
 		#endregion
 
 		#region Multiplayer
-		public bool IsSpectating
+		public string BaseSkin
 		{
 			get
 			{
-				return _spectating;
+				return _baseSkin;
 			}
 			set
 			{
-				_spectating = value;
-			}
-		}
-
-		public bool ForceRespawn
-		{
-			get
-			{
-				return _forceRespawn;
-			}
-			set
-			{
-				_forceRespawn = value;
-			}
-		}
-
-		public bool ForceReady
-		{
-			get
-			{
-				return _forcedReady;
-			}
-			set
-			{
-				_forcedReady = value;
-			}
-		}
-
-		public bool IsReady
-		{
-			get
-			{
-				return _ready;
-			}
-			set
-			{
-				_ready = value;
-			}
-		}
-
-		/// <summary>
-		/// Replicated from server, true if the player is chatting.
-		/// </summary>
-		public bool IsChatting
-		{
-			get
-			{
-				return _isChatting;
-			}
-			set
-			{
-				_isChatting = value;
-			}
-		}
-
-		public bool WantToSpectate
-		{
-			get
-			{
-				return _wantToSpectate;
-			}
-			set
-			{
-				_wantToSpectate = value;
+				_baseSkin = value;
 			}
 		}
 
@@ -152,15 +90,66 @@ namespace idTech4.Game.Entities
 			}
 		}
 
-		public string BaseSkin
+		public bool ForceReady
 		{
 			get
 			{
-				return _baseSkin;
+				return _forcedReady;
 			}
 			set
 			{
-				_baseSkin = value;
+				_forcedReady = value;
+			}
+		}
+
+		public bool ForceRespawn
+		{
+			get
+			{
+				return _forceRespawn;
+			}
+			set
+			{
+				_forceRespawn = value;
+			}
+		}
+
+		/// <summary>
+		/// Replicated from server, true if the player is chatting.
+		/// </summary>
+		public bool IsChatting
+		{
+			get
+			{
+				return _isChatting;
+			}
+			set
+			{
+				_isChatting = value;
+			}
+		}
+
+		public bool IsReady
+		{
+			get
+			{
+				return _ready;
+			}
+			set
+			{
+				_ready = value;
+			}
+		}
+
+		public bool IsSpectating
+		{
+			get
+			{
+				return _spectating;
+			}
+			set
+			{
+				_spectating = value;
 			}
 		}
 
@@ -205,6 +194,18 @@ namespace idTech4.Game.Entities
 				_tourneyRank = value;
 			}
 		}
+
+		public bool WantToSpectate
+		{
+			get
+			{
+				return _wantToSpectate;
+			}
+			set
+			{
+				_wantToSpectate = value;
+			}
+		}
 		#endregion
 		#endregion
 
@@ -247,7 +248,7 @@ namespace idTech4.Game.Entities
 			: base()
 		{
 			_view = new PlayerView(this);
-			/*memset( &usercmd, 0, sizeof( usercmd ) );
+			/* TODO: memset( &usercmd, 0, sizeof( usercmd ) );
 
 			 
 			noclip					= false;
@@ -418,177 +419,10 @@ namespace idTech4.Game.Entities
 		#endregion
 
 		#region Methods
-		public bool UserInfoChanged(bool canModify)
-		{
-			bool modifiedInfo = false;
-			idDict userInfo = this.Info;
-
-			_showWeaponViewModel = userInfo.GetBool("ui_showGun");
-
-			return modifiedInfo;
-		}
-
-		/// <summary>
-		/// Try to find a spawn point marked 'initial', otherwise use normal spawn selection.
-		/// </summary>
-		/// <param name="origin"></param>
-		/// <param name="angles"></param>
-		public void SelectInitialSpawnPoint(out Vector3 origin, out Angles angles)
-		{
-			idEntity spot = idR.Game.SelectInitialSpawnPoint(this);
-			string skin = spot.SpawnArgs.GetString("skin", null);
-
-			// set the player skin from the spawn location
-			if(skin != null)
-			{
-				this.SpawnArgs.Set("spawn_skin", skin);
-			}
-
-			origin = Vector3.Zero;
-			angles = new Angles();
-
-			// activate the spawn locations targets
-			// TODO: spot->PostEventMS(&EV_ActivateTargets, 0, this);
-
-			// TODO
-			/*origin = spot->GetPhysics()->GetOrigin();
-			origin[2] += 4.0f + CM_BOX_EPSILON;		// move up to make sure the player is at least an epsilon above the floor
-			angles = spot->GetPhysics()->GetAxis().ToAngles();*/
-		}
-
-		/// <summary>
-		/// Chooses a spawn point and spawns the player.
-		/// </summary>
-		public void SpawnFromSpawnSpot()
-		{
-			Vector3 origin;
-			Angles angles;
-
-			SelectInitialSpawnPoint(out origin, out angles);
-			SpawnToPoint(origin, angles);
-		}
-
-		/// <summary>
-		/// Called every time a client is placed fresh in the world: after the first ClientBegin, and after each respawn
-		/// Initializes all non-persistant parts of playerState when called here with spectating set to true, just place yourself and init.
-		/// </summary>
-		/// <param name="origin"></param>
-		/// <param name="angles"></param>
-		public void SpawnToPoint(Vector3 origin, Angles angles)
-		{
-			Vector3 spectatorOrigin = Vector3.Zero;
-
-			_respawning = true;
-
-			Init();
-
-			// TODO
-			/*fl.noknockback = false;
-
-			// stop any ragdolls being used
-			StopRagdoll();
-
-			// set back the player physics
-			SetPhysics( &physicsObj );
-
-			physicsObj.SetClipModelAxis();
-			physicsObj.EnableClip();
-
-			if ( !spectating ) {
-				SetCombatContents( true );
-			}
-
-			physicsObj.SetLinearVelocity( vec3_origin );*/
-
-			// setup our initial view
-			if(this.IsSpectating == false)
-			{
-				this.Origin = origin;
-			}
-			else
-			{
-				spectatorOrigin = origin;
-
-				// TODO: spec_origin[ 2 ] += pm_normalheight.GetFloat();
-				// spec_origin[ 2 ] += SPECTATE_RAISE;
-				this.Origin = spectatorOrigin;
-			}
-
-			// if this is the first spawn of the map, we don't have a usercmd yet,
-			// so the delta angles won't be correct.  This will be fixed on the first think.
-			// TODO
-			/*viewAngles = ang_zero;
-			SetDeltaViewAngles( ang_zero );
-			SetViewAngles( spawn_angles );
-			spawnAngles = spawn_angles;
-			spawnAnglesSet = false;
-
-			legsForward = true;
-			legsYaw = 0.0f;
-			idealLegsYaw = 0.0f;
-			oldViewYaw = viewAngles.yaw;*/
-
-			if(this.IsSpectating == true)
-			{
-				Hide();
-			}
-			else
-			{
-				Show();
-			}
-
-			// TODO
-			/*if ( gameLocal.isMultiplayer ) {
-				if ( !spectating ) {
-					// we may be called twice in a row in some situations. avoid a double fx and 'fly to the roof'
-					if ( lastTeleFX < gameLocal.time - 1000 ) {
-						idEntityFx::StartFx( spawnArgs.GetString( "fx_spawn" ), &spawn_origin, NULL, this, true );
-						lastTeleFX = gameLocal.time;
-					}
-				}
-				AI_TELEPORT = true;
-			} else {
-				AI_TELEPORT = false;
-			}*/
-
-			// TODO
-			// kill anything at the new position
-			/*if ( !spectating ) {
-				physicsObj.SetClipMask( MASK_PLAYERSOLID ); // the clip mask is usually maintained in Move(), but KillBox requires it
-				gameLocal.KillBox( this );
-			}*/
-
-			// don't allow full run speed for a bit
-			//physicsObj.SetKnockBack( 100 );
-
-			// set our respawn time and buttons so that if we're killed we don't respawn immediately
-			/*minRespawnTime = gameLocal.time;
-			maxRespawnTime = gameLocal.time;*/
-
-			if(this.IsSpectating == false)
-			{
-				this.ForceRespawn = false;
-			}
-
-			// TODO: privateCameraView = NULL;
-
-			// TODO: BecomeActive( TH_THINK );
-
-			// run a client frame to drop exactly to the floor,
-			// initialize animations and other things
-			Think();
-
-			_respawning = false;
-
-			/*lastManOver			= false;
-			lastManPlayAgain	= false;
-			isTelefragged		= false;*/
-		}
-
 		public void Init()
 		{
 			// TODO
-			idKeyValue kv;
+			// TODO: idKeyValue kv;
 			/*const char			*value;
 const idKeyValue	*kv;
 
@@ -728,7 +562,7 @@ oldViewYaw = 0.0f;*/
 			if(((idR.Game.IsMultiplayer == true) || (idR.CvarSystem.GetBool("g_testDeath") == true)) && (_skin != null))
 			{
 				this.Skin = _skin;
-				// TODO: this.RenderEntity.ShaderParms[6] = 0.0f;
+				this.RenderEntity.MaterialParameters[6] = 0.0f;
 			}
 			else
 			{
@@ -739,11 +573,11 @@ oldViewYaw = 0.0f;*/
 					_skin = idR.DeclManager.FindSkin(skin);
 
 					this.Skin = _skin;
-					// TODO: this.RenderEntity.ShaderParms[6] = 0.0f;
+					this.RenderEntity.MaterialParameters[6] = 0.0f;
 				}
 			}
 
-			/*value = spawnArgs.GetString("bone_hips", "");
+			/* TODO: value = spawnArgs.GetString("bone_hips", "");
 			hipJoint = animator.GetJointHandle(value);
 			if(hipJoint == INVALID_JOINT)
 			{
@@ -824,208 +658,186 @@ oldViewYaw = 0.0f;*/
 
 			idR.CvarSystem.SetBool("ui_chat", false);
 		}
-		#endregion
 
-		#region idEntity implementation
-		public override void Spawn()
+		/// <summary>
+		/// Try to find a spawn point marked 'initial', otherwise use normal spawn selection.
+		/// </summary>
+		/// <param name="origin"></param>
+		/// <param name="angles"></param>
+		public void SelectInitialSpawnPoint(out Vector3 origin, out idAngles angles)
 		{
-			base.Spawn();
+			idEntity spot = idR.Game.SelectInitialSpawnPoint(this);
+			string skin = spot.SpawnArgs.GetString("skin", null);
 
-			if(this.Index >= idR.MaxClients)
+			// set the player skin from the spawn location
+			if(skin != null)
 			{
-				idConsole.Error("entityIndex > MAX_CLIENTS for player.  Player may only be spawned with a client.");
+				this.SpawnArgs.Set("spawn_skin", skin);
 			}
 
-			// allow thinking during cinematics
-			this.Cinematic = true;
+			origin = Vector3.Zero;
+			angles = new idAngles();
 
-			if(idR.Game.IsMultiplayer == true)
-			{
-				// always start in spectating state waiting to be spawned in
-				// do this before SetClipModel to get the right bounding box
-				this.IsSpectating = true;
-			}
+			// activate the spawn locations targets
+			// TODO: spot->PostEventMS(&EV_ActivateTargets, 0, this);
 
-			// set our collision model
 			// TODO
-			/*physicsObj.SetSelf( this );
-			SetClipModel();
-			physicsObj.SetMass( spawnArgs.GetFloat( "mass", "100" ) );
-			physicsObj.SetContents( CONTENTS_BODY );
-			physicsObj.SetClipMask( MASK_PLAYERSOLID );
+			/*origin = spot->GetPhysics()->GetOrigin();
+			origin[2] += 4.0f + CM_BOX_EPSILON;		// move up to make sure the player is at least an epsilon above the floor
+			angles = spot->GetPhysics()->GetAxis().ToAngles();*/
+		}
+
+		/// <summary>
+		/// Chooses a spawn point and spawns the player.
+		/// </summary>
+		public void SpawnFromSpawnSpot()
+		{
+			Vector3 origin;
+			idAngles angles;
+
+			SelectInitialSpawnPoint(out origin, out angles);
+			SpawnToPoint(origin, angles);
+		}
+
+		/// <summary>
+		/// Called every time a client is placed fresh in the world: after the first ClientBegin, and after each respawn
+		/// Initializes all non-persistant parts of playerState when called here with spectating set to true, just place yourself and init.
+		/// </summary>
+		/// <param name="origin"></param>
+		/// <param name="angles"></param>
+		public void SpawnToPoint(Vector3 origin, idAngles angles)
+		{
+			Vector3 spectatorOrigin = Vector3.Zero;
+
+			_respawning = true;
+
+			Init();
+
+			// TODO
+			/*fl.noknockback = false;
+
+			// stop any ragdolls being used
+			StopRagdoll();
+
+			// set back the player physics
 			SetPhysics( &physicsObj );
-			InitAASLocation();*/
 
-			// TODO: _skin = this.RenderEntity.CustomSkin;
+			physicsObj.SetClipModelAxis();
+			physicsObj.EnableClip();
 
-			// only the local player needs guis
-			if((idR.Game.IsMultiplayer == false) || (this.Index == idR.Game.LocalClientIndex))
-			{
-				// load HUD
-				if(idR.Game.IsMultiplayer == true)
-				{
-					_hud = idR.UIManager.FindInterface("guis/mphud.gui", true, false, true);
-				}
-				else
-				{
-					string temp = this.SpawnArgs.GetString("hud", "");
-
-					if(temp != string.Empty)
-					{
-						_hud = idR.UIManager.FindInterface(temp, true, false, true);
-					}
-				}
-
-				if(_hud != null)
-				{
-					_hud.Activate(true, idR.Game.Time);
-				}
-
-				// load cursor
-				string cursor = this.SpawnArgs.GetString("cursor", "");
-
-				if(cursor != string.Empty)
-				{
-					_cursor = idR.UIManager.FindInterface(cursor, true, idR.Game.IsMultiplayer, idR.Game.IsMultiplayer);
-				}
-
-				if(_cursor != null)
-				{
-					_cursor.Activate(true, idR.Game.Time);
-				}
-
-				// TODO
-				// objectiveSystem = uiManager->FindGui( "guis/pda.gui", true, false, true );
-				// objectiveSystemOpen = false;
+			if ( !spectating ) {
+				SetCombatContents( true );
 			}
 
-			/*SetLastHitTime( 0 );
+			physicsObj.SetLinearVelocity( vec3_origin );*/
 
-			// load the armor sound feedback
-			declManager->FindSound( "player_sounds_hitArmor" );
-
-			// set up conditions for animation
-			LinkScriptVariables();
-
-			animator.RemoveOriginOffset( true );*/
-
-			// initialize user info related settings
-			// on server, we wait for the userinfo broadcast, as this controls when the player is initially spawned in game
-			if((idR.Game.IsClient == true) || (this.Index == idR.Game.LocalClientIndex))
+			// setup our initial view
+			if(this.IsSpectating == false)
 			{
-				UserInfoChanged(false);
-			}
-
-			// create combat collision hull for exact collision detection
-			/*SetCombatModel();*/
-
-			// supress model in non-player views, but allow it in mirrors and remote views
-			// TODO: this.RenderEntity.SuppressSurfaceInViewID = this.Index + 1;
-
-			// don't project shadow on self or weapon
-			// TODO: this.RenderEntity.NoSelfShadow = true;
-
-			/*idAFAttachment *headEnt = head.GetEntity();
-			if ( headEnt ) {
-				headEnt->GetRenderEntity()->suppressSurfaceInViewID = entityNumber+1;
-				headEnt->GetRenderEntity()->noSelfShadow = true;
-			}*/
-
-			if(idR.Game.IsMultiplayer == true)
-			{
-				Init();
-				Hide();	// properly hidden if starting as a spectator
-
-				if(idR.Game.IsClient == false)
-				{
-					// set yourself ready to spawn. idMultiplayerGame will decide when/if appropriate and call SpawnFromSpawnSpot
-					// TODO
-					/*SetupWeaponEntity();*/
-					SpawnFromSpawnSpot();
-
-					_forceRespawn = true;
-				}
+				this.Origin = origin;
 			}
 			else
 			{
-				// TODO: SetupWeaponEntity();
-				SpawnFromSpawnSpot();
-			}
-			/*
-			// trigger playtesting item gives, if we didn't get here from a previous level
-			// the devmap key will be set on the first devmap, but cleared on any level
-			// transitions
-			if ( !gameLocal.isMultiplayer && gameLocal.serverInfo.FindKey( "devmap" ) ) {
-				// fire a trigger with the name "devmap"
-				idEntity *ent = gameLocal.FindEntity( "devmap" );
-				if ( ent ) {
-					ent->ActivateTargets( this );
-				}
-			}
-			if ( hud ) {
-				// We can spawn with a full soul cube, so we need to make sure the hud knows this
-				if ( weapon_soulcube > 0 && ( inventory.weapons & ( 1 << weapon_soulcube ) ) ) {
-					int max_souls = inventory.MaxAmmoForAmmoClass( this, "ammo_souls" );
-					if ( inventory.ammo[ idWeapon::GetAmmoNumForName( "ammo_souls" ) ] >= max_souls ) {
-						hud->HandleNamedEvent( "soulCubeReady" );
-					}
-				}
-				hud->HandleNamedEvent( "itemPickup" );
+				spectatorOrigin = origin;
+
+				// TODO: spec_origin[ 2 ] += pm_normalheight.GetFloat();
+				// spec_origin[ 2 ] += SPECTATE_RAISE;
+				this.Origin = spectatorOrigin;
 			}
 
-			if ( GetPDA() ) {
-				// Add any emails from the inventory
-				for ( int i = 0; i < inventory.emails.Num(); i++ ) {
-					GetPDA()->AddEmail( inventory.emails[i] );
-				}
-				GetPDA()->SetSecurity( common->GetLanguageDict()->GetString( "#str_00066" ) );
-			}
+			// if this is the first spawn of the map, we don't have a usercmd yet,
+			// so the delta angles won't be correct.  This will be fixed on the first think.
+			// TODO
+			/*viewAngles = ang_zero;
+			SetDeltaViewAngles( ang_zero );
+			SetViewAngles( spawn_angles );
+			spawnAngles = spawn_angles;
+			spawnAnglesSet = false;
 
-			if ( gameLocal.world->spawnArgs.GetBool( "no_Weapons" ) ) {
-				hiddenWeapon = true;
-				if ( weapon.GetEntity() ) {
-					weapon.GetEntity()->LowerWeapon();
-				}
-				idealWeapon = 0;
-			} else {
-				hiddenWeapon = false;
-			}*/
+			legsForward = true;
+			legsYaw = 0.0f;
+			idealLegsYaw = 0.0f;
+			oldViewYaw = viewAngles.yaw;*/
 
-			if(_hud != null)
+			if(this.IsSpectating == true)
 			{
-				// TODO: UpdateHudWeapon();
-				_hud.StateChanged(idR.Game.Time);
+				Hide();
+			}
+			else
+			{
+				Show();
 			}
 
-			/*tipUp = false;
-			objectiveUp = false;
-
-			if ( inventory.levelTriggers.Num() ) {
-				PostEventMS( &EV_Player_LevelTrigger, 0 );
-			}
-
-			inventory.pdaOpened = false;
-			inventory.selPDA = 0;
-
-			if ( !gameLocal.isMultiplayer ) {
-				if ( g_skill.GetInteger() < 2 ) {
-					if ( health < 25 ) {
-						health = 25;
+			// TODO
+			/*if ( gameLocal.isMultiplayer ) {
+				if ( !spectating ) {
+					// we may be called twice in a row in some situations. avoid a double fx and 'fly to the roof'
+					if ( lastTeleFX < gameLocal.time - 1000 ) {
+						idEntityFx::StartFx( spawnArgs.GetString( "fx_spawn" ), &spawn_origin, NULL, this, true );
+						lastTeleFX = gameLocal.time;
 					}
-					if ( g_useDynamicProtection.GetBool() ) {
-						g_damageScale.SetFloat( 1.0f );
-					}
-				} else {
-					g_damageScale.SetFloat( 1.0f );
-					g_armorProtection.SetFloat( ( g_skill.GetInteger() < 2 ) ? 0.4f : 0.2f );
-		#ifndef ID_DEMO_BUILD
-					if ( g_skill.GetInteger() == 3 ) {
-						healthTake = true;
-						nextHealthTake = gameLocal.time + g_healthTakeTime.GetInteger() * 1000;
-					}
-		#endif
 				}
+				AI_TELEPORT = true;
+			} else {
+				AI_TELEPORT = false;
 			}*/
+
+			// TODO
+			// kill anything at the new position
+			/*if ( !spectating ) {
+				physicsObj.SetClipMask( MASK_PLAYERSOLID ); // the clip mask is usually maintained in Move(), but KillBox requires it
+				gameLocal.KillBox( this );
+			}*/
+
+			// don't allow full run speed for a bit
+			//physicsObj.SetKnockBack( 100 );
+
+			// set our respawn time and buttons so that if we're killed we don't respawn immediately
+			/*minRespawnTime = gameLocal.time;
+			maxRespawnTime = gameLocal.time;*/
+
+			if(this.IsSpectating == false)
+			{
+				this.ForceRespawn = false;
+			}
+
+			// TODO: privateCameraView = NULL;
+
+			// TODO: BecomeActive( TH_THINK );
+
+			// run a client frame to drop exactly to the floor,
+			// initialize animations and other things
+			Think();
+
+			_respawning = false;
+
+			/*lastManOver			= false;
+			lastManPlayAgain	= false;
+			isTelefragged		= false;*/
+		}
+
+		public bool UserInfoChanged(bool canModify)
+		{
+			bool modifiedInfo = false;
+			idDict userInfo = this.Info;
+
+			_showWeaponViewModel = userInfo.GetBool("ui_showGun");
+
+			return modifiedInfo;
+		}
+		#endregion
+
+		#region idEntity implementation
+		public override void Hide()
+		{
+			base.Hide();
+
+			// TODO
+			/*	idActor::Hide();
+	weap = weapon.GetEntity();
+	if ( weap ) {
+		weap->HideWorldModel();
+	}*/
 		}
 
 		public override void Think()
@@ -1302,16 +1114,205 @@ if ( weap ) {
 }*/
 		}
 
-		public override void Hide()
+		public override void Spawn()
 		{
-			base.Hide();
+			base.Spawn();
 
+			if(this.Index >= idR.MaxClients)
+			{
+				idConsole.Error("entityIndex > MAX_CLIENTS for player.  Player may only be spawned with a client.");
+			}
+
+			// allow thinking during cinematics
+			this.Cinematic = true;
+
+			if(idR.Game.IsMultiplayer == true)
+			{
+				// always start in spectating state waiting to be spawned in
+				// do this before SetClipModel to get the right bounding box
+				this.IsSpectating = true;
+			}
+
+			// set our collision model
 			// TODO
-			/*	idActor::Hide();
-	weap = weapon.GetEntity();
-	if ( weap ) {
-		weap->HideWorldModel();
-	}*/
+			/*physicsObj.SetSelf( this );
+			SetClipModel();
+			physicsObj.SetMass( spawnArgs.GetFloat( "mass", "100" ) );
+			physicsObj.SetContents( CONTENTS_BODY );
+			physicsObj.SetClipMask( MASK_PLAYERSOLID );
+			SetPhysics( &physicsObj );
+			InitAASLocation();*/
+
+			_skin = this.RenderEntity.CustomSkin;
+
+			// only the local player needs guis
+			if((idR.Game.IsMultiplayer == false) || (this.Index == idR.Game.LocalClientIndex))
+			{
+				// load HUD
+				if(idR.Game.IsMultiplayer == true)
+				{
+					_hud = idR.UIManager.FindInterface("guis/mphud.gui", true, false, true);
+				}
+				else
+				{
+					string temp = this.SpawnArgs.GetString("hud", "");
+
+					if(temp != string.Empty)
+					{
+						_hud = idR.UIManager.FindInterface(temp, true, false, true);
+					}
+				}
+
+				if(_hud != null)
+				{
+					_hud.Activate(true, idR.Game.Time);
+				}
+
+				// load cursor
+				string cursor = this.SpawnArgs.GetString("cursor", "");
+
+				if(cursor != string.Empty)
+				{
+					_cursor = idR.UIManager.FindInterface(cursor, true, idR.Game.IsMultiplayer, idR.Game.IsMultiplayer);
+				}
+
+				if(_cursor != null)
+				{
+					_cursor.Activate(true, idR.Game.Time);
+				}
+
+				// TODO
+				// objectiveSystem = uiManager->FindGui( "guis/pda.gui", true, false, true );
+				// objectiveSystemOpen = false;
+			}
+
+			/*SetLastHitTime( 0 );
+
+			// load the armor sound feedback
+			declManager->FindSound( "player_sounds_hitArmor" );
+
+			// set up conditions for animation
+			LinkScriptVariables();
+
+			animator.RemoveOriginOffset( true );*/
+
+			// initialize user info related settings
+			// on server, we wait for the userinfo broadcast, as this controls when the player is initially spawned in game
+			if((idR.Game.IsClient == true) || (this.Index == idR.Game.LocalClientIndex))
+			{
+				UserInfoChanged(false);
+			}
+
+			// create combat collision hull for exact collision detection
+			/*SetCombatModel();*/
+
+			// supress model in non-player views, but allow it in mirrors and remote views
+			this.RenderEntity.SuppressSurfaceInViewID = this.Index + 1;
+
+			// don't project shadow on self or weapon
+			this.RenderEntity.NoSelfShadow = true;
+
+			/*idAFAttachment *headEnt = head.GetEntity();
+			if ( headEnt ) {
+				headEnt->GetRenderEntity()->suppressSurfaceInViewID = entityNumber+1;
+				headEnt->GetRenderEntity()->noSelfShadow = true;
+			}*/
+
+			if(idR.Game.IsMultiplayer == true)
+			{
+				Init();
+				Hide();	// properly hidden if starting as a spectator
+
+				if(idR.Game.IsClient == false)
+				{
+					// set yourself ready to spawn. idMultiplayerGame will decide when/if appropriate and call SpawnFromSpawnSpot
+					// TODO
+					/*SetupWeaponEntity();*/
+					SpawnFromSpawnSpot();
+
+					_forceRespawn = true;
+				}
+			}
+			else
+			{
+				// TODO: SetupWeaponEntity();
+				SpawnFromSpawnSpot();
+			}
+			/*
+			// trigger playtesting item gives, if we didn't get here from a previous level
+			// the devmap key will be set on the first devmap, but cleared on any level
+			// transitions
+			if ( !gameLocal.isMultiplayer && gameLocal.serverInfo.FindKey( "devmap" ) ) {
+				// fire a trigger with the name "devmap"
+				idEntity *ent = gameLocal.FindEntity( "devmap" );
+				if ( ent ) {
+					ent->ActivateTargets( this );
+				}
+			}
+			if ( hud ) {
+				// We can spawn with a full soul cube, so we need to make sure the hud knows this
+				if ( weapon_soulcube > 0 && ( inventory.weapons & ( 1 << weapon_soulcube ) ) ) {
+					int max_souls = inventory.MaxAmmoForAmmoClass( this, "ammo_souls" );
+					if ( inventory.ammo[ idWeapon::GetAmmoNumForName( "ammo_souls" ) ] >= max_souls ) {
+						hud->HandleNamedEvent( "soulCubeReady" );
+					}
+				}
+				hud->HandleNamedEvent( "itemPickup" );
+			}
+
+			if ( GetPDA() ) {
+				// Add any emails from the inventory
+				for ( int i = 0; i < inventory.emails.Num(); i++ ) {
+					GetPDA()->AddEmail( inventory.emails[i] );
+				}
+				GetPDA()->SetSecurity( common->GetLanguageDict()->GetString( "#str_00066" ) );
+			}
+
+			if ( gameLocal.world->spawnArgs.GetBool( "no_Weapons" ) ) {
+				hiddenWeapon = true;
+				if ( weapon.GetEntity() ) {
+					weapon.GetEntity()->LowerWeapon();
+				}
+				idealWeapon = 0;
+			} else {
+				hiddenWeapon = false;
+			}*/
+
+			if(_hud != null)
+			{
+				// TODO: UpdateHudWeapon();
+				_hud.StateChanged(idR.Game.Time);
+			}
+
+			/*tipUp = false;
+			objectiveUp = false;
+
+			if ( inventory.levelTriggers.Num() ) {
+				PostEventMS( &EV_Player_LevelTrigger, 0 );
+			}
+
+			inventory.pdaOpened = false;
+			inventory.selPDA = 0;
+
+			if ( !gameLocal.isMultiplayer ) {
+				if ( g_skill.GetInteger() < 2 ) {
+					if ( health < 25 ) {
+						health = 25;
+					}
+					if ( g_useDynamicProtection.GetBool() ) {
+						g_damageScale.SetFloat( 1.0f );
+					}
+				} else {
+					g_damageScale.SetFloat( 1.0f );
+					g_armorProtection.SetFloat( ( g_skill.GetInteger() < 2 ) ? 0.4f : 0.2f );
+		#ifndef ID_DEMO_BUILD
+					if ( g_skill.GetInteger() == 3 ) {
+						healthTake = true;
+						nextHealthTake = gameLocal.time + g_healthTakeTime.GetInteger() * 1000;
+					}
+		#endif
+				}
+			}*/
 		}
 		#endregion
 	}
