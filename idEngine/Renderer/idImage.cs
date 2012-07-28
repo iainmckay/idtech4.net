@@ -42,6 +42,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _allowDownSize;
 			}
 		}
@@ -53,10 +58,20 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _classification;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				_classification = value;
 			}
 		}
@@ -65,6 +80,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _cubeFiles;
 			}
 		}
@@ -73,6 +93,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _depth;
 			}
 		}
@@ -81,6 +106,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _filter;
 			}
 		}
@@ -89,10 +119,20 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _generator;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				_generator = value;
 			}
 		}
@@ -104,6 +144,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _defaulted;
 			}
 		}
@@ -115,6 +160,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return (_texture != null);
 			}
 		}
@@ -135,10 +185,20 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _levelLoadReferenced;
 			}
 			internal set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				_levelLoadReferenced = value;
 			}
 		}
@@ -153,6 +213,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _name;
 			}
 		}
@@ -161,10 +226,20 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _referencedOutsideLevelLoad;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				_referencedOutsideLevelLoad = value;
 			}
 		}
@@ -173,6 +248,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _repeat;
 			}
 		}
@@ -181,6 +261,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _type;
 			}
 		}
@@ -189,6 +274,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _height;
 			}
 		}
@@ -197,6 +287,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idImage");
+				}
+
 				return _width;
 			}
 		}
@@ -278,6 +373,11 @@ namespace idTech4.Renderer
 		/// <param name="fromBackEnd"></param>
 		public void ActuallyLoadImage(bool checkForPrecompressed, bool fromBackEnd)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idImage");
+			}
+
 			// this is the ONLY place generatorFunction will ever be called
 			if(_generator != null)
 			{
@@ -330,6 +430,11 @@ namespace idTech4.Renderer
 
 		public void AddReference()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idImage");
+			}
+
 			_referenceCount++;
 		}
 
@@ -338,6 +443,11 @@ namespace idTech4.Renderer
 		/// </summary>
 		public void Bind()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idImage");
+			}
+
 			// load the image if necessary (FIXME: not SMP safe!).
 			if(this.IsLoaded == false)
 			{
@@ -402,6 +512,11 @@ namespace idTech4.Renderer
 		/// <param name="depth"></param>
 		public void Generate(byte[] data, int width, int height, TextureFilter filter, bool allowDownSize, TextureRepeat repeat, TextureDepth depth)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idImage");
+			}
+
 			// FIXME: should we implement cinematics this way, instead of with explicit calls?
 			/*Purge();
 
@@ -612,6 +727,11 @@ namespace idTech4.Renderer
 
 		public void MakeDefault()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idImage");
+			}
+
 			byte[, ,] data = new byte[idImageManager.DefaultImageSize, idImageManager.DefaultImageSize, 4];
 
 			if(idE.CvarSystem.GetBool("developer") == true)
@@ -666,10 +786,15 @@ namespace idTech4.Renderer
 		/// </summary>
 		public void Purge()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idImage");
+			}
+
 			if(this.IsLoaded == true)
 			{
-				/*_texture.Dispose();
-				_texture = null;*/
+				_texture.Dispose();
+				_texture = null;
 			}
 
 			// clear all the current binding caches, so the next bind will do a real one
@@ -681,6 +806,11 @@ namespace idTech4.Renderer
 
 		public void Reload(bool checkPrecompressed, bool force)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idImage");
+			}
+
 			// always regenerate functional images
 			if(_generator != null)
 			{

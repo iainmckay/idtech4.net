@@ -140,6 +140,14 @@ namespace idTech4.Text
 			}
 		}
 
+		public DateTime FileTime
+		{
+			get
+			{
+				return _fileTime;
+			}
+		}
+
 		/// <summary>
 		/// Gets whether or not there were errors.
 		/// </summary>
@@ -243,7 +251,7 @@ namespace idTech4.Text
 		private bool _loaded; // set when a script file is loaded from file or memory.
 		private string _baseFolder;
 		private string _fileName; // file name of the script.
-		private TimeSpan _fileTime; // file time.
+		private DateTime _fileTime; // file time.
 		private bool _allocated;	// true if buffer memory was allocated.
 		private string _buffer; // buffer containing the script.
 		private int _length; // length of the script in bytes.
@@ -278,6 +286,33 @@ namespace idTech4.Text
 
 		#region Methods
 		#region Public
+		/// <summary>
+		///	Checks if the next token matches the given string.
+		/// </summary>
+		/// <param name="str"></param>
+		/// <returns></returns>
+		public bool CheckTokenString(string str)
+		{
+			idToken token;
+
+			if((token = ReadToken()) == null)
+			{
+				return false;
+			}
+
+			// if the given string is available
+			if(token.ToString() == str)
+			{
+				return true;
+			}
+
+			// unread token
+			_scriptPosition = _lastScriptPosition;
+			_line = _lastLine;
+
+			return false;
+		}
+
 		/// <summary>
 		/// Reads the token when a token with the given type is available.
 		/// </summary>
@@ -416,6 +451,7 @@ namespace idTech4.Text
 
 			string pathName;
 			Stream content;
+			DateTime lastModified;
 
 			if((osPath == false) && (_baseFolder != null))
 			{
@@ -428,11 +464,11 @@ namespace idTech4.Text
 
 			if(osPath == true)
 			{
-				content = idE.FileSystem.OpenExplicitFileRead(pathName);
+				content = idE.FileSystem.OpenExplicitFileRead(pathName, out lastModified);
 			}
 			else
 			{
-				content = idE.FileSystem.OpenFileRead(pathName);
+				content = idE.FileSystem.OpenFileRead(pathName, out lastModified);
 			}
 
 			if(content == null)
@@ -442,7 +478,7 @@ namespace idTech4.Text
 
 			using(StreamReader r = new StreamReader(content))
 			{
-				// TODO: idLexer::fileTime = fp->Timestamp();
+				_fileTime = lastModified;
 				_fileName = Path.GetFullPath(pathName);
 
 				_buffer = r.ReadToEnd();
@@ -490,7 +526,7 @@ namespace idTech4.Text
 			}
 
 			_fileName = name;
-			_fileTime = TimeSpan.Zero;
+			_fileTime = DateTime.Now;
 			_buffer = text;
 			_length = text.Length;
 
@@ -623,6 +659,32 @@ namespace idTech4.Text
 			}
 
 			return ret;
+		}
+
+		public float[,] Parse2DMatrix(int y, int x)
+		{
+			float[,] mat = new float[y, x];
+			float[] tmp;
+
+			if(ExpectTokenString("(") == false)
+			{
+				return null;
+			}
+
+			for(int i = 0; i < y; i++)
+			{
+				if((tmp = Parse1DMatrix(x)) == null)
+				{
+					return null;
+				}
+
+				for(int j = 0; j < x; j++)
+				{
+					mat[y, j] = tmp[j];
+				}
+			}
+
+			return mat;
 		}
 
 		/// <summary>

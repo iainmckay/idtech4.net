@@ -401,6 +401,7 @@ namespace idTech4.Game
 		#region Private
 		private void InitDefaultPhysics(Vector3 origin, Matrix axis)
 		{
+			idConsole.DeveloperWriteLine("TODO: InitDefaultPhysics");
 			// TODO
 			/*string temp = _spawnArgs.GetString("clipmodel", "");
 			idClipModel clipModel = null;
@@ -481,6 +482,7 @@ namespace idTech4.Game
 
 		private void UpdateVisuals()
 		{
+			idConsole.DeveloperWriteLine("TODO: UpdateVisuals");
 			// TODO
 			/*UpdateModel();
 			UpdateSound();*/
@@ -529,6 +531,7 @@ namespace idTech4.Game
 
 		public virtual void Hide()
 		{
+			idConsole.DeveloperWriteLine("TODO: Hide");
 			// TODO
 			/*if(!IsHidden())
 			{
@@ -557,7 +560,7 @@ namespace idTech4.Game
 
 			_className = _spawnArgs.GetString("classname", null);
 
-			idDeclEntityDef def = idR.Game.FindEntityDef(_className, false);
+			idDeclEntity def = idR.Game.FindEntityDef(_className, false);
 
 			if(def != null)
 			{
@@ -673,6 +676,7 @@ namespace idTech4.Game
 		public virtual void Show()
 		{
 			// TODO
+			idConsole.DeveloperWriteLine("TODO: Show");
 			/*
 	if ( IsHidden() ) {
 		fl.hidden = false;
@@ -682,6 +686,8 @@ namespace idTech4.Game
 
 		public virtual void Think()
 		{
+			idConsole.DeveloperWriteLine("TODO: Think");
+
 			// TODO
 			/*RunPhysics();
 			Present();*/
@@ -708,6 +714,52 @@ namespace idTech4.Game
 
 		protected virtual void Dispose(bool disposing)
 		{
+			idConsole.DeveloperWriteLine("TODO: idEntity.Dispose");
+
+			/*if ( gameLocal.GameState() != GAMESTATE_SHUTDOWN && !gameLocal.isClient && fl.networkSync && entityNumber >= MAX_CLIENTS ) {
+					idBitMsg	msg;
+					byte		msgBuf[ MAX_GAME_MESSAGE_SIZE ];
+
+					msg.Init( msgBuf, sizeof( msgBuf ) );
+					msg.WriteByte( GAME_RELIABLE_MESSAGE_DELETE_ENT );
+					msg.WriteBits( gameLocal.GetSpawnId( this ), 32 );
+					networkSystem->ServerSendReliableMessage( -1, msg );
+				}
+
+				DeconstructScriptObject();
+				scriptObject.Free();
+
+				if ( thinkFlags ) {
+					BecomeInactive( thinkFlags );
+				}
+				activeNode.Remove();
+
+				Signal( SIG_REMOVED );
+
+				// we have to set back the default physics object before unbinding because the entity
+				// specific physics object might be an entity variable and as such could already be destroyed.
+				SetPhysics( NULL );
+
+				// remove any entities that are bound to me
+				RemoveBinds();
+
+				// unbind from master
+				Unbind();
+				QuitTeam();
+
+				gameLocal.RemoveEntityFromHash( name.c_str(), this );
+
+				delete renderView;
+				renderView = NULL;
+
+				delete signals;
+				signals = NULL;
+
+				FreeModelDef();
+				FreeSoundEmitter( false );
+
+				gameLocal.UnregisterEntity( this );*/
+		
 			_disposed = true;
 		}
 		#endregion

@@ -33,6 +33,8 @@ using System.Text;
 using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 
+using idTech4.Math;
+
 namespace idTech4
 {
 	public static class idHelper
@@ -226,6 +228,27 @@ namespace idTech4
 		public static int ColorIndex(idColorIndex color)
 		{
 			return ((int) color & 15);
+		}
+
+		public static void ComputeAxisBase(Vector3 normal, out Vector3 texS, out Vector3 texT)
+		{
+			// do some cleaning
+			Vector3 n = new Vector3(
+				(idMath.Abs(normal.X) < 1e-6f) ? 0.0f : normal.X,
+				(idMath.Abs(normal.Y) < 1e-6f) ? 0.0f : normal.Y,
+				(idMath.Abs(normal.Z) < 1e-6f) ? 0.0f : normal.Z
+			);
+
+			float rotY = (float) -System.Math.Atan2(n.Z, idMath.Sqrt(n.Y * n.Y + n.X * n.X));
+			float rotZ = (float) System.Math.Atan2(n.Y, n.X);
+
+			// rotate (0,1,0) and (0,0,1) to compute texS and texT
+			texS = new Vector3(-idMath.Sin(rotZ), idMath.Cos(rotZ), 0);
+
+			// the texT vector is along -Z ( T texture coorinates axis )
+			texT = new Vector3(-idMath.Sin(rotY) * idMath.Cos(rotZ),
+				-idMath.Sin(rotY) * idMath.Sin(rotZ),
+				-idMath.Cos(rotY));
 		}
 
 		public static T[] Flatten<T>(T[,] source)

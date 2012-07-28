@@ -58,10 +58,20 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idRenderWorld");
+				}
+
 				return idE.RenderSystem.PrimaryRenderView;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idRenderWorld");
+				}
+
 				idE.RenderSystem.PrimaryRenderView = value;
 			}
 		}
@@ -281,11 +291,21 @@ namespace idTech4.Renderer
 		#region Debug Visualization
 		public void DebugClearLines(int time)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderWorld");
+			}
+
 			idE.RenderSystem.DebugClearLines(time);
 		}
 
 		public void DebugClearPolygons(int time)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderWorld");
+			}
+
 			idE.RenderSystem.DebugClearPolygons(time);
 		}
 		#endregion
@@ -765,6 +785,16 @@ namespace idTech4.Renderer
 			// free all the entityDefs, lightDefs, portals, etc
 			FreeWorld();
 					
+			_areaNodes = null;
+			_portalAreas = null;
+			_doublePortals = null;
+			_areaScreenRect = null;
+			_localModels = null;
+
+			/* TODO: entityDefs;
+			lightDefs;			
+			idInteraction **		interactionTable;*/
+
 			// free up the debug lines, polys, and text
 			idE.RenderSystem.DebugClearPolygons(0);
 			idE.RenderSystem.DebugClearLines(0);

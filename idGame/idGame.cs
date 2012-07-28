@@ -1361,38 +1361,6 @@ namespace idTech4.Game
 			return null;
 		}
 
-		private void SpawnPlayer(int clientIndex)
-		{
-			idConsole.WriteLine("SpawnPlayer: {0}", clientIndex);
-
-			idDict args = new idDict();
-			args.Set("spawn_entnum", clientIndex);
-			args.Set("name", string.Format("player{0}", clientIndex + 1));
-
-			// TODO: refactor in to idGameRules
-			args.Set("classname", (this.IsMultiplayer == true) ? "player_doommarine_mp" : "player_doommarine");
-
-			idEntity ent = SpawnEntityDef(args);
-
-			if((ent == null) || (_entities[clientIndex] == null))
-			{
-				idConsole.Error("Failed to spawn player as {0}", args.GetString("classname"));
-			}
-
-			// make sure it's a compatible class
-			if((ent is idPlayer) == false)
-			{
-				idConsole.Error("'{0}' spawn the player as a '{1}'.  Player spawnclass must be a subclass of Player.", args.GetString("classname"), ent.ClassName);
-			}
-
-			if(clientIndex >= _clientCount)
-			{
-				_clientCount++;
-			}
-
-			this.Rules.SpawnPlayer(clientIndex);
-		}
-
 		public void ServerSendChatMessage(int to, string name, string text)
 		{
 			idConsole.DeveloperWriteLine("TODO: ServerSendChatMessage");
@@ -1896,6 +1864,7 @@ namespace idTech4.Game
 
 			if(_currentMapFileName != null)
 			{
+				idConsole.WriteLine("TODO: MapShutdown");
 				// TODO: MapShutdown();
 			}
 
@@ -1908,6 +1877,7 @@ namespace idTech4.Game
 
 			LoadMap(mapName, randomSeed);
 
+			idConsole.WriteLine("TODO: InitScriptForMap");
 			// TODO: InitScriptForMap();
 
 			MapPopulate();
@@ -2074,7 +2044,34 @@ namespace idTech4.Game
 
 		public override void SpawnPlayer(int clientIndex)
 		{
-			idConsole.Warning("TODO: SpawnPlayer");
+			idConsole.WriteLine("SpawnPlayer: {0}", clientIndex);
+
+			idDict args = new idDict();
+			args.Set("spawn_entnum", clientIndex);
+			args.Set("name", string.Format("player{0}", clientIndex + 1));
+
+			// TODO: refactor in to idGameRules
+			args.Set("classname", (this.IsMultiplayer == true) ? "player_doommarine_mp" : "player_doommarine");
+
+			idEntity ent = SpawnEntityDef(args);
+
+			if((ent == null) || (_entities[clientIndex] == null))
+			{
+				idConsole.Error("Failed to spawn player as {0}", args.GetString("classname"));
+			}
+
+			// make sure it's a compatible class
+			if((ent is idPlayer) == false)
+			{
+				idConsole.Error("'{0}' spawn the player as a '{1}'.  Player spawnclass must be a subclass of Player.", args.GetString("classname"), ent.ClassName);
+			}
+
+			if(clientIndex >= _clientCount)
+			{
+				_clientCount++;
+			}
+
+			this.Rules.SpawnPlayer(clientIndex);
 		}
 		#endregion
 	}

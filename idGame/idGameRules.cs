@@ -25,7 +25,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 		}
 
@@ -33,7 +33,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 
 			if(idR.Game.PlayerStates[clientIndex].InGame == false)
@@ -46,7 +46,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 		}
 
@@ -54,7 +54,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 
 			idPlayer player = idR.Game.Entities[clientIndex] as idPlayer;
@@ -74,7 +74,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 
 			return false;
@@ -84,7 +84,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 
 			if((clientIndex > idR.Game.PlayerStates.Length) || (clientIndex < 0))
@@ -99,7 +99,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 
 			bool inGame = idR.Game.PlayerStates[clientIndex].InGame;
@@ -116,7 +116,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 		}
 
@@ -132,7 +132,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 		}
 		#endregion

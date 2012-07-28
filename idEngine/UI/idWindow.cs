@@ -39,7 +39,7 @@ using idTech4.Text.Decl;
 
 namespace idTech4.UI
 {
-	public class idWindow
+	public class idWindow : IDisposable
 	{
 		#region Constants
 		private static readonly string[] ScriptNames = new string[] {
@@ -62,10 +62,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _backColor;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_backColor.Set(value);
 			}
 		}
@@ -75,6 +85,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _background;
 			}
 		}
@@ -83,6 +98,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _backgroundName;
 			}
 		}
@@ -91,6 +111,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _borderColor;
 			}
 		}
@@ -99,6 +124,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _borderSize;
 			}
 		}
@@ -107,11 +137,19 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return null;
 			}
 			set
 			{
-
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
 			}
 		}
 
@@ -119,6 +157,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				if((this.Flags & WindowFlags.Desktop) == WindowFlags.Desktop)
 				{
 					return this.UserInterface.Desktop._captureChild;
@@ -128,6 +171,11 @@ namespace idTech4.UI
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				if(value == null)
 				{
 					_captureChild = value;
@@ -161,6 +209,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _drawWindows.Count;
 			}
 		}
@@ -169,6 +222,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _clientRect;
 			}
 		}
@@ -177,10 +235,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _command;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_command = value;
 			}
 		}
@@ -189,10 +257,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _cursor;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_cursor = value;
 			}
 		}
@@ -201,6 +279,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _context;
 			}
 		}
@@ -209,10 +292,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _drawRect;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_drawRect = value;
 			}
 		}
@@ -221,10 +314,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _flags;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_flags = value;
 			}
 		}
@@ -233,10 +336,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _focusedChild;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_focusedChild = value;
 			}
 		}
@@ -245,6 +358,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _fontFamily;
 			}
 		}
@@ -253,10 +371,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _foreColor;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_foreColor.Set(value);
 			}
 		}
@@ -265,6 +393,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return (_ops.Count > 0);
 			}
 		}
@@ -273,6 +406,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _hideCursor;
 			}
 		}
@@ -281,10 +419,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _hover;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_hover = value;
 			}
 		}
@@ -293,6 +441,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				if(_scripts[(int) ScriptName.Action] != null)
 				{
 					return true;
@@ -317,6 +470,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				if(_ops.Count > 0)
 				{
 					return false;
@@ -355,6 +513,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _visible;
 			}
 		}
@@ -363,6 +526,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _materialColor;
 			}
 		}
@@ -371,6 +539,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _materialScaleX;
 			}
 		}
@@ -379,6 +552,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _materialScaleY;
 			}
 		}
@@ -390,10 +568,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _name;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_name = value;
 			}
 		}
@@ -402,6 +590,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _noEvents;
 			}
 		}
@@ -410,6 +603,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _origin;
 			}
 		}
@@ -421,10 +619,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _parent;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_parent = value;
 			}
 		}
@@ -433,10 +641,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _rect.Data;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_rect.Set(value);
 			}
 		}
@@ -446,6 +664,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _rotate;
 			}
 		}
@@ -454,6 +677,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _shear;
 			}
 		}
@@ -462,10 +690,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _text;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				_text.Set(value);
 			}
 		}
@@ -474,6 +712,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _textAlign;
 			}
 		}
@@ -482,6 +725,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _textAlignX;
 			}
 		}
@@ -490,6 +738,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _textAlignY;
 			}
 		}
@@ -498,6 +751,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _textScale;
 			}
 		}
@@ -506,6 +764,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _textShadow;
 			}
 		}
@@ -514,6 +777,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _textRect;
 			}
 		}
@@ -522,6 +790,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 				return _gui;
 			}
 		}
@@ -662,12 +935,22 @@ namespace idTech4.UI
 
 			Init();
 		}
+
+		~idWindow()
+		{
+			Dispose(false);
+		}
 		#endregion
 
 		#region Methods
 		#region Public
 		public virtual void Activate(bool activate, ref string act)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			// make sure win vars are updated before activation
 			UpdateVariables();
 			RunScript((activate == true) ? ScriptName.Activate : ScriptName.Deactivate);
@@ -685,12 +968,22 @@ namespace idTech4.UI
 
 		public void AddChild(idWindow child)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			child._childID = _children.Count;
 			_children.Add(child);
 		}
 
 		public void AddCommand(string command)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if(_command.Length > 0)
 			{
 				_command += string.Format(" ; {0}", command);
@@ -703,6 +996,11 @@ namespace idTech4.UI
 
 		public void AddDefinedVariable(idWindowVariable var)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if(_definedVariables.Contains(var) == false)
 			{
 				_definedVariables.Add(var);
@@ -711,6 +1009,11 @@ namespace idTech4.UI
 
 		public void AddTransition(idWindowVariable dest, Vector4 from, Vector4 to, int time, float accelTime, float decelTime)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			TransitionData data = new TransitionData(dest);
 			data.Interp.Init(this.UserInterface.Time, accelTime * time, decelTime * time, time, from, to);
 
@@ -719,11 +1022,21 @@ namespace idTech4.UI
 
 		public void AddUpdateVariable(idWindowVariable var)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			_updateVariables.Add(var);
 		}
 
 		public void BringToTop(idWindow window)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if((window != null) && ((window.Flags & WindowFlags.Modal) == 0))
 			{
 				return;
@@ -749,6 +1062,11 @@ namespace idTech4.UI
 
 		public void ClientToScreen(ref idRectangle rect)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			int x, y;
 			idWindow p;
 
@@ -764,6 +1082,11 @@ namespace idTech4.UI
 
 		public bool Contains(idRectangle rect, float x, float y)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			rect.X += _actualX - _drawRect.X;
 			rect.Y += _actualY - _drawRect.Y;
 
@@ -772,6 +1095,11 @@ namespace idTech4.UI
 
 		public virtual void Draw(float x, float y)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			int skipShaders = idE.CvarSystem.GetInteger("r_skipGuiShaders");
 
 			if((skipShaders == 1) || (this.DeviceContext == null))
@@ -895,11 +1223,21 @@ namespace idTech4.UI
 		/// <returns></returns>
 		public idWindow GetChild(int index)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			return _drawWindows[index].Window;
 		}
 
 		public int GetChildIndex(idWindow window)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			for(int find = 0; find < _drawWindows.Count; find++)
 			{
 				if(_drawWindows[find].Window == window)
@@ -913,18 +1251,33 @@ namespace idTech4.UI
 
 		public idWindowVariable GetVariableByName(string name)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			DrawWindow owner = new DrawWindow();
 			return GetVariableByName(name, false, ref owner);
 		}
 
 		public idWindowVariable GetVariableByName(string name, bool fixup)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			DrawWindow owner = new DrawWindow();
 			return GetVariableByName(name, fixup, ref owner);
 		}
 
 		public virtual idWindowVariable GetVariableByName(string name, bool fixup, ref DrawWindow owner)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			idWindowVariable ret = null;
 
 			if(owner != null)
@@ -1065,16 +1418,31 @@ namespace idTech4.UI
 
 		public float EvaluateRegisters()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			return EvaluateRegisters(-1, false);
 		}
 
 		public float EvaluateRegisters(int test)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			return EvaluateRegisters(test, false);
 		}
 
 		public float EvaluateRegisters(int test, bool force)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if((force == false) && (test >= 0) && (test < idE.MaxExpressionRegisters) && (_lastEval == this))
 			{
 				return _regs[test];
@@ -1105,6 +1473,11 @@ namespace idTech4.UI
 		/// <param name="registers"></param>
 		public void EvaluateRegisters(ref float[] registers)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			int expressionRegisterCount = _expressionRegisters.Count;
 			int opCount = _ops.Count;
 
@@ -1267,6 +1640,11 @@ namespace idTech4.UI
 
 		public DrawWindow FindChildByName(string name)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if(name.Equals(_name, StringComparison.OrdinalIgnoreCase) == true)
 			{
 				return new DrawWindow(this);
@@ -1302,6 +1680,11 @@ namespace idTech4.UI
 
 		public void FixupParameters()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			foreach(idWindow child in _children)
 			{
 				child.FixupParameters();
@@ -1350,11 +1733,19 @@ namespace idTech4.UI
 
 		public virtual void HandleBuddyUpdate(idWindow buddy)
 		{
-
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
 		}
 
 		public virtual string HandleEvent(SystemEvent e, ref bool updateVisuals)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if((_flags & WindowFlags.Desktop) == WindowFlags.Desktop)
 			{
 				_actionDownRun = false;
@@ -1416,6 +1807,11 @@ namespace idTech4.UI
 
 		public bool Parse(idScriptParser parser, bool rebuild)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if(rebuild == true)
 			{
 				CleanUp();
@@ -1808,6 +2204,11 @@ namespace idTech4.UI
 		/// <returns></returns>
 		public int ParseExpression(idScriptParser parser)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			return ParseExpressionPriority(parser, 4 /* TOP_PRIORITY */, null);
 		}
 
@@ -1819,6 +2220,11 @@ namespace idTech4.UI
 		/// <returns></returns>
 		public int ParseExpression(idScriptParser parser, idWindowVariable var)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			return ParseExpressionPriority(parser, 4 /* TOP_PRIORITY */, var);
 		}
 
@@ -1831,11 +2237,21 @@ namespace idTech4.UI
 		/// <returns></returns>
 		public int ParseExpression(idScriptParser parser, idWindowVariable var, int component)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			return ParseExpressionPriority(parser, 4 /* TOP_PRIORITY */, var);
 		}
 
 		public void ResetTime(int time)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			_timeLine = _gui.Time - time;
 
 			foreach(idTimeLineEvent e in _timeLineEvents)
@@ -1864,6 +2280,11 @@ namespace idTech4.UI
 
 		public virtual void RunNamedEvent(string name)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			foreach(idNamedEvent e in _namedEvents)
 			{
 				if(e.Name.Equals(name, StringComparison.OrdinalIgnoreCase) == false)
@@ -1893,11 +2314,21 @@ namespace idTech4.UI
 
 		public bool RunScript(ScriptName name)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			return RunScriptList(_scripts[(int) name]);
 		}
 
 		public bool RunScriptList(idGuiScriptList list)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if(list == null)
 			{
 				return false;
@@ -1910,6 +2341,11 @@ namespace idTech4.UI
 
 		public void ScreenToClient(ref idRectangle rect)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			int x, y;
 			idWindow p;
 
@@ -1925,6 +2361,11 @@ namespace idTech4.UI
 
 		public void SetupFromState()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			SetupBackground();
 
 			if(_borderSize > 0)
@@ -1948,6 +2389,11 @@ namespace idTech4.UI
 		
 		public idWindow SetFocus(idWindow window, bool scripts = true)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			// only one child can have the focus
 			idWindow lastFocus = null;
 
@@ -1985,11 +2431,21 @@ namespace idTech4.UI
 
 		public void StartTransition()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			this.Flags |= WindowFlags.InTransition;
 		}
 
 		public virtual void StateChanged(bool redraw)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			UpdateVariables();
 
 			if((_expressionRegisters.Count > 0) && (_ops.Count > 0))
@@ -2025,6 +2481,11 @@ namespace idTech4.UI
 
 		public void Trigger()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			RunScript(ScriptName.Trigger);
 
 			for(int i = 0; i < _children.Count; i++)
@@ -2039,6 +2500,11 @@ namespace idTech4.UI
 		#region Protected
 		protected virtual void DrawBackground(idRectangle drawRect)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if(_backColor.W != 0)
 			{
 				_context.DrawFilledRectangle(drawRect.X, drawRect.Y, drawRect.Width, drawRect.Height, _backColor);
@@ -2065,16 +2531,27 @@ namespace idTech4.UI
 
 		protected virtual void OnFocusGained()
 		{
-
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
 		}
 
 		protected virtual void OnFocusLost()
 		{
-
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
 		}
 
 		protected virtual bool ParseInternalVariable(string name, idScriptParser parser)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			name = name.ToLower();
 
 			if(name == "bordersize")
@@ -2226,6 +2703,11 @@ namespace idTech4.UI
 
 		protected string ParseString(idScriptParser parser)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			idToken token = parser.ReadToken();
 
 			if(token != null)
@@ -2238,11 +2720,19 @@ namespace idTech4.UI
 
 		protected virtual void PostParse()
 		{
-
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
 		}
 
 		protected virtual string RouteMouseCoordinates(float x, float y)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
 			if(this.CaptureChild != null)
 			{
 				//FIXME: unkludge this whole mechanism
@@ -2325,6 +2815,11 @@ namespace idTech4.UI
 
 		protected virtual bool RunTimeEvents(int time)
 		{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idWindow");
+				}
+
 			if((time - _lastTimeRun) < idE.UserCommandMillseconds)
 			{
 				return false;
@@ -2443,12 +2938,15 @@ namespace idTech4.UI
 			_regList.Reset();
 
 			// cleanup the named events
-			_namedEvents.Clear();
+			foreach(idWindow win in _children)
+			{
+				win.Dispose();
+			}
 
-			_drawWindows.Clear();
 			_children.Clear();
+			_namedEvents.Clear();
+			_drawWindows.Clear();
 			_definedVariables.Clear();
-
 			_timeLineEvents.Clear();
 
 			for(int i = 0; i < _scripts.Length; i++)
@@ -3619,6 +4117,66 @@ namespace idTech4.UI
 			{
 				var.Update();
 			}
+		}
+		#endregion
+		#endregion
+
+		#region IDisposable
+		#region Properties
+		public bool Disposed
+		{
+			get
+			{
+				return _disposed;
+			}
+		}
+		#endregion
+
+		#region Members
+		private bool _disposed;
+		#endregion
+
+		#region Methods
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		private void Dispose(bool disposing)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idWindow");
+			}
+
+			if(disposing == true)
+			{
+				CleanUp();
+
+				_gui = null;
+				_context = null;
+				_parent = null;
+				_background = null;
+				_focusedChild = null;
+				_captureChild = null;
+				_overChild = null;				
+				_children = null;
+				_drawWindows = null;
+				_definedVariables = null;
+				_updateVariables = null;
+				_scripts = null;
+				_timeLineEvents = null;
+				_transitions = null;
+				_namedEvents = null;
+				_expressionRegisters = null;
+				_ops = null;
+				_regList = null;
+				_lastEval = null;
+				_builtInVariables = null;
+			}
+
+			_disposed = true;
 		}
 		#endregion
 		#endregion

@@ -353,13 +353,14 @@ namespace idTech4.IO
 		{
 			Pack pack;
 			bool found;
+			DateTime lastModified;
 
 			if(basePath != null)
 			{
 				relativePath = RelativePathToOSPath(relativePath, basePath);
 			}
 
-			Stream s = OpenFileRead(relativePath, true, out pack, null, FileSearch.SearchDirectories | FileSearch.SearchPaks, true, out found);
+			Stream s = OpenFileRead(relativePath, true, out pack, null, FileSearch.SearchDirectories | FileSearch.SearchPaks, true, out found, out lastModified);
 
 			if(s != null)
 			{
@@ -371,6 +372,12 @@ namespace idTech4.IO
 
 		public Stream OpenExplicitFileRead(string osPath)
 		{
+			DateTime lastModified;
+			return OpenExplicitFileRead(osPath, out lastModified);
+		}
+
+		public Stream OpenExplicitFileRead(string osPath, out DateTime lastModified)
+		{			
 			if(_searchPaths.Count == 0)
 			{
 				idConsole.FatalError("Filesystem call made without initialization");
@@ -383,24 +390,26 @@ namespace idTech4.IO
 
 			idConsole.DeveloperWriteLine("idFileSystem.OpenExplicitFileRead - reading from: {0}", osPath);
 
-			return OpenOSFile(osPath, FileMode.Open, FileAccess.Read);
+			string caseSensitiveName;
+
+			return OpenOSFile(osPath, FileMode.Open, FileAccess.Read, out caseSensitiveName, out lastModified);
 		}
 
-		public Stream OpenFileRead(string relativePath)
-		{
-			return OpenFileRead(relativePath, true, null);
-		}
-
-		public Stream OpenFileRead(string relativePath, bool allowCopyFiles)
-		{
-			return OpenFileRead(relativePath, allowCopyFiles, null);
-		}
-
-		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, string gameDirectory)
+		public Stream OpenFileRead(string relativePath, out DateTime lastModified)
 		{
 			Pack p;
+			bool found;
 
-			return OpenFileRead(relativePath, allowCopyFiles, out p, gameDirectory, FileSearch.SearchDirectories | FileSearch.SearchPaks);
+			return OpenFileRead(relativePath, true, out p, null, FileSearch.SearchDirectories | FileSearch.SearchPaks, false, out found, out lastModified);
+		}
+
+		public Stream OpenFileRead(string relativePath, bool allowCopyFiles = true, string gameDirectory = null)
+		{
+			Pack p;
+			bool found;
+			DateTime lastModified;
+
+			return OpenFileRead(relativePath, allowCopyFiles, out p, gameDirectory, FileSearch.SearchDirectories | FileSearch.SearchPaks, false, out found, out lastModified);
 		}
 
 		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, out Pack foundInPack, FileSearch searchFlags)
@@ -411,11 +420,15 @@ namespace idTech4.IO
 		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, out Pack foundInPack, string gameDirectory, FileSearch searchFlags)
 		{
 			bool found;
-			return OpenFileRead(relativePath, allowCopyFiles, out foundInPack, null, searchFlags, false, out found);
+			DateTime lastModified;
+
+			return OpenFileRead(relativePath, allowCopyFiles, out foundInPack, null, searchFlags, false, out found, out lastModified);
 		}
 
-		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, out Pack foundInPack, string gameDirectory, FileSearch searchFlags, bool checkOnly, out bool found)
+		public Stream OpenFileRead(string relativePath, bool allowCopyFiles, out Pack foundInPack, string gameDirectory, FileSearch searchFlags, bool checkOnly, out bool found, out DateTime lastModified)
 		{
+			lastModified = DateTime.MinValue;
+
 			if(_searchPaths.Count == 0)
 			{
 				idConsole.FatalError("Filesystem call made without initialization");
@@ -476,6 +489,7 @@ namespace idTech4.IO
 						try
 						{
 							file = File.OpenRead(netPath);
+							lastModified = File.GetLastWriteTime(netPath);
 						}
 						catch(Exception x)
 						{
@@ -1493,7 +1507,9 @@ namespace idTech4.IO
 		private Stream OpenOSFile(string name, FileMode mode, FileAccess access)
 		{
 			string caseSensitiveName;
-			return OpenOSFile(name, mode, access, out caseSensitiveName);
+			DateTime lastModified;
+
+			return OpenOSFile(name, mode, access, out caseSensitiveName, out lastModified);
 		}
 
 		/// <summary>
@@ -1503,7 +1519,7 @@ namespace idTech4.IO
 		/// <param name="mode"></param>
 		/// <param name="caseSensitiveName">Set to case sensitive file name as found on disc (fs_caseSensitiveOS only).</param>
 		/// <returns></returns>
-		private Stream OpenOSFile(string name, FileMode mode, FileAccess access, out string caseSensitiveName)
+		private Stream OpenOSFile(string name, FileMode mode, FileAccess access, out string caseSensitiveName, out DateTime lastModified)
 		{
 			Stream s = null;
 
@@ -1520,6 +1536,7 @@ namespace idTech4.IO
 			}
 
 			caseSensitiveName = string.Empty;
+			lastModified = DateTime.MinValue;
 
 			if((s == null) && (idE.CvarSystem.GetBool("fs_caseSensitiveOS") == true))
 			{
@@ -1556,6 +1573,7 @@ namespace idTech4.IO
 			}
 
 			caseSensitiveName = Path.GetFileName(name);
+			lastModified = File.GetLastWriteTime(name);
 
 			return s;
 		}

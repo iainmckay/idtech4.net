@@ -43,6 +43,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _cursorX;
 			}
 		}
@@ -51,6 +56,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _cursorY;
 			}
 		}
@@ -59,6 +69,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _desktop;
 			}
 		}
@@ -67,6 +82,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _active;
 			}
 		}
@@ -75,6 +95,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _interactive;
 			}
 		}
@@ -83,10 +108,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _uniqued;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				_uniqued = value;
 			}
 		}
@@ -95,10 +130,20 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _pendingCommand;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				_pendingCommand = value;
 			}
 		}
@@ -107,6 +152,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _referenceCount;
 			}
 		}
@@ -115,6 +165,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _sourceFile;
 			}
 		}
@@ -123,6 +178,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _state;
 			}
 		}
@@ -131,6 +191,11 @@ namespace idTech4.UI
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idUserInterface");
+				}
+
 				return _time;
 			}
 		}
@@ -461,6 +526,13 @@ namespace idTech4.UI
 
 		private void Dispose(bool disposing)
 		{
+			if(disposing == true)
+			{
+				_state = null;
+				_desktop = null;
+				_bindHandler = null;
+			}
+
 			_disposed = true;
 		}
 		#endregion
