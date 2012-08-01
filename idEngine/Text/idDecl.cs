@@ -35,9 +35,8 @@ using idTech4.Text;
 
 namespace idTech4.Text
 {
-	public abstract class idDecl
+	public class idDecl : IDisposable
 	{
-
 		#region Properties
 		#region Public
 		/// <summary>
@@ -47,10 +46,20 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return _everReferenced;
 			}
 			internal set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				_everReferenced = value;
 			}
 		}
@@ -62,6 +71,11 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				if(_sourceFile == null)
 				{
 					return "*invalid*";
@@ -78,10 +92,20 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return _index;
 			}
 			internal set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				_index = value;
 			}
 		}
@@ -93,6 +117,11 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return (this.SourceFile == idE.DeclManager.ImplicitDeclFile);
 			}
 		}
@@ -104,6 +133,11 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return _sourceLine;
 			}
 		}
@@ -115,10 +149,20 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return _name;
 			}
 			internal set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				_name = value;
 			}
 		}
@@ -133,10 +177,20 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return _parsedOutsideLevelLoad;
 			}
 			internal set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				_parsedOutsideLevelLoad = value;
 			}
 		}
@@ -148,10 +202,20 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return _referencedThisLevel;
 			}
 			internal set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				_referencedThisLevel = value;
 			}
 		}
@@ -159,10 +223,15 @@ namespace idTech4.Text
 		/// <summary>
 		/// Gets the size in bytes that this type consumes.
 		/// </summary>
-		public int Size
+		public virtual int Size
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return 0;
 
 				// TODO: how to do this in .net?
@@ -177,10 +246,20 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return _state;
 			}
 			internal set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				_state = value;
 			}
 		}
@@ -192,10 +271,20 @@ namespace idTech4.Text
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				return _type;
 			}
 			internal set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDecl");
+				}
+
 				_type = value;
 			}
 		}
@@ -323,12 +412,22 @@ namespace idTech4.Text
 			_type = DeclType.EntityDef;
 			_state = DeclState.Unparsed;
 		}
+
+		~idDecl()
+		{
+			Dispose(false);
+		}
 		#endregion
 
 		#region Methods
 		#region Public
 		public void EnsureNotPurged()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDecl");
+			}
+
 			if(_state == DeclState.Unparsed)
 			{
 				ParseLocal();
@@ -337,11 +436,21 @@ namespace idTech4.Text
 
 		public virtual string GetDefaultDefinition()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDecl");
+			}
+
 			return "{ }";
 		}
 
 		public void MakeDefault()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDecl");
+			}
+
 			_state = DeclState.Defaulted;
 
 			idE.DeclManager.MediaPrint("DEFAULTED");
@@ -370,6 +479,11 @@ namespace idTech4.Text
 
 		public virtual bool Parse(string text)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDecl");
+			}
+
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
 			lexer.LoadMemory(text, this.FileName, this.LineNumber);
 			lexer.SkipUntilString("{");
@@ -380,6 +494,11 @@ namespace idTech4.Text
 
 		public void Purge()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDecl");
+			}
+
 			// never purge things that were referenced outside level load,
 			// like the console and menu graphics
 			if(this.ParsedOutsideLevelLoad == true)
@@ -399,7 +518,7 @@ namespace idTech4.Text
 		#region Protected
 		protected virtual void ClearData()
 		{
-
+			_sourceFile = null;
 		}
 
 		protected virtual bool GenerateDefaultText()
@@ -451,6 +570,45 @@ namespace idTech4.Text
 			}
 
 			idE.DeclManager.Indent--;
+		}
+		#endregion
+		#endregion
+
+		#region IDisposable implementation
+		#region Properties
+		public bool Disposed
+		{
+			get
+			{
+				return _disposed;
+			}
+		}
+		#endregion
+
+		#region Members
+		private bool _disposed;
+		#endregion
+
+		#region Methods
+		public void Dispose()
+		{
+			Dispose(true);
+			GC.SuppressFinalize(this);
+		}
+
+		protected virtual void Dispose(bool disposing)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDecl");
+			}
+
+			if(disposing == true)
+			{
+				ClearData();
+			}
+
+			_disposed = true;
 		}
 		#endregion
 		#endregion

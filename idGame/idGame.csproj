@@ -41,6 +41,7 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Animation\idDeclModel.cs" />
     <Compile Include="Entities\idActor.cs" />
     <Compile Include="Entities\idAFEntity.cs" />
     <Compile Include="Entities\idAFEntity_Gibbable.cs" />
@@ -49,6 +50,7 @@
     <Compile Include="Entities\idPlayerStart.cs" />
     <Compile Include="Entities\idWorldSpawn.cs" />
     <Compile Include="idEntity.cs" />
+    <Compile Include="idGameEdit.cs" />
     <Compile Include="idGameRules.cs" />
     <Compile Include="idR.cs" />
     <Compile Include="idGame.cs" />

@@ -1164,8 +1164,6 @@ namespace idTech4.Renderer
 			// TODO: timestamp
 			timeStamp = DateTime.Now;
 
-			idConsole.WriteLine("TODO: this doesn't add to hash");
-
 			return idE.System.Content.Load<Texture2D>(name);
 		}
 

@@ -40,6 +40,7 @@ using Tao.OpenGl;
 
 using idTech4.Math;
 using idTech4.Text.Decl;
+using idTech4.UI;
 
 namespace idTech4.Renderer
 {
@@ -3954,7 +3955,7 @@ namespace idTech4.Renderer
 
 	public class View
 	{
-		public idRenderView RenderView;
+		public idRenderView RenderView = new idRenderView();
 
 		public Matrix ProjectionMatrix;
 		public ViewEntity WorldSpace;
@@ -4037,34 +4038,42 @@ namespace idTech4.Renderer
 */
 	}
 	
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <remarks>
+	/// Entities that are expensive to generate, like skeletal models, can be
+	/// deferred until their bounds are found to be in view, in the frustum
+	/// of a shadowing light that is in view, or contacted by a trace / overlay test.
+	/// This is also used to do visual cueing on items in the view
+	/// The renderView may be NULL if the callback is being issued for a non-view related
+	/// source.
+	/// <para/>
+	/// The callback function should clear renderEntity->callback if it doesn't
+	/// want to be called again next time the entity is referenced (ie, if the
+	/// callback has now made the entity valid until the next updateEntity)
+	/// </remarks>
 	public class idRenderEntity
 	{
-
-		/*idRenderModel *			hModel;				// this can only be null if callback is set
-		*/
+		/// <remarks>
+		/// This can only be null if callback is set.
+		/// </remarks>
+		public idRenderModel Model;
 
 		public int EntityIndex;
 		public int BodyID;
 
-		/*// Entities that are expensive to generate, like skeletal models, can be
-		// deferred until their bounds are found to be in view, in the frustum
-		// of a shadowing light that is in view, or contacted by a trace / overlay test.
-		// This is also used to do visual cueing on items in the view
-		// The renderView may be NULL if the callback is being issued for a non-view related
-		// source.
-		// The callback function should clear renderEntity->callback if it doesn't
-		// want to be called again next time the entity is referenced (ie, if the
-		// callback has now made the entity valid until the next updateEntity)
-		idBounds				bounds;					// only needs to be set for deferred models and md5s
-		deferredEntityCallback_t	callback;
-
-		void *					callbackData;			// used for whatever the callback wants
-
-		// player bodies and possibly player shadows should be suppressed in views from
-		// that player's eyes, but will show up in mirrors and other subviews
-		// security cameras could suppress their model in their subviews if we add a way
-		// of specifying a view number for a remoteRenderMap view*/
-
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// Only needs to be set for deferred models and md5s.
+		/// </remarks>
+		public idBounds	Bounds;
+		
+		/*deferredEntityCallback_t	callback;
+		void *					callbackData;	*/		// used for whatever the callback wants
+		
 		/// <summary>
 		/// Suppress the model in the given view.
 		/// </summary>
@@ -4139,9 +4148,9 @@ namespace idTech4.Renderer
 		public float[] MaterialParameters = new float[idE.MaxEntityMaterialParameters];
 
 		// networking: see WriteGUIToSnapshot / ReadGUIFromSnapshot
-		/*class idUserInterface * gui[ MAX_RENDERENTITY_GUI ];
+		public idUserInterface[] Gui = new idUserInterface[idE.MaxRenderEntityGui];
 
-		struct renderView_s	*	remoteRenderView;		// any remote camera surfaces will use this
+		/*struct renderView_s	*	remoteRenderView;		// any remote camera surfaces will use this
 
 		int						numJoints;
 		idJointMat *			joints;					// array of joints that will modify vertices.
@@ -4417,12 +4426,15 @@ namespace idTech4.Renderer
 				throw new ObjectDisposedException("Surface");
 			}
 
-			this.Bounds = idBounds.Zero;
-			this.Indexes = null;
-			this.Vertices = null;
-			this.ShadowVertices = null;
-			this.IndexCache = null;
-			this.AmbientCache = null;
+			if(disposing == true)
+			{
+				this.Bounds = idBounds.Zero;
+				this.Indexes = null;
+				this.Vertices = null;
+				this.ShadowVertices = null;
+				this.IndexCache = null;
+				this.AmbientCache = null;
+			}
 
 			_disposed = true;
 		}

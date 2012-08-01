@@ -128,6 +128,17 @@ namespace idTech4.Renderer
 		public abstract void FreeVertexCache();
 
 		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// Dynamic models should return a fast, conservative approximation.
+		/// Static models should usually return the exact value.
+		/// </remarks>
+		/// <param name="renderEntity"></param>
+		/// <returns></returns>
+		public abstract idBounds GetBounds(idRenderEntity renderEntity = null);
+
+		/// <summary>
 		/// This is used for dynamically created surfaces, which are assumed to not be reloadable.
 		/// It can be called again to clear out the surfaces of a dynamic model for regeneration.
 		/// </summary>
@@ -291,6 +302,11 @@ namespace idTech4.Renderer
 
 		protected virtual void Dispose(bool disposing)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel");
+			}
+
 			if(disposing == true)
 			{
 				PurgeModel();

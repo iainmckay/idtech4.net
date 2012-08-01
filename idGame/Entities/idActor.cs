@@ -14,10 +14,20 @@ namespace idTech4.Game.Entities
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idActor");
+				}
+
 				return _team;
 			}
 			set
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idActor");
+				}
+
 				_team = value;
 			}
 		}
@@ -32,6 +42,7 @@ namespace idTech4.Game.Entities
 			: base()
 		{
 			// TODO
+			idConsole.WriteLine("TODO: idActor");
 			/*viewAxis.Identity();
 
 			scriptThread = NULL;		// initialized by ConstructScriptObject, which is called by idEntity::Spawn
@@ -83,6 +94,7 @@ namespace idTech4.Game.Entities
 			base.Spawn();
 
 			// TODO
+			idConsole.WriteLine("TODO: idActor.Spawn");
 			/*idEntity* ent;
 			idStr jointName;
 			float fovDegrees;
@@ -240,6 +252,7 @@ namespace idTech4.Game.Entities
 			base.Show();
 
 			// TODO
+			idConsole.WriteLine("TODO: idActor.Show");
 			/*idEntity *ent;
 	idEntity *next;
 
@@ -264,6 +277,7 @@ namespace idTech4.Game.Entities
 			base.Hide();
 
 		// TODO	
+			idConsole.WriteLine("TODO: idActor.Hide");
 	/*idAFEntity_Base::Hide();
 	if ( head.GetEntity() ) {
 		head.GetEntity()->Hide();
@@ -286,35 +300,39 @@ namespace idTech4.Game.Entities
 			base.Dispose(disposing);
 
 			// TODO
-			/*int i;
-			idEntity* ent;
+			idConsole.WriteLine("TODO: idActor.Dispose");
+		
+				/*int i;
+				idEntity* ent;
 
-			DeconstructScriptObject();
-			scriptObject.Free();
+				DeconstructScriptObject();
+				scriptObject.Free();
 
-			StopSound(SND_CHANNEL_ANY, false);
+				StopSound(SND_CHANNEL_ANY, false);
 
-			delete combatModel;
-			combatModel = NULL;
+				delete combatModel;
+				combatModel = NULL;
 
-			if(head.GetEntity())
-			{
-				head.GetEntity()->ClearBody();
-				head.GetEntity()->PostEventMS(&EV_Remove, 0);
-			}
-
-			// remove any attached entities
-			for(i = 0; i < attachments.Num(); i++)
-			{
-				ent = attachments[i].ent.GetEntity();
-				if(ent)
+				if(head.GetEntity())
 				{
-					ent->PostEventMS(&EV_Remove, 0);
+					head.GetEntity()->ClearBody();
+					head.GetEntity()->PostEventMS(&EV_Remove, 0);
 				}
-			}
+
+				// remove any attached entities
+				for(i = 0; i < attachments.Num(); i++)
+				{
+					ent = attachments[i].ent.GetEntity();
+					if(ent)
+					{
+						ent->PostEventMS(&EV_Remove, 0);
+					}
+				}
+	
 
 			ShutdownThreads();*/
 		}
+
 		#endregion
 	}
 }

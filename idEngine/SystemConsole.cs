@@ -69,7 +69,7 @@ namespace idTech4
 				return;
 			}
 
-			if(_log.Disposing == false)
+			if(_log.IsDisposed == false)
 			{
 				_log.AppendText(text);
 				//_log.Select(_log.TextLength, 1);

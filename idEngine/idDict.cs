@@ -123,6 +123,23 @@ namespace idTech4
 			return defaultValue;
 		}
 
+		public Matrix GetMatrix(string key, string defaultString = "")
+		{
+			if(defaultString == string.Empty)
+			{
+				defaultString = "1 0 0 0 1 0 0 0 1";
+			}
+
+			string[] parts = GetString(key, defaultString).Split(' ');
+
+			return new Matrix(
+				float.Parse(parts[0]), float.Parse(parts[1]), float.Parse(parts[2]),
+				float.Parse(parts[3]), float.Parse(parts[4]), float.Parse(parts[5]),
+				float.Parse(parts[6]), float.Parse(parts[7]), float.Parse(parts[8]),
+				0, 0, 0, 0, 0, 0, 0
+			);
+		}
+
 		public string GetString(string key)
 		{
 			return GetString(key, string.Empty);

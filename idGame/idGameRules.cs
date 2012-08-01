@@ -124,7 +124,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameType");
+				throw new ObjectDisposedException("idGameRules");
 			}
 		}
 
@@ -156,6 +156,11 @@ namespace idTech4.Game
 
 		private void Dispose(bool disposing)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idGameRules");
+			}
+
 			_disposed = true;
 		}
 		#endregion

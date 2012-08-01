@@ -782,18 +782,26 @@ namespace idTech4.Renderer
 
 		private void Dispose(bool disposing)
 		{
-			// free all the entityDefs, lightDefs, portals, etc
-			FreeWorld();
-					
-			_areaNodes = null;
-			_portalAreas = null;
-			_doublePortals = null;
-			_areaScreenRect = null;
-			_localModels = null;
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderWorld");
+			}
 
-			/* TODO: entityDefs;
-			lightDefs;			
-			idInteraction **		interactionTable;*/
+			// free all the entityDefs, lightDefs, portals, etc
+			if(disposing == true)
+			{
+				FreeWorld();
+
+				_areaNodes = null;
+				_portalAreas = null;
+				_doublePortals = null;
+				_areaScreenRect = null;
+				_localModels = null;
+
+				/* TODO: entityDefs;
+				lightDefs;			
+				idInteraction **		interactionTable;*/
+			}
 
 			// free up the debug lines, polys, and text
 			idE.RenderSystem.DebugClearPolygons(0);

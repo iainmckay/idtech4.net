@@ -11,6 +11,7 @@ namespace idTech4.Game.Entities
 		public idAFEntity_Gibbable() : base()
 		{
 			// TODO
+			idConsole.WriteLine("TODO: idAFEntity_Gibbable");
 			/*skeletonModel = NULL;
 			skeletonModelDefHandle = -1;
 			gibbed = false;*/
@@ -23,6 +24,7 @@ namespace idTech4.Game.Entities
 			base.Spawn();
 
 			// TODO
+			idConsole.WriteLine("TODO: idAFEntity_Gibbable.Spawn");
 			/*InitSkeletonModel();
 
 			gibbed = false;*/
@@ -33,6 +35,7 @@ namespace idTech4.Game.Entities
 			base.Dispose(disposing);
 
 			// TODO
+			idConsole.WriteLine("TODO: idAFEntity_Gibbable.Dispose");
 			/*if(skeletonModelDefHandle != -1)
 			{
 				gameRenderWorld->FreeEntityDef(skeletonModelDefHandle);

@@ -5,69 +5,109 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Game.Animation;
+using idTech4.Renderer;
+using idTech4.Text;
+using idTech4.Text.Decl;
 using idTech4.UI;
 
 namespace idTech4.Game
 {
-	public class idGameEdit : idGameEdit
+	public class idGameEdit : idBaseGameEdit
 	{
 		#region Constructor
 		public idGameEdit()
 		{
-			idR.GameEdit = this;
+			
 		}
 		#endregion
 
 		#region Methods
-		public void ParseSpawnArgsToRenderEntity(idDict args, /*idRenderEntity*/ object renderEntity)
+		#region Private
+		private idUserInterface AddRenderGui(string name, idDict args)
 		{
-			//renderEntity.Clear();
+			idUserInterface gui = idR.UIManager.FindInterface(name, true, args.ContainsKey("gui_parm"));
+
+			UpdateGuiParams(gui, args);
+
+			return gui;
+		}
+
+		private void UpdateGuiParams(idUserInterface gui, idDict args)
+		{
+			if((gui == null) || (args == null))
+			{
+				return;
+			}
+
+			foreach(KeyValuePair<string, string> kvp in args.MatchPrefix("gui_parm"))
+			{
+				gui.State.Set(kvp.Key, kvp.Value);
+			}
+
+			gui.State.Set("noninteractive", args.GetBool("gui_noninteractive"));
+			gui.StateChanged(idR.Game.Time);
+		}
+		#endregion
+		#endregion
+
+		#region idBaseGameEdit implementation
+		#region Methods
+		public override idRenderEntity ParseSpawnArgsToRenderEntity(idDict args)
+		{
+			idRenderEntity renderEntity = new idRenderEntity();
+			idDeclModel modelDef = null;
 			
 			string temp = args.GetString("model");
 
-			//TODO
-			/*modelDef = NULL;
-			if ( temp[0] != '\0' ) {
-				modelDef = static_cast<const idDeclModelDef *>( declManager->FindType( DECL_MODELDEF, temp, false ) );
-				if ( modelDef ) {
-					renderEntity->hModel = modelDef->ModelHandle();
+			if(temp != string.Empty)
+			{
+				modelDef = idE.DeclManager.FindType<idDeclModel>(DeclType.ModelDef, temp, false);
+
+				if(modelDef != null)
+				{
+					renderEntity.Model = modelDef.Model;
 				}
-				if ( !renderEntity->hModel ) {
-					renderEntity->hModel = renderModelManager->FindModel( temp );
+
+				if(renderEntity.Model == null)
+				{
+					renderEntity.Model = idE.RenderModelManager.FindModel(temp);
 				}
 			}
-			if ( renderEntity->hModel ) {
-				renderEntity->bounds = renderEntity->hModel->Bounds( renderEntity );
-			} else*/
+
+			if(renderEntity.Model != null)
 			{
-				// TODO: renderEntity.Bounds = new idBounds();
+				renderEntity.Bounds = renderEntity.Model.GetBounds(renderEntity);
+			}
+			else
+			{
+				renderEntity.Bounds = new idBounds();
 			}
 
 			temp = args.GetString("skin");
 
 			if(temp != null)
 			{
-				//renderEntity.CustomSkin = idR.DeclManager.FindSkin(temp);
+				renderEntity.CustomSkin = idR.DeclManager.FindSkin(temp);
 			}
-			else if(1 == 0 /* modelDef != null*/)
+			else if(modelDef != null)
 			{
-				// TODO
-				//renderEntity->customSkin = modelDef->GetDefaultSkin();
+				renderEntity.CustomSkin = modelDef.DefaultSkin;
 			}
 
 			temp = args.GetString("shader");
 
 			if(temp != null)
 			{
-				//renderEntity.CustomShader = idR.DeclManager.FindMaterial(temp);
+				renderEntity.CustomMaterial = idR.DeclManager.FindMaterial(temp);
 			}
 
-			//renderEntity.Origin = args.GetVector3("origin", Vector3.Zero);
+			renderEntity.Origin = args.GetVector3("origin", Vector3.Zero);
 
 			// get the rotation matrix in either full form, or single angle form
-			//renderEntity.Axis = args.GetMatrix("rotation", "1 0 0 0 1 0 0 0 1");
+			renderEntity.Axis = args.GetMatrix("rotation", "1 0 0 0 1 0 0 0 1");
 
-			/*if(renderEntity.Axis == Matrix.Identity)
+			if(renderEntity.Axis == Matrix.Identity)
 			{
 				float angle = args.GetFloat("angle");
 
@@ -79,7 +119,7 @@ namespace idTech4.Game
 				{
 					renderEntity.Axis = Matrix.Identity;
 				}
-			}*/
+			}
 
 			// TODO
 			//renderEntity.ReferencedSound = null;
@@ -87,36 +127,36 @@ namespace idTech4.Game
 			// get shader parms
 			Vector3 color = args.GetVector3("_color", new Vector3(1, 1, 1));
 
-			/*float[] shaderParms = renderEntity.ShaderParms;*/
+			float[] materialParms = renderEntity.MaterialParameters;
 
-			/*shaderParms[(int) ShaderParameter.Red] = color.X;
-			shaderParms[(int) ShaderParameter.Green] = color.Y;
-			shaderParms[(int) ShaderParameter.Blue] = color.Z;*/
+			materialParms[(int) MaterialParameter.Red] = color.X;
+			materialParms[(int) MaterialParameter.Green] = color.Y;
+			materialParms[(int) MaterialParameter.Blue] = color.Z;
 
-			/*shaderParms[3] = args.GetFloat("shaderParm3", 1);
-			shaderParms[4] = args.GetFloat("shaderParm4", 0);
-			shaderParms[5] = args.GetFloat("shaderParm5", 0);
-			shaderParms[6] = args.GetFloat("shaderParm6", 0);
-			shaderParms[7] = args.GetFloat("shaderParm7", 0);
-			shaderParms[8] = args.GetFloat("shaderParm8", 0);
-			shaderParms[9] = args.GetFloat("shaderParm9", 0);
-			shaderParms[10] = args.GetFloat("shaderParm10", 0);
-			shaderParms[11] = args.GetFloat("shaderParm11", 0);
+			materialParms[3] = args.GetFloat("shaderParm3", 1);
+			materialParms[4] = args.GetFloat("shaderParm4", 0);
+			materialParms[5] = args.GetFloat("shaderParm5", 0);
+			materialParms[6] = args.GetFloat("shaderParm6", 0);
+			materialParms[7] = args.GetFloat("shaderParm7", 0);
+			materialParms[8] = args.GetFloat("shaderParm8", 0);
+			materialParms[9] = args.GetFloat("shaderParm9", 0);
+			materialParms[10] = args.GetFloat("shaderParm10", 0);
+			materialParms[11] = args.GetFloat("shaderParm11", 0);
 
-			renderEntity.ShaderParms = shaderParms;*/
+			renderEntity.MaterialParameters = materialParms;
 
 			// check noDynamicInteractions flag
-			/*renderEntity.NoDynamicInteractions = args.GetBool("noDynamicInteractions");
+			renderEntity.NoDynamicInteractions = args.GetBool("noDynamicInteractions");
 
 			// check noshadows flag
 			renderEntity.NoShadow = args.GetBool("noshadows");
 
 			// check noselfshadows flag
-			renderEntity.NoSelfShadow = args.GetBool("noselfshadows");*/
+			renderEntity.NoSelfShadow = args.GetBool("noselfshadows");
 
 			// TODO
 			// init any guis, including entity-specific states
-			/*for(int i = 0; i < renderEntity.Length; i++)
+			for(int i = 0; i < renderEntity.Gui.Length; i++)
 			{
 				temp = args.GetString(i == 0 ? "gui" : string.Format("gui{0}", i + 1));
 
@@ -124,40 +164,11 @@ namespace idTech4.Game
 				{
 					renderEntity.Gui[i] = AddRenderGui(temp, args);
 				}
-			}*/
-		}
-
-		private idUserInterface AddRenderGui(string name, idDict args)
-		{
-			// TODO
-			/*idKeyValue kv = args.MatchPrefix("gui_parm", null);
-			idUserInterface gui = idR.UIManager.FindInterface(name, true, (kv != null));
-
-			UpdateGuiParams(gui, args);
-
-			return gui;*/
-			return null;
-		}
-
-		private void UpdateGuiParams(idUserInterface gui, idDict args)
-		{
-			// TODO
-			/*if((gui == null) || (args == null))
-			{
-				return;
 			}
 
-			idKeyValue kv = args.MatchPrefix("gui_parm", null);
-
-			while(kv != null)
-			{
-				gui.State.Set(kv.Key, kv.Value);
-				kv = args.MatchPrefix("gui_parm", kv);
-			}
-
-			gui.SetState("noninteractive", args.GetBool("gui_noninteractive"));
-			gui.StateChanged(idR.Game.Time);*/
-		}
+			return renderEntity;
+		}		
+		#endregion
 		#endregion
 	}
 }

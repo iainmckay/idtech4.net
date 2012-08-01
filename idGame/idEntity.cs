@@ -367,6 +367,7 @@ namespace idTech4.Game
 
 			_renderEntity = new idRenderEntity();
 
+			idConsole.WriteLine("TODO: idEntity");
 			/*			
 			snapshotNode.SetOwner(this);
 			snapshotSequence = -1;
@@ -492,9 +493,15 @@ namespace idTech4.Game
 		#region Public
 		public bool GetMasterPosition(out Vector3 masterOrigin, out Matrix masterAxis)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idEntity");
+			}
+
 			Vector3 localOrigin;
 			Matrix localAxis;
 
+			idConsole.WriteLine("TODO: idEntity.GetMasterPosition");
 			// TODO
 			/*idAnimator	*masterAnimator;
 
@@ -531,6 +538,11 @@ namespace idTech4.Game
 
 		public virtual void Hide()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idEntity");
+			}
+
 			idConsole.DeveloperWriteLine("TODO: Hide");
 			// TODO
 			/*if(!IsHidden())
@@ -548,6 +560,8 @@ namespace idTech4.Game
 			{
 				throw new ObjectDisposedException("idEntity");
 			}
+
+			idConsole.WriteLine("TODO: idEntity.Spawn");
 			/*int					i;
 			const char			*temp;
 			idVec3				origin;
@@ -566,14 +580,14 @@ namespace idTech4.Game
 			{
 				_entityDefIndex = def.Index;
 			}
+
 			/*
 			TODO
 			FixupLocalizedStrings();
 			*/
 
 			// parse static models the same way the editor display does
-			idR.GameEdit.ParseSpawnArgsToRenderEntity(_spawnArgs, _renderEntity);
-
+			_renderEntity = idR.GameEdit.ParseSpawnArgsToRenderEntity(_spawnArgs);
 			_renderEntity.EntityIndex = this.Index;
 
 			// TODO
@@ -675,6 +689,11 @@ namespace idTech4.Game
 				
 		public virtual void Show()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idEntity");
+			}
+
 			// TODO
 			idConsole.DeveloperWriteLine("TODO: Show");
 			/*
@@ -686,6 +705,11 @@ namespace idTech4.Game
 
 		public virtual void Think()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idEntity");
+			}
+
 			idConsole.DeveloperWriteLine("TODO: Think");
 
 			// TODO
@@ -714,6 +738,11 @@ namespace idTech4.Game
 
 		protected virtual void Dispose(bool disposing)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idEntity");
+			}
+
 			idConsole.DeveloperWriteLine("TODO: idEntity.Dispose");
 
 			/*if ( gameLocal.GameState() != GAMESTATE_SHUTDOWN && !gameLocal.isClient && fl.networkSync && entityNumber >= MAX_CLIENTS ) {

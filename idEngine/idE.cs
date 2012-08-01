@@ -114,6 +114,7 @@ namespace idTech4
 
 		public static idSystem System;
 		public static idBaseGame Game;
+		public static idBaseGameEdit GameEdit;
 
 		public static readonly idCvarSystem CvarSystem = new idCvarSystem();
 		public static readonly idLangDict Language = new idLangDict();

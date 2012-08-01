@@ -793,7 +793,9 @@ namespace idTech4.Renderer
 
 			if(this.IsLoaded == true)
 			{
-				_texture.Dispose();
+				// TODO: because the content manager doesn't actually remove the texture, we don't support
+				// purging/reloading right now.
+				//_texture.Dispose();
 				_texture = null;
 			}
 

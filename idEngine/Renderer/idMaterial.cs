@@ -3079,6 +3079,55 @@ namespace idTech4.Renderer
 		Global7
 	}
 
+	public enum MaterialParameter
+	{
+		Red = 0,
+		Green = 1,
+		Blue = 2,
+		Alpha = 3,
+		TimeScale = 3,
+		TimeOffset = 4,
+
+		/// <summary>
+		/// Random between 0.0 and 1.0 for some effects (muzzle flashes, etc).
+		/// </summary>
+		Diversity = 5,
+
+		/// <summary>
+		/// For selecting which shader passes to enable.
+		/// </summary>
+		Mode = 7,
+
+		/// <summary>
+		/// For the monster skin-burn-away effect enable and time offset.
+		/// </summary>
+		TimeOfDeath = 7,
+
+		// model parms
+
+		/// <summary>
+		/// For scaling vertex offsets on md5 models (jack skellington effect).
+		/// </summary>
+		MD5SkinScale = 8,
+
+		MD3Frame = 8,
+		MD3LastFrame = 9,
+		MD3BackLerp = 10,
+
+		BeamEndX = 8,
+		BeamEndY = 9,
+		BeamEndZ = 10,
+		BeamWidth = 11,
+
+		SpriteWidth = 8,
+		SpriteHeight = 9,
+
+		/// <summary>
+		/// Don't spawn any more particles after this time.
+		/// </summary>
+		ParticleStopTime = 8
+	}
+
 	public enum MaterialCoverage
 	{
 		Bad,

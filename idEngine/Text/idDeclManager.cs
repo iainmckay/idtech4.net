@@ -34,6 +34,7 @@ using System.Text;
 
 using idTech4.IO;
 using idTech4.Renderer;
+using idTech4.Sound;
 using idTech4.Text;
 using idTech4.Text.Decl;
 
@@ -151,14 +152,14 @@ namespace idTech4.Text
 			RegisterDeclType("table", DeclType.Table, new idDeclAllocator<idDeclTable>());
 			RegisterDeclType("material", DeclType.Material, new idDeclAllocator<idMaterial>());
 			RegisterDeclType("skin", DeclType.Skin, new idDeclAllocator<idDeclSkin>());
-			/*RegisterDeclType("sound", DeclType.Sound, new idDeclAllocator<idSoundShader>());
-			/*/
-			RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntity>());
+			RegisterDeclType("sound", DeclType.Sound, new idDeclAllocator<idSoundMaterial>());
+			
+			/*RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntity>());
 			RegisterDeclType("mapDef", DeclType.MapDef, new idDeclAllocator<idDeclEntity>());
 			/*RegisterDeclType("fx", DeclType.Fx, new idDeclAllocator<idDeclFX>());*/
 			RegisterDeclType("particle", DeclType.Particle, new idDeclAllocator<idDeclParticle>());
 			/*RegisterDeclType("articulatedFigure", DeclType.Af, new idDeclAllocator<idDeclAF>());
-			RegisterDeclType("pda", DeclType.Pda, new idDeclAllocator<idDeclPDA>());*/
+			RegisterDeclType("pda", DeclType.Pda, new idDeclAllocator<idDeclPDA>());*
 			RegisterDeclType("email", DeclType.Email, new idDeclAllocator<idDeclEmail>());
 			/*RegisterDeclType("video", DeclType.Video, new idDeclAllocator<idDeclVideo>());
 			RegisterDeclType("audio", DeclType.Audio, new idDeclAllocator<idDeclAudio>());*/
@@ -300,11 +301,12 @@ namespace idTech4.Text
 
 		public DeclType GetDeclTypeFromName(string name)
 		{
-			DeclType tmp;
-
-			if(Enum.TryParse<DeclType>(name, true, out tmp) == true)
+			foreach(KeyValuePair<DeclType, idDeclType> kvp in _declTypes)
 			{
-				return tmp;
+				if(kvp.Value.Name.Equals(name, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					return kvp.Value.Type;
+				}
 			}
 
 			return DeclType.Unknown;
@@ -438,24 +440,19 @@ namespace idTech4.Text
 			return (decl as T);
 		}
 
-		public idMaterial FindMaterial(string name)
-		{
-			return FindMaterial(name, true);
-		}
-
-		public idMaterial FindMaterial(string name, bool makeDefault)
+		public idMaterial FindMaterial(string name, bool makeDefault = true)
 		{
 			return FindType<idMaterial>(DeclType.Material, name, makeDefault);
 		}
 
-		public idDeclSkin FindSkin(string name)
-		{
-			return FindSkin(name, true);
-		}
-
-		public idDeclSkin FindSkin(string name, bool makeDefault)
+		public idDeclSkin FindSkin(string name, bool makeDefault = true)
 		{
 			return FindType<idDeclSkin>(DeclType.Skin, name, makeDefault);
+		}
+
+		public idSoundMaterial FindSound(string name, bool makeDefault = true)
+		{
+			return FindType<idSoundMaterial>(DeclType.Sound, name, makeDefault);
 		}
 		#endregion
 

@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
+using idTech4.Game.Animation;
 using idTech4.Game.Entities;
 using idTech4.Game.Rules;
 using idTech4.Input;
@@ -299,17 +300,17 @@ namespace idTech4.Game
 		public idGame()
 		{
 			idR.Game = this;
+			idR.GameEdit = new idGameEdit();
 
-			InitCvars();
-			//idR.GameEdit = new idGameEdit();
+			InitCvars();			
 
-			/*for(int i = 0; i < _userInfo.Length; i++)
+			for(int i = 0; i < _userInfo.Length; i++)
 			{
 				_userInfo[i] = new idDict();
 				_persistentPlayerInfo[i] = new idDict();
-			}*/
+			}
 
-			/*_gameRules = new Singleplayer();*/
+			_gameRules = new Singleplayer();
 
 			Clear();
 		}
@@ -579,8 +580,8 @@ namespace idTech4.Game
 		private void InitAsyncNetwork()
 		{
 			idConsole.DeveloperWriteLine("TODO: InitAsyncNetwork");
-			// TODO
-			/*_clientDeclRemap = new List<int>[idR.MaxClients, 32];
+			
+			_clientDeclRemap = new List<int>[idR.MaxClients, 32];
 
 			for(int i = 0; i < idR.MaxClients; i++)
 			{
@@ -588,7 +589,7 @@ namespace idTech4.Game
 				{
 					_clientDeclRemap[i, type] = new List<int>();
 				}
-			}*/
+			}
 
 			/*memset( clientEntityStates, 0, sizeof( clientEntityStates ) );
 			memset( clientPVS, 0, sizeof( clientPVS ) );
@@ -1437,14 +1438,14 @@ namespace idTech4.Game
 			idConsole.WriteLine("gamedate: {0}", idVersion.BuildDate);
 
 			// TODO: register game specific decl types
-			//declManager->RegisterDeclType("model", DECL_MODELDEF, idDeclAllocator<idDeclModelDef>);
-			//declManager->RegisterDeclType("export", DECL_MODELEXPORT, idDeclAllocator<idDecl>);
+			idR.DeclManager.RegisterDeclType("model", DeclType.ModelDef, new idDeclAllocator<idDeclModel>());
+			idR.DeclManager.RegisterDeclType("export", DeclType.ModelExport, new idDeclAllocator<idDecl>());
 
 			// register game specific decl folders
 			idR.DeclManager.RegisterDeclFolder("def", ".def", DeclType.EntityDef);
-			idR.DeclManager.RegisterDeclFolder("fx", ".fx", DeclType.Fx);
+			// TODO: idR.DeclManager.RegisterDeclFolder("fx", ".fx", DeclType.Fx);
 			idR.DeclManager.RegisterDeclFolder("particles", ".prt", DeclType.Particle);
-			idR.DeclManager.RegisterDeclFolder("af", ".af", DeclType.Af);
+			// TODO: idR.DeclManager.RegisterDeclFolder("af", ".af", DeclType.Af);
 			idR.DeclManager.RegisterDeclFolder("newpdas", ".pda", DeclType.Pda);
 
 			/*cmdSystem->AddCommand( "listModelDefs", idListDecls_f<DECL_MODELDEF>, CMD_FL_SYSTEM|CMD_FL_GAME, "lists model defs" );
@@ -1919,7 +1920,7 @@ namespace idTech4.Game
 
 		public override void SetPersistentPlayerInformation(int clientIndex, idDict playerInfo)
 		{
-			idConsole.Warning("TODO: SetPersistentPlayerInformation");
+			_persistentPlayerInfo[clientIndex] = playerInfo;
 		}
 
 		public override idDict SetUserInformation(int clientIndex, idDict userInfo, bool isClient, bool canModify)

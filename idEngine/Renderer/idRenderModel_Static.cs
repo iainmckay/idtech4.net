@@ -73,6 +73,11 @@ namespace idTech4.Renderer
 		{
 			get 
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idRenderModel_Static");
+				}
+
 				return _defaulted;
 			}
 		}
@@ -81,6 +86,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idRenderModel_Static");
+				}
+
 				return (_purged == false);
 			}
 		}
@@ -89,6 +99,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idRenderModel_Static");
+				}
+
 				return _reloadable;
 			}
 		}
@@ -97,6 +112,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idRenderModel_Static");
+				}
+
 				return _isStaticWordModel;
 			}
 		}
@@ -105,6 +125,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idRenderModel_Static");
+				}
+
 				idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.MemoryUsage");
 				return 0;
 			}
@@ -114,6 +139,11 @@ namespace idTech4.Renderer
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idRenderModel_Static");
+				}
+
 				return _name;
 			}
 		}
@@ -122,21 +152,51 @@ namespace idTech4.Renderer
 		#region Methods
 		public override void AddSurface(RenderModelSurface surface)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.AddSurface");
 		}
 
 		public override void FinishSurfaces()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.FinishSurfaces");
 		}
 
 		public override void FreeVertexCache()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.FreeVertexCache");
+		}
+
+		public override idBounds GetBounds(idRenderEntity renderEntity = null)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
+			return _bounds;
 		}
 
 		public override void InitEmpty(string name)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			// model names of the form _area* are static parts of the
 			// world, and have already been considered for optimized shadows
 			// other model names are inline entity models, and need to be
@@ -154,6 +214,11 @@ namespace idTech4.Renderer
 
 		public override void InitFromFile(string fileName)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			InitEmpty(fileName);
 
 			// FIXME: load new .proc map format
@@ -204,22 +269,42 @@ namespace idTech4.Renderer
 
 		public override void List()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.List");
 		}
 
 		public override void LoadModel()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			PurgeModel();
 			InitFromFile(_name);
 		}
 
 		public override void MakeDefault()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			idConsole.WriteLine("TODO: idStaticRenderModel.MakeDefault");
 		}
 
 		public override void PartialInitFromFile(string fileName)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			_fastLoad = true;
 
 			InitFromFile(fileName);
@@ -227,11 +312,21 @@ namespace idTech4.Renderer
 
 		public override void Print()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.Print");
 		}
 
 		public override void PurgeModel()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			RenderModelSurface surf;
 
 			for(int i = 0; i < _surfaces.Count; i++)
@@ -251,11 +346,19 @@ namespace idTech4.Renderer
 
 		public override void Reset()
 		{
-			
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
 		}
 
 		public override void TouchData()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idRenderModel_Static");
+			}
+
 			foreach(RenderModelSurface surf in _surfaces)
 			{
 				// re-find the material to make sure it gets added to the

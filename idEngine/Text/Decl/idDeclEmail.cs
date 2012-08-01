@@ -35,35 +35,16 @@ namespace idTech4.Text.Decl
 	public sealed class idDeclEmail : idDecl
 	{
 		#region Properties
-		public string Text
-		{
-			get
-			{
-				return _text;
-			}
-		}
-
-		public string Subject
-		{
-			get
-			{
-				return _subject;
-			}
-		}
-
 		public string Date
 		{
 			get
 			{
-				return _date;
-			}
-		}
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDeclEmail");
+				}
 
-		public string To
-		{
-			get
-			{
-				return _to;
+				return _date;
 			}
 		}
 
@@ -71,6 +52,11 @@ namespace idTech4.Text.Decl
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDeclEmail");
+				}
+
 				return _from;
 			}
 		}
@@ -79,7 +65,51 @@ namespace idTech4.Text.Decl
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDeclEmail");
+				}
+
 				return _image;
+			}
+		}
+
+		public string Subject
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDeclEmail");
+				}
+
+				return _subject;
+			}
+		}
+
+		public string Text
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDeclEmail");
+				}
+
+				return _text;
+			}
+		}
+
+		public string To
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDeclEmail");
+				}
+
+				return _to;
 			}
 		}
 		#endregion
@@ -102,8 +132,35 @@ namespace idTech4.Text.Decl
 		#endregion
 
 		#region idDecl implementation
+		#region Properties
+		public override int Size
+		{
+			get
+			{
+				idConsole.WriteLine("TODO: idDeclEmail.Size");
+				return 0;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public override string GetDefaultDefinition()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclEmail");
+			}
+
+			return "{\n\t{\n\t\tto\t5Mail recipient\n\t\tsubject\t5Nothing\n\t\tfrom\t5No one\n\t}\n}";
+		}
+
 		public override bool Parse(string text)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclEmail");
+			}
+
 			idLexer lexer = new idLexer(LexerOptions.NoStringConcatination | LexerOptions.AllowPathNames | LexerOptions.AllowMultiCharacterLiterals | LexerOptions.AllowBackslashStringConcatination | LexerOptions.NoFatalErrors);
 			lexer.LoadMemory(text, this.FileName, this.LineNumber);
 			lexer.SkipUntilString("{");
@@ -176,11 +233,7 @@ namespace idTech4.Text.Decl
 
 			return true;
 		}
-
-		public override string GetDefaultDefinition()
-		{
-			return "{\n\t{\n\t\tto\t5Mail recipient\n\t\tsubject\t5Nothing\n\t\tfrom\t5No one\n\t}\n}";
-		}
+		#endregion
 		#endregion
 	}
 }

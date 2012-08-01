@@ -41,6 +41,11 @@ namespace idTech4.Text.Decl
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDeclSkin");
+				}
+
 				return _associatedModels.Length;
 			}
 		}
@@ -62,6 +67,11 @@ namespace idTech4.Text.Decl
 		#region Methods
 		public string GetAssociatedModel(int index)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclSkin");
+			}
+
 			if((index >= 0) && (index < _associatedModels.Length))
 			{
 				return _associatedModels[index];
@@ -72,6 +82,11 @@ namespace idTech4.Text.Decl
 
 		public idMaterial RemapShaderBySkin(idMaterial shader)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclSkin");
+			}
+
 			if(shader == null)
 			{
 				return null;
@@ -100,9 +115,36 @@ namespace idTech4.Text.Decl
 		#endregion
 
 		#region idDecl implementation
+		#region Properties
+		public override int Size
+		{
+			get
+			{
+				idConsole.WriteLine("TODO: idDeclSkin.Size");
+				return 0;
+			}
+		}
+		#endregion
+
+		#region Methods
 		#region Public
+		public override string GetDefaultDefinition()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclSkin");
+			}
+
+			return "{\n\t\"*\"\t\"_default\"\n}";
+		}
+
 		public override bool Parse(string text)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclSkin");
+			}
+
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
 			lexer.LoadMemory(text, this.FileName, this.LineNumber);
 			lexer.SkipUntilString("{");
@@ -160,11 +202,6 @@ namespace idTech4.Text.Decl
 
 			return false;
 		}
-
-		public override string GetDefaultDefinition()
-		{
-			return "{\n\t\"*\"\t\"_default\"\n}";
-		}
 		#endregion
 
 		#region Protected
@@ -189,7 +226,8 @@ namespace idTech4.Text.Decl
 
 			return false;
 		}
-		#endregion		
+		#endregion
+		#endregion
 		#endregion
 	}
 

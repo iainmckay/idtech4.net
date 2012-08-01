@@ -41,6 +41,11 @@ namespace idTech4.Text.Decl
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idDeclEntity");
+				}
+
 				return _dict;
 			}
 		}
@@ -58,19 +63,44 @@ namespace idTech4.Text.Decl
 		#endregion
 	
 		#region idDecl implementation
+		#region Properties
+		public override int Size
+		{
+			get
+			{
+				idConsole.WriteLine("TODO: idDeclEntity.Size");
+				return 0;
+			}
+		}
+		#endregion
+
+		#region Methods
 		protected override void ClearData()
 		{
+			base.ClearData();
+
 			_dict.Clear();
 		}
 
-		public override string  GetDefaultDefinition()
+		public override string GetDefaultDefinition()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclEntity");
+			}
+
  			 return "{\n\t\"DEFAULTED\"\t\"1\"\n}";
 		}
 
 		public override bool Parse(string text)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclEntity");
+			}
+
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
+			lexer.LoadMemory(text, this.FileName, this.LineNumber);
 			lexer.SkipUntilString("{");
 
 			idToken token;
@@ -157,6 +187,7 @@ namespace idTech4.Text.Decl
 		
 			return true;
 		}
+		#endregion
 		#endregion
 	}
 }

@@ -39,6 +39,6 @@ namespace idTech4.Game
 		public static readonly idLangDict Language = idE.Language;
 
 		public static idGame Game;
-		//public static idGameEdit GameEdit;
+		public static idGameEdit GameEdit;
 	}
 }

@@ -391,9 +391,36 @@ namespace idTech4.Text.Decl
 		#endregion
 
 		#region idDecl implementation
+		#region Properties
+		public override int Size
+		{
+			get
+			{
+				idConsole.WriteLine("TODO: idDeclParticle.Size");
+				return 0;
+			}
+		}
+		#endregion
+
+		#region Methods
 		#region Public
+		public override string GetDefaultDefinition()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclParticle");
+			}
+
+			return "{\n\t{\n\tmaterial\t_default\n\t\tcount\t20\n\n\ttime\t\t1.0\n\t}\n}";
+		}
+
 		public override bool Parse(string text)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclParticle");
+			}
+
 			idToken token;
 			string tokenLower;
 
@@ -454,6 +481,7 @@ namespace idTech4.Text.Decl
 
 			for(int i = 0; i < _stages.Length; i++)
 			{
+				idConsole.WriteLine("TODO: GetStageBounds");
 				// TODO: GetStageBounds(stages[i]);
 				_bounds += _stages[i].Bounds;
 			}
@@ -465,11 +493,6 @@ namespace idTech4.Text.Decl
 
 			return true;
 		}
-
-		public override string GetDefaultDefinition()
-		{
-			return "{\n\t{\n\tmaterial\t_default\n\t\tcount\t20\n\n\ttime\t\t1.0\n\t}\n}";
-		}
 		#endregion
 
 		#region Protected
@@ -479,6 +502,7 @@ namespace idTech4.Text.Decl
 
 			_stages = null;
 		}
+		#endregion
 		#endregion
 		#endregion
 	}

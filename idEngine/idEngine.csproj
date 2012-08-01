@@ -103,6 +103,7 @@
   <ItemGroup>
     <Compile Include="CollisionManager\idCollisionModelManager.cs" />
     <Compile Include="Game\idBaseGame.cs" />
+    <Compile Include="Game\idBaseGameEdit.cs" />
     <Compile Include="Geometry\idWinding.cs" />
     <Compile Include="idBounds.cs" />
     <Compile Include="idCmdArgs.cs" />
@@ -129,6 +130,7 @@
     <Compile Include="Renderer\idScreenRect.cs" />
     <Compile Include="Renderer\idRenderModel_Static.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />
+    <Compile Include="Sound\idSoundMaterial.cs" />
     <Compile Include="Sound\idSoundSystem.cs" />
     <Compile Include="Sound\idSoundWorld.cs" />
     <Compile Include="Text\Decl\idDeclEntity.cs" />

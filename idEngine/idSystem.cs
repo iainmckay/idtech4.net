@@ -554,6 +554,8 @@ namespace idTech4
 			Assembly asm = Assembly.LoadFile(Path.GetFullPath(dllName));
 			
 			idE.Game = (idBaseGame) asm.CreateInstance("idTech4.Game.idGame");
+			idE.GameEdit = (idBaseGameEdit) asm.CreateInstance("idTech4.Game.idGameEdit");
+
 			idE.Game.Init();
 		}
 

@@ -57,6 +57,11 @@ namespace idTech4.Text.Decl
 		#region Methods
 		public float Lookup(float index)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclTable");
+			}
+
 			int iIndex;
 			float iFrac;
 			int domain = _values.Length - 1;
@@ -108,20 +113,47 @@ namespace idTech4.Text.Decl
 		#endregion
 
 		#region idDecl implementation
+		#region Properties
+		public override int Size
+		{
+			get
+			{
+				idConsole.WriteLine("TODO: idDeclTable.Size");
+				return 0;
+			}
+		}
+		#endregion
+
+		#region Methods
+		#region Protected
 		protected override void ClearData()
 		{
+			base.ClearData();
+
 			_clamp = false;
 			_snap = false;
 			_values = new float[] { };
 		}
+		#endregion
 
+		#region Public
 		public override string GetDefaultDefinition()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclTable");
+			}
+
 			return "{ { 0 } }";
 		}
 
 		public override bool Parse(string text)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idDeclTable");
+			}
+
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
 			lexer.LoadMemory(text, this.FileName, this.LineNumber);
 			lexer.SkipUntilString("{");
@@ -206,6 +238,8 @@ namespace idTech4.Text.Decl
 
 			return true;
 		}
+		#endregion
+		#endregion
 		#endregion
 	}
 }

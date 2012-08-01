@@ -12,6 +12,7 @@ namespace idTech4.Game.Entities
 			: base()
 		{
 			// TODO
+			idConsole.WriteLine("TODO: idAnimatedEntity");
 			/*animator.SetEntity(this);
 			damageEffects = NULL;*/
 		}
@@ -20,6 +21,12 @@ namespace idTech4.Game.Entities
 		#region idEntity implementation
 		public override void Think()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idAnimatedEntity");
+			}
+
+			idConsole.WriteLine("TODO: idAnimatedEntity.Think");
 			// TODO
 			/*RunPhysics();
 			UpdateAnimation();
@@ -32,13 +39,17 @@ namespace idTech4.Game.Entities
 			base.Dispose(disposing);
 
 			// TODO
-			/*damageEffect_t* de;
-
-			for(de = damageEffects; de; de = damageEffects)
+			if(disposing == true)
 			{
-				damageEffects = de->next;
-				delete de;
-			}*/
+				idConsole.DeveloperWriteLine("TODO: idAnimatedEntity.Dispose");
+				/*damageEffect_t* de;
+
+				for(de = damageEffects; de; de = damageEffects)
+				{
+					damageEffects = de->next;
+					delete de;
+				}*/
+			}
 		}
 		#endregion
 	}

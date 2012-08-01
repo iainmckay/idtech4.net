@@ -526,6 +526,11 @@ namespace idTech4.UI
 
 		private void Dispose(bool disposing)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException("idUserInterface");
+			}
+
 			if(disposing == true)
 			{
 				_state = null;
