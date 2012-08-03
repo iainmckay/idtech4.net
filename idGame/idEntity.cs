@@ -20,17 +20,18 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				// TODO
+				idConsole.Warning("TODO: idEntity.Axis");
 				return Matrix.Identity;
 			}
 			set
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				// TODO
@@ -53,7 +54,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _entityDefIndex;
@@ -66,7 +67,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				if(this.DefIndex < 0)
@@ -87,7 +88,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _cinematic;
@@ -96,7 +97,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_cinematic = value;
@@ -109,7 +110,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _className;
@@ -122,7 +123,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _health;
@@ -131,7 +132,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_health = value;
@@ -147,7 +148,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _entityIndex;
@@ -156,7 +157,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_entityIndex = value;
@@ -172,7 +173,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _name;
@@ -181,7 +182,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				// TODO
@@ -213,17 +214,18 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				// TODO:
+				idConsole.Warning("TODO: idEntity.Origin");
 				return Vector3.Zero;
 			}
 			set
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				// TODO GetPhysics()->SetOrigin(org);
@@ -241,7 +243,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _renderView;
@@ -257,7 +259,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _renderEntity;
@@ -270,7 +272,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _renderEntity.CustomSkin;
@@ -279,7 +281,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_renderEntity.CustomSkin = value;
@@ -298,7 +300,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _spawnArgs;
@@ -311,7 +313,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _spawnNode;
@@ -321,7 +323,7 @@ namespace idTech4.Game
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_spawnNode = value;
@@ -367,7 +369,7 @@ namespace idTech4.Game
 
 			_renderEntity = new idRenderEntity();
 
-			idConsole.WriteLine("TODO: idEntity");
+			idConsole.Warning("TODO: idEntity");
 			/*			
 			snapshotNode.SetOwner(this);
 			snapshotSequence = -1;
@@ -402,7 +404,7 @@ namespace idTech4.Game
 		#region Private
 		private void InitDefaultPhysics(Vector3 origin, Matrix axis)
 		{
-			idConsole.DeveloperWriteLine("TODO: InitDefaultPhysics");
+			idConsole.Warning("TODO: InitDefaultPhysics");
 			// TODO
 			/*string temp = _spawnArgs.GetString("clipmodel", "");
 			idClipModel clipModel = null;
@@ -483,7 +485,7 @@ namespace idTech4.Game
 
 		private void UpdateVisuals()
 		{
-			idConsole.DeveloperWriteLine("TODO: UpdateVisuals");
+			idConsole.Warning("TODO: UpdateVisuals");
 			// TODO
 			/*UpdateModel();
 			UpdateSound();*/
@@ -495,13 +497,13 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idEntity");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			Vector3 localOrigin;
 			Matrix localAxis;
 
-			idConsole.WriteLine("TODO: idEntity.GetMasterPosition");
+			idConsole.Warning("TODO: idEntity.GetMasterPosition");
 			// TODO
 			/*idAnimator	*masterAnimator;
 
@@ -540,10 +542,10 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idEntity");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.DeveloperWriteLine("TODO: Hide");
+			idConsole.Warning("TODO: Hide");
 			// TODO
 			/*if(!IsHidden())
 			{
@@ -558,7 +560,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idEntity");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idConsole.WriteLine("TODO: idEntity.Spawn");
@@ -691,11 +693,11 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idEntity");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// TODO
-			idConsole.DeveloperWriteLine("TODO: Show");
+			idConsole.Warning("TODO: Show");
 			/*
 	if ( IsHidden() ) {
 		fl.hidden = false;
@@ -707,10 +709,10 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idEntity");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.DeveloperWriteLine("TODO: Think");
+			idConsole.Warning("TODO: Think");
 
 			// TODO
 			/*RunPhysics();
@@ -740,10 +742,10 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idEntity");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.DeveloperWriteLine("TODO: idEntity.Dispose");
+			idConsole.Warning("TODO: idEntity.Dispose");
 
 			/*if ( gameLocal.GameState() != GAMESTATE_SHUTDOWN && !gameLocal.isClient && fl.networkSync && entityNumber >= MAX_CLIENTS ) {
 					idBitMsg	msg;

@@ -34,11 +34,18 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 
 using idTech4.Math;
+using idTech4.Renderer;
 
 namespace idTech4
 {
 	public static class idHelper
 	{
+		public static float CalculateW(Quaternion q)
+		{
+			// take the absolute value because floating point rounding may cause the dot of x,y,z to be larger than 1
+			return idMath.Sqrt(idMath.Abs(1.0f - (q.X * q.X + q.Y * q.Y + q.Z * q.Z)));
+		}
+
 		public static char CharacterFromKeyCode(Keys key, Keys modifiers)
 		{
 			char c = '\0';
@@ -321,6 +328,47 @@ namespace idTech4
 			}
 
 			return pot;
+		}
+
+		public static void MinMax(ref Vector3 min, ref Vector3 max, Vertex[] src, int count)
+		{
+			min = new Vector3(idMath.Infinity, idMath.Infinity, idMath.Infinity);
+			max = new Vector3(-idMath.Infinity, -idMath.Infinity, -idMath.Infinity);
+
+			for(int i = 0; i < count; i++)
+			{
+				Vector3 v = src[i].Position;
+
+				if(v.X < min.X)
+				{
+					min.X = v.X;
+				}
+
+				if(v.X > max.X)
+				{
+					max.X = v.X;
+				}
+
+				if(v.Y < min.Y)
+				{
+					min.Y = v.Y;
+				}
+
+				if(v.Y > max.Y)
+				{
+					max.Y = v.Y;
+				}
+
+				if(v.Z < min.Z)
+				{
+					min.Z = v.Z;
+				}
+
+				if(v.Z > max.Z)
+				{
+					max.Z = v.Z;
+				}
+			}
 		}
 
 		public static idRectangle ParseRectangle(string str)

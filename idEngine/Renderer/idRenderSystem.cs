@@ -269,17 +269,17 @@ namespace idTech4.Renderer
 		#region Debug Visualization
 		public void DebugClearLines(int time)
 		{
-			idConsole.DeveloperWriteLine("TODO: DebugClearLines");
+			idConsole.Warning("TODO: DebugClearLines");
 		}
 
 		public void DebugClearPolygons(int time)
 		{
-			idConsole.DeveloperWriteLine("TODO: DebugClearPolygons");
+			idConsole.Warning("TODO: DebugClearPolygons");
 		}
 
 		public void DebugClearText(int time)
 		{
-			idConsole.DeveloperWriteLine("TODO: DebugClearText");
+			idConsole.Warning("TODO: DebugClearText");
 		}
 		#endregion
 
@@ -1622,7 +1622,7 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
 			{
-				idConsole.WriteLine("TODO: TexCoord Screen");
+				idConsole.Warning("TODO: TexCoord Screen");
 
 				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
 				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
@@ -1630,7 +1630,7 @@ namespace idTech4.Renderer
 			}
 			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2)
 			{
-				idConsole.WriteLine("TODO: TexCoord Screen2");
+				idConsole.Warning("TODO: TexCoord Screen2");
 
 				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
 				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
@@ -4423,7 +4423,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("Surface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(disposing == true)

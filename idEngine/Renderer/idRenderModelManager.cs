@@ -80,15 +80,15 @@ namespace idTech4.Renderer
 			{
 				if((idE.CvarSystem.GetBool("com_purgeAll") == true) && (model.IsReloadable == true))
 				{
-					idConsole.DeveloperWriteLine("TODO: R_CheckForEntityDefsUsingModel( model );");
-					model.PurgeModel();
+					idConsole.Warning("TODO: R_CheckForEntityDefsUsingModel( model );");
+					model.Purge();
 				}
 
 				model.IsLevelLoadReferenced = true;
 			}
 	
 			// purge unused triangle surface memory
-			idConsole.DeveloperWriteLine("TODO: PurgeTriSurfData");
+			idConsole.Warning("TODO: PurgeTriSurfData");
 			// TODO: R_PurgeTriSurfData( frameData );
 		}
 
@@ -111,9 +111,9 @@ namespace idTech4.Renderer
 					// common->Printf( "purging %s\n", model->Name() );
 					purgeCount++;
 
-					idConsole.DeveloperWriteLine("TODO: R_CheckForEntityDefsUsingModel( model );");
+					idConsole.Warning("TODO: R_CheckForEntityDefsUsingModel( model );");
 
-					model.PurgeModel();
+					model.Purge();
 				}
 				else
 				{
@@ -123,7 +123,7 @@ namespace idTech4.Renderer
 			}
 
 			// purge unused triangle surface memory
-			idConsole.DeveloperWriteLine("TODO: PurgeTriSurfData");
+			idConsole.Warning("TODO: PurgeTriSurfData");
 			// TODO: R_PurgeTriSurfData( frameData );
 
 			// load any new ones
@@ -133,11 +133,11 @@ namespace idTech4.Renderer
 				{
 					loadCount++;
 
-					model.LoadModel();
+					model.Load();
 
 					if((loadCount & 15) == 0)
 					{
-						idConsole.DeveloperWriteLine("TODO: PacifierUpdate");
+						idConsole.Warning("TODO: PacifierUpdate");
 						// TODO: idE.Session.PacifierUpdate();
 					}
 				}
@@ -211,7 +211,7 @@ namespace idTech4.Renderer
 				if(model.IsLoaded == false)
 				{
 					// reload it if it was purged
-					model.LoadModel();
+					model.Load();
 				}
 				else if((_insideLevelLoad == true) && (model.IsLevelLoadReferenced == false))
 				{
@@ -233,28 +233,29 @@ namespace idTech4.Renderer
 			// determine which subclass of idRenderModel to initialize
 			switch(extension)
 			{
-				case "ase":
-				case "lwo":
-				case "flt":
-				case "ma":
+				case ".ase":
+				case ".lwo":
+				case ".flt":
+				case ".ma":
 					model = new idRenderModel_Static();
 					model.InitFromFile(name);
 					break;
 
-				case "md5mesh":
-					idConsole.DeveloperWriteLine("TODO: md5mesh");
+				case ".md5mesh":
+					model = new idRenderModel_MD5();
+					model.InitFromFile(name);
 					break;
 
-				case "md3":
-					idConsole.DeveloperWriteLine("TODO: md3");
+				case ".md3":
+					idConsole.Warning("TODO: md3");
 					break;
 
-				case "prt":
-					idConsole.DeveloperWriteLine("TODO: prt");
+				case ".prt":
+					idConsole.Warning("TODO: prt");
 					break;
 
-				case "liquid":
-					idConsole.DeveloperWriteLine("TODO: liquid");
+				case ".liquid":
+					idConsole.Warning("TODO: liquid");
 					break;
 			}
 

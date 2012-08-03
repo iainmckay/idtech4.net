@@ -16,7 +16,7 @@ namespace idTech4.Game.Entities
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idActor");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _team;
@@ -25,7 +25,7 @@ namespace idTech4.Game.Entities
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idActor");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_team = value;
@@ -42,7 +42,7 @@ namespace idTech4.Game.Entities
 			: base()
 		{
 			// TODO
-			idConsole.WriteLine("TODO: idActor");
+			idConsole.Warning("TODO: idActor");
 			/*viewAxis.Identity();
 
 			scriptThread = NULL;		// initialized by ConstructScriptObject, which is called by idEntity::Spawn
@@ -94,7 +94,7 @@ namespace idTech4.Game.Entities
 			base.Spawn();
 
 			// TODO
-			idConsole.WriteLine("TODO: idActor.Spawn");
+			idConsole.Warning("TODO: idActor.Spawn");
 			/*idEntity* ent;
 			idStr jointName;
 			float fovDegrees;
@@ -252,7 +252,7 @@ namespace idTech4.Game.Entities
 			base.Show();
 
 			// TODO
-			idConsole.WriteLine("TODO: idActor.Show");
+			idConsole.Warning("TODO: idActor.Show");
 			/*idEntity *ent;
 	idEntity *next;
 
@@ -277,7 +277,7 @@ namespace idTech4.Game.Entities
 			base.Hide();
 
 		// TODO	
-			idConsole.WriteLine("TODO: idActor.Hide");
+			idConsole.Warning("TODO: idActor.Hide");
 	/*idAFEntity_Base::Hide();
 	if ( head.GetEntity() ) {
 		head.GetEntity()->Hide();
@@ -300,7 +300,7 @@ namespace idTech4.Game.Entities
 			base.Dispose(disposing);
 
 			// TODO
-			idConsole.WriteLine("TODO: idActor.Dispose");
+			idConsole.Warning("TODO: idActor.Dispose");
 		
 				/*int i;
 				idEntity* ent;

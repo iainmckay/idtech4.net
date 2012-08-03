@@ -579,7 +579,7 @@ namespace idTech4.Game
 
 		private void InitAsyncNetwork()
 		{
-			idConsole.DeveloperWriteLine("TODO: InitAsyncNetwork");
+			idConsole.Warning("TODO: InitAsyncNetwork");
 			
 			_clientDeclRemap = new List<int>[idR.MaxClients, 32];
 
@@ -1341,7 +1341,7 @@ namespace idTech4.Game
 				return ent;
 			}
 
-			idConsole.DeveloperWriteLine("TODO: Spawnfunc");
+			idConsole.Warning("TODO: Spawnfunc");
 			// TODO: spawnfunc
 			// check if we should call a script function to spawn
 			/*spawnArgs.GetString( "spawnfunc", NULL, &spawn );
@@ -1364,7 +1364,7 @@ namespace idTech4.Game
 
 		public void ServerSendChatMessage(int to, string name, string text)
 		{
-			idConsole.DeveloperWriteLine("TODO: ServerSendChatMessage");
+			idConsole.Warning("TODO: ServerSendChatMessage");
 			// TODO: 
 			/*idBitMsg outMsg = new idBitMsg();
 			outMsg.InitGame();
@@ -1453,7 +1453,7 @@ namespace idTech4.Game
 			*/
 			Clear();
 
-			idConsole.DeveloperWriteLine("TODO: events, class, console");
+			idConsole.Warning("TODO: events, class, console");
 			/*
 			TODO: 
 			idEvent::Init();
@@ -1461,7 +1461,7 @@ namespace idTech4.Game
 
 			InitConsoleCommands();*/
 
-			idConsole.DeveloperWriteLine("TODO: AAS");
+			idConsole.Warning("TODO: AAS");
 
 			// TODO: AAS
 			/*
@@ -1743,8 +1743,6 @@ namespace idTech4.Game
 			#region Model
 			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("model"))
 			{
-				idConsole.WriteLine("BLAH: {0} -> {1}", kvp.Key, kvp.Value);
-				
 				// precache model/animations
 				if(idR.DeclManager.FindType<idDecl>(DeclType.ModelDef, kvp.Value, false) == null)
 				{
@@ -1752,7 +1750,7 @@ namespace idTech4.Game
 					idR.RenderModelManager.FindModel(kvp.Value);
 
 					// precache .cm files only
-					idConsole.DeveloperWriteLine("TODO: idR.CollisionModelManager.LoadModel(kvp.Value, true);");
+					idConsole.Warning("TODO: idR.CollisionModelManager.LoadModel(kvp.Value, true);");
 				}
 			}
 			#endregion
@@ -1802,7 +1800,7 @@ namespace idTech4.Game
 					prtName = prtName.Substring(0, dash);
 				}
 
-				idR.DeclManager.FindType<idDecl>(DeclType.Particle, prtName);
+				idR.DeclManager.FindType(DeclType.Particle, prtName);
 			}
 			#endregion
 
@@ -1810,7 +1808,7 @@ namespace idTech4.Game
 			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("skin"))
 			{
 				idR.DeclManager.MediaPrint(string.Format("Precaching skin {0}", kvp.Value));
-				idR.DeclManager.FindType<idDecl>(DeclType.Skin, kvp.Value);
+				idR.DeclManager.FindType(DeclType.Skin, kvp.Value);
 			}
 			#endregion
 
@@ -1865,7 +1863,7 @@ namespace idTech4.Game
 
 			if(_currentMapFileName != null)
 			{
-				idConsole.WriteLine("TODO: MapShutdown");
+				idConsole.Warning("TODO: MapShutdown");
 				// TODO: MapShutdown();
 			}
 
@@ -1878,7 +1876,7 @@ namespace idTech4.Game
 
 			LoadMap(mapName, randomSeed);
 
-			idConsole.WriteLine("TODO: InitScriptForMap");
+			idConsole.Warning("TODO: InitScriptForMap");
 			// TODO: InitScriptForMap();
 
 			MapPopulate();
@@ -1907,7 +1905,7 @@ namespace idTech4.Game
 
 			if(this.IsClient == false)
 			{
-				idConsole.DeveloperWriteLine("TODO: SetServerInfo");
+				idConsole.Warning("TODO: SetServerInfo");
 				// TODO
 				/*idBitMsg outMsg = new idBitMsg();
 				outMsg.InitGame();
@@ -2014,7 +2012,7 @@ namespace idTech4.Game
 			// initialize the decl remap
 			InitClientDeclRemap(clientIndex);
 
-			idConsole.DeveloperWriteLine("TODO: ServerClientBegin");
+			idConsole.Warning("TODO: ServerClientBegin");
 			// send message to initialize decl remap at the client (this is always the very first reliable game message)
 			// TODO
 			/*idBitMsg outMsg = new idBitMsg();

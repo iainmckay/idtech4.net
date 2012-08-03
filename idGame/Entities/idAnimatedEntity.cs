@@ -12,7 +12,7 @@ namespace idTech4.Game.Entities
 			: base()
 		{
 			// TODO
-			idConsole.WriteLine("TODO: idAnimatedEntity");
+			idConsole.Warning("TODO: idAnimatedEntity");
 			/*animator.SetEntity(this);
 			damageEffects = NULL;*/
 		}
@@ -23,10 +23,10 @@ namespace idTech4.Game.Entities
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idAnimatedEntity");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.WriteLine("TODO: idAnimatedEntity.Think");
+			idConsole.Warning("TODO: idAnimatedEntity.Think");
 			// TODO
 			/*RunPhysics();
 			UpdateAnimation();
@@ -41,7 +41,7 @@ namespace idTech4.Game.Entities
 			// TODO
 			if(disposing == true)
 			{
-				idConsole.DeveloperWriteLine("TODO: idAnimatedEntity.Dispose");
+				idConsole.Warning("TODO: idAnimatedEntity.Dispose");
 				/*damageEffect_t* de;
 
 				for(de = damageEffects; de; de = damageEffects)

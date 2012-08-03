@@ -64,7 +64,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _backColor;
@@ -73,7 +73,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_backColor.Set(value);
@@ -87,7 +87,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _background;
@@ -100,7 +100,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _backgroundName;
@@ -113,7 +113,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _borderColor;
@@ -126,7 +126,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _borderSize;
@@ -139,7 +139,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return null;
@@ -148,7 +148,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 			}
 		}
@@ -159,7 +159,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				if((this.Flags & WindowFlags.Desktop) == WindowFlags.Desktop)
@@ -173,7 +173,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				if(value == null)
@@ -211,7 +211,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _drawWindows.Count;
@@ -224,7 +224,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _clientRect;
@@ -237,7 +237,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _command;
@@ -246,7 +246,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_command = value;
@@ -259,7 +259,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _cursor;
@@ -268,7 +268,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_cursor = value;
@@ -281,7 +281,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _context;
@@ -294,7 +294,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _drawRect;
@@ -303,7 +303,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_drawRect = value;
@@ -316,7 +316,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _flags;
@@ -325,7 +325,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_flags = value;
@@ -338,7 +338,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _focusedChild;
@@ -347,7 +347,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_focusedChild = value;
@@ -360,7 +360,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _fontFamily;
@@ -373,7 +373,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _foreColor;
@@ -382,7 +382,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_foreColor.Set(value);
@@ -395,7 +395,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return (_ops.Count > 0);
@@ -408,7 +408,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _hideCursor;
@@ -421,7 +421,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _hover;
@@ -430,7 +430,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_hover = value;
@@ -443,7 +443,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				if(_scripts[(int) ScriptName.Action] != null)
@@ -472,7 +472,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				if(_ops.Count > 0)
@@ -515,7 +515,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _visible;
@@ -528,7 +528,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _materialColor;
@@ -541,7 +541,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _materialScaleX;
@@ -554,7 +554,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _materialScaleY;
@@ -570,7 +570,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _name;
@@ -579,7 +579,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_name = value;
@@ -592,7 +592,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _noEvents;
@@ -605,7 +605,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _origin;
@@ -621,7 +621,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _parent;
@@ -630,7 +630,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_parent = value;
@@ -643,7 +643,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _rect.Data;
@@ -652,7 +652,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_rect.Set(value);
@@ -666,7 +666,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _rotate;
@@ -679,7 +679,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _shear;
@@ -692,7 +692,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _text;
@@ -701,7 +701,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_text.Set(value);
@@ -714,7 +714,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _textAlign;
@@ -727,7 +727,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _textAlignX;
@@ -740,7 +740,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _textAlignY;
@@ -753,7 +753,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _textScale;
@@ -766,7 +766,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _textShadow;
@@ -779,7 +779,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _textRect;
@@ -792,7 +792,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _gui;
@@ -948,7 +948,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// make sure win vars are updated before activation
@@ -970,7 +970,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			child._childID = _children.Count;
@@ -981,7 +981,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(_command.Length > 0)
@@ -998,7 +998,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(_definedVariables.Contains(var) == false)
@@ -1011,7 +1011,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			TransitionData data = new TransitionData(dest);
@@ -1024,7 +1024,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_updateVariables.Add(var);
@@ -1034,7 +1034,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if((window != null) && ((window.Flags & WindowFlags.Modal) == 0))
@@ -1064,7 +1064,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			int x, y;
@@ -1084,7 +1084,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			rect.X += _actualX - _drawRect.X;
@@ -1097,7 +1097,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			int skipShaders = idE.CvarSystem.GetInteger("r_skipGuiShaders");
@@ -1225,7 +1225,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return _drawWindows[index].Window;
@@ -1235,7 +1235,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			for(int find = 0; find < _drawWindows.Count; find++)
@@ -1253,7 +1253,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			DrawWindow owner = new DrawWindow();
@@ -1264,7 +1264,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			DrawWindow owner = new DrawWindow();
@@ -1275,7 +1275,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idWindowVariable ret = null;
@@ -1420,7 +1420,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return EvaluateRegisters(-1, false);
@@ -1430,7 +1430,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return EvaluateRegisters(test, false);
@@ -1440,7 +1440,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if((force == false) && (test >= 0) && (test < idE.MaxExpressionRegisters) && (_lastEval == this))
@@ -1475,7 +1475,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			int expressionRegisterCount = _expressionRegisters.Count;
@@ -1642,7 +1642,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(name.Equals(_name, StringComparison.OrdinalIgnoreCase) == true)
@@ -1682,7 +1682,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			foreach(idWindow child in _children)
@@ -1735,7 +1735,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 
@@ -1743,7 +1743,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if((_flags & WindowFlags.Desktop) == WindowFlags.Desktop)
@@ -1809,7 +1809,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(rebuild == true)
@@ -2206,7 +2206,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return ParseExpressionPriority(parser, 4 /* TOP_PRIORITY */, null);
@@ -2222,7 +2222,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return ParseExpressionPriority(parser, 4 /* TOP_PRIORITY */, var);
@@ -2239,7 +2239,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return ParseExpressionPriority(parser, 4 /* TOP_PRIORITY */, var);
@@ -2249,7 +2249,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_timeLine = _gui.Time - time;
@@ -2282,7 +2282,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			foreach(idNamedEvent e in _namedEvents)
@@ -2316,7 +2316,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return RunScriptList(_scripts[(int) name]);
@@ -2326,7 +2326,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(list == null)
@@ -2343,7 +2343,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			int x, y;
@@ -2363,7 +2363,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			SetupBackground();
@@ -2391,7 +2391,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// only one child can have the focus
@@ -2433,7 +2433,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			this.Flags |= WindowFlags.InTransition;
@@ -2443,7 +2443,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			UpdateVariables();
@@ -2483,7 +2483,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			RunScript(ScriptName.Trigger);
@@ -2502,7 +2502,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(_backColor.W != 0)
@@ -2533,7 +2533,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 
@@ -2541,7 +2541,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 
@@ -2549,7 +2549,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			name = name.ToLower();
@@ -2705,7 +2705,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idToken token = parser.ReadToken();
@@ -2722,7 +2722,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 
@@ -2730,7 +2730,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(this.CaptureChild != null)
@@ -2817,7 +2817,7 @@ namespace idTech4.UI
 		{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idWindow");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 			if((time - _lastTimeRun) < idE.UserCommandMillseconds)
@@ -4147,7 +4147,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idWindow");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(disposing == true)

@@ -48,7 +48,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _everReferenced;
@@ -57,7 +57,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_everReferenced = value;
@@ -73,7 +73,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				if(_sourceFile == null)
@@ -94,7 +94,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _index;
@@ -103,7 +103,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_index = value;
@@ -119,7 +119,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return (this.SourceFile == idE.DeclManager.ImplicitDeclFile);
@@ -135,7 +135,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _sourceLine;
@@ -151,7 +151,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _name;
@@ -160,7 +160,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_name = value;
@@ -179,7 +179,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _parsedOutsideLevelLoad;
@@ -188,7 +188,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_parsedOutsideLevelLoad = value;
@@ -204,7 +204,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _referencedThisLevel;
@@ -213,7 +213,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_referencedThisLevel = value;
@@ -229,7 +229,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return 0;
@@ -248,7 +248,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _state;
@@ -257,7 +257,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_state = value;
@@ -273,7 +273,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _type;
@@ -282,7 +282,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDecl");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_type = value;
@@ -425,7 +425,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDecl");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(_state == DeclState.Unparsed)
@@ -438,7 +438,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDecl");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return "{ }";
@@ -448,7 +448,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDecl");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_state = DeclState.Defaulted;
@@ -481,7 +481,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDecl");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
@@ -496,7 +496,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDecl");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// never purge things that were referenced outside level load,
@@ -600,7 +600,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDecl");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(disposing == true)

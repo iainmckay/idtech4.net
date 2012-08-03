@@ -43,7 +43,7 @@ namespace idTech4.Text.Decl
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDeclEntity");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _dict;
@@ -68,7 +68,7 @@ namespace idTech4.Text.Decl
 		{
 			get
 			{
-				idConsole.WriteLine("TODO: idDeclEntity.Size");
+				idConsole.Warning("TODO: idDeclEntity.Size");
 				return 0;
 			}
 		}
@@ -86,7 +86,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclEntity");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
  			 return "{\n\t\"DEFAULTED\"\t\"1\"\n}";
@@ -96,7 +96,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclEntity");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);

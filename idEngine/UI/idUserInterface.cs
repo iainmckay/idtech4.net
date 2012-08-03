@@ -45,7 +45,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _cursorX;
@@ -58,7 +58,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _cursorY;
@@ -71,7 +71,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _desktop;
@@ -84,7 +84,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _active;
@@ -97,7 +97,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _interactive;
@@ -110,7 +110,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _uniqued;
@@ -119,7 +119,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_uniqued = value;
@@ -132,7 +132,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _pendingCommand;
@@ -141,7 +141,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_pendingCommand = value;
@@ -154,7 +154,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _referenceCount;
@@ -167,7 +167,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _sourceFile;
@@ -180,7 +180,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _state;
@@ -193,7 +193,7 @@ namespace idTech4.UI
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idUserInterface");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _time;
@@ -244,7 +244,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_time = time;
@@ -265,7 +265,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_referenceCount++;
@@ -275,7 +275,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_referenceCount = 0;
@@ -285,7 +285,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(idE.CvarSystem.GetInteger("r_skipGuiShaders") > 5)
@@ -307,7 +307,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if((this.Desktop == null) || ((this.Desktop.Flags & WindowFlags.MenuInterface) == WindowFlags.MenuInterface))
@@ -324,7 +324,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			bool updateVisuals = false;
@@ -335,7 +335,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_time = time;
@@ -376,7 +376,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			this.Desktop.RunNamedEvent(name);
@@ -386,7 +386,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(path == string.Empty)
@@ -463,7 +463,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_time = time;
@@ -494,7 +494,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_time = time;
@@ -528,7 +528,7 @@ namespace idTech4.UI
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idUserInterface");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(disposing == true)

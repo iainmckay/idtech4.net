@@ -244,7 +244,7 @@ namespace idTech4.Sound
 						return false;
 					}
 
-					idConsole.WriteLine("TODO: leadin");
+					idConsole.Warning("TODO: leadin");
 
 					/*if(soundSystemLocal.soundCache && numLeadins < maxSamples)
 					{
@@ -254,7 +254,7 @@ namespace idTech4.Sound
 				}
 				else if((tokenValue.EndsWith(".wav") == true) || (tokenValue.EndsWith(".ogg") == true))
 				{
-					idConsole.WriteLine("TODO: .wav|.ogg");
+					idConsole.Warning("TODO: .wav|.ogg");
 
 					/*// add to the wav list
 					if(soundSystemLocal.soundCache && numEntries < maxSamples)
@@ -294,7 +294,7 @@ namespace idTech4.Sound
 
 			if(_parameters.Shakes > 0.0f)
 			{
-				idConsole.WriteLine("TODO: CheckShakesAndOgg()");
+				idConsole.Warning("TODO: CheckShakesAndOgg()");
 			}
 
 			return true;
@@ -310,10 +310,10 @@ namespace idTech4.Sound
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idSoundMaterial");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				idConsole.WriteLine("TODO: idSoundMaterial.Size");
+				idConsole.Warning("TODO: idSoundMaterial.Size");
 
 				return 0;
 			}
@@ -326,7 +326,7 @@ namespace idTech4.Sound
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idSoundMaterial");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return "{\n\t_default.wav\n}";
@@ -336,7 +336,7 @@ namespace idTech4.Sound
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idSoundMaterial");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
@@ -362,7 +362,7 @@ namespace idTech4.Sound
 			base.ClearData();
 
 			_altSound = null;
-			idConsole.WriteLine("TODO: ClearData");
+			idConsole.Warning("TODO: ClearData");
 			/*_entryCount = 0;
 			_leadInCount = 0;*/
 		}

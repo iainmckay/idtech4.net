@@ -60,7 +60,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idRenderWorld");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return idE.RenderSystem.PrimaryRenderView;
@@ -69,7 +69,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idRenderWorld");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				idE.RenderSystem.PrimaryRenderView = value;
@@ -142,7 +142,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderWorld");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// if this is an empty world, initialize manually
@@ -277,7 +277,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderWorld");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idConsole.Warning("TODO: idRenderWorld.GenerateInteractions");
@@ -293,7 +293,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderWorld");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idE.RenderSystem.DebugClearLines(time);
@@ -303,7 +303,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderWorld");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idE.RenderSystem.DebugClearPolygons(time);
@@ -313,7 +313,7 @@ namespace idTech4.Renderer
 		#region Private
 		private void AddWorldModelEntities()
 		{
-			idConsole.DeveloperWriteLine("TODO: AddWorldModelEntities");
+			idConsole.Warning("TODO: AddWorldModelEntities");
 			// add the world model for each portal area
 			// we can't just call AddEntityDef, because that would place the references
 			// based on the bounding box, rather than explicitly into the correct area
@@ -476,7 +476,7 @@ namespace idTech4.Renderer
 
 		private void FreeWorld()
 		{
-			idConsole.WriteLine("TODO: idRenderWorld.FreeWorld");
+			idConsole.Warning("TODO: idRenderWorld.FreeWorld");
 			// this will free all the lightDefs and entityDefs
 			/*FreeDefs();
 
@@ -606,7 +606,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderWorld");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			RenderModelSurface modelSurface;
@@ -784,7 +784,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderWorld");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// free all the entityDefs, lightDefs, portals, etc

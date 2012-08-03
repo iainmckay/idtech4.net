@@ -298,7 +298,7 @@ namespace idTech4.UI
 
 			if(ident == true)
 			{
-				idConsole.Write("TODO: IDENT == true");
+				idConsole.Warning("TODO: IDENT == true");
 				/*verts[0].Position -= _origin;
 				verts[0].Position *= _matrix.Translation;
 				verts[0].Position += _origin;

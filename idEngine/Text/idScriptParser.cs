@@ -395,7 +395,7 @@ namespace idTech4.Text
 					// check if the name is a define macro
 					if(_defineDict.ContainsKey(token.ToString()) == true)
 					{
-						idConsole.Write("TODO: expand defined macro");
+						idConsole.Warning("TODO: expand defined macro");
 						// expand the defined macro
 						// TODO
 						/*if(ExpandDefineIntoSource(token, define) == false)
@@ -1117,7 +1117,7 @@ namespace idTech4.Text
 							return false;
 						}
 
-						idConsole.Write("TODO: expanddefineintosource");
+						idConsole.Warning("TODO: expanddefineintosource");
 						/*else if(ExpandDefineIntoSource(token, define) == false)
 						{
 							return false;
@@ -1201,7 +1201,7 @@ namespace idTech4.Text
 							return false;
 						}
 
-						idConsole.Write("TODO: expanddefineintosource");
+						idConsole.Warning("TODO: expanddefineintosource");
 						
 						/*else if(ExpandDefineIntoSource(token, _defineDict[token.ToString()]) == false)
 						{

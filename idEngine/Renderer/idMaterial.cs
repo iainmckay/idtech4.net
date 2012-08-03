@@ -297,6 +297,22 @@ namespace idTech4.Renderer
 				return _surfaceFlags;
 			}
 		}
+
+		/// <summary>
+		/// Should we use unsmoothed tangents?
+		/// </summary>
+		/// <remarks>
+		/// Characters and models that are created by a complete renderbump can use a faster
+		/// method of tangent and normal vector generation than surfaces which have a flat
+		/// renderbump wrapped over them.
+		/// </remarks>
+		public bool UseUnsmoothedTangents
+		{
+			get
+			{
+				return _unsmoothedTangents;
+			}
+		}
 		#endregion
 
 		#region Members

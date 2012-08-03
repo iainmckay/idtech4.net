@@ -30,15 +30,30 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using idTech4.Geometry;
+
 namespace idTech4.Renderer
 {
 	public abstract class idRenderModel : IDisposable
 	{
 		#region Properties
 		/// <summary>
+		/// Gets the default animation pose.
+		/// </summary>
+		public abstract idJointQuaternion[] DefaultPose
+		{
+			get;
+		}
+
+		/// <summary>
 		/// If the load failed for any reason, this will return true.
 		/// </summary>
 		public abstract bool IsDefaultModel
+		{
+			get;
+		}
+
+		public abstract DynamicModel IsDynamicModel
 		{
 			get;
 		}
@@ -66,6 +81,22 @@ namespace idTech4.Renderer
 		/// Models of the form "_area*" may have a prelight shadow model associated with it.
 		/// </summary>
 		public abstract bool IsStaticWordModel
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Gets the number of joints or 0 if the model is not an MD5.
+		/// </summary>
+		public abstract int JointCount
+		{
+			get;
+		}
+
+		/// <summary>
+		/// Gets the MD5 joints or NULL if the model is not an MD5.
+		/// </summary>
+		public abstract idMD5Joint[] Joints
 		{
 			get;
 		}
@@ -137,6 +168,29 @@ namespace idTech4.Renderer
 		/// <param name="renderEntity"></param>
 		/// <returns></returns>
 		public abstract idBounds GetBounds(idRenderEntity renderEntity = null);
+		
+		/// <summary>
+		/// Gets the joint with the given name.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public abstract int GetJointIndex(string name);
+
+		/// <summary>
+		/// Gets the index of the joint with the given instance.
+		/// </summary>
+		/// <param name="joint"></param>
+		/// <returns></returns>
+		public abstract int GetJointIndex(idMD5Joint joint);
+
+		/// <summary>
+		/// Gets the name of the joint with the given index.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <returns></returns>
+		public abstract string GetJointName(int index);
+
+		public abstract int GetNearestJoint(int surfaceIndex, int a, int c, int b);
 
 		/// <summary>
 		/// This is used for dynamically created surfaces, which are assumed to not be reloadable.
@@ -152,6 +206,21 @@ namespace idTech4.Renderer
 		public abstract void InitFromFile(string fileName);
 
 		/// <summary>
+		/// Creates a static model based on the definition and view currently.
+		/// </summary>
+		/// <remarks>
+		/// This will be regenerated for every view, even though
+		/// some models, like character meshes, could be used for multiple (mirror)
+		/// views in a frame, or may stay static for multiple frames (corpses)
+		/// The renderer will delete the returned dynamic model the next view.
+		/// </remarks>
+		/// <param name="renderEntity"></param>
+		/// <param name="view"></param>
+		/// <param name="cachedModel"></param>
+		/// <returns></returns>
+		public abstract idRenderModel InstantiateDynamicModel(idRenderEntity renderEntity, View view, idRenderModel cachedModel);
+
+		/// <summary>
 		/// Prints a single line report for listModels.
 		/// </summary>
 		public abstract void List();
@@ -162,7 +231,7 @@ namespace idTech4.Renderer
 		/// <remarks>
 		/// Upon exit, the model will absolutely be valid, but possibly as a default model.
 		/// </remarks>
-		public abstract void LoadModel();
+		public abstract void Load();
 
 		public abstract void MakeDefault();
 
@@ -181,7 +250,7 @@ namespace idTech4.Renderer
 		/// <summary>
 		/// Frees all the data, but leaves the class around for dangling references, which can regenerate the data with LoadModel().
 		/// </summary>
-		public abstract void PurgeModel();
+		public abstract void Purge();
 
 		/// <summary>
 		/// Resets any model information that needs to be reset on a same level load etc.. 
@@ -223,53 +292,13 @@ namespace idTech4.Renderer
 	// remaps surfaces between shadow casting and non-shadow casting, or
 	// if some surfaces are noSelfShadow and others aren't
 	virtual srfTriangles_t	*	ShadowHull() const = 0;
-
-	// models of the form "_area*" may have a prelight shadow model associated with it
-	virtual bool				IsStaticWorldModel() const = 0;
-
+		
 	// models parsed from inside map files or dynamically created cannot be reloaded by
 	// reloadmodels
 	virtual bool				IsReloadable() const = 0;
-
-	// md3, md5, particles, etc
-	virtual dynamicModel_t		IsDynamicModel() const = 0;
-
-	// if the load failed for any reason, this will return true
-	virtual bool				IsDefaultModel() const = 0;
-
-	// dynamic models should return a fast, conservative approximation
-	// static models should usually return the exact value
-	virtual idBounds			Bounds( const struct renderEntity_s *ent = NULL ) const = 0;
-
+		
 	// returns value != 0.0f if the model requires the depth hack
 	virtual float				DepthHack() const = 0;
-
-	// returns a static model based on the definition and view
-	// currently, this will be regenerated for every view, even though
-	// some models, like character meshes, could be used for multiple (mirror)
-	// views in a frame, or may stay static for multiple frames (corpses)
-	// The renderer will delete the returned dynamic model the next view
-	// This isn't const, because it may need to reload a purged model if it
-	// wasn't precached correctly.
-	virtual idRenderModel *		InstantiateDynamicModel( const struct renderEntity_s *ent, const struct viewDef_s *view, idRenderModel *cachedModel ) = 0;
-
-	// Returns the number of joints or 0 if the model is not an MD5
-	virtual int					NumJoints( void ) const = 0;
-
-	// Returns the MD5 joints or NULL if the model is not an MD5
-	virtual const idMD5Joint *	GetJoints( void ) const = 0;
-
-	// Returns the handle for the joint with the given name.
-	virtual jointHandle_t		GetJointHandle( const char *name ) const = 0;
-
-	// Returns the name for the joint with the given handle.
-	virtual const char *		GetJointName( jointHandle_t handle ) const = 0;
-
-	// Returns the default animation pose or NULL if the model is not an MD5.
-	virtual const idJointQuat *	GetDefaultPose( void ) const = 0;
-
-	// Returns number of the joint nearest to the given triangle.
-	virtual int					NearestJoint( int surfaceNum, int a, int c, int b ) const = 0;
 
 	// Writing to and reading from a demo file.
 	virtual void				ReadFromDemoFile( class idDemoFile *f ) = 0;
@@ -304,17 +333,35 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(disposing == true)
 			{
-				PurgeModel();
+				Purge();
 			}
 
 			_disposed = true;
 		}
 		#endregion
 		#endregion
+	}
+
+	public enum DynamicModel
+	{
+		/// <summary>
+		/// Never creates a dynamic model.
+		/// </summary>
+		Static,
+
+		/// <summary>
+		/// Once created, stays constant until the entity is updated (animating characters).
+		/// </summary>
+		Cached,
+
+		/// <summary>
+		/// Must be recreated for every single view (time dependent things like particles).
+		/// </summary>
+		Continuous
 	}
 }

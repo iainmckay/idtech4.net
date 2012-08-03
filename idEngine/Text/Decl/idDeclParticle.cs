@@ -396,7 +396,7 @@ namespace idTech4.Text.Decl
 		{
 			get
 			{
-				idConsole.WriteLine("TODO: idDeclParticle.Size");
+				idConsole.Warning("TODO: idDeclParticle.Size");
 				return 0;
 			}
 		}
@@ -408,7 +408,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclParticle");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return "{\n\t{\n\tmaterial\t_default\n\t\tcount\t20\n\n\ttime\t\t1.0\n\t}\n}";
@@ -418,7 +418,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclParticle");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idToken token;
@@ -481,7 +481,7 @@ namespace idTech4.Text.Decl
 
 			for(int i = 0; i < _stages.Length; i++)
 			{
-				idConsole.WriteLine("TODO: GetStageBounds");
+				idConsole.Warning("TODO: GetStageBounds");
 				// TODO: GetStageBounds(stages[i]);
 				_bounds += _stages[i].Bounds;
 			}

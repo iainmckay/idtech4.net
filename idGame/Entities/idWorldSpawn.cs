@@ -33,7 +33,7 @@ namespace idTech4.Game.Entities
 
 			idR.Game.World = this;
 
-			idConsole.WriteLine("TODO: idWordSpawn.Spawn");
+			idConsole.Warning("TODO: idWordSpawn.Spawn");
 
 			// TODO
 			/*idStr				scriptname;

@@ -516,8 +516,8 @@ namespace idTech4
 				ProcessMenuEvent(ev);
 				return true;
 			}
-			
-			idConsole.WriteLine("TODO: process event");
+
+			idConsole.Warning("TODO: process event");
 			// if we aren't in a game, force the console to take it
 			/*if ( !mapSpawned ) {
 				console->ProcessEvent( event, true );

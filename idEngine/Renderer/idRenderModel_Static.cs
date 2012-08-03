@@ -31,26 +31,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using idTech4.Geometry;
+
 namespace idTech4.Renderer
 {
 	public class idRenderModel_Static : idRenderModel
 	{
 		#region Members
 		private List<RenderModelSurface> _surfaces = new List<RenderModelSurface>();
-		private idBounds _bounds;
 		private int _overlaysAdded;
 
 		private int _lastModifiedFrame;
 		private int _lastArchivedFrame;
-
-		private string _name;
 		private List<Surface> _shadowHull;
 		private bool _isStaticWordModel;
-		private bool _defaulted;
-		private bool _purged; // eventually we will have dynamic reloading.
+		private bool _defaulted;		
 		private bool _fastLoad; // don't generate tangents and shadow data.
 		private bool _reloadable; // if not, reloadModels won't check timestamp
 		private bool _levelLoadReferenced; // for determining if it needs to be freed.
+
+		protected string _name;
+		protected idBounds _bounds;
+		protected bool _purged; // eventually we will have dynamic reloading.
 		#endregion
 
 		#region Constructor
@@ -69,16 +71,37 @@ namespace idTech4.Renderer
 
 		#region idRenderModel implementation
 		#region Properties
+		public override idJointQuaternion[] DefaultPose
+		{
+			get
+			{
+				return null;
+			}
+		}
+
 		public override bool IsDefaultModel
 		{
 			get 
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idRenderModel_Static");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _defaulted;
+			}
+		}
+
+		public override DynamicModel IsDynamicModel
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return DynamicModel.Static;
 			}
 		}
 
@@ -88,7 +111,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idRenderModel_Static");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return (_purged == false);
@@ -101,7 +124,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idRenderModel_Static");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _reloadable;
@@ -114,10 +137,36 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idRenderModel_Static");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _isStaticWordModel;
+			}
+		}
+
+		public override idMD5Joint[] Joints
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return null;
+			}
+		}
+
+		public override int JointCount
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return 0;
 			}
 		}
 
@@ -127,10 +176,10 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idRenderModel_Static");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.MemoryUsage");
+				idConsole.Warning("TODO: idStaticRenderModel.MemoryUsage");
 				return 0;
 			}
 		}
@@ -141,7 +190,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idRenderModel_Static");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _name;
@@ -154,47 +203,67 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.AddSurface");
+			idConsole.Warning("TODO: idStaticRenderModel.AddSurface");
 		}
 
 		public override void FinishSurfaces()
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.FinishSurfaces");
+			idConsole.Warning("TODO: idStaticRenderModel.FinishSurfaces");
 		}
 
 		public override void FreeVertexCache()
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.FreeVertexCache");
+			idConsole.Warning("TODO: idStaticRenderModel.FreeVertexCache");
 		}
 
 		public override idBounds GetBounds(idRenderEntity renderEntity = null)
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return _bounds;
+		}
+
+		public override int GetJointIndex(string name)
+		{
+			return -1;
+		}
+
+		public override int GetJointIndex(idMD5Joint joint)
+		{
+			return -1;
+		}
+
+		public override string GetJointName(int index)
+		{
+			return string.Empty;
+		}
+
+		public override int GetNearestJoint(int surfaceIndex, int a, int c, int b)
+		{
+			return -1;
 		}
 
 		public override void InitEmpty(string name)
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// model names of the form _area* are static parts of the
@@ -206,7 +275,7 @@ namespace idTech4.Renderer
 			_name = name;
 			_reloadable = false; // if it didn't come from a file, we can't reload it
 
-			PurgeModel();
+			Purge();
 
 			_purged = false;
 			_bounds = idBounds.Zero;
@@ -216,7 +285,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			InitEmpty(fileName);
@@ -267,24 +336,36 @@ namespace idTech4.Renderer
 			FinishSurfaces();
 		}
 
+		public override idRenderModel InstantiateDynamicModel(idRenderEntity renderEntity, View view, idRenderModel cachedModel)
+		{
+			if(cachedModel != null)
+			{
+				cachedModel.Dispose();
+			}
+
+			idConsole.Error("InstantiateDynamicModel called on static model '{0}'", this.Name);
+
+			return null;
+		}
+
 		public override void List()
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.List");
+			idConsole.Warning("TODO: idStaticRenderModel.List");
 		}
 
-		public override void LoadModel()
+		public override void Load()
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			PurgeModel();
+			Purge();
 			InitFromFile(_name);
 		}
 
@@ -292,17 +373,17 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.WriteLine("TODO: idStaticRenderModel.MakeDefault");
+			idConsole.Warning("TODO: idStaticRenderModel.MakeDefault");
 		}
 
 		public override void PartialInitFromFile(string fileName)
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_fastLoad = true;
@@ -314,17 +395,17 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.DeveloperWriteLine("TODO: idStaticRenderModel.Print");
+			idConsole.Warning("TODO: idStaticRenderModel.Print");
 		}
 
-		public override void PurgeModel()
+		public override void Purge()
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			RenderModelSurface surf;
@@ -348,7 +429,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 
@@ -356,7 +437,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idRenderModel_Static");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			foreach(RenderModelSurface surf in _surfaces)

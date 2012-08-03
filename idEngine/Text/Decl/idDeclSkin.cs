@@ -43,7 +43,7 @@ namespace idTech4.Text.Decl
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDeclSkin");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _associatedModels.Length;
@@ -69,7 +69,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclSkin");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if((index >= 0) && (index < _associatedModels.Length))
@@ -84,7 +84,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclSkin");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(shader == null)
@@ -120,7 +120,7 @@ namespace idTech4.Text.Decl
 		{
 			get
 			{
-				idConsole.WriteLine("TODO: idDeclSkin.Size");
+				idConsole.Warning("TODO: idDeclSkin.Size");
 				return 0;
 			}
 		}
@@ -132,7 +132,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclSkin");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return "{\n\t\"*\"\t\"_default\"\n}";
@@ -142,7 +142,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclSkin");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);

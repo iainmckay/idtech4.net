@@ -44,7 +44,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _allowDownSize;
@@ -60,7 +60,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _classification;
@@ -69,7 +69,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_classification = value;
@@ -82,7 +82,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _cubeFiles;
@@ -95,7 +95,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _depth;
@@ -108,7 +108,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _filter;
@@ -121,7 +121,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _generator;
@@ -130,7 +130,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_generator = value;
@@ -146,7 +146,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _defaulted;
@@ -162,7 +162,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return (_texture != null);
@@ -187,7 +187,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _levelLoadReferenced;
@@ -196,7 +196,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_levelLoadReferenced = value;
@@ -215,7 +215,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _name;
@@ -228,7 +228,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _referencedOutsideLevelLoad;
@@ -237,7 +237,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				_referencedOutsideLevelLoad = value;
@@ -250,7 +250,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _repeat;
@@ -263,7 +263,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _type;
@@ -276,7 +276,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _height;
@@ -289,7 +289,7 @@ namespace idTech4.Renderer
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idImage");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _width;
@@ -375,7 +375,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idImage");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// this is the ONLY place generatorFunction will ever be called
@@ -432,7 +432,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idImage");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_referenceCount++;
@@ -445,7 +445,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idImage");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// load the image if necessary (FIXME: not SMP safe!).
@@ -514,7 +514,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idImage");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// FIXME: should we implement cinematics this way, instead of with explicit calls?
@@ -729,7 +729,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idImage");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			byte[, ,] data = new byte[idImageManager.DefaultImageSize, idImageManager.DefaultImageSize, 4];
@@ -788,7 +788,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idImage");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(this.IsLoaded == true)
@@ -810,7 +810,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idImage");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			// always regenerate functional images
@@ -898,7 +898,7 @@ namespace idTech4.Renderer
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idImage");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(disposing == true)

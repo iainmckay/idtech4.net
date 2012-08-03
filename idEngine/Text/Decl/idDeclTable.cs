@@ -118,7 +118,7 @@ namespace idTech4.Text.Decl
 		{
 			get
 			{
-				idConsole.WriteLine("TODO: idDeclTable.Size");
+				idConsole.Warning("TODO: idDeclTable.Size");
 				return 0;
 			}
 		}

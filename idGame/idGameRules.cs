@@ -25,7 +25,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 
@@ -33,7 +33,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(idR.Game.PlayerStates[clientIndex].InGame == false)
@@ -46,7 +46,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 
@@ -54,7 +54,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idPlayer player = idR.Game.Entities[clientIndex] as idPlayer;
@@ -74,7 +74,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return false;
@@ -84,7 +84,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if((clientIndex > idR.Game.PlayerStates.Length) || (clientIndex < 0))
@@ -99,7 +99,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			bool inGame = idR.Game.PlayerStates[clientIndex].InGame;
@@ -116,7 +116,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 
@@ -124,7 +124,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 
@@ -132,7 +132,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 		}
 		#endregion
@@ -158,7 +158,7 @@ namespace idTech4.Game
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idGameRules");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_disposed = true;

@@ -104,6 +104,7 @@
     <Compile Include="CollisionManager\idCollisionModelManager.cs" />
     <Compile Include="Game\idBaseGame.cs" />
     <Compile Include="Game\idBaseGameEdit.cs" />
+    <Compile Include="Geometry\idJoint.cs" />
     <Compile Include="Geometry\idWinding.cs" />
     <Compile Include="idBounds.cs" />
     <Compile Include="idCmdArgs.cs" />
@@ -126,6 +127,7 @@
     <Compile Include="Renderer\idFont.cs" />
     <Compile Include="Renderer\idRenderModel.cs" />
     <Compile Include="Renderer\idRenderModelManager.cs" />
+    <Compile Include="Renderer\idRenderModel_MD5.cs" />
     <Compile Include="Renderer\idRenderWorld.cs" />
     <Compile Include="Renderer\idScreenRect.cs" />
     <Compile Include="Renderer\idRenderModel_Static.cs" />

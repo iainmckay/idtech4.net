@@ -41,7 +41,7 @@ namespace idTech4.Text.Decl
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDeclEmail");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _date;
@@ -54,7 +54,7 @@ namespace idTech4.Text.Decl
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDeclEmail");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _from;
@@ -67,7 +67,7 @@ namespace idTech4.Text.Decl
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDeclEmail");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _image;
@@ -80,7 +80,7 @@ namespace idTech4.Text.Decl
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDeclEmail");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _subject;
@@ -93,7 +93,7 @@ namespace idTech4.Text.Decl
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDeclEmail");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _text;
@@ -106,7 +106,7 @@ namespace idTech4.Text.Decl
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idDeclEmail");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _to;
@@ -137,7 +137,7 @@ namespace idTech4.Text.Decl
 		{
 			get
 			{
-				idConsole.WriteLine("TODO: idDeclEmail.Size");
+				idConsole.Warning("TODO: idDeclEmail.Size");
 				return 0;
 			}
 		}
@@ -148,7 +148,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclEmail");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return "{\n\t{\n\t\tto\t5Mail recipient\n\t\tsubject\t5Nothing\n\t\tfrom\t5No one\n\t}\n}";
@@ -158,7 +158,7 @@ namespace idTech4.Text.Decl
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclEmail");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idLexer lexer = new idLexer(LexerOptions.NoStringConcatination | LexerOptions.AllowPathNames | LexerOptions.AllowMultiCharacterLiterals | LexerOptions.AllowBackslashStringConcatination | LexerOptions.NoFatalErrors);

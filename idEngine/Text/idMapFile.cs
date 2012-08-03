@@ -40,7 +40,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idMapFile");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _entities.Count;
@@ -56,7 +56,7 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idMapFile");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
 				return _name;
@@ -72,10 +72,10 @@ namespace idTech4.Text
 			{
 				if(this.Disposed == true)
 				{
-					throw new ObjectDisposedException("idMapFile");
+					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				idConsole.DeveloperWriteLine("TODO: idMapFile.NeedsReload");
+				idConsole.Warning("TODO: idMapFile.NeedsReload");
 				return false;
 			}
 		}
@@ -114,7 +114,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idMapFile");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			return _entities[index];
@@ -136,7 +136,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idMapFile");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			_hasPrimitiveData = false;
@@ -168,12 +168,6 @@ namespace idTech4.Text
 
 			_version = idMapFile.OldMapVersion;
 			_fileTime = lexer.FileTime;
-
-			foreach(idMapEntity ent in _entities)
-			{
-				ent.Dispose();
-			}
-
 			_entities.Clear();
 
 			if(lexer.CheckTokenString("Version") == true)
@@ -191,7 +185,7 @@ namespace idTech4.Text
 				_entities.Add(mapEnt);
 			}
 
-			idConsole.DeveloperWriteLine("TODO: SetGeometryCRC();");
+			idConsole.Warning("TODO: SetGeometryCRC();");
 
 			// if the map has a worldspawn
 			if(_entities.Count > 0)
@@ -227,7 +221,7 @@ namespace idTech4.Text
 									break;
 
 								case MapPrimitiveType.Patch:
-									idConsole.DeveloperWriteLine("TODO: PATCH");
+									idConsole.Warning("TODO: PATCH");
 									// TODO: ((idMapPatch) mapPrimitive).Material = material;
 									break;						
 							}
@@ -274,7 +268,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idMapFile");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			for(int i = 0; i < _entities.Count; i++)
@@ -283,7 +277,6 @@ namespace idTech4.Text
 
 				if(ent.Dict.GetString("classname").Equals(className, StringComparison.OrdinalIgnoreCase) == true)
 				{
-					ent.Dispose();
 					_entities.RemoveAt(i);
 
 					i--;
@@ -295,7 +288,7 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idMapFile");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			foreach(idMapEntity ent in _entities)
@@ -334,16 +327,11 @@ namespace idTech4.Text
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idMapFile");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			if(disposing == true)
 			{
-				foreach(idMapEntity ent in _entities)
-				{
-					ent.Dispose();
-				}
-
 				_entities = null;
 			}
 
@@ -353,18 +341,13 @@ namespace idTech4.Text
 		#endregion
 	}
 
-	public class idMapEntity : IDisposable
+	public class idMapEntity
 	{
 		#region Properties
 		public idDict Dict
 		{
 			get
 			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idMapEntity");
-				}
-
 				return _dict;
 			}
 		}
@@ -373,11 +356,6 @@ namespace idTech4.Text
 		{
 			get
 			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idMapEntity");
-				}
-
 				return _primitives;
 			}
 		}
@@ -386,11 +364,6 @@ namespace idTech4.Text
 		{
 			get
 			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idMapEntity");
-				}
-
 				return _primitives.Count;
 			}
 		}
@@ -405,37 +378,17 @@ namespace idTech4.Text
 		#region Public
 		public void AddPrimitive(idMapPrimitive primitive)
 		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException("idMapEntity");
-			}
-
 			_primitives.Add(primitive);
 		}
 
 		public idMapPrimitive GetPrimitive(int index)
 		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException("idMapEntity");
-			}
-
 			return _primitives[index];
 		}
 
 
 		public void RemovePrimitiveData()
 		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException("idMapEntity");
-			}
-
-			foreach(idMapPrimitive prim in _primitives)
-			{
-				prim.Dispose();
-			}
-
 			_primitives.Clear();
 		}
 		#endregion
@@ -507,7 +460,7 @@ namespace idTech4.Text
 					// if is it a patch: patchDef2, patchDef3
 					else if(tokenValue.StartsWith("patch", StringComparison.OrdinalIgnoreCase) == true)
 					{
-						idConsole.DeveloperWriteLine("TODO: patch");
+						idConsole.Warning("TODO: patch");
 						/*mapPatch = idMapPatch.Parse(lexer, origin, tokenValue.Equals("patchDef3", StringComparison.OrdinalIgnoreCase), version);
 
 						if(mapPatch == null)
@@ -520,7 +473,7 @@ namespace idTech4.Text
 					// assume it's a brush in Q3 or older style
 					else 
 					{
-						idConsole.DeveloperWriteLine("TODO: idMapBrush.ParseQ3");
+						idConsole.Warning("TODO: idMapBrush.ParseQ3");
 						
 						/*src.UnreadToken( &token );
 						mapBrush = idMapBrush::ParseQ3( src, origin );
@@ -564,73 +517,19 @@ namespace idTech4.Text
 		}
 		#endregion
 		#endregion
-
-		#region IDisposable implementation
-		#region Properties
-		public bool Disposed
-		{
-			get
-			{
-				return _disposed;
-			}
-		}
-		#endregion
-
-		#region Members
-		private bool _disposed;
-		#endregion
-
-		#region Methods
-		public void Dispose()
-		{
-			Dispose(false);
-			GC.SuppressFinalize(this);
-		}
-
-		private void Dispose(bool disposing)
-		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException("idMapFile");
-			}
-
-			if(disposing == true)
-			{
-				foreach(idMapPrimitive prim in _primitives)
-				{
-					prim.Dispose();
-				}
-
-				_primitives = null;
-			}
-
-			_disposed = true;
-		}
-		#endregion
-		#endregion
 	}
 
-	public class idMapPrimitive : IDisposable
+	public class idMapPrimitive
 	{
 		#region Properties
 		public idDict Dict
 		{
 			get
 			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idMapPrimitive");
-				}
-
 				return _dict;
 			}
 			protected set
 			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idMapPrimitive");
-				}
-
 				_dict = value;
 			}
 		}
@@ -639,20 +538,10 @@ namespace idTech4.Text
 		{
 			get
 			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idMapPrimitive");
-				}
-
 				return _type;
 			}
 			protected set
 			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idMapPrimitive");
-				}
-
 				_type = value;
 			}
 		}
@@ -668,50 +557,6 @@ namespace idTech4.Text
 		{
 
 		}
-
-		~idMapPrimitive()
-		{
-			Dispose(false);
-		}
-		#endregion
-
-		#region IDisposable implementation
-		#region Properties
-		public bool Disposed
-		{
-			get
-			{
-				return _disposed;
-			}
-		}
-		#endregion
-
-		#region Members
-		private bool _disposed;
-		#endregion
-
-		#region Methods
-		public void Dispose()
-		{
-			Dispose(false);
-			GC.SuppressFinalize(this);
-		}
-
-		protected virtual void Dispose(bool disposing)
-		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException("idMapPrimitive");
-			}
-
-			if(disposing == true)
-			{
-
-			}
-
-			_disposed = true;
-		}
-		#endregion
 		#endregion
 	}
 
@@ -722,11 +567,6 @@ namespace idTech4.Text
 		{
 			get
 			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idMapBrush");
-				}
-
 				return _sides.Count;
 			}
 		}
@@ -748,21 +588,11 @@ namespace idTech4.Text
 		#region Public
 		public void AddSide(idMapBrushSide side)
 		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException("idMapBrush");
-			}
-
 			_sides.Add(side);
 		}
 
 		public idMapBrushSide GetSide(int index)
 		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException("idMapBrush");
-			}
-
 			return _sides[index];
 		}
 		#endregion
@@ -869,7 +699,7 @@ namespace idTech4.Text
 					planePoints[1] -= origin;
 					planePoints[2] -= origin;
 
-					idConsole.DeveloperWriteLine("TODO: side->plane.FromPoints( planepts[0], planepts[1], planepts[2] );");
+					idConsole.Warning("TODO: side->plane.FromPoints( planepts[0], planepts[1], planepts[2] );");
 				}
 
 				// read the texture matrix
@@ -932,35 +762,6 @@ namespace idTech4.Text
 			brush.Dict = dict;
 			
 			return brush;
-		}
-		#endregion
-		#endregion
-
-		#region IDisposable implementation
-		#region Properties
-		public bool Disposed
-		{
-			get
-			{
-				return _disposed;
-			}
-		}
-		#endregion
-
-		#region Members
-		private bool _disposed;
-		#endregion
-
-		#region Methods
-		protected override void Dispose(bool disposing)
-		{
-			base.Dispose(disposing);
-
-			if(disposing == true)
-			{
-				_sides = null;
-			}
-
 		}
 		#endregion
 		#endregion

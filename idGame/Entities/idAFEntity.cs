@@ -12,7 +12,7 @@ namespace idTech4.Game.Entities
 			: base()
 		{
 			// TODO
-			idConsole.WriteLine("TODO: idAFEntity");
+			idConsole.Warning("TODO: idAFEntity");
 			/*combatModel = NULL;
 			combatModelContents = 0;
 			nextSoundTime = 0;
@@ -27,7 +27,7 @@ namespace idTech4.Game.Entities
 			base.Spawn();
 
 			// TODO
-			idConsole.WriteLine("TODO: idAFEntity.Spawn");
+			idConsole.Warning("TODO: idAFEntity.Spawn");
 			/*spawnOrigin = GetPhysics()->GetOrigin();
 			spawnAxis = GetPhysics()->GetAxis();
 			nextSoundTime = 0;*/
@@ -36,7 +36,7 @@ namespace idTech4.Game.Entities
 		public override void Think()
 		{
 			// TODO
-			idConsole.WriteLine("TODO: idAFEntity.Think");
+			idConsole.Warning("TODO: idAFEntity.Think");
 			/*RunPhysics();
 			UpdateAnimation();
 			if(thinkFlags & TH_UPDATEVISUALS)
@@ -53,7 +53,7 @@ namespace idTech4.Game.Entities
 			// TODO
 			if(disposing == true)
 			{
-				idConsole.WriteLine("TODO: idAFEntity.Dispose");
+				idConsole.Warning("TODO: idAFEntity.Dispose");
 				/*delete combatModel;
 				combatModel = NULL;*/
 			}

@@ -462,7 +462,7 @@ namespace idTech4.Renderer
 					backgroundDownload.Stream = null;
 
 					// upload the image
-					idConsole.Write("TODO: image.UploadPrecompressedImage");
+					idConsole.Warning("TODO: image.UploadPrecompressedImage");
 					/*image->UploadPrecompressedImage( (byte *)image->bgl.file.buffer, image->bgl.file.length );
 					R_StaticFree( image->bgl.file.buffer );*/
 
@@ -470,7 +470,7 @@ namespace idTech4.Renderer
 
 					if(idE.CvarSystem.GetBool("image_showBackgroundLoads") == true)
 					{
-						idConsole.Write("idImageManager.CompleteBackgroundLoading: {0}", image.Name);
+						idConsole.WriteLine("idImageManager.CompleteBackgroundLoading: {0}", image.Name);
 					}
 				}
 			}
