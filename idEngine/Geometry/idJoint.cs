@@ -36,7 +36,7 @@ using idTech4.Math;
 
 namespace idTech4.Geometry
 {
-	public class idJointQuaternion
+	public struct idJointQuaternion
 	{
 		public Quaternion Quaternion;
 		public Vector3 Translation;
@@ -69,6 +69,14 @@ namespace idTech4.Geometry
 				_m[0 * 4 + 3] = value.X;
 				_m[1 * 4 + 3] = value.Y;
 				_m[2 * 4 + 3] = value.Z;
+			}
+		}
+
+		public static idJointMatrix Zero
+		{
+			get
+			{
+				return new idJointMatrix(0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
 			}
 		}
 		#endregion

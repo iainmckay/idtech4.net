@@ -154,19 +154,19 @@ namespace idTech4.Text
 			RegisterDeclType("skin", DeclType.Skin, new idDeclAllocator<idDeclSkin>());
 			RegisterDeclType("sound", DeclType.Sound, new idDeclAllocator<idSoundMaterial>());
 			
-			/*RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntity>());
+			RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntity>());
 			RegisterDeclType("mapDef", DeclType.MapDef, new idDeclAllocator<idDeclEntity>());
 			/*RegisterDeclType("fx", DeclType.Fx, new idDeclAllocator<idDeclFX>());*/
 			RegisterDeclType("particle", DeclType.Particle, new idDeclAllocator<idDeclParticle>());
 			/*RegisterDeclType("articulatedFigure", DeclType.Af, new idDeclAllocator<idDeclAF>());
-			RegisterDeclType("pda", DeclType.Pda, new idDeclAllocator<idDeclPDA>());*
+			RegisterDeclType("pda", DeclType.Pda, new idDeclAllocator<idDeclPDA>());*/
 			RegisterDeclType("email", DeclType.Email, new idDeclAllocator<idDeclEmail>());
-			/*RegisterDeclType("video", DeclType.Video, new idDeclAllocator<idDeclVideo>());
-			RegisterDeclType("audio", DeclType.Audio, new idDeclAllocator<idDeclAudio>());*/
+			RegisterDeclType("video", DeclType.Video, new idDeclAllocator<idDeclVideo>());
+			RegisterDeclType("audio", DeclType.Audio, new idDeclAllocator<idDeclAudio>());
 
 			RegisterDeclFolder("materials", ".mtr", DeclType.Material);
 			RegisterDeclFolder("skins", ".skin", DeclType.Skin);
-			//RegisterDeclFolder("sound", ".sndshd", DeclType.Sound);
+			RegisterDeclFolder("sound", ".sndshd", DeclType.Sound);
 
 			// add console commands
 			idE.CmdSystem.AddCommand("listDecls", "list all decls", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_ListDecls));
@@ -386,7 +386,7 @@ namespace idTech4.Text
 		/// <returns>Decl with the given name or a default decl of the requested type if not found.</returns>
 		public T FindType<T>(DeclType type, string name)  where T : idDecl
 		{
-			return FindType<T>(type, name);
+			return FindType<T>(type, name, true);
 		}
 
 		/// <summary>
@@ -551,7 +551,7 @@ namespace idTech4.Text
 
 				for(int j = 0; j < num; j++)
 				{
-					size += kvp.Value[j].Size;
+					size += kvp.Value[j].MemoryUsage;
 				}
 
 				totalStructures += size;

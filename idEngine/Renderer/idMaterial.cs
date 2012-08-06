@@ -319,6 +319,8 @@ namespace idTech4.Renderer
 		private string _description;			// description
 		private string _renderBump;				// renderbump command options, without the "renderbump" at the start
 
+		private int _entityGui;	// draw a gui with the idUserInterface from the renderEntity_t
+								// non zero will draw gui, gui2, or gui3 from renderEnitty_t
 		private idUserInterface _userInterface;
 
 		private ContentFlags _contentFlags;
@@ -555,7 +557,7 @@ namespace idTech4.Renderer
 
 
 			_lightFalloffImage = null;
-			/*entityGui = 0;*/
+			_entityGui = 0;
 			_shouldCreateBackSides = false;
 			_editorImageName = null;
 
@@ -567,11 +569,11 @@ namespace idTech4.Renderer
 			_allowOverlays = true;
 			_unsmoothedTangents = false;
 
-			/*gui = NULL;
+			_userInterface = null;
+			_referenceCount = 0;
 			
-			editorAlpha = 1.0;*/
+			/*editorAlpha = 1.0;*/
 			_spectrum = 0;
-			/* refCount = 0;*/
 
 			_polygonOffset = 0;
 			_suppressInSubview = false;
@@ -768,18 +770,25 @@ namespace idTech4.Renderer
 				// specified in the renderEntity.
 				else if(tokenLower == "guisurf")
 				{
-					idConsole.Warning("TODO: idMaterial keyword guiSurf");
 					token = lexer.ReadTokenOnLine();
+					tokenLower = token.ToString().ToLower();
 
-					/*if ( !token.Icmp( "entity" ) ) {
-						entityGui = 1;
-					} else if ( !token.Icmp( "entity2" ) ) {
-						entityGui = 2;
-					} else if ( !token.Icmp( "entity3" ) ) {
-						entityGui = 3;
-					} else {
-						gui = uiManager->FindGui( token.c_str(), true );
-					}*/
+					if(tokenLower == "entity")
+					{
+						_entityGui = 1;
+					}
+					else if(tokenLower == "entity2")
+					{
+						_entityGui = 2;
+					}
+					else if(tokenLower == "entity3")
+					{
+						_entityGui = 3;
+					}
+					else
+					{
+						_userInterface = idE.UIManager.FindInterface(token.ToString(), true);
+					}
 				}
 				// sort.
 				else if(tokenLower == "sort")
@@ -1041,11 +1050,10 @@ namespace idTech4.Renderer
 
 			try
 			{
-				_sort = (float) Enum.Parse(typeof(MaterialSort), token.ToString(), true);
+				_sort = (int) Enum.Parse(typeof(MaterialSort), token.ToString(), true);
 			}
 			catch(Exception x)
 			{
-				idConsole.Write(x.ToString());
 				float.TryParse(token.ToString(), out _sort);
 			}
 		}
@@ -2479,9 +2487,38 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region idDecl implementation
-		public override string GetDefaultDefinition()
+		#region Properties
+		public override string DefaultDefinition
 		{
-			return "{\n\t{\n\t\tblend\tblend\n\t\tmap\t_default\n\t}\n}";
+			get
+			{
+				return "{\n\t{\n\t\tblend\tblend\n\t\tmap\t_default\n\t}\n}";
+			}
+		}
+		#endregion
+
+		#region Methods
+		protected override void ClearData()
+		{
+			_stages = new MaterialStage[] { };
+			_expressionRegisters = null;
+			_constantRegisters = null;
+			_ops = null;
+		}
+
+		protected override bool GenerateDefaultText()
+		{
+			// if there exists an image with the same name
+			if(true)
+			{
+				this.SourceText = "material " + this.Name + " // IMPLICITLY GENERATED\n"
+					+ "{\n{\nblend blend\n"
+					+ "colored\n map \"" + this.Name + "\"\nclamp\n}\n}\n";
+
+				return true;
+			}
+
+			return false;
 		}
 
 		/// <summary>
@@ -2730,7 +2767,7 @@ namespace idTech4.Renderer
 			_parsingData = null;
 
 			// finish things up
-			if(TestMaterialFlag(MaterialFlags.Defaulted))
+			if(TestMaterialFlag(MaterialFlags.Defaulted) == true)
 			{
 				MakeDefault();
 				return false;
@@ -2738,29 +2775,7 @@ namespace idTech4.Renderer
 
 			return true;
 		}
-
-		protected override bool GenerateDefaultText()
-		{
-			// if there exists an image with the same name
-			if(true)
-			{
-				this.SourceText = "material " + this.Name + " // IMPLICITLY GENERATED\n"
-					+ "{\n{\nblend blend\n"
-					+ "colored\n map \"" + this.Name + "\"\nclamp\n}\n}\n";
-
-				return true;
-			}
-
-			return false;
-		}
-
-		protected override void ClearData()
-		{
-			_stages = new MaterialStage[] { };
-			_expressionRegisters = null;
-			_constantRegisters = null;
-			_ops = null;
-		}
+		#endregion
 		#endregion
 	}
 

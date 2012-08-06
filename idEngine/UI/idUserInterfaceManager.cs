@@ -166,6 +166,19 @@ namespace idTech4.UI
 
 			return null;
 		}
+
+		public void Remove(idUserInterface ui)
+		{
+			if(_guiList.Contains(ui) == true)
+			{
+				_guiList.Remove(ui);
+			}
+
+			if(ui.Disposed == false)
+			{
+				ui.Dispose();
+			}
+		}
 		#endregion
 
 		#region Internal

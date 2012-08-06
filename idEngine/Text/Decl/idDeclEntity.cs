@@ -64,11 +64,24 @@ namespace idTech4.Text.Decl
 	
 		#region idDecl implementation
 		#region Properties
-		public override int Size
+		public override string DefaultDefinition
 		{
 			get
 			{
-				idConsole.Warning("TODO: idDeclEntity.Size");
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return "{\n\t\"DEFAULTED\"\t\"1\"\n}";
+			}
+		}
+
+		public override int MemoryUsage
+		{
+			get
+			{
+				idConsole.Warning("TODO: idDeclEntity.MemoryUsage");
 				return 0;
 			}
 		}
@@ -80,16 +93,6 @@ namespace idTech4.Text.Decl
 			base.ClearData();
 
 			_dict.Clear();
-		}
-
-		public override string GetDefaultDefinition()
-		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
- 			 return "{\n\t\"DEFAULTED\"\t\"1\"\n}";
 		}
 
 		public override bool Parse(string text)

@@ -31,6 +31,8 @@ using System.Linq;
 using System.Text;
 
 using idTech4.Input;
+using idTech4.Renderer;
+using idTech4.Sound;
 
 namespace idTech4.Game
 {
@@ -42,7 +44,18 @@ namespace idTech4.Game
 		/// Initialize the game for the first time.
 		/// </summary>
 		public abstract void Init();
-
+		
+		/// <summary>
+		/// Loads a map and spawns all the entities.
+		/// </summary>
+		/// <param name="mapName"></param>
+		/// <param name="renderWorld"></param>
+		/// <param name="soundWorld"></param>
+		/// <param name="isServer"></param>
+		/// <param name="isClient"></param>
+		/// <param name="randSeed"></param>
+		public abstract void InitFromNewMap(string mapName, idRenderWorld renderWorld, idSoundWorld soundWorld, bool isServer, bool isClient, int randSeed);
+		
 		/// <summary>
 		/// Caches media referenced from in key/value pairs in the given dictionary.
 		/// </summary>
@@ -69,6 +82,12 @@ namespace idTech4.Game
 		/// <param name="clientIndex"></param>
 		/// <param name="playerInfo"></param>
 		public abstract void SetPersistentPlayerInformation(int clientIndex, idDict playerInfo);
+
+		/// <summary>
+		/// Sets the serverinfo at map loads and when it changes.
+		/// </summary>
+		/// <param name="serverInfo"></param>
+		public abstract void SetServerInfo(idDict serverInfo);
 
 		/// <summary>
 		/// Sets the user info for a client.

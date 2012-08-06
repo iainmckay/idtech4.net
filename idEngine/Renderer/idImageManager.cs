@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Text.RegularExpressions;
@@ -1163,6 +1164,8 @@ namespace idTech4.Renderer
 		{
 			// TODO: timestamp
 			timeStamp = DateTime.Now;
+
+			name = Path.Combine(Path.GetDirectoryName(name), Path.GetFileNameWithoutExtension(name));
 
 			return idE.System.Content.Load<Texture2D>(name);
 		}

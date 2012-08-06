@@ -79,6 +79,14 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public override float DepthHack
+		{
+			get
+			{
+				return 0.0f;
+			}
+		}
+		
 		public override bool IsDefaultModel
 		{
 			get 

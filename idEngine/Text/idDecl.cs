@@ -39,6 +39,19 @@ namespace idTech4.Text
 	{
 		#region Properties
 		#region Public
+		public virtual string DefaultDefinition
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return "{ }";
+			}
+		}
+
 		/// <summary>
 		/// Gets if this decl was ever used.
 		/// </summary>
@@ -143,6 +156,25 @@ namespace idTech4.Text
 		}
 
 		/// <summary>
+		/// Gets the size in bytes that this type consumes.
+		/// </summary>
+		public virtual int MemoryUsage
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return 0;
+
+				// TODO: how to do this in .net?
+				//return Marshal.SizeOf(this);
+			}
+		}
+
+		/// <summary>
 		/// Gets the name of this decl.
 		/// </summary>
 		public string Name
@@ -217,25 +249,6 @@ namespace idTech4.Text
 				}
 
 				_referencedThisLevel = value;
-			}
-		}
-
-		/// <summary>
-		/// Gets the size in bytes that this type consumes.
-		/// </summary>
-		public virtual int Size
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return 0;
-
-				// TODO: how to do this in .net?
-				//return Marshal.SizeOf(this);
 			}
 		}
 		
@@ -434,16 +447,6 @@ namespace idTech4.Text
 			}
 		}
 
-		public virtual string GetDefaultDefinition()
-		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			return "{ }";
-		}
-
 		public void MakeDefault()
 		{
 			if(this.Disposed == true)
@@ -455,7 +458,7 @@ namespace idTech4.Text
 
 			idE.DeclManager.MediaPrint("DEFAULTED");
 
-			string defaultText = GetDefaultDefinition();
+			string defaultText = this.DefaultDefinition;
 
 			// a parse error inside a DefaultDefinition() string could
 			// cause an infinite loop, but normal default definitions could

@@ -41,7 +41,9 @@
     <Reference Include="System.Xml" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Animation\idAnimManager.cs" />
     <Compile Include="Animation\idDeclModel.cs" />
+    <Compile Include="Animation\idMD5Anim.cs" />
     <Compile Include="Entities\idActor.cs" />
     <Compile Include="Entities\idAFEntity.cs" />
     <Compile Include="Entities\idAFEntity_Gibbable.cs" />

@@ -118,6 +118,7 @@
     <Compile Include="Input\idUserCommandGenerator.cs" />
     <Compile Include="Input\idInputSystem.cs" />
     <Compile Include="Math\idAngles.cs" />
+    <Compile Include="Math\idCompressedQuaternion.cs" />
     <Compile Include="Math\idExtrapolate.cs" />
     <Compile Include="Math\idInterpolateAccelerationDecelerationLinear.cs" />
     <Compile Include="Math\idMath.cs" />
@@ -128,6 +129,7 @@
     <Compile Include="Renderer\idRenderModel.cs" />
     <Compile Include="Renderer\idRenderModelManager.cs" />
     <Compile Include="Renderer\idRenderModel_MD5.cs" />
+    <Compile Include="Renderer\idRenderModel_PRT.cs" />
     <Compile Include="Renderer\idRenderWorld.cs" />
     <Compile Include="Renderer\idScreenRect.cs" />
     <Compile Include="Renderer\idRenderModel_Static.cs" />
@@ -135,9 +137,11 @@
     <Compile Include="Sound\idSoundMaterial.cs" />
     <Compile Include="Sound\idSoundSystem.cs" />
     <Compile Include="Sound\idSoundWorld.cs" />
+    <Compile Include="Text\Decl\idDeclAudio.cs" />
     <Compile Include="Text\Decl\idDeclEntity.cs" />
     <Compile Include="Text\Decl\idDeclParticle.cs" />
     <Compile Include="Text\Decl\idDeclSkin.cs" />
+    <Compile Include="Text\Decl\idDeclVideo.cs" />
     <Compile Include="Text\idDecl.cs" />
     <Compile Include="Text\idDeclManager.cs" />
     <Compile Include="idHelper.cs" />

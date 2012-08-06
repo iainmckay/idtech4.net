@@ -777,7 +777,7 @@ namespace idTech4.Game
 
 				_currentMapFile = new idMapFile();
 
-				if(_currentMapFile.Parse(mapName + ".map") == false)
+				if(_currentMapFile.Parse(mapName) == false)
 				{
 					_currentMapFile.Dispose();
 					_currentMapFile = null;
@@ -1235,11 +1235,10 @@ namespace idTech4.Game
 			if(from == null)
 			{
 				node = _spawnedEntities.First;
-				idConsole.WriteLine("NODE={0}", node);
+				
 				if(node != null)
 				{
 					ent = node.Value;
-					idConsole.WriteLine("CLASS={0}", node.Value.ClassName);
 				}
 			}
 			else
@@ -1771,12 +1770,12 @@ namespace idTech4.Game
 					idR.DeclManager.MediaPrint(string.Format("Precaching gui {0}", kvp.Value));
 
 					idUserInterface gui = new idUserInterface();
-
+					
 					if(gui != null)
 					{
 						gui.InitFromFile(kvp.Value);
-						gui.Dispose();
-					}
+						idE.UIManager.Remove(gui);
+					}					
 				}
 			}
 			#endregion
@@ -1853,7 +1852,7 @@ namespace idTech4.Game
 			#endregion
 		}
 
-		public /*override*/ void InitFromNewMap(string mapName, idRenderWorld renderWorld, idSoundWorld soundWorld, bool isServer, bool isClient, int randomSeed)
+		public override void InitFromNewMap(string mapName, idRenderWorld renderWorld, idSoundWorld soundWorld, bool isServer, bool isClient, int randomSeed)
 		{
 			idConsole.DeveloperWriteLine("InitFromNewMap");
 
@@ -1897,7 +1896,7 @@ namespace idTech4.Game
 			_localClientIndex = clientIndex;
 		}
 
-		public /*override*/ void SetServerInfo(idDict serverInfo)
+		public override void SetServerInfo(idDict serverInfo)
 		{
 			_serverInfo = serverInfo;
 

@@ -133,27 +133,30 @@ namespace idTech4.Text.Decl
 
 		#region idDecl implementation
 		#region Properties
-		public override int Size
+		public override string DefaultDefinition
 		{
 			get
 			{
-				idConsole.Warning("TODO: idDeclEmail.Size");
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return "{\n\t{\n\t\tto\t5Mail recipient\n\t\tsubject\t5Nothing\n\t\tfrom\t5No one\n\t}\n}";
+			}
+		}
+
+		public override int MemoryUsage
+		{
+			get
+			{
+				idConsole.Warning("TODO: idDeclEmail.MemoryUsage");
 				return 0;
 			}
 		}
 		#endregion
 
 		#region Methods
-		public override string GetDefaultDefinition()
-		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			return "{\n\t{\n\t\tto\t5Mail recipient\n\t\tsubject\t5Nothing\n\t\tfrom\t5No one\n\t}\n}";
-		}
-
 		public override bool Parse(string text)
 		{
 			if(this.Disposed == true)

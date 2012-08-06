@@ -27,10 +27,14 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+
 using idTech4.Renderer;
+using idTech4.Sound;
 using idTech4.Text;
 using idTech4.Text.Decl;
 
@@ -38,11 +42,22 @@ namespace idTech4.Game.Animation
 {
 	public class idDeclModel : idDecl
 	{
+		#region Constants
+		public readonly string[] ChannelNames = {
+			"all", "torso", "legs", "head", "eyelids"
+		};
+		#endregion
+
 		#region Properties
 		public idDeclSkin DefaultSkin
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
 				return _skin;
 			}
 		}
@@ -51,6 +66,11 @@ namespace idTech4.Game.Animation
 		{
 			get
 			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
 				return _model;
 			}
 		}
@@ -59,29 +79,411 @@ namespace idTech4.Game.Animation
 		#region Members
 		private idDeclSkin _skin;
 		private idRenderModel _model;
+
+		private List<idAnim> _anims = new List<idAnim>();
+
+		private Vector3 _offset;
+		private JointInfo[] _joints;
+		private int[] _jointParents;
+		private int[][] _channelJoints;
 		#endregion
 
 		#region Constructor
 		public idDeclModel()
 			: base()
 		{
-			idConsole.WriteLine("TODO: idDeclModel");
-			/*modelHandle	= NULL;
-			skin		= NULL;
-			offset.Zero();
-			for ( int i = 0; i < ANIM_NumAnimChannels; i++ ) {
-				channelJoints[i].Clear();
-			}*/
+
 		}
+		#endregion
+
+		#region Methods
+		#region Public
+		public JointInfo FindJoint(int index)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			if(_model == null)
+			{
+				return null;
+			}
+
+			return _joints[index];
+		}
+
+		public JointInfo FindJoint(string name)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			if(_model == null)
+			{
+				return null;
+			}
+
+			idMD5Joint[] joints = _model.Joints;
+				
+			for(int i = 0; i < _joints.Length; i++)
+			{
+				if(joints[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					return _joints[i];
+				}
+			}
+
+			return null;
+		}
+		#endregion
+
+		#region Private
+		private int[] GetJointList(string jointNames)
+		{
+			if(_model == null)
+			{
+				return null;
+			}
+
+			List<int> joints = new List<int>();
+			JointInfo joint, child;
+			int count = _model.JointCount;
+			bool subtract = false;
+			bool getChildren = false;
+			string jointName;
+
+			for(int i = 0; i < jointNames.Length; i++)
+			{
+				while((i != jointNames.Length) && (jointNames[i] == ' '))
+				{
+					i++;
+				}
+
+				if(i == jointNames.Length)
+				{
+					break;
+				}
+
+				jointName = string.Empty;
+
+
+				if(jointNames[i] == '-')
+				{
+					subtract = true;
+					i++;
+				}
+				else
+				{
+					subtract = false;
+				}
+
+				if(jointNames[i] == '*')
+				{
+					getChildren = true;
+					i++;
+				}
+				else
+				{
+					getChildren = false;
+				}
+
+				while((i != jointNames.Length) && (jointNames[i] != ' '))
+				{
+					jointName += jointNames[i];
+					i++;
+				}
+
+				if((joint = FindJoint(jointName)) == null)
+				{
+					idConsole.Warning("Unknown joint '{0}' in '{1}' for model '{2}'", jointName, jointNames, this.Name);
+					continue;
+				}
+
+				if(subtract == false)
+				{
+					if(joints.Contains(joint.Index) == false)
+					{
+						joints.Add(joint.Index);
+					}
+				}
+				else
+				{
+					joints.Remove(joint.Index);
+				}
+
+				if(getChildren == true)
+				{
+					// include all joint's children
+					int jointOffset = joint.Index + 1;
+					child = FindJoint(jointOffset);
+
+					for(i = joint.Index + 1; i < count; i++, jointOffset++)
+					{
+						// all children of the joint should follow it in the list.
+						// once we reach a joint without a parent or with a parent
+						// who is earlier in the list than the specified joint, then
+						// we've gone through all it's children.
+						if(child.ParentIndex < joint.Index)
+						{
+							break;
+						}
+
+						if(subtract == false)
+						{
+							if(joints.Contains(child.Index) == false)
+							{
+								joints.Add(child.Index);
+							}
+							else
+							{
+								joints.Remove(child.Index);
+							}
+						}
+					}
+				}
+			}
+
+			return joints.ToArray();
+		}
+
+		private bool ParseAnimation(idLexer lexer, int defaultAnimCount)
+		{
+			List<idMD5Anim> md5anims = new List<idMD5Anim>();
+			idMD5Anim md5anim;
+			idAnim anim;
+			AnimationFlags flags = new AnimationFlags();
+
+			idToken token;
+			idToken realName = lexer.ReadToken();
+
+			if(realName == null)
+			{
+				lexer.Warning("Unexpected end of file");
+				MakeDefault();
+
+				return false;
+			}
+
+			string alias = realName.ToString();
+			int i; 
+
+			for(i = 0; i < _anims.Count; i++)
+			{
+				if(_anims[i].FullName.Equals(alias, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					break;
+				}
+			}
+
+			if((i < _anims.Count) && (i >= defaultAnimCount))
+			{
+				lexer.Warning("Duplicate anim '{0}'", realName);
+				MakeDefault();
+
+				return false;
+			}
+
+			if(i < defaultAnimCount)
+			{
+				anim = _anims[i];
+			}
+			else
+			{
+				// create the alias associated with this animation
+				anim = new idAnim();
+				_anims.Add(anim);
+			}
+
+			// random anims end with a number.  find the numeric suffix of the animation.
+			int len = alias.Length;
+
+			for(i = len - 1; i > 0; i--)
+			{
+				if(Char.IsNumber(alias[i]) == false)
+				{
+					break;
+				}
+			}
+
+			// check for zero length name, or a purely numeric name
+			if(i <= 0)
+			{
+				lexer.Warning("Invalid animation name '{0}'", alias);
+				MakeDefault();
+
+				return false;
+			}
+
+			// remove the numeric suffix
+			alias = alias.Substring(0, i + 1);
+
+			// parse the anims from the string
+			do
+			{
+				if((token = lexer.ReadToken()) == null)
+				{
+					lexer.Warning("Unexpected end of file");
+					MakeDefault();
+
+					return false;
+				}
+
+				// lookup the animation
+				md5anim = idR.AnimManager.GetAnimation(token.ToString());
+				
+				if(md5anim == null)
+				{
+					lexer.Warning("Couldn't load anim '{0}'", token);
+					return false;
+				}
+
+				md5anim.CheckModelHierarchy(_model);
+
+				if(md5anims.Count > 0)
+				{
+					// make sure it's the same length as the other anims
+					if(md5anim.Length != md5anims[0].Length)
+					{
+						lexer.Warning("Anim '{0}' does not match length of anim '{1}'", md5anim.Name, md5anims[0].Name);
+						MakeDefault();
+
+						return false;
+					}
+				}
+
+				// add it to our list
+				md5anims.Add(md5anim);
+			}
+			while(lexer.CheckTokenString(",") == true);
+
+			if(md5anims.Count == 0)
+			{
+				lexer.Warning("No animation specified");
+				MakeDefault();
+
+				return false;
+			}
+
+			anim.SetAnimation(this, realName.ToString(), alias, md5anims.ToArray());
+			
+			// parse any frame commands or animflags
+			if(lexer.CheckTokenString("{") == true)
+			{
+				while(true)
+				{
+					if((token = lexer.ReadToken()) == null)
+					{
+						lexer.Warning("Unexpected end of file");
+						MakeDefault();
+
+						return false;
+					}
+
+					string tokenValue = token.ToString();
+
+					if(tokenValue == "}")
+					{
+						break;
+					}
+					else if(tokenValue == "prevent_idle_override") 
+					{
+						flags.PreventIdleOverride = true;
+					}
+					else if(tokenValue == "random_cycle_start") 
+					{
+						flags.RandomCycleStart = true;
+					}
+					else if(tokenValue == "ai_no_turn") 
+					{
+						flags.AINoTurn = true;
+					}
+					else if(tokenValue == "anim_turn")
+					{
+						flags.AnimationTurn = true;
+					}
+					else if(tokenValue == "frame")
+					{
+						// create a frame command
+						int frameIndex;
+						string err;
+
+						// make sure we don't have any line breaks while reading the frame command so the error line # will be correct
+						if((token = lexer.ReadTokenOnLine()) == null)
+						{
+							lexer.Warning("Missing frame # after 'frame'");
+							MakeDefault();
+
+							return false;
+						}
+						else if((token.Type == TokenType.Punctuation) && (token.ToString() == "-"))
+						{
+							lexer.Warning("Invalid frame # after 'frame'");
+							MakeDefault();
+
+							return false;
+						}
+						else if((token.Type != TokenType.Number) || (token.SubType == TokenSubType.Float))
+						{
+							lexer.Error("expected integer value, found '{0}'", token);
+						}
+
+						// get the frame number
+						frameIndex = token.ToInt32();
+
+						// put the command on the specified frame of the animation
+						if((err = anim.AddFrameCommand(this, frameIndex, lexer, null)) != null)
+						{
+							lexer.Warning(err.ToString());
+							MakeDefault();
+
+							return false;
+						}
+					}
+					else
+					{
+						lexer.Warning("Unknown command '{0}'", token);
+						MakeDefault();
+
+						return false;
+					}
+				}
+			}
+
+			// set the flags
+			anim.Flags = flags;
+
+			return true;
+		}
+		#endregion
 		#endregion
 
 		#region idDecl implementation
 		#region Properties
-		public override int Size
+		public override string DefaultDefinition
 		{
 			get
 			{
-				idConsole.WriteLine("TODO: idDeclModel.Size");
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return "{ }";
+			}
+		}
+
+		public override int MemoryUsage
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				idConsole.Warning("TODO: idDeclModel.MemoryUsage");
 				return 0;
 			}
 		}
@@ -89,21 +491,11 @@ namespace idTech4.Game.Animation
 
 		#region Methods
 		#region Public
-		public override string GetDefaultDefinition()
-		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException("idDeclModel");
-			}
-
-			return "{ }";
-		}
-
 		public override bool Parse(string text)
 		{
 			if(this.Disposed == true)
 			{
-				throw new ObjectDisposedException("idDeclModel");
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
@@ -114,6 +506,10 @@ namespace idTech4.Game.Animation
 			idToken token;
 			idToken token2;
 			string tokenValue;
+			string fileName;
+			string extension;
+			int count;
+			idMD5Joint[] md5Joints;
 
 			while(true)
 			{
@@ -153,76 +549,100 @@ namespace idTech4.Game.Animation
 				} 
 				else if(tokenValue == "skin") 
 				{
-					idConsole.WriteLine("TODO: skin");
-					
-					/*if( !src.ReadToken( &token2 ) ) {
-						src.Warning( "Unexpected end of file" );
+					if((token2 = lexer.ReadToken()) == null)
+					{
+						lexer.Warning("Unexpected end of file");
 						MakeDefault();
-						return false;
-					}
-					skin = declManager->FindSkin( token2 );
-					if ( !skin ) {
-						src.Warning( "Skin '%s' not found", token2.c_str() );
-						MakeDefault();
-						return false;
-					}*/
-				} 
-				else if(tokenValue == "mesh")
-				{
-					idConsole.WriteLine("TODO: mesh");
-					/*if( !src.ReadToken( &token2 ) ) {
-						src.Warning( "Unexpected end of file" );
-						MakeDefault();
-						return false;
-					}
-					filename = token2;
-					filename.ExtractFileExtension( extension );
-					if ( extension != MD5_MESH_EXT ) {
-						src.Warning( "Invalid model for MD5 mesh" );
-						MakeDefault();
-						return false;
-					}
-					modelHandle = renderModelManager->FindModel( filename );
-					if ( !modelHandle ) {
-						src.Warning( "Model '%s' not found", filename.c_str() );
-						MakeDefault();
+
 						return false;
 					}
 
-					if ( modelHandle->IsDefaultModel() ) {
-						src.Warning( "Model '%s' defaulted", filename.c_str() );
+					_skin = idE.DeclManager.FindSkin(token2.ToString());
+
+					if(_skin == null)
+					{
+						lexer.Warning("Skin '{0}' not found", token2.ToString());
 						MakeDefault();
+
+						return false;
+					}
+				} 
+				else if(tokenValue == "mesh")
+				{
+					if((token2 = lexer.ReadToken()) == null)
+					{
+						lexer.Warning("Unexpected end of file");
+						MakeDefault();
+
+						return false;
+					}
+
+					fileName = token2.ToString();
+					extension = Path.GetExtension(fileName);
+
+					if(extension != idRenderModel_MD5.MeshExtension)
+					{
+						lexer.Warning("Invalid model for MD5 mesh");
+						MakeDefault();
+
+						return false;
+					}
+
+					_model = idE.RenderModelManager.FindModel(fileName);
+
+					if(_model == null)
+					{
+						lexer.Warning("Model '{0}' not found", fileName);
+						MakeDefault();
+
+						return false;
+					}
+					else if(_model.IsDefaultModel == true)
+					{
+						lexer.Warning("Model '{0}' defaulted", fileName);
+						MakeDefault();
+
 						return false;
 					}
 
 					// get the number of joints
-					num = modelHandle->NumJoints();
-					if ( !num ) {
-						src.Warning( "Model '%s' has no joints", filename.c_str() );
+					count = _model.JointCount;
+
+					if(count == 0)
+					{
+						lexer.Warning("Model '{0}' has no joints", fileName);
 					}
 
 					// set up the joint hierarchy
-					joints.SetGranularity( 1 );
-					joints.SetNum( num );
-					jointParents.SetNum( num );
-					channelJoints[0].SetNum( num );
-					md5joints = modelHandle->GetJoints();
-					md5joint = md5joints;
-					for( i = 0; i < num; i++, md5joint++ ) {
-						joints[i].channel = ANIMCHANNEL_ALL;
-						joints[i].num = static_cast<jointHandle_t>( i );
-						if ( md5joint->parent ) {
-							joints[i].parentNum = static_cast<jointHandle_t>( md5joint->parent - md5joints );
-						} else {
-							joints[i].parentNum = INVALID_JOINT;
+					md5Joints = _model.Joints;
+
+					_joints = new JointInfo[count];
+					_jointParents = new int[count];
+					_channelJoints = new int[(int) AnimationChannel.Count][];
+					_channelJoints[0] = new int[count];
+
+					for(int i = 0; i < count; i++)
+					{
+						_joints[i] = new JointInfo();
+						_joints[i].Channel = AnimationChannel.All;
+						_joints[i].Index = i;
+
+						if(md5Joints[i].Parent != null)
+						{
+							_joints[i].ParentIndex = _model.GetJointIndex(md5Joints[i].Parent);
 						}
-						jointParents[i] = joints[i].parentNum;
-						channelJoints[0][i] = i;
-					}*/
+						else
+						{
+							_joints[i].ParentIndex = -1;
+						}
+
+						_jointParents[i] = _joints[i].ParentIndex;
+						_channelJoints[0][i] = i;
+					}
 				}
 				else if(tokenValue == "remove")
 				{
-					idConsole.WriteLine("TODO: remove");
+					idConsole.Warning("TODO: remove");
 
 					// removes any anims whos name matches
 					/*if( !src.ReadToken( &token2 ) ) {
@@ -254,87 +674,120 @@ namespace idTech4.Game.Animation
 				} 
 				else if(tokenValue == "anim") 
 				{
-					idConsole.WriteLine("TODO: anim");
-					/*if ( !modelHandle ) {
-						src.Warning( "Must specify mesh before defining anims" );
+					if(_model == null)
+					{
+						lexer.Warning("Must specify mesh before defining anims");
 						MakeDefault();
+
 						return false;
 					}
-					if ( !ParseAnim( src, numDefaultAnims ) ) {
+					else if(ParseAnimation(lexer, defaultAnimationCount) == false)
+					{
 						MakeDefault();
+
 						return false;
-					}*/
+					}
 				} 
 				else if(tokenValue == "offset") 
 				{
-					idConsole.WriteLine("TODO: offset");
-					/*if ( !src.Parse1DMatrix( 3, offset.ToFloatPtr() ) ) {
-						src.Warning( "Expected vector following 'offset'" );
+					float[] tmp = lexer.Parse1DMatrix(3);
+
+					if(tmp == null)
+					{
+						lexer.Warning("Expected vector following 'offset'");
 						MakeDefault();
 						return false;
-					}*/
+					}
+
+					_offset = new Vector3(tmp[0], tmp[1], tmp[2]);
 				} 
 				else if(tokenValue == "channel") 
 				{
-					idConsole.WriteLine("TODO: channel");
-					/*if ( !modelHandle ) {
-						src.Warning( "Must specify mesh before defining channels" );
+					if(_model == null)
+					{
+						lexer.Warning("Must specify mesh before defining channels");
 						MakeDefault();
+
 						return false;
 					}
 
 					// set the channel for a group of joints
-					if( !src.ReadToken( &token2 ) ) {
-						src.Warning( "Unexpected end of file" );
+					if((token2 = lexer.ReadToken()) == null)
+					{
+						lexer.Warning("Unexpected end of file");
 						MakeDefault();
-						return false;
-					}
-					if ( !src.CheckTokenString( "(" ) ) {
-						src.Warning( "Expected { after '%s'\n", token2.c_str() );
-						MakeDefault();
+
 						return false;
 					}
 
-					for( i = ANIMCHANNEL_ALL + 1; i < ANIM_NumAnimChannels; i++ ) {
-						if ( !idStr::Icmp( channelNames[ i ], token2 ) ) {
+					if(lexer.CheckTokenString("(") == false)
+					{
+						lexer.Warning("Expected { after '{0}'", token2.ToString());
+						MakeDefault();
+
+						return false;
+					}
+
+					int i;
+
+					for(i = (int) AnimationChannel.All + 1; i < (int) AnimationChannel.Count; i++)
+					{
+						if(ChannelNames[i].Equals(token2.ToString(), StringComparison.OrdinalIgnoreCase) == true)
+						{
 							break;
 						}
 					}
 
-					if ( i >= ANIM_NumAnimChannels ) {
-						src.Warning( "Unknown channel '%s'", token2.c_str() );
+					if(i >= (int) AnimationChannel.Count)
+					{
+						lexer.Warning("Unknown channel '{0}'", token2.ToString());
 						MakeDefault();
+
 						return false;
 					}
 
-					channel = i;
-					jointnames = "";
+					int channel = i;
+					StringBuilder jointNames = new StringBuilder();
+					string token2Value;
 
-					while( !src.CheckTokenString( ")" ) ) {
-						if( !src.ReadToken( &token2 ) ) {
-							src.Warning( "Unexpected end of file" );
+					while(lexer.CheckTokenString(")") == false)
+					{
+						if((token2 = lexer.ReadToken()) == null)
+						{
+							lexer.Warning("Unexpected end of file");
 							MakeDefault();
+
 							return false;
 						}
-						jointnames += token2;
-						if ( ( token2 != "*" ) && ( token2 != "-" ) ) {
-							jointnames += " ";
+
+						token2Value = token2.ToString();
+						jointNames.Append(token2Value);
+
+						if((token2Value != "*") && (token2Value != "-"))
+						{
+							jointNames.Append(" ");
 						}
 					}
 
-					GetJointList( jointnames, jointList );
+					int[] jointList = GetJointList(jointNames.ToString());
 
-					channelJoints[ channel ].SetNum( jointList.Num() );
-					for( num = i = 0; i < jointList.Num(); i++ ) {
-						jointnum = jointList[ i ];
-						if ( joints[ jointnum ].channel != ANIMCHANNEL_ALL ) {
-							src.Warning( "Joint '%s' assigned to multiple channels", modelHandle->GetJointName( jointnum ) );
+					List<int> channelJoints = new List<int>();
+					
+					for(count = i = 0; i < jointList.Length; i++)
+					{
+						int jointIndex = jointList[i];
+
+						if(_joints[jointIndex].Channel != AnimationChannel.All)
+						{
+							lexer.Warning("Join '{0}' assigned to multiple channels", _model.GetJointName(jointIndex));
 							continue;
 						}
-						joints[ jointnum ].channel = channel;
-						channelJoints[ channel ][ num++ ] = jointnum;
+
+						_joints[jointIndex].Channel = (AnimationChannel) channel;
+						channelJoints.Add(jointIndex);
 					}
-					channelJoints[ channel ].SetNum( num );*/
+
+					_channelJoints[channel] = channelJoints.ToArray();
 				}
 				else
 				{
@@ -354,7 +807,7 @@ namespace idTech4.Game.Animation
 		{
 			base.ClearData();
 
-			idConsole.WriteLine("TODO: idDeclModel.ClearData");
+			idConsole.Warning("TODO: idDeclModel.ClearData");
 			/*anims.DeleteContents( true );
 			joints.Clear();
 			jointParents.Clear();
@@ -368,5 +821,622 @@ namespace idTech4.Game.Animation
 		#endregion
 		#endregion
 		#endregion
+	}
+
+	public enum AnimationChannel
+	{
+		All = 0,
+		Torso = 1,
+		Legs = 2,
+		Head = 3,
+		EyeLids = 4,
+		Count
+	}
+
+	public struct AnimationFlags
+	{
+		public bool PreventIdleOverride;
+		public bool RandomCycleStart;
+		public bool AINoTurn;
+		public bool AnimationTurn;
+	}
+
+	public enum AnimationFrameCommandType
+	{
+		ScriptFunction,
+		ScriptFunctionObject,
+		EventFunction,
+		Sound,
+		SoundVoice,
+		SoundVoice2,
+		SoundBody,
+		SoundBody2,
+		SoundBody3,
+		SoundWeapon,
+		SoundItem,
+		SoundGlobal,
+		SoundChatter,
+		Skin,
+		Trigger,
+		TriggerSmokeParticle,
+		Melee,
+		DirectDamage,
+		BeginAttack,
+		EndAttack,
+		MuzzleFlash,
+		CreateMissile,
+		LaunchMissile,
+		FireMissileAtTarget,
+		Footstep,
+		LeftFoot,
+		RightFoot,
+		EnableEyeFocus,
+		DisableEyeFocus,
+		Fx,
+		DisableGravity,
+		EnableGravity,
+		Jump,
+		EnableClip,
+		DisableClip,
+		EnableWalkIk,
+		DisableWalkIk,
+		EnableLegIk,
+		DisableLegIk,
+		RecordDemo,
+		AviGame
+	}
+
+	public class AnimationFrameLookup
+	{
+		public int Index;
+		public int FirstCommand;
+	}
+
+	public class AnimationFrameCommand
+	{
+		public AnimationFrameCommandType Type;
+		public string String;
+
+		public idSoundMaterial SoundMaterial;
+		public object Function;
+		public idDeclSkin Skin;
+		public int Index;
+	}
+
+	[Flags]
+	public enum AnimationBits
+	{
+		TranslationX = 1 << 0,
+		TranslationY = 1 << 1,
+		TranslationZ = 1 << 2,
+		QuaternionX = 1 << 3,
+		QuaternionY = 1 << 4,
+		QuaternionZ = 1 << 5
+	}
+
+	public class JointInfo
+	{
+		public int Index;
+		public int ParentIndex;
+		public AnimationChannel Channel;
+	}
+
+	public class idAnim
+	{
+		#region Properties
+		public AnimationFlags Flags
+		{
+			get
+			{
+				return _animFlags;
+			}
+			set
+			{
+				_animFlags = value;
+			}
+		}
+
+		public string FullName
+		{
+			get
+			{
+				return _realName;
+			}
+		}
+
+		public int Length
+		{
+			get
+			{
+				if((_anims == null) || (_anims.Length == 0))
+				{
+					return 0;
+				}
+
+				return _anims[0].Length;
+			}
+		}
+
+		public string Name
+		{
+			get
+			{
+				return _name;
+			}
+		}
+		#endregion
+
+		#region Members
+		private idDeclModel _modelDef;
+		private idMD5Anim[] _anims;
+		private string _name;
+		private string _realName;
+		private AnimationFlags _animFlags;
+
+		private List<AnimationFrameLookup> _frameLookups = new List<AnimationFrameLookup>();
+		private List<AnimationFrameCommand> _frameCommands = new List<AnimationFrameCommand>();
+		#endregion
+
+		#region Constructor
+		public idAnim()
+		{
+
+		}
+		#endregion
+
+		#region Methods
+		#region Public
+		public string AddFrameCommand(idDeclModel modelDef, int frameIndex, idLexer lexer, idDict def)
+		{
+			// make sure we're within bounds
+			if((frameIndex < 1) || (frameIndex > _anims[0].FrameCount))
+			{
+				return string.Format("Frame {0} out of range", frameIndex);
+			}
+
+			// frame numbers are 1 based in .def files, but 0 based internally
+			frameIndex--;
+
+			idToken token;
+			AnimationFrameCommand frameCommand = new AnimationFrameCommand();
+
+			if((token = lexer.ReadTokenOnLine()) == null)
+			{
+				return "Unexpected end of line";
+			}
+
+			string tokenValue = token.ToString();
+
+			if(tokenValue == "call")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				tokenValue = token.ToString();
+				frameCommand.Type = AnimationFrameCommandType.ScriptFunction;
+				idConsole.Warning("TODO: fc.function = gameLocal.program.FindFunction( token );");
+
+				if(frameCommand.Function == null)
+				{
+					return string.Format("Function '{0}' not found", tokenValue);
+				}
+			}
+			else if(tokenValue == "object_call")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				tokenValue = token.ToString();
+				frameCommand.Type = AnimationFrameCommandType.ScriptFunctionObject;
+				frameCommand.String = tokenValue;
+			}
+			else if(tokenValue == "event")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				tokenValue = token.ToString();
+				frameCommand.Type = AnimationFrameCommandType.EventFunction;
+
+				idConsole.Warning("TODO: idAnim Event");
+				/*const idEventDef *ev = idEventDef::FindEvent( token );
+				if ( !ev ) {
+					return va( "Event '%s' not found", token.c_str() );
+				}
+				if ( ev->GetNumArgs() != 0 ) {
+					return va( "Event '%s' has arguments", token.c_str() );
+				}*/
+
+				frameCommand.String = tokenValue;
+			} 
+			else if((tokenValue == "sound") 
+				|| (tokenValue == "sound_voice")
+				|| (tokenValue == "sound_voice2")
+				|| (tokenValue == "sound_body")
+				|| (tokenValue == "sound_body2")
+				|| (tokenValue == "sound_body3")
+				|| (tokenValue == "sound_weapon")
+				|| (tokenValue == "sound_global")
+				|| (tokenValue == "sound_item")
+				|| (tokenValue == "sound_chatter"))
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				switch(tokenValue)
+				{
+					case "sound":
+						frameCommand.Type = AnimationFrameCommandType.Sound;
+						break;
+
+					case "sound_voice":
+						frameCommand.Type = AnimationFrameCommandType.SoundVoice;
+						break;
+
+					case "sound_voice2":
+						frameCommand.Type = AnimationFrameCommandType.SoundVoice2;
+						break;
+
+					case "sound_body":
+						frameCommand.Type = AnimationFrameCommandType.SoundBody;
+						break;
+
+					case "sound_body2":
+						frameCommand.Type = AnimationFrameCommandType.SoundBody2;
+						break;
+
+					case "sound_body3":
+						frameCommand.Type = AnimationFrameCommandType.SoundBody3;
+						break;
+
+					case "sound_weapon":
+						frameCommand.Type = AnimationFrameCommandType.SoundWeapon;
+						break;
+
+					case "sound_global":
+						frameCommand.Type = AnimationFrameCommandType.SoundGlobal;
+						break;
+
+					case "sound_item":
+						frameCommand.Type = AnimationFrameCommandType.SoundItem;
+						break;
+
+					case "sound_chatter":
+						frameCommand.Type = AnimationFrameCommandType.SoundChatter;
+						break;
+				}
+				
+				tokenValue = token.ToString();
+
+				if(tokenValue.StartsWith("snd_") == true)
+				{
+					frameCommand.String = tokenValue;
+				}
+				else
+				{
+					frameCommand.SoundMaterial = idE.DeclManager.FindSound(tokenValue);
+
+					if(frameCommand.SoundMaterial.State == DeclState.Defaulted)
+					{
+						idConsole.Warning("Sound '{0}' not found", tokenValue);
+					}
+				}
+			}
+			else if(tokenValue == "skin")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				tokenValue = token.ToString();
+				frameCommand.Type = AnimationFrameCommandType.Skin;
+
+				if(tokenValue == "none")
+				{
+					frameCommand.Skin = null;
+				}
+				else
+				{
+					frameCommand.Skin = idE.DeclManager.FindSkin(tokenValue);
+
+					if(frameCommand.Skin == null)
+					{
+						return string.Format("Skin '{0}' not found", tokenValue);
+					}
+				}
+			}
+			else if(tokenValue == "fx")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				tokenValue = token.ToString();
+				frameCommand.Type = AnimationFrameCommandType.Fx;
+
+				if(idE.DeclManager.FindType(DeclType.Fx, tokenValue) == null)
+				{
+					return string.Format("fx '{0}' not found", tokenValue);
+				}
+
+				frameCommand.String = tokenValue;
+			}
+			else if(tokenValue == "trigger")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+				
+				tokenValue = token.ToString();
+				frameCommand.Type = AnimationFrameCommandType.Trigger;
+				frameCommand.String = tokenValue;
+			}
+			else if(tokenValue == "triggerSmokeParticle")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				tokenValue = token.ToString();
+				frameCommand.Type = AnimationFrameCommandType.TriggerSmokeParticle;
+				frameCommand.String = tokenValue;
+			}
+			else if((tokenValue == "melee")
+				|| (tokenValue == "direct_damage")
+				|| (tokenValue == "attack_begin"))
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				switch(tokenValue)
+				{
+					case "melee":
+						frameCommand.Type = AnimationFrameCommandType.Melee;
+						break;
+
+					case "direct_damage":
+						frameCommand.Type = AnimationFrameCommandType.DirectDamage;
+						break;
+
+					case "attack_begin":
+						frameCommand.Type = AnimationFrameCommandType.BeginAttack;
+						break;
+				}
+
+				tokenValue = token.ToString();
+								
+				if(idR.Game.FindEntityDef(tokenValue, false) == null)
+				{
+					return string.Format("Unknown entityDef '{0}'", tokenValue);
+				}
+
+				frameCommand.String = tokenValue;
+			}
+			else if(tokenValue == "attack_end")
+			{
+				frameCommand.Type = AnimationFrameCommandType.EndAttack;
+			}
+			else if(tokenValue == "muzzle_flash")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				tokenValue = token.ToString();
+
+				if((tokenValue != string.Empty) && (modelDef.FindJoint(tokenValue) == null))
+				{
+					return string.Format("Joint '{0}' not found", tokenValue);
+				}
+
+				frameCommand.Type = AnimationFrameCommandType.MuzzleFlash;
+				frameCommand.String = tokenValue;
+			}
+			else if((tokenValue == "create_missile")
+				|| (tokenValue == "launch_missile"))
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				switch(tokenValue)
+				{
+					case "create_missile":
+						frameCommand.Type = AnimationFrameCommandType.CreateMissile;
+						break;
+
+					case "launch_missile":
+						frameCommand.Type = AnimationFrameCommandType.LaunchMissile;
+						break;
+				}
+
+				tokenValue = token.ToString();
+				frameCommand.String = tokenValue;
+
+				if(modelDef.FindJoint(tokenValue) == null)
+				{
+					return string.Format("Joint '{0}' not found", tokenValue);
+				}
+			}
+			else if(tokenValue == "fire_missile_at_target")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				JointInfo jointInfo = modelDef.FindJoint(token.ToString());
+
+				if(jointInfo == null)
+				{
+					return string.Format("Joint '{0}' not found", token.ToString());
+				}
+
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of line";
+				}
+
+				frameCommand.Type = AnimationFrameCommandType.FireMissileAtTarget;
+				frameCommand.String = token.ToString();
+				frameCommand.Index = jointInfo.Index;
+			}
+			else if(tokenValue == "footstep")
+			{
+				frameCommand.Type = AnimationFrameCommandType.Footstep;
+			}
+			else if(tokenValue == "leftfoot")
+			{
+				frameCommand.Type = AnimationFrameCommandType.LeftFoot;
+			}
+			else if(tokenValue == "rightfoot")
+			{
+				frameCommand.Type = AnimationFrameCommandType.RightFoot;
+			}
+			else if(tokenValue == "enableEyeFocus")
+			{
+				frameCommand.Type = AnimationFrameCommandType.EnableEyeFocus;
+			}
+			else if(tokenValue == "disableEyeFocus")
+			{
+				frameCommand.Type = AnimationFrameCommandType.DisableEyeFocus;
+			}
+			else if(tokenValue == "disableGravity")
+			{
+				frameCommand.Type = AnimationFrameCommandType.DisableGravity;
+			}
+			else if(tokenValue == "enableGravity")
+			{
+				frameCommand.Type = AnimationFrameCommandType.EnableGravity;
+			}
+			else if(tokenValue == "jump")
+			{
+				frameCommand.Type = AnimationFrameCommandType.Jump;
+			}
+			else if(tokenValue == "enableClip")
+			{
+				frameCommand.Type = AnimationFrameCommandType.EnableClip;
+			}
+			else if(tokenValue == "disableClip")
+			{
+				frameCommand.Type = AnimationFrameCommandType.DisableClip;
+			}
+			else if(tokenValue == "enableWalkIK")
+			{
+				frameCommand.Type = AnimationFrameCommandType.EnableWalkIk;
+			}
+			else if(tokenValue == "disableWalkIK")
+			{
+				frameCommand.Type = AnimationFrameCommandType.DisableWalkIk;
+			}
+			else if(tokenValue == "enableLegIK")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of file";
+				}
+
+				frameCommand.Type = AnimationFrameCommandType.EnableLegIk;
+				frameCommand.Index = int.Parse(token.ToString());
+			}
+			else if(tokenValue == "disableLegIK")
+			{
+				if((token = lexer.ReadTokenOnLine()) == null)
+				{
+					return "Unexpected end of file";
+				}
+
+				frameCommand.Type = AnimationFrameCommandType.DisableLegIk;
+				frameCommand.Index = int.Parse(token.ToString());
+			}
+			else if(tokenValue == "recordDemo")
+			{
+				frameCommand.Type = AnimationFrameCommandType.RecordDemo;
+
+				if((token = lexer.ReadTokenOnLine()) != null)
+				{
+					frameCommand.String = token.ToString();
+				}
+			}
+			else if(tokenValue == "aviGame")
+			{
+				frameCommand.Type = AnimationFrameCommandType.AviGame;
+
+				if((token = lexer.ReadTokenOnLine()) != null)
+				{
+					frameCommand.String = token.ToString();
+				}
+			}
+			else
+			{
+				return string.Format("Unknown command '{0}'", tokenValue);
+			}
+
+			// check if we've initialized the frame lookup table
+			if(_frameLookups.Count == 0)
+			{
+				// we haven't, so allocate the table and initialize it
+
+				for(int i = 0; i < _anims[0].FrameCount; i++)
+				{
+					_frameLookups.Add(new AnimationFrameLookup());
+				}
+			}
+
+			// calculate the index of the new command
+			int index = _frameLookups[frameIndex].FirstCommand + _frameLookups[frameIndex].Index;
+
+			_frameCommands.Insert(index, frameCommand);
+
+			// fix the indices of any later frames to account for the inserted command
+			for(int i = frameIndex + 1; i < _frameLookups.Count; i++)
+			{
+				_frameLookups[i].FirstCommand++;
+			}
+
+			// increase the number of commands on this frame
+			_frameLookups[frameIndex].Index++;
+
+			// return with no error
+			return null;
+		}
+			
+		public void SetAnimation(idDeclModel modelDef, string sourceName, string animName, idMD5Anim[] md5anims)
+		{
+			_modelDef = modelDef;
+			_anims = md5anims;
+			
+			_realName = sourceName;
+			_name = animName;
+			_animFlags = new AnimationFlags();
+			_frameCommands.Clear();
+			_frameLookups.Clear();
+		}
+		#endregion
+		#endregion
+	}
+	
+	public struct JointAnimationInfo
+	{
+		public int NameIndex;
+		public int ParentIndex;
+		public AnimationBits AnimationBits;
+		public int FirstComponent;
 	}
 }

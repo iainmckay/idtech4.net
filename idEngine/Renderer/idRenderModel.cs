@@ -46,6 +46,14 @@ namespace idTech4.Renderer
 		}
 
 		/// <summary>
+		/// Gets a value greater than 0.0 if the model requires the depth hack.
+		/// </summary>
+		public abstract float DepthHack
+		{
+			get;
+		}
+
+		/// <summary>
 		/// If the load failed for any reason, this will return true.
 		/// </summary>
 		public abstract bool IsDefaultModel
@@ -297,8 +305,7 @@ namespace idTech4.Renderer
 	// reloadmodels
 	virtual bool				IsReloadable() const = 0;
 		
-	// returns value != 0.0f if the model requires the depth hack
-	virtual float				DepthHack() const = 0;
+	
 
 	// Writing to and reading from a demo file.
 	virtual void				ReadFromDemoFile( class idDemoFile *f ) = 0;

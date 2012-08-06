@@ -68,7 +68,7 @@ namespace idTech4.Sound
 			_speakerMask = 0;
 			_altSound = null;
 
-			idToken token;			
+			idToken token;
 			string tokenValue;
 			int sampleCount = 0;
 
@@ -304,7 +304,7 @@ namespace idTech4.Sound
 
 		#region idDecl implementation
 		#region Properties
-		public override int Size
+		public override string DefaultDefinition
 		{
 			get
 			{
@@ -313,7 +313,20 @@ namespace idTech4.Sound
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				idConsole.Warning("TODO: idSoundMaterial.Size");
+				return "{\n\t_default.wav\n}";
+			}
+		}
+
+		public override int MemoryUsage
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				idConsole.Warning("TODO: idSoundMaterial.MemoryUsage");
 
 				return 0;
 			}
@@ -322,16 +335,6 @@ namespace idTech4.Sound
 
 		#region Methods
 		#region Public
-		public override string GetDefaultDefinition()
-		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			return "{\n\t_default.wav\n}";
-		}
-
 		public override bool Parse(string text)
 		{
 			if(this.Disposed == true)
@@ -371,15 +374,15 @@ namespace idTech4.Sound
 		{
 			string name = Path.Combine(Path.GetDirectoryName(this.Name), Path.GetFileNameWithoutExtension(this.Name));
 
-			if(Path.GetExtension(this.Name) == ".ogg")
+			if(Path.GetExtension(this.Name) == "")
 			{
-				name += ".ogg";
+				name += ".wav";
 			}
 
 			// if there exists a wav file with the same name
 			if(true) //fileSystem->ReadFile( wavname, NULL ) != -1 )
 			{
-				this.SourceText = string.Format("sound {0} // IMPLICITLY GENERATED\n{{\n{0}\n}}\n", this.Name, name);
+				this.SourceText = string.Format("sound {0} // IMPLICITLY GENERATED\n{{\n{1}\n}}\n", this.Name, name);
 			}
 			else
 			{

@@ -3,7 +3,7 @@
 Doom3.suo
 idLib/obj
 idLib/bin
-idEngineContent/obj
+idEngineContent
 idGame/obj
 idGame/bin
 idEngine/obj

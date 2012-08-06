@@ -4,6 +4,7 @@ using System.Linq;
 using System.Text;
 
 using idTech4.CollisionManager;
+using idTech4.Game.Animation;
 using idTech4.IO;
 using idTech4.Net;
 using idTech4.Text;
@@ -37,6 +38,7 @@ namespace idTech4.Game
 		public static readonly idFileSystem FileSystem = idE.FileSystem;
 		public static readonly idUserInterfaceManager UIManager = idE.UIManager;
 		public static readonly idLangDict Language = idE.Language;
+		public static readonly idAnimManager AnimManager = new idAnimManager();
 
 		public static idGame Game;
 		public static idGameEdit GameEdit;

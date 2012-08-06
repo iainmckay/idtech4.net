@@ -680,8 +680,13 @@ namespace idTech4.Text
 
 				for(int j = 0; j < x; j++)
 				{
-					mat[y, j] = tmp[j];
+					mat[i, j] = tmp[j];
 				}
+			}
+
+			if(ExpectTokenString(")") == false) 
+			{
+				return null;
 			}
 
 			return mat;
@@ -838,7 +843,8 @@ namespace idTech4.Text
 				}
 			}
 			// if there is a number
-			else if(((c >= '0') && (c <= '9')) || ((c == '.') && ((GetBufferCharacter(_scriptPosition + 1) >= '0') && (GetBufferCharacter(_scriptPosition + 1) <= '9'))))
+			else if(((c >= '0') && (c <= '9')) 
+				|| ((c == '.') && ((GetBufferCharacter(_scriptPosition + 1) >= '0') && (GetBufferCharacter(_scriptPosition + 1) <= '9'))))
 			{
 				if(ReadNumber(token) == false)
 				{

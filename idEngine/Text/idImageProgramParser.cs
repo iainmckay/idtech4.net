@@ -96,71 +96,71 @@ namespace idTech4.Text
 		
 			if(tokenLower == "heightmap")
 			{
-				idConsole.Warning("TODO: image program heightmap");
-				/*MatchAndAppendToken(_lexer, "(");
+				MatchAndAppendToken(_lexer, "(");
 
-	if ( !token.Icmp( "heightmap" ) ) {
-		MatchAndAppendToken( src, "(" );
+				Texture2D tex = ParseImageProgram(_lexer, ref timeStamp, ref depth);
 
-		if ( !R_ParseImageProgram_r( src, pic, width, height, timestamps, depth ) ) {
-			return false;
-		}
+				if(tex == null)
+				{
+					return null;
+				}
 
-		MatchAndAppendToken( src, "," );
+				MatchAndAppendToken(_lexer, ",");
+				token = _lexer.ReadToken();
+				AppendToken(token);
 
-		src.ReadToken( &token );
-		AppendToken( token );
-		scale = token.GetFloatValue();
+				float scale = token.ToFloat();
 		
-		// process it
-		if ( pic ) {
-			R_HeightmapToNormalMap( *pic, *width, *height, scale );
-			if ( depth ) {
-				*depth = TD_BUMP;
-			}
-		}
+				// process it
+				if(tex != null)
+				{
+					idConsole.Warning("TODO: R_HeightmapToNormalMap( *pic, *width, *height, scale );");
+					depth = TextureDepth.Bump;
+				}
+		
+				MatchAndAppendToken(_lexer, ")");
 
-		MatchAndAppendToken( src, ")" );
-		return true;*/
-
-				return null;
+				return tex;
 			}
 			else if(tokenLower == "addnormals")
 			{
-				idConsole.WriteLine("image program addnormals");
+				MatchAndAppendToken(_lexer, "(");
 
 				/*byte	*pic2;
-				int		width2, height2;
+				int		width2, height2;*/
 
-				MatchAndAppendToken( src, "(" );
-
-				if ( !R_ParseImageProgram_r( src, pic, width, height, timestamps, depth ) ) {
-					return false;
+				Texture2D tex, tex2;
+				
+				if((tex = ParseImageProgram(_lexer, ref timeStamp, ref depth)) == null)
+				{
+					return null;
 				}
 
-				MatchAndAppendToken( src, "," );
+				MatchAndAppendToken(_lexer, ",");
 
-				if ( !R_ParseImageProgram_r( src, pic ? &pic2 : NULL, &width2, &height2, timestamps, depth ) ) {
-					if ( pic ) {
-						R_StaticFree( *pic );
-						*pic = NULL;
-					}
-					return false;
+				if((tex2 = ParseImageProgram(_lexer, ref timeStamp, ref depth)) == null)
+				{
+					tex.Dispose();
+
+					idConsole.Warning("TODO: content doesn't get unloaded, this texture will remain disposed for ever!");
+
+					return null;
 				}
 		
 				// process it
-				if ( pic ) {
-					R_AddNormalMaps( *pic, *width, *height, pic2, width2, height2 );
-					R_StaticFree( pic2 );
-					if ( depth ) {
-						*depth = TD_BUMP;
-					}
+				if(tex != null)
+				{
+
+					// TODO: tex2.Dispose();
+					idConsole.Warning("TODO: content doesn't get unloaded, this texture will remain disposed for ever!");
+
+					depth = TextureDepth.Bump;
+					idConsole.Warning("TODO: R_AddNormalMaps( *pic, *width, *height, pic2, width2, height2 );");
 				}
 
-				MatchAndAppendToken( src, ")" );
-				return true;*/
+				MatchAndAppendToken(_lexer, ")");
 
-				return null;
+				return tex;
 			}
 			else if(tokenLower == "smoothnormals")
 			{
@@ -301,29 +301,28 @@ namespace idTech4.Text
 			}
 			else if(tokenLower == "makealpha")
 			{
-				idConsole.WriteLine("image program makealpha");
-				/*int		i;
+				MatchAndAppendToken(_lexer, "(");
 
-				MatchAndAppendToken( src, "(" );
-
-				R_ParseImageProgram_r( src, pic, width, height, timestamps, depth );
+				Texture2D tex = ParseImageProgram(_lexer, ref timeStamp, ref depth);
 
 				// average RGB into alpha, then set RGB to white
-				if ( pic ) {
-					int		c;
+				if(tex != null)
+				{
+					idConsole.Warning("TODO: average alpha image");
+
+					/*int		c;
 					c = *width * *height * 4;
 					for ( i = 0 ; i < c ; i+=4 ) {
 						(*pic)[i+3] = ( (*pic)[i+0] + (*pic)[i+1] + (*pic)[i+2] ) / 3;
 						(*pic)[i+0] = 
 						(*pic)[i+1] = 
 						(*pic)[i+2] = 255;
-					}
+					}*/
 				}
 
-				MatchAndAppendToken( src, ")" );
-				return true;*/
+				MatchAndAppendToken(_lexer, ")");
 
-				return null;
+				return tex;
 			}
 
 			// if we are just parsing instead of loading or checking, don't do the R_LoadImage

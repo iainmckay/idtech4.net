@@ -73,7 +73,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		private void ParseJoint(idLexer lexer, idMD5Joint joint, idJointQuaternion defaultPose)
+		private void ParseJoint(idLexer lexer, idMD5Joint joint, ref idJointQuaternion defaultPose)
 		{
 			//
 			// parse name
@@ -339,10 +339,11 @@ namespace idTech4.Renderer
 			for(int i = 0; i < _joints.Length; i++)
 			{
 				idMD5Joint joint = _joints[i] = new idMD5Joint();
-				idJointQuaternion pose = _defaultPose[i] = new idJointQuaternion();
+				idJointQuaternion pose = new idJointQuaternion();
 
-				ParseJoint(lexer, joint, pose);
+				ParseJoint(lexer, joint, ref pose);
 
+				poseMat3[i] = idJointMatrix.Zero;
 				poseMat3[i].Rotation = Matrix.CreateFromQuaternion(pose.Quaternion);
 				poseMat3[i].Translation = pose.Translation;
 
@@ -355,6 +356,8 @@ namespace idTech4.Renderer
 					pose.Translation = Vector3.Transform(poseMat3[i].ToVector3() - poseMat3[parentIndex].ToVector3(), 
 										Matrix.Transpose(poseMat3[parentIndex].ToMatrix()));
 				}
+
+				_defaultPose[i] = pose;
 			}
 
 			lexer.ExpectTokenString("}");

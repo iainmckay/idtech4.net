@@ -35,6 +35,7 @@ using Microsoft.Xna.Framework;
 
 using idTech4.Input;
 using idTech4.Renderer;
+using idTech4.Sound;
 using idTech4.UI;
 
 namespace idTech4
@@ -889,7 +890,7 @@ namespace idTech4
 		/// <param name="noFadeWipe"></param>
 		private void ExecuteMapChange(bool noFadeWipe = false)
 		{
-			bool	reloadingSameMap;
+			bool reloadingSameMap;
 
 			// close console and remove any prints from the notify lines
 			idE.Console.Close();
@@ -929,7 +930,7 @@ namespace idTech4
 			string mapFullName = string.Format("maps/{0}", Path.Combine(Path.GetDirectoryName(mapString), Path.GetFileNameWithoutExtension(mapString)));
 
 			// shut down the existing game if it is running
-			// TODO: UnloadMap();
+			idConsole.Warning("TODO: UnloadMap();");
 
 			// don't do the deferred caching if we are reloading the same map
 			if(mapFullName == _currentMapName)
@@ -1028,9 +1029,9 @@ namespace idTech4
 				}
 			} else */
 			{
-				// TODO: game
-				/*game->SetServerInfo( mapSpawnData.serverInfo );
-				game->InitFromNewMap( fullMapName + ".map", rw, sw, idAsyncNetwork::server.IsActive(), idAsyncNetwork::client.IsActive(), Sys_Milliseconds() );*/
+				// TODO: should be passing real sound world
+				idE.Game.SetServerInfo(_mapSpawnData.ServerInformation);
+				idE.Game.InitFromNewMap(mapFullName + ".map", _renderWorld, new idSoundWorld(), idE.AsyncNetwork.Server.IsActive, idE.AsyncNetwork.Client.IsActive, idE.System.Milliseconds);
 			}
 
 			if((idE.AsyncNetwork.IsActive == false) && (_loadingSaveGame == false))

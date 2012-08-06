@@ -640,6 +640,7 @@ namespace idTech4.Text
 						return null;
 					}
 
+
 					string key = token.ToString();
 
 					if(((token = lexer.ReadTokenOnLine()) == null) || (token.Type != TokenType.String))

@@ -38,6 +38,24 @@ namespace idTech4.Text.Decl
 {
 	public class idDeclParticle : idDecl
 	{
+		#region Properties
+		public idBounds Bounds
+		{
+			get
+			{
+				return _bounds;
+			}
+		}
+
+		public float DepthHack
+		{
+			get
+			{
+				return _depthHack;
+			}
+		}
+		#endregion
+
 		#region Members
 		private float _depthHack;
 		private idBounds _bounds;
@@ -392,11 +410,24 @@ namespace idTech4.Text.Decl
 
 		#region idDecl implementation
 		#region Properties
-		public override int Size
+		public override string DefaultDefinition
 		{
 			get
 			{
-				idConsole.Warning("TODO: idDeclParticle.Size");
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return "{\n\t{\n\tmaterial\t_default\n\t\tcount\t20\n\n\ttime\t\t1.0\n\t}\n}";
+			}
+		}
+
+		public override int MemoryUsage
+		{
+			get
+			{
+				idConsole.Warning("TODO: idDeclParticle.MemoryUsage");
 				return 0;
 			}
 		}
@@ -404,16 +435,6 @@ namespace idTech4.Text.Decl
 
 		#region Methods
 		#region Public
-		public override string GetDefaultDefinition()
-		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			return "{\n\t{\n\tmaterial\t_default\n\t\tcount\t20\n\n\ttime\t\t1.0\n\t}\n}";
-		}
-
 		public override bool Parse(string text)
 		{
 			if(this.Disposed == true)

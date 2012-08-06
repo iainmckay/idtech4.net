@@ -86,7 +86,7 @@ namespace idTech4.Game
 
 			temp = args.GetString("skin");
 
-			if(temp != null)
+			if(temp != string.Empty)
 			{
 				renderEntity.CustomSkin = idR.DeclManager.FindSkin(temp);
 			}

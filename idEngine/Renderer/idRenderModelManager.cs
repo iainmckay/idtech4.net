@@ -251,7 +251,8 @@ namespace idTech4.Renderer
 					break;
 
 				case ".prt":
-					idConsole.Warning("TODO: prt");
+					model = new idRenderModel_PRT();
+					model.InitFromFile(name);
 					break;
 
 				case ".liquid":
