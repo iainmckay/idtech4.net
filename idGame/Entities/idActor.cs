@@ -3,14 +3,28 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+
+using idTech4.Game.Physics;
 using idTech4.Game.Rules;
+using idTech4.Game.Scripting;
+using idTech4.Math;
+using idTech4.Renderer;
 
 namespace idTech4.Game.Entities
 {
 	public class idActor : idAFEntity_Gibbable
 	{
 		#region Properties
-		public PlayerTeam Team
+		public virtual bool IsOnLadder
+		{
+			get
+			{
+				return false;
+			}
+		}
+
+		public virtual PlayerTeam Team
 		{
 			get
 			{
@@ -35,60 +49,298 @@ namespace idTech4.Game.Entities
 
 		#region Members
 		private PlayerTeam _team;
+
+		private int _leftEyeJoint;
+		private int _rightEyeJoint;
+		private int _soundJoint;
+
+		// script variables
+		private string _waitState;
+		private idThread _scriptThread;
 		#endregion
 
 		#region Constructor
 		public idActor()
 			: base()
 		{
-			// TODO
-			idConsole.Warning("TODO: idActor");
-			/*viewAxis.Identity();
-
-			scriptThread = NULL;		// initialized by ConstructScriptObject, which is called by idEntity::Spawn
-
-			use_combat_bbox = false;
-			head = NULL;*/
-
 			_team = PlayerTeam.Red;
-			/*rank = 0;
-			fovDot = 0.0f;
-			eyeOffset.Zero();
-			pain_debounce_time = 0;
-			pain_delay = 0;
-			pain_threshold = 0;
+			_waitState = string.Empty;
 
-			state = NULL;
-			idealState = NULL;
+			_leftEyeJoint = -1;
+			_rightEyeJoint = -1;
+			_soundJoint = -1;
+		}
 
-			leftEyeJoint = INVALID_JOINT;
-			rightEyeJoint = INVALID_JOINT;
-			soundJoint = INVALID_JOINT;
-
-			modelOffset.Zero();
-			deltaViewAngles.Zero();
-
-			painTime = 0;
-			allowPain = false;
-			allowEyeFocus = false;
-
-			waitState = "";
-
-			blink_anim = NULL;
-			blink_time = 0;
-			blink_min = 0;
-			blink_max = 0;
-
-			finalBoss = false;
-
-			attachments.SetGranularity(1);
-
-			enemyNode.SetOwner(this);
-			enemyList.SetOwner(this);*/
+		~idActor()
+		{
+			Dispose(false);
 		}
 		#endregion
 
-		#region idEntity implementation
+		#region Methods
+		#region Public
+		
+
+		public virtual void GetAASLocation(object aas, Vector3 position, ref int areaNum)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.GetAASLocation");
+		}
+
+		/// <summary>
+		/// Gets positions for the AI to aim at.
+		/// </summary>
+		/// <param name="lastSightPosition"></param>
+		/// <param name="headPosition"></param>
+		/// <param name="chestPosition"></param>
+		public void GetAIAimTargets(Vector3 lastSightPosition, ref Vector3 headPosition, Vector3 chestPosition)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.GetAIAimTargets");
+		}
+		
+		public virtual void Restart()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.Restart");
+		}
+		#endregion
+		#endregion
+
+		#region idAFEntity_Gibbable implementation
+		#region Properties
+		public override idClipModel CombatModel
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				idConsole.Warning("TODO: idActor.CombatModel get");
+
+				return null;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				idConsole.Warning("TODO: idActor.CombatModel set");
+			}
+		}
+
+		public override SurfaceTypes DefaultSurfaceType
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return Renderer.SurfaceTypes.Flesh;
+			}
+		}
+
+		public override idRenderView RenderView
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				idConsole.Warning("TODO: idActor.RenderView get");
+
+				return null;
+			}
+		}
+
+		public override bool ShouldConstructScriptObjectAtSpawn
+		{
+			get
+			{
+				return false;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public override idThread ConstructScriptObject()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.ConstructScriptObject");
+
+			return null;
+		}
+
+		public override void Damage(idEntity inflictor, idEntity attacker, Vector3 direction, string damageDefName, float damageScale, int location)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.Damage");
+		}
+
+		public override bool GetPhysicsToSoundTransform(ref Vector3 origin, ref Matrix axis)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.GetPhysicsToSoundTransform");
+
+			return false;
+		}
+
+		public override bool GetPhysicsToVisualTransform(ref Vector3 origin, ref Matrix axis)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.GetPhysicsToVisualTransform");
+
+			return false;
+		}
+
+		public override void Hide()
+		{
+			base.Hide();
+
+			// TODO	
+			idConsole.Warning("TODO: idActor.Hide");
+			/*idAFEntity_Base::Hide();
+			if ( head.GetEntity() ) {
+				head.GetEntity()->Hide();
+			}
+
+			for( ent = GetNextTeamEntity(); ent != NULL; ent = next ) {
+				next = ent->GetNextTeamEntity();
+				if ( ent->GetBindMaster() == this ) {
+					ent->Hide();
+					if ( ent->IsType( idLight::Type ) ) {
+						static_cast<idLight *>( ent )->Off();
+					}
+				}
+			}
+			UnlinkCombat();*/
+		}
+
+		public override void LinkCombat()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.LinkCombat");
+		}		
+
+		public override bool LoadAF()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.LoadAF");
+
+			return false;
+		}
+
+		public override bool Pain(idEntity inflictor, idEntity attacker, int damage, Vector3 direction, int location)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.Pain");
+
+			return false;
+		}
+
+		public override void ProjectOverlay(Microsoft.Xna.Framework.Vector3 origin, Microsoft.Xna.Framework.Vector3 direction, float size, string material)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.ProjectOverlay");
+		}
+
+		public override void Restore(object savefile)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.Restore");
+		}
+
+		public override void Save(object savefile)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.Save");
+		}
+
+		public override void Show()
+		{
+			base.Show();
+
+			// TODO
+			idConsole.Warning("TODO: idActor.Show");
+			/*idEntity *ent;
+	idEntity *next;
+
+	idAFEntity_Base::Show();
+	if ( head.GetEntity() ) {
+		head.GetEntity()->Show();
+	}
+	for( ent = GetNextTeamEntity(); ent != NULL; ent = next ) {
+		next = ent->GetNextTeamEntity();
+		if ( ent->GetBindMaster() == this ) {
+			ent->Show();
+			if ( ent->IsType( idLight::Type ) ) {
+				static_cast<idLight *>( ent )->On();
+			}
+		}
+	}
+	LinkCombat();*/
+		}
+
 		public override void Spawn()
 		{
 			base.Spawn();
@@ -102,23 +354,21 @@ namespace idTech4.Game.Entities
 
 			animPrefix = "";
 			state = NULL;
-			idealState = NULL;
+			idealState = NULL;*/
 
-			spawnArgs.GetInt("rank", "0", rank);
-			spawnArgs.GetInt("team", "0", team);
-			spawnArgs.GetVector("offsetModel", "0 0 0", modelOffset);
+			/*_rank = this.SpawnArgs.GetInteger("rank", 0);
+			_team = this.SpawnArgs.GetInteger("team", 0);
+			_modelOffset = this.SpawnArgs.GetVector3("offsetModel", Vector3.Zero);
+			_useCombatBoundingBox = this.SpawnArgs.GetBool("use_combat_bbox", false);
+			_viewAxis = this.Physics.GetAxis();
+			_fovDegrees = this.SpawnArgs.GetFloat("fov", 90);
+			_finalBoss = this.SpawnArgs.GetBool("finalBoss");
 
-			spawnArgs.GetBool("use_combat_bbox", "0", use_combat_bbox);
-
-			viewAxis = GetPhysics()->GetAxis();
-
-			spawnArgs.GetFloat("fov", "90", fovDegrees);
 			SetFOV(fovDegrees);
 
-			pain_debounce_time = 0;
-
-			pain_delay = SEC2MS(spawnArgs.GetFloat("pain_delay"));
-			pain_threshold = spawnArgs.GetInt("pain_threshold");
+			_painDebounceTime = 0;
+			_painDelay = this.SpawnArgs.GetFloat("pain_delay") * 1000.0f;
+			_painThreshold = this.SpawnArgs.GetInteger("pain_threshold");
 
 			LoadAF();
 
@@ -242,59 +492,53 @@ namespace idTech4.Game.Entities
 				}
 			}
 
-			finalBoss = spawnArgs.GetBool("finalBoss");
+			
 
 			FinishSetup();*/
 		}
 
-		public override void Show()
+		public override void SpawnGibs(Vector3 direction, string damageDefName)
 		{
-			base.Show();
-
-			// TODO
-			idConsole.Warning("TODO: idActor.Show");
-			/*idEntity *ent;
-	idEntity *next;
-
-	idAFEntity_Base::Show();
-	if ( head.GetEntity() ) {
-		head.GetEntity()->Show();
-	}
-	for( ent = GetNextTeamEntity(); ent != NULL; ent = next ) {
-		next = ent->GetNextTeamEntity();
-		if ( ent->GetBindMaster() == this ) {
-			ent->Show();
-			if ( ent->IsType( idLight::Type ) ) {
-				static_cast<idLight *>( ent )->On();
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
-		}
-	}
-	LinkCombat();*/
+
+			idConsole.Warning("TODO: idActor.SpawnGibs");
 		}
 
-		public override void Hide()
+		public override void Teleport(Vector3 origin, idAngles angles, idEntity destination)
 		{
-			base.Hide();
-
-		// TODO	
-			idConsole.Warning("TODO: idActor.Hide");
-	/*idAFEntity_Base::Hide();
-	if ( head.GetEntity() ) {
-		head.GetEntity()->Hide();
-	}
-
-	for( ent = GetNextTeamEntity(); ent != NULL; ent = next ) {
-		next = ent->GetNextTeamEntity();
-		if ( ent->GetBindMaster() == this ) {
-			ent->Hide();
-			if ( ent->IsType( idLight::Type ) ) {
-				static_cast<idLight *>( ent )->Off();
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
 			}
-		}
-	}
-	UnlinkCombat();*/
+
+			idConsole.Warning("TODO: idActor.Teleport");
 		}
 
+		public override void UnlinkCombat()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.UnlinkCombat");
+		}
+
+		public override bool UpdateAnimationControllers()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idActor.UpdateAnimationControllers");
+
+			return false;
+		}
+		
 		protected override void Dispose(bool disposing)
 		{
 			base.Dispose(disposing);
@@ -332,7 +576,7 @@ namespace idTech4.Game.Entities
 
 			ShutdownThreads();*/
 		}
-
+		#endregion
 		#endregion
 	}
 }

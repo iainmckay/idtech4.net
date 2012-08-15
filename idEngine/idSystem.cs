@@ -61,7 +61,7 @@ namespace idTech4
 					return (int) _gameTime.TotalGameTime.TotalMilliseconds;
 				}
 
-				return 0;
+				return 1;
 			}
 		}
 
@@ -1210,7 +1210,7 @@ namespace idTech4
 				StartupVariable(null, false);
 
 				// if any archived cvars are modified after this, we will trigger a writing of the config file
-				idE.CvarSystem.ModifiedFlags = CvarFlags.Archive;
+				idE.CvarSystem.ModifiedFlags |= CvarFlags.Archive;
 
 				// init the user command input code
 				idE.UserCommandGenerator.Init();

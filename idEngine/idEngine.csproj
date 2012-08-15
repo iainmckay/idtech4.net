@@ -101,7 +101,8 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="CollisionManager\idCollisionModelManager.cs" />
+    <Compile Include="Collision\idCollisionModelManager.cs" />
+    <Compile Include="Collision\idTraceModel.cs" />
     <Compile Include="Game\idBaseGame.cs" />
     <Compile Include="Game\idBaseGameEdit.cs" />
     <Compile Include="Geometry\idJoint.cs" />
@@ -125,7 +126,10 @@
     <Compile Include="idRotation.cs" />
     <Compile Include="Net\idAsyncClient.cs" />
     <Compile Include="Net\idAsyncServer.cs" />
+    <Compile Include="Net\idBitMsg.cs" />
+    <Compile Include="Net\idBitMsgDelta.cs" />
     <Compile Include="Renderer\idFont.cs" />
+    <Compile Include="Renderer\idRenderEntity.cs" />
     <Compile Include="Renderer\idRenderModel.cs" />
     <Compile Include="Renderer\idRenderModelManager.cs" />
     <Compile Include="Renderer\idRenderModel_MD5.cs" />

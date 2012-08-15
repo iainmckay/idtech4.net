@@ -171,7 +171,7 @@ namespace idTech4.Renderer
 		/// </summary>
 		/// <param name="renderEntity"></param>
 		/// <returns></returns>
-		public override idBounds GetBounds(idRenderEntity renderEntity = null)
+		public override idBounds GetBounds(RenderEntityComponent renderEntity = null)
 		{ 
 			if(this.Disposed == true)
 			{

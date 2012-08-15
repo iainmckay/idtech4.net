@@ -31,6 +31,7 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
+using idTech4.Collision;
 using idTech4.Game;
 using idTech4.Input;
 using idTech4.IO;
@@ -125,6 +126,7 @@ namespace idTech4
 		public static readonly idDeclManager DeclManager = new idDeclManager();
 		public static readonly idRenderSystem RenderSystem = new idRenderSystem();
 		public static readonly idRenderModelManager RenderModelManager = new idRenderModelManager();
+		public static readonly idCollisionModelManager CollisionModelManager = new idCollisionModelManager();
 		public static readonly idImageManager ImageManager = new idImageManager();
 		public static readonly idUserInterfaceManager UIManager = new idUserInterfaceManager();
 		public static readonly idEventLoop EventLoop = new idEventLoop();

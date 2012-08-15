@@ -18,7 +18,7 @@ namespace idTech4.Game
 
 		#region Methods
 		#region idDict parameter parsing
-		public abstract idRenderEntity ParseSpawnArgsToRenderEntity(idDict args);
+		public abstract RenderEntityComponent ParseSpawnArgsToRenderEntity(idDict args);
 		#endregion
 		#endregion
 	}

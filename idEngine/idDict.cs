@@ -136,7 +136,7 @@ namespace idTech4
 				float.Parse(parts[0]), float.Parse(parts[1]), float.Parse(parts[2]), 0,
 				float.Parse(parts[3]), float.Parse(parts[4]), float.Parse(parts[5]), 0,
 				float.Parse(parts[6]), float.Parse(parts[7]), float.Parse(parts[8]), 0,
-				0, 0, 0, 0
+				0, 0, 0, 1
 			);
 		}
 

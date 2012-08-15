@@ -6,7 +6,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 
 using idTech4;
-using idTech4.CollisionManager;
+using idTech4.Collision;
 using idTech4.Renderer;
 
 namespace idTech4.Game.Physics
@@ -89,9 +89,11 @@ namespace idTech4.Game.Physics
 			_clipSectorCount = 0;
 			_touchCount = -1;
 
+			idConsole.Warning("TODO: idClip.Init");
+
 			// get world map bounds
-			int h = idR.CollisionModelManager.LoadModel("worldMap", false);
-			_worldBounds = idR.CollisionModelManager.GetModelBounds(h);
+			/*int h = idR.CollisionModelManager.LoadModel("worldMap", false);
+			_worldBounds = idR.CollisionModelManager.GetModelBounds(h);*/
 
 			// create world sectors
 			CreateClipSectors(0, _worldBounds, ref maxSector);

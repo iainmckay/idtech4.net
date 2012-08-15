@@ -34,7 +34,7 @@ using Microsoft.Xna.Framework;
 
 using idTech4.Renderer;
 
-namespace idTech4.CollisionManager
+namespace idTech4.Collision
 {
 	/// <summary>
 	/// 

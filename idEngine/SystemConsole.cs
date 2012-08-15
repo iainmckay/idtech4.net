@@ -81,6 +81,11 @@ namespace idTech4
 		{
 			_quitOnClose = quitOnClose;
 
+			if(this.IsDisposed == true)
+			{
+				return;
+			}
+
 			switch(visLevel)
 			{
 				case 0:

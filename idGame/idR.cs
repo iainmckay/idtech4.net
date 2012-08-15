@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
-using idTech4.CollisionManager;
+using idTech4.Collision;
 using idTech4.Game.Animation;
 using idTech4.IO;
 using idTech4.Net;
@@ -33,7 +33,7 @@ namespace idTech4.Game
 		public static readonly idDeclManager DeclManager = idE.DeclManager;
 		public static readonly idCvarSystem CvarSystem = idE.CvarSystem;
 		public static readonly idAsyncNetwork NetworkSystem = idE.AsyncNetwork;
-		// TODO: public static readonly idCollisionModelManager CollisionModelManager = idE.CollisionModelManager;
+		public static readonly idCollisionModelManager CollisionModelManager = idE.CollisionModelManager;
 		public static readonly idRenderModelManager RenderModelManager = idE.RenderModelManager;
 		public static readonly idFileSystem FileSystem = idE.FileSystem;
 		public static readonly idUserInterfaceManager UIManager = idE.UIManager;

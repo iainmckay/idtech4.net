@@ -9,7 +9,7 @@ using idTech4.CollisionManager;
 
 namespace idTech4.Game.Physics
 {
-	public class idStaticPhysics : idPhysics
+	public class idPhysics_Static : idPhysics
 	{
 		#region Members
 		private idEntity _self;
@@ -25,13 +25,13 @@ namespace idTech4.Game.Physics
 		#endregion
 
 		#region Constructor
-		public idStaticPhysics()
+		public idPhysics_Static()
 			: base()
 		{
 
 		}
 
-		~idStaticPhysics()
+		~idPhysics_Static()
 		{
 			// TODO
 			/*if ( self && self->GetPhysics() == this ) {

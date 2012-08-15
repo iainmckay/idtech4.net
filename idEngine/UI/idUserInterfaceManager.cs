@@ -71,6 +71,13 @@ namespace idTech4.UI
 			new idCvar("gui_edit", "0", "", CvarFlags.Gui | CvarFlags.Bool);
 			new idCvar("gui_smallFontLimit", "0.30", "", CvarFlags.Gui | CvarFlags.Archive);
 			new idCvar("gui_mediumFontLimit", "0.60", "", CvarFlags.Gui | CvarFlags.Archive);
+			new idCvar("gui_configServerRate", "0", "", CvarFlags.Gui | CvarFlags.Archive | CvarFlags.ReadOnly | CvarFlags.Integer);
+
+			new idCvar("gui_filter_password", "0", "Password filter", CvarFlags.Gui | CvarFlags.Integer | CvarFlags.Archive);
+			new idCvar("gui_filter_players", "0", "Players filter", CvarFlags.Gui | CvarFlags.Integer | CvarFlags.Archive);
+			new idCvar("gui_filter_gameType", "0", "Gametype filter", CvarFlags.Gui | CvarFlags.Integer | CvarFlags.Archive);
+			new idCvar("gui_filter_idle", "0", "Idle servers filter", CvarFlags.Gui | CvarFlags.Integer | CvarFlags.Archive);
+			new idCvar("gui_filter_game", "0", "Game filter", CvarFlags.Gui | CvarFlags.Integer | CvarFlags.Archive);
 		}
 		#endregion
 

@@ -76,7 +76,7 @@ namespace idTech4.UI
 
 		private void InitVariables()
 		{
-			if(_cvarStr.ToString().Length > 0)
+			if(_cvarStr.ToString() != string.Empty)
 			{
 				_cvar = idE.CvarSystem.Find(_cvarStr.ToString());
 

@@ -5,8 +5,8 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
-using idTech4;
-using idTech4.CollisionManager;
+using idTech4.Collision;
+using idTech4.Net;
 using idTech4.Renderer;
 
 namespace idTech4.Game.Physics
@@ -152,12 +152,12 @@ namespace idTech4.Game.Physics
 
 		#region Methods
 		#region General
-		public virtual void Save(idSaveGame saveFile)
+		public virtual void Save(object saveFile)
 		{
 
 		}
 
-		public virtual void Restore(idRestoreGame saveFile)
+		public virtual void Restore(object saveFile)
 		{
 
 		}

@@ -284,7 +284,7 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Public
-		public void AddDrawSurface(Surface surface, ViewEntity space, idRenderEntity renderEntity, idMaterial material, idScreenRect scissor)
+		public void AddDrawSurface(Surface surface, ViewEntity space, RenderEntityComponent renderEntity, idMaterial material, idScreenRect scissor)
 		{
 			float[] materialParameters;
 
@@ -832,6 +832,7 @@ namespace idTech4.Renderer
 			_identitySpace.ModelMatrix.M11 = 1.0f;
 			_identitySpace.ModelMatrix.M21 = 1.0f;
 			_identitySpace.ModelMatrix.M31 = 1.0f;
+			_identitySpace.ModelMatrix.M44 = 1.0f;
 
 			idConsole.WriteLine("renderSystem initialized.");
 			idConsole.WriteLine("--------------------------------------");
@@ -4053,7 +4054,7 @@ namespace idTech4.Renderer
 	/// want to be called again next time the entity is referenced (ie, if the
 	/// callback has now made the entity valid until the next updateEntity)
 	/// </remarks>
-	public class idRenderEntity
+	public class RenderEntityComponent
 	{
 		/// <remarks>
 		/// This can only be null if callback is set.
@@ -4319,11 +4320,14 @@ namespace idTech4.Renderer
 		/// Used for culling.
 		/// </summary>
 		public idBounds Bounds;
-		
 
+
+		/// <summary>
+		/// Create normals from geometry, instead of using explicit ones.
+		/// </summary>
+		public bool GenerateNormals;
 	/*int							ambientViewCount;		// if == tr.viewCount, it is visible this view
 
-	bool						generateNormals;		// create normals from geometry, instead of using explicit ones
 	bool						tangentsCalculated;		// set when the vertex tangents have been calculated
 	bool						facePlanesCalculated;	// set when the face planes have been calculated
 	bool						perfectHull;			// true if there aren't any dangling edges
@@ -4331,7 +4335,7 @@ namespace idTech4.Renderer
 														// pointers into the original surface, and should not be freed*/
 
 		public Vertex[] Vertices;
-		
+
 		/// <summary>
 		/// For shadows, this has both front and rear end caps and silhouette planes.
 		/// </summary>
@@ -4480,6 +4484,20 @@ namespace idTech4.Renderer
 		public Vector3 Normal;
 		//public Vector3[] Tangents;
 		public Color Color;
+		#endregion
+
+		#region Methods
+		public void Clear()
+		{
+			this.Position = Vector3.Zero;
+			this.TextureCoordinates = Vector2.Zero;
+			this.Normal = Vector3.Zero;
+			
+			// TODO: tangents[0].Zero();
+			// TODO: tangents[1].Zero();
+
+			this.Color = Color.Black;
+		}
 		#endregion
 	}
 

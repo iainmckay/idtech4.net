@@ -851,20 +851,20 @@ namespace idTech4.UI
 		private idWindow _captureChild;				// if a child window has mouse capture
 		private idWindow _overChild;				// if a child window has mouse capture
 
-		private idWinBool _noTime = new idWinBool("noTime");
-		private idWinBool _visible = new idWinBool("visible");
-		private idWinBool _noEvents = new idWinBool("noEvents");
-		private idWinBool _hideCursor = new idWinBool("hideCursor");
-		private idWinRectangle _rect = new idWinRectangle("rect");			// overall rect
-		private idWinVector4 _backColor = new idWinVector4("backColor");
-		private idWinVector4 _foreColor = new idWinVector4("foreColor");
-		private idWinVector4 _hoverColor = new idWinVector4("hoverColor");
-		private idWinVector4 _borderColor = new idWinVector4("borderColor");
-		private idWinVector4 _materialColor = new idWinVector4("matColor");
-		private idWinFloat _textScale = new idWinFloat("textScale");
-		private idWinFloat _rotate = new idWinFloat("rotate");
-		private idWinString _text = new idWinString("text");
-		private idWinBackground _backgroundName = new idWinBackground("background");
+		protected idWinBool _noTime = new idWinBool("noTime");
+		protected idWinBool _visible = new idWinBool("visible");
+		protected idWinBool _noEvents = new idWinBool("noEvents");
+		protected idWinBool _hideCursor = new idWinBool("hideCursor");
+		protected idWinRectangle _rect = new idWinRectangle("rect");			// overall rect
+		protected idWinVector4 _backColor = new idWinVector4("backColor");
+		protected idWinVector4 _foreColor = new idWinVector4("foreColor");
+		protected idWinVector4 _hoverColor = new idWinVector4("hoverColor");
+		protected idWinVector4 _borderColor = new idWinVector4("borderColor");
+		protected idWinVector4 _materialColor = new idWinVector4("matColor");
+		protected idWinFloat _textScale = new idWinFloat("textScale");
+		protected idWinFloat _rotate = new idWinFloat("rotate");
+		protected idWinString _text = new idWinString("text");
+		protected idWinBackground _backgroundName = new idWinBackground("background");
 
 		private List<idWindow> _children = new List<idWindow>();
 		private List<DrawWindow> _drawWindows = new List<DrawWindow>();

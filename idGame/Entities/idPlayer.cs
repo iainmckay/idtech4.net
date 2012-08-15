@@ -8,6 +8,8 @@ using Microsoft.Xna.Framework;
 using idTech4.Game;
 using idTech4.Game.Rules;
 using idTech4.Math;
+using idTech4.Net;
+using idTech4.Renderer;
 using idTech4.Text.Decl;
 using idTech4.UI;
 
@@ -421,6 +423,11 @@ namespace idTech4.Game.Entities
 		#region Methods
 		public void Init()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
 			// TODO
 			// TODO: idKeyValue kv;
 			/*const char			*value;
@@ -666,6 +673,11 @@ oldViewYaw = 0.0f;*/
 		/// <param name="angles"></param>
 		public void SelectInitialSpawnPoint(out Vector3 origin, out idAngles angles)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
 			idEntity spot = idR.Game.SelectInitialSpawnPoint(this);
 			string skin = spot.SpawnArgs.GetString("skin", null);
 
@@ -692,6 +704,11 @@ oldViewYaw = 0.0f;*/
 		/// </summary>
 		public void SpawnFromSpawnSpot()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
 			Vector3 origin;
 			idAngles angles;
 
@@ -707,6 +724,11 @@ oldViewYaw = 0.0f;*/
 		/// <param name="angles"></param>
 		public void SpawnToPoint(Vector3 origin, idAngles angles)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
 			Vector3 spectatorOrigin = Vector3.Zero;
 
 			_respawning = true;
@@ -818,6 +840,11 @@ oldViewYaw = 0.0f;*/
 
 		public bool UserInfoChanged(bool canModify)
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
 			bool modifiedInfo = false;
 			idDict userInfo = this.Info;
 
@@ -827,7 +854,140 @@ oldViewYaw = 0.0f;*/
 		}
 		#endregion
 
-		#region idEntity implementation
+		#region idActor implementation
+		#region Properties
+		public override bool IsOnLadder
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				idConsole.Warning("TODO: idPlayer.IsOnLadder");
+
+				return false;
+			}
+		}
+
+		public override idRenderView RenderView
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				idConsole.Warning("TODO: idPlayer.RenderView");
+
+				return null;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public override void ClientPredictionThink()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.ClientPredictionThink");
+		}
+
+		public override bool ClientReceiveEvent(int ev, int time, idBitMsg msg)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.ClientReceiveEvent");
+
+			return false;
+		}
+
+		public override bool Collide(object collision, Vector3 velocity)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.Collide");
+
+			return false;
+		}
+
+		public override void Damage(idEntity inflictor, idEntity attacker, Vector3 direction, string damageDefName, float damageScale, int location)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.Damage");
+		}
+
+		public override void DamageFeedback(idEntity victim, idEntity inflictor, ref int damage)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.GetAASLocation");
+		}
+
+		public override void GetAASLocation(object aas, Vector3 position, ref int areaNum)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.GetAASLocation");
+		}
+
+		public override bool GetPhysicsToSoundTransform(ref Vector3 origin, ref Matrix axis)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.GetPhysicsToSoundTransform");
+
+			return false;
+		}
+
+		public override bool GetPhysicsToVisualTransform(ref Vector3 origin, ref Matrix axis)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.GetPhysicsToVisualTransform");
+
+			return false;
+		}
+
+		public override bool HandleSingleGuiCommand(idEntity entityGui, Text.idLexer lexer)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.HandleSingleGuiCommand");
+
+			return false;
+		}
+
 		public override void Hide()
 		{
 			base.Hide();
@@ -840,8 +1000,300 @@ oldViewYaw = 0.0f;*/
 	}*/
 		}
 
+		public override void ReadFromSnapshot(idBitMsgDelta msg)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.ReadFromSnapshot");
+		}
+
+		public override void Restart()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.Restart");
+		}
+
+		public override void Restore(object savefile)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.Restore");
+		}
+
+		public override void Save(object savefile)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.Save");
+		}
+
+		public override bool ServerReceiveEvent(int ev, int time, idBitMsg msg)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.ServerReceiveEvent");
+
+			return false;
+		}
+
+		public override void Show()
+		{
+			base.Show();
+
+			// TODO
+			/*idWeapon *weap;
+	
+idActor::Show();
+weap = weapon.GetEntity();
+if ( weap ) {
+	weap->ShowWorldModel();
+}*/
+		}
+
+		public override void Spawn()
+		{
+			base.Spawn();
+
+			if(this.Index >= idR.MaxClients)
+			{
+				idConsole.Error("entityIndex > MAX_CLIENTS for player.  Player may only be spawned with a client.");
+			}
+
+			// allow thinking during cinematics
+			this.Cinematic = true;
+
+			if(idR.Game.IsMultiplayer == true)
+			{
+				// always start in spectating state waiting to be spawned in
+				// do this before SetClipModel to get the right bounding box
+				this.IsSpectating = true;
+			}
+
+			// set our collision model
+			// TODO
+			/*physicsObj.SetSelf( this );
+			SetClipModel();
+			physicsObj.SetMass( spawnArgs.GetFloat( "mass", "100" ) );
+			physicsObj.SetContents( CONTENTS_BODY );
+			physicsObj.SetClipMask( MASK_PLAYERSOLID );
+			SetPhysics( &physicsObj );
+			InitAASLocation();*/
+
+			_skin = this.RenderEntity.CustomSkin;
+
+			// only the local player needs guis
+			if((idR.Game.IsMultiplayer == false) || (this.Index == idR.Game.LocalClientIndex))
+			{
+				// load HUD
+				if(idR.Game.IsMultiplayer == true)
+				{
+					_hud = idR.UIManager.FindInterface("guis/mphud.gui", true, false, true);
+				}
+				else
+				{
+					string temp = this.SpawnArgs.GetString("hud", "");
+
+					if(temp != string.Empty)
+					{
+						_hud = idR.UIManager.FindInterface(temp, true, false, true);
+					}
+				}
+
+				if(_hud != null)
+				{
+					_hud.Activate(true, idR.Game.Time);
+				}
+
+				// load cursor
+				string cursor = this.SpawnArgs.GetString("cursor", "");
+
+				if(cursor != string.Empty)
+				{
+					_cursor = idR.UIManager.FindInterface(cursor, true, idR.Game.IsMultiplayer, idR.Game.IsMultiplayer);
+				}
+
+				if(_cursor != null)
+				{
+					_cursor.Activate(true, idR.Game.Time);
+				}
+
+				// TODO
+				// objectiveSystem = uiManager->FindGui( "guis/pda.gui", true, false, true );
+				// objectiveSystemOpen = false;
+			}
+
+			/*SetLastHitTime( 0 );
+
+			// load the armor sound feedback
+			declManager->FindSound( "player_sounds_hitArmor" );
+
+			// set up conditions for animation
+			LinkScriptVariables();
+
+			animator.RemoveOriginOffset( true );*/
+
+			// initialize user info related settings
+			// on server, we wait for the userinfo broadcast, as this controls when the player is initially spawned in game
+			if((idR.Game.IsClient == true) || (this.Index == idR.Game.LocalClientIndex))
+			{
+				UserInfoChanged(false);
+			}
+
+			// create combat collision hull for exact collision detection
+			/*SetCombatModel();*/
+
+			// supress model in non-player views, but allow it in mirrors and remote views
+			this.RenderEntity.SuppressSurfaceInViewID = this.Index + 1;
+
+			// don't project shadow on self or weapon
+			this.RenderEntity.NoSelfShadow = true;
+
+			/*idAFAttachment *headEnt = head.GetEntity();
+			if ( headEnt ) {
+				headEnt->GetRenderEntity()->suppressSurfaceInViewID = entityNumber+1;
+				headEnt->GetRenderEntity()->noSelfShadow = true;
+			}*/
+
+			if(idR.Game.IsMultiplayer == true)
+			{
+				Init();
+				Hide();	// properly hidden if starting as a spectator
+
+				if(idR.Game.IsClient == false)
+				{
+					// set yourself ready to spawn. idMultiplayerGame will decide when/if appropriate and call SpawnFromSpawnSpot
+					// TODO
+					/*SetupWeaponEntity();*/
+					SpawnFromSpawnSpot();
+
+					_forceRespawn = true;
+				}
+			}
+			else
+			{
+				// TODO: SetupWeaponEntity();
+				SpawnFromSpawnSpot();
+			}
+			/*
+			// trigger playtesting item gives, if we didn't get here from a previous level
+			// the devmap key will be set on the first devmap, but cleared on any level
+			// transitions
+			if ( !gameLocal.isMultiplayer && gameLocal.serverInfo.FindKey( "devmap" ) ) {
+				// fire a trigger with the name "devmap"
+				idEntity *ent = gameLocal.FindEntity( "devmap" );
+				if ( ent ) {
+					ent->ActivateTargets( this );
+				}
+			}
+			if ( hud ) {
+				// We can spawn with a full soul cube, so we need to make sure the hud knows this
+				if ( weapon_soulcube > 0 && ( inventory.weapons & ( 1 << weapon_soulcube ) ) ) {
+					int max_souls = inventory.MaxAmmoForAmmoClass( this, "ammo_souls" );
+					if ( inventory.ammo[ idWeapon::GetAmmoNumForName( "ammo_souls" ) ] >= max_souls ) {
+						hud->HandleNamedEvent( "soulCubeReady" );
+					}
+				}
+				hud->HandleNamedEvent( "itemPickup" );
+			}
+
+			if ( GetPDA() ) {
+				// Add any emails from the inventory
+				for ( int i = 0; i < inventory.emails.Num(); i++ ) {
+					GetPDA()->AddEmail( inventory.emails[i] );
+				}
+				GetPDA()->SetSecurity( common->GetLanguageDict()->GetString( "#str_00066" ) );
+			}
+
+			if ( gameLocal.world->spawnArgs.GetBool( "no_Weapons" ) ) {
+				hiddenWeapon = true;
+				if ( weapon.GetEntity() ) {
+					weapon.GetEntity()->LowerWeapon();
+				}
+				idealWeapon = 0;
+			} else {
+				hiddenWeapon = false;
+			}*/
+
+			if(_hud != null)
+			{
+				// TODO: UpdateHudWeapon();
+				_hud.StateChanged(idR.Game.Time);
+			}
+
+			/*tipUp = false;
+			objectiveUp = false;
+
+			if ( inventory.levelTriggers.Num() ) {
+				PostEventMS( &EV_Player_LevelTrigger, 0 );
+			}
+
+			inventory.pdaOpened = false;
+			inventory.selPDA = 0;
+
+			if ( !gameLocal.isMultiplayer ) {
+				if ( g_skill.GetInteger() < 2 ) {
+					if ( health < 25 ) {
+						health = 25;
+					}
+					if ( g_useDynamicProtection.GetBool() ) {
+						g_damageScale.SetFloat( 1.0f );
+					}
+				} else {
+					g_damageScale.SetFloat( 1.0f );
+					g_armorProtection.SetFloat( ( g_skill.GetInteger() < 2 ) ? 0.4f : 0.2f );
+		#ifndef ID_DEMO_BUILD
+					if ( g_skill.GetInteger() == 3 ) {
+						healthTake = true;
+						nextHealthTake = gameLocal.time + g_healthTakeTime.GetInteger() * 1000;
+					}
+		#endif
+				}
+			}*/
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// Use exitEntityNum to specify a teleport with private camera view and delayed exit.
+		/// </remarks>
+		/// <param name="origin"></param>
+		/// <param name="angles"></param>
+		/// <param name="destination"></param>
+		public override void Teleport(Vector3 origin, idAngles angles, idEntity destination)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.Teleport");
+		}
+
 		public override void Think()
 		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idPlayer.Think");
 			// TODO
 			/*renderEntity_t* headRenderEnt;
 
@@ -1100,220 +1552,16 @@ oldViewYaw = 0.0f;*/
 			}*/
 		}
 
-		public override void Show()
+		public override void WriteToSnapshot(idBitMsgDelta msg)
 		{
-			base.Show();
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
 
-			// TODO
-			/*idWeapon *weap;
-	
-idActor::Show();
-weap = weapon.GetEntity();
-if ( weap ) {
-	weap->ShowWorldModel();
-}*/
+			idConsole.Warning("TODO: idPlayer.WriteToSnapshot");
 		}
-
-		public override void Spawn()
-		{
-			base.Spawn();
-
-			if(this.Index >= idR.MaxClients)
-			{
-				idConsole.Error("entityIndex > MAX_CLIENTS for player.  Player may only be spawned with a client.");
-			}
-
-			// allow thinking during cinematics
-			this.Cinematic = true;
-
-			if(idR.Game.IsMultiplayer == true)
-			{
-				// always start in spectating state waiting to be spawned in
-				// do this before SetClipModel to get the right bounding box
-				this.IsSpectating = true;
-			}
-
-			// set our collision model
-			// TODO
-			/*physicsObj.SetSelf( this );
-			SetClipModel();
-			physicsObj.SetMass( spawnArgs.GetFloat( "mass", "100" ) );
-			physicsObj.SetContents( CONTENTS_BODY );
-			physicsObj.SetClipMask( MASK_PLAYERSOLID );
-			SetPhysics( &physicsObj );
-			InitAASLocation();*/
-
-			_skin = this.RenderEntity.CustomSkin;
-
-			// only the local player needs guis
-			if((idR.Game.IsMultiplayer == false) || (this.Index == idR.Game.LocalClientIndex))
-			{
-				// load HUD
-				if(idR.Game.IsMultiplayer == true)
-				{
-					_hud = idR.UIManager.FindInterface("guis/mphud.gui", true, false, true);
-				}
-				else
-				{
-					string temp = this.SpawnArgs.GetString("hud", "");
-
-					if(temp != string.Empty)
-					{
-						_hud = idR.UIManager.FindInterface(temp, true, false, true);
-					}
-				}
-
-				if(_hud != null)
-				{
-					_hud.Activate(true, idR.Game.Time);
-				}
-
-				// load cursor
-				string cursor = this.SpawnArgs.GetString("cursor", "");
-
-				if(cursor != string.Empty)
-				{
-					_cursor = idR.UIManager.FindInterface(cursor, true, idR.Game.IsMultiplayer, idR.Game.IsMultiplayer);
-				}
-
-				if(_cursor != null)
-				{
-					_cursor.Activate(true, idR.Game.Time);
-				}
-
-				// TODO
-				// objectiveSystem = uiManager->FindGui( "guis/pda.gui", true, false, true );
-				// objectiveSystemOpen = false;
-			}
-
-			/*SetLastHitTime( 0 );
-
-			// load the armor sound feedback
-			declManager->FindSound( "player_sounds_hitArmor" );
-
-			// set up conditions for animation
-			LinkScriptVariables();
-
-			animator.RemoveOriginOffset( true );*/
-
-			// initialize user info related settings
-			// on server, we wait for the userinfo broadcast, as this controls when the player is initially spawned in game
-			if((idR.Game.IsClient == true) || (this.Index == idR.Game.LocalClientIndex))
-			{
-				UserInfoChanged(false);
-			}
-
-			// create combat collision hull for exact collision detection
-			/*SetCombatModel();*/
-
-			// supress model in non-player views, but allow it in mirrors and remote views
-			this.RenderEntity.SuppressSurfaceInViewID = this.Index + 1;
-
-			// don't project shadow on self or weapon
-			this.RenderEntity.NoSelfShadow = true;
-
-			/*idAFAttachment *headEnt = head.GetEntity();
-			if ( headEnt ) {
-				headEnt->GetRenderEntity()->suppressSurfaceInViewID = entityNumber+1;
-				headEnt->GetRenderEntity()->noSelfShadow = true;
-			}*/
-
-			if(idR.Game.IsMultiplayer == true)
-			{
-				Init();
-				Hide();	// properly hidden if starting as a spectator
-
-				if(idR.Game.IsClient == false)
-				{
-					// set yourself ready to spawn. idMultiplayerGame will decide when/if appropriate and call SpawnFromSpawnSpot
-					// TODO
-					/*SetupWeaponEntity();*/
-					SpawnFromSpawnSpot();
-
-					_forceRespawn = true;
-				}
-			}
-			else
-			{
-				// TODO: SetupWeaponEntity();
-				SpawnFromSpawnSpot();
-			}
-			/*
-			// trigger playtesting item gives, if we didn't get here from a previous level
-			// the devmap key will be set on the first devmap, but cleared on any level
-			// transitions
-			if ( !gameLocal.isMultiplayer && gameLocal.serverInfo.FindKey( "devmap" ) ) {
-				// fire a trigger with the name "devmap"
-				idEntity *ent = gameLocal.FindEntity( "devmap" );
-				if ( ent ) {
-					ent->ActivateTargets( this );
-				}
-			}
-			if ( hud ) {
-				// We can spawn with a full soul cube, so we need to make sure the hud knows this
-				if ( weapon_soulcube > 0 && ( inventory.weapons & ( 1 << weapon_soulcube ) ) ) {
-					int max_souls = inventory.MaxAmmoForAmmoClass( this, "ammo_souls" );
-					if ( inventory.ammo[ idWeapon::GetAmmoNumForName( "ammo_souls" ) ] >= max_souls ) {
-						hud->HandleNamedEvent( "soulCubeReady" );
-					}
-				}
-				hud->HandleNamedEvent( "itemPickup" );
-			}
-
-			if ( GetPDA() ) {
-				// Add any emails from the inventory
-				for ( int i = 0; i < inventory.emails.Num(); i++ ) {
-					GetPDA()->AddEmail( inventory.emails[i] );
-				}
-				GetPDA()->SetSecurity( common->GetLanguageDict()->GetString( "#str_00066" ) );
-			}
-
-			if ( gameLocal.world->spawnArgs.GetBool( "no_Weapons" ) ) {
-				hiddenWeapon = true;
-				if ( weapon.GetEntity() ) {
-					weapon.GetEntity()->LowerWeapon();
-				}
-				idealWeapon = 0;
-			} else {
-				hiddenWeapon = false;
-			}*/
-
-			if(_hud != null)
-			{
-				// TODO: UpdateHudWeapon();
-				_hud.StateChanged(idR.Game.Time);
-			}
-
-			/*tipUp = false;
-			objectiveUp = false;
-
-			if ( inventory.levelTriggers.Num() ) {
-				PostEventMS( &EV_Player_LevelTrigger, 0 );
-			}
-
-			inventory.pdaOpened = false;
-			inventory.selPDA = 0;
-
-			if ( !gameLocal.isMultiplayer ) {
-				if ( g_skill.GetInteger() < 2 ) {
-					if ( health < 25 ) {
-						health = 25;
-					}
-					if ( g_useDynamicProtection.GetBool() ) {
-						g_damageScale.SetFloat( 1.0f );
-					}
-				} else {
-					g_damageScale.SetFloat( 1.0f );
-					g_armorProtection.SetFloat( ( g_skill.GetInteger() < 2 ) ? 0.4f : 0.2f );
-		#ifndef ID_DEMO_BUILD
-					if ( g_skill.GetInteger() == 3 ) {
-						healthTake = true;
-						nextHealthTake = gameLocal.time + g_healthTakeTime.GetInteger() * 1000;
-					}
-		#endif
-				}
-			}*/
-		}
+		#endregion
 		#endregion
 	}
 

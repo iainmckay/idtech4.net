@@ -125,6 +125,14 @@ namespace idTech4.Renderer
 		{
 			get;
 		}
+
+		/// <summary>
+		/// Gets the number of surfaces in the model.
+		/// </summary>
+		public abstract int SurfaceCount
+		{
+			get;
+		}
 		#endregion
 
 		#region Constructor
@@ -175,7 +183,7 @@ namespace idTech4.Renderer
 		/// </remarks>
 		/// <param name="renderEntity"></param>
 		/// <returns></returns>
-		public abstract idBounds GetBounds(idRenderEntity renderEntity = null);
+		public abstract idBounds GetBounds(RenderEntityComponent renderEntity = null);
 		
 		/// <summary>
 		/// Gets the joint with the given name.
@@ -199,6 +207,8 @@ namespace idTech4.Renderer
 		public abstract string GetJointName(int index);
 
 		public abstract int GetNearestJoint(int surfaceIndex, int a, int c, int b);
+
+		public abstract RenderModelSurface GetSurface(int index);
 
 		/// <summary>
 		/// This is used for dynamically created surfaces, which are assumed to not be reloadable.
@@ -277,14 +287,12 @@ namespace idTech4.Renderer
 	// for reloadModels
 	virtual ID_TIME_T				Timestamp() const = 0;
 
-	// returns the number of surfaces
-	virtual int					NumSurfaces() const = 0;
+
 
 	// NumBaseSurfaces will not count any overlays added to dynamic models
 	virtual int					NumBaseSurfaces() const = 0;
 
-	// get a pointer to a surface
-	virtual const modelSurface_t *Surface( int surfaceNum ) const = 0;
+
 
 	// Allocates surface triangles.
 	// Allocates memory for srfTriangles_t::verts and srfTriangles_t::indexes

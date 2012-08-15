@@ -33,6 +33,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Game;
 using idTech4.Input;
 using idTech4.Renderer;
 using idTech4.Sound;
@@ -133,6 +134,8 @@ namespace idTech4
 
 		private string _currentMapName; // for checking reload on same level
 		private bool _mapSpawned; // cleared on Stop()
+
+		private bool _syncNextGameFrame;
 		#endregion
 
 		#region Constructor
@@ -276,23 +279,28 @@ namespace idTech4
 				// TODO: lastGameTic = latchedTicNumber;
 				return;
 			}
-
+			
 			idConsole.Warning("TODO: REST OF FRAME");
+
+			idConsole.Warning("TODO: is network active");
 			/*// in message box / GUIFrame, idSessionLocal::Frame is used for GUI interactivity
 			// but we early exit to avoid running game frames
 			if ( idAsyncNetwork::IsActive() ) {
 				return;
-			}
+			}*/
 
 			// check for user info changes
-			if ( cvarSystem->GetModifiedFlags() & CVAR_USERINFO ) {
-				mapSpawnData.userInfo[0] = *cvarSystem->MoveCVarsToDict( CVAR_USERINFO );
-				game->SetUserInfo( 0, mapSpawnData.userInfo[0], false, false );
-				cvarSystem->ClearModifiedFlags( CVAR_USERINFO );
+			if((idE.CvarSystem.ModifiedFlags & CvarFlags.UserInfo) == CvarFlags.UserInfo)
+			{
+				idE.CvarSystem.CopyCvarsToDictionary(_mapSpawnData.UserInformation[0], CvarFlags.UserInfo);				
+				idE.Game.SetUserInformation(0, _mapSpawnData.UserInformation[0], false, false);
+				idE.CvarSystem.ModifiedFlags &= ~CvarFlags.UserInfo;
 			}
 
+			// TODO: do we really need the latch stuff?
+
 			// see how many usercmds we are going to run
-			int	numCmdsToRun = latchedTicNumber - lastGameTic;
+			/*int	numCmdsToRun = latchedTicNumber - lastGameTic;
 
 			// don't let a long onDemand sound load unsync everything
 			if ( timeHitch ) {
@@ -341,9 +349,11 @@ namespace idTech4
 
 			int	gameTicsToRun = latchedTicNumber - lastGameTic;
 			int i;
-			for ( i = 0 ; i < gameTicsToRun ; i++ ) {
-				RunGameTic();
-				if ( !mapSpawned ) {
+			for ( i = 0 ; i < gameTicsToRun ; i++ ) {*/
+
+			RunGameTic();
+
+				/*if ( !mapSpawned ) {
 					// exited game play
 					break;
 				}
@@ -1199,6 +1209,119 @@ namespace idTech4
 			}
 
 			return true;
+		}
+
+		private void RunGameTic()
+		{
+			idUserCommand cmd = null;
+
+			// TODO: demo file
+
+			// if we are doing a command demo, read or write from the file
+			/*if ( cmdDemoFile ) {
+				if ( !cmdDemoFile->Read( &logCmd, sizeof( logCmd ) ) ) {
+					common->Printf( "Command demo completed at logIndex %i\n", logIndex );
+					fileSystem->CloseFile( cmdDemoFile );
+					cmdDemoFile = NULL;
+					if ( aviCaptureMode ) {
+						EndAVICapture();
+						Shutdown();
+					}
+					// we fall out of the demo to normal commands
+					// the impulse and chat character toggles may not be correct, and the view
+					// angle will definitely be wrong
+				} else {
+					cmd = logCmd.cmd;
+					cmd.ByteSwap();
+					logCmd.consistencyHash = LittleLong( logCmd.consistencyHash );
+				}
+			}*/
+
+			// TODO: cmdDemoFile
+
+			// if we didn't get one from the file, get it locally
+			//if ( !cmdDemoFile ) {
+			// get a locally created command
+			if(idE.CvarSystem.GetBool("com_asyncInput") == true)
+			{
+				idConsole.Warning("TODO: usercmdgen");
+				//cmd = usercmdGen->TicCmd( lastGameTic );
+			}
+			else
+			{
+				cmd = idE.UserCommandGenerator.GetDirectCommand();
+			}
+
+			//lastGameTic++;
+			//}
+
+			// run the game logic every player move
+			int start = idE.System.Milliseconds;
+
+			GameReturn ret = idE.Game.RunFrame(new idUserCommand[] { cmd });
+
+			int end = idE.System.Milliseconds;
+
+			// TODO: timers 	time_gameFrame += end - start;	// note time used for com_speeds
+
+			// check for constency failure from a recorded command
+			/*if ( cmdDemoFile ) {
+				if ( ret.consistencyHash != logCmd.consistencyHash ) {
+					common->Printf( "Consistency failure on logIndex %i\n", logIndex );
+					Stop();
+					return;
+				}
+			}*/
+
+			// save the cmd for cmdDemo archiving
+			/*if ( logIndex < MAX_LOGGED_USERCMDS ) {
+				loggedUsercmds[logIndex].cmd = cmd;
+				// save the consistencyHash for demo playback verification
+				loggedUsercmds[logIndex].consistencyHash = ret.consistencyHash;
+				if (logIndex % 30 == 0 && statIndex < MAX_LOGGED_STATS) {
+					loggedStats[statIndex].health = ret.health;
+					loggedStats[statIndex].heartRate = ret.heartRate;
+					loggedStats[statIndex].stamina = ret.stamina;
+					loggedStats[statIndex].combat = ret.combat;
+					statIndex++;
+				}
+				logIndex++;
+			}*/
+
+			_syncNextGameFrame = ret.SyncNextGameFrame;
+
+			if(ret.SessionCommand != null)
+			{
+				idConsole.Warning("TODO: {0}", ret.SessionCommand);
+
+				/*idCmdArgs args;
+
+				args.TokenizeString( ret.sessionCommand, false );
+
+				if ( !idStr::Icmp( args.Argv(0), "map" ) ) {
+					// get current player states
+					for ( int i = 0 ; i < numClients ; i++ ) {
+						mapSpawnData.persistentPlayerInfo[i] = game->GetPersistentPlayerInfo( i );
+					}
+					// clear the devmap key on serverinfo, so player spawns
+					// won't get the map testing items
+					mapSpawnData.serverInfo.Delete( "devmap" );
+
+					// go to the next map
+					MoveToNewMap( args.Argv(1) );
+				} else if ( !idStr::Icmp( args.Argv(0), "devmap" ) ) {
+					mapSpawnData.serverInfo.Set( "devmap", "1" );
+					MoveToNewMap( args.Argv(1) );
+				} else if ( !idStr::Icmp( args.Argv(0), "died" ) ) {
+					// restart on the same map
+					UnloadMap();
+					SetGUI(guiRestartMenu, NULL);
+				} else if ( !idStr::Icmp( args.Argv(0), "disconnect" ) ) {
+					cmdSystem->BufferCommandText( CMD_EXEC_INSERT, "stoprecording ; disconnect" );
+				} else if ( !idStr::Icmp( args.Argv(0), "endOfDemo" ) ) {
+					cmdSystem->BufferCommandText( CMD_EXEC_NOW, "endOfDemo" );
+				}*/
+			}
 		}
 
 		private void SetMainMenuVariables()

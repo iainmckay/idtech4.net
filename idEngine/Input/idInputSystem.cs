@@ -328,7 +328,7 @@ namespace idTech4.Input
 
 			// consider this like modifying an archived cvar, so the
 			// file write will be triggered at the next oportunity
-			idE.CvarSystem.ModifiedFlags = CvarFlags.Archive;
+			idE.CvarSystem.ModifiedFlags |= CvarFlags.Archive;
 		}
 
 		public void Update()

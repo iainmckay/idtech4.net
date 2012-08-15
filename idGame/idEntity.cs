@@ -5,6 +5,11 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Game.Animation;
+using idTech4.Game.Physics;
+using idTech4.Game.Scripting;
+using idTech4.Math;
+using idTech4.Net;
 using idTech4.Renderer;
 using idTech4.Text;
 using idTech4.Text.Decl;
@@ -14,6 +19,22 @@ namespace idTech4.Game
 	public class idEntity : IDisposable
 	{
 		#region Properties
+		/// <summary>
+		/// Subclasses will be responsible for allocating animator.
+		/// </summary>
+		public virtual idAnimator Animator
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return null;
+			}
+		}
+
 		public Matrix Axis
 		{
 			get
@@ -34,6 +55,7 @@ namespace idTech4.Game
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
+				idConsole.Warning("TODO: idEntity.Axis set");
 				// TODO
 				/*if ( GetPhysics()->IsType( idPhysics_Actor::Type ) ) {
 		static_cast<idActor *>(this)->viewAxis = axis;
@@ -104,6 +126,9 @@ namespace idTech4.Game
 			}
 		}
 
+		/// <summary>
+		/// Gets the text classname of the entity.
+		/// </summary>
 		public string ClassName
 		{
 			get
@@ -117,6 +142,9 @@ namespace idTech4.Game
 			}
 		}
 
+		/// <summary>
+		/// Gets/Sets the health of the entity.
+		/// </summary>
 		public int Health
 		{
 			get
@@ -164,8 +192,32 @@ namespace idTech4.Game
 			}
 		}
 
+		public virtual idRenderModel Model
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				idConsole.Warning("TODO: idEntity.Model get");
+
+				return null;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				idConsole.Warning("TODO: idEntity.Model set");
+			}
+		}
+
 		/// <summary>
-		/// Name of the entity.
+		/// Gets/Sets the name of the entity.
 		/// </summary>
 		public string Name
 		{
@@ -185,6 +237,7 @@ namespace idTech4.Game
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
+				idConsole.Warning("TODO: idEntity.Name set");
 				// TODO
 				/*if(name.Length())
 				{
@@ -218,7 +271,8 @@ namespace idTech4.Game
 				}
 
 				// TODO:
-				idConsole.Warning("TODO: idEntity.Origin");
+				idConsole.Warning("TODO: idEntity.GetOrigin");
+
 				return Vector3.Zero;
 			}
 			set
@@ -228,16 +282,26 @@ namespace idTech4.Game
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				// TODO GetPhysics()->SetOrigin(org);
-
+				this.Physics.SetOrigin(value);
 				UpdateVisuals();
 			}
 		}
 
 		/// <summary>
-		/// For camera views from this entity.
+		/// Gets the physics object used by this entity.
 		/// </summary>
-		public idRenderView RenderView
+		public idPhysics Physics
+		{
+			get
+			{
+				return _physics;
+			}
+		}
+
+		/// <summary>
+		/// Gets the view used for camera views from this entity.
+		/// </summary>
+		public virtual idRenderView RenderView
 		{
 			get
 			{
@@ -253,7 +317,7 @@ namespace idTech4.Game
 		/// <summary>
 		/// Used to present a model to the renderer
 		/// </summary>
-		public idRenderEntity RenderEntity
+		public RenderEntityComponent RenderEntity
 		{
 			get
 			{
@@ -263,6 +327,17 @@ namespace idTech4.Game
 				}
 
 				return _renderEntity;
+			}
+		}
+
+		/// <summary>
+		/// Called during idEntity::Spawn to see if it should construct the script object or not.
+		/// </summary>
+		public virtual bool ShouldConstructScriptObjectAtSpawn
+		{
+			get
+			{
+				return true;
 			}
 		}
 
@@ -347,7 +422,7 @@ namespace idTech4.Game
 		private bool _cinematic;
 
 		private idRenderView _renderView;
-		private idRenderEntity _renderEntity;
+		private RenderEntityComponent _renderEntity;
 
 		private idDict _spawnArgs = new idDict();
 
@@ -356,7 +431,8 @@ namespace idTech4.Game
 		// for being linked into activeEntities list
 		private LinkedListNode<idEntity> _activeNode;
 
-		// TODO: private idStaticPhysics _defaultPhysicsObject;
+		private idPhysics_Static _defaultPhysicsObject;
+		private idPhysics _physics;
 		#endregion
 
 		#region Constructor
@@ -367,16 +443,12 @@ namespace idTech4.Game
 
 			_className = "unknown";
 
-			_renderEntity = new idRenderEntity();
+			_renderEntity = new RenderEntityComponent();
 
 			idConsole.Warning("TODO: idEntity");
 			/*			
 			snapshotNode.SetOwner(this);
-			snapshotSequence = -1;
-			snapshotBits = 0;
-
-			thinkFlags = 0;
-			dormantStart = 0;*/
+			snapshotSequence = -1;*/
 	
 			/*
 			bindJoint = INVALID_JOINT;
@@ -404,9 +476,7 @@ namespace idTech4.Game
 		#region Private
 		private void InitDefaultPhysics(Vector3 origin, Matrix axis)
 		{
-			idConsole.Warning("TODO: InitDefaultPhysics");
-			// TODO
-			/*string temp = _spawnArgs.GetString("clipmodel", "");
+			string temp = _spawnArgs.GetString("clipmodel", "");
 			idClipModel clipModel = null;
 
 			// check if a clipmodel key/value pair is set
@@ -457,7 +527,7 @@ namespace idTech4.Game
 						}
 						clipModel = new idClipModel( trm );
 					}*/
-				/*}
+				}
 
 				// check if the visual model can be used as collision model
 				if(clipModel == null)
@@ -474,13 +544,12 @@ namespace idTech4.Game
 				}
 			}
 
-			// TODO
-			/*defaultPhysicsObj.SetSelf( this );
-			defaultPhysicsObj.SetClipModel( clipModel, 1.0f );
-			defaultPhysicsObj.SetOrigin( origin );
-			defaultPhysicsObj.SetAxis( axis );
+			_defaultPhysicsObject.Self = this;
+			_defaultPhysicsObject.SetClipModel(clipModel, 1.0f);
+			_defaultPhysicsObject.SetOrigin(origin);
+			_defaultPhysicsObject.SetAxis(axis);
 
-			physics = &defaultPhysicsObj;*/
+			_physics = _defaultPhysicsObject;
 		}
 
 		private void UpdateVisuals()
@@ -493,6 +562,127 @@ namespace idTech4.Game
 		#endregion
 
 		#region Public
+		public virtual void AddDamageEffect(object collision, Vector3 velocity, string damageDefName)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.AddDamageEffect");	
+		}
+
+		public virtual void AddForce(idEntity entity, int id, Vector3 point, Vector3 force)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.AddForce");
+		}
+		
+		public virtual void ApplyImpulse(idEntity entity, int id, Vector3 point, Vector3 impulse)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.ApplyImpulse");	
+		}
+
+		public virtual void ClientPredictionThink()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.ClientPredictionThink");
+		}
+
+		public virtual bool ClientReceiveEvent(int ev, int time, idBitMsg msg)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.ClientReceiveEvent");
+
+			return false;
+		}
+
+		public virtual bool Collide(object collision, Vector3 velocity)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			// this entity collides with collision.c.entityNum
+			return false;
+		}
+
+		/// <summary>
+		/// Called during idEntity::Spawn.  Calls the constructor on the script object.
+		/// </summary>
+		/// <returns></returns>
+		public virtual idThread ConstructScriptObject()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.ConstructScriptObject");
+
+			return null;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <param name="inflictor">Entity that is causing the damage.</param>
+		/// <param name="attacker">Entity that caused the inflictor to cause damage to us.</param>
+		/// <param name="direction">Direction of the attack for knockback in global space.</param>
+		/// <param name="damageDefName"></param>
+		/// <param name="damageScale"></param>
+		/// <param name="location"></param>
+		public virtual void Damage(idEntity inflictor, idEntity attacker, Vector3 direction, string damageDefName, float damageScale, int location)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.Damage");
+		}
+
+		/// <summary>
+		/// Callback function for when another entity received damage from this entity.  damage can be adjusted and returned to the caller.
+		/// </summary>
+		/// <param name="victim"></param>
+		/// <param name="inflictor"></param>
+		/// <param name="damage"></param>
+		public virtual void DamageFeedback(idEntity victim, idEntity inflictor, ref int damage)
+		{
+
+		}
+
+		public virtual object GetImpactInfo(idEntity entity, int id, Vector3 point)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.GetImpactInfo");
+
+			return null;
+		}
+
 		public bool GetMasterPosition(out Vector3 masterOrigin, out Matrix masterAxis)
 		{
 			if(this.Disposed == true)
@@ -538,6 +728,45 @@ namespace idTech4.Game
 			}
 		}
 
+		public virtual bool GetPhysicsToSoundTransform(ref Vector3 origin, ref Matrix axis)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.GetPhysicsToSoundTransform");
+
+			return false;
+		}
+
+		public virtual bool GetPhysicsToVisualTransform(ref Vector3 origin, ref Matrix axis)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.GetPhysicsToVisualTransform");
+
+			return false;
+		}
+
+		public virtual void FreeModelDef()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.FreeModelDef");
+		}
+
+		public virtual bool HandleSingleGuiCommand(idEntity entityGui, idLexer lexer)
+		{
+			return false;
+		}
+
 		public virtual void Hide()
 		{
 			if(this.Disposed == true)
@@ -553,7 +782,73 @@ namespace idTech4.Game
 				FreeModelDef();
 				UpdateVisuals();
 			}*/
+		}
 
+		/// <summary>
+		/// Called whenever an entity recieves damage.  Returns whether the entity responds to the pain.
+		/// </summary>
+		/// <param name="inflictor"></param>
+		/// <param name="attacker"></param>
+		/// <param name="damage"></param>
+		/// <param name="direction"></param>
+		/// <param name="location"></param>
+		/// <returns></returns>
+		public virtual bool Pain(idEntity inflictor, idEntity attacker, int damage, Vector3 direction, int location)
+		{
+			return false;
+		}
+
+		/// <summary>
+		/// Present is called to allow entities to generate refEntities, lights, etc for the renderer.
+		/// </summary>
+		public virtual void Present()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.Present");
+		}
+
+		public virtual void ProjectOverlay(Vector3 origin, Vector3 direction, float size, string material)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.ProjectOverlay");
+		}
+
+		public virtual void ReadFromSnapshot(idBitMsgDelta msg)
+		{
+
+		}
+
+		public virtual void Restore(object savefile)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.Restore");
+		}
+
+		public virtual void Save(object savefile)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.Save");
+		}
+			
+		public virtual bool ServerReceiveEvent(int ev, int time, idBitMsg msg)
+		{
+			return false;
 		}
 
 		public virtual void Spawn()
@@ -705,6 +1000,16 @@ namespace idTech4.Game
 	}*/
 		}
 
+		public virtual void Teleport(Vector3 origin, idAngles angles, idEntity destination)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.Teleport");
+		}
+
 		public virtual void Think()
 		{
 			if(this.Disposed == true)
@@ -717,6 +1022,44 @@ namespace idTech4.Game
 			// TODO
 			/*RunPhysics();
 			Present();*/
+		}
+
+		public virtual bool UpdateAnimationControllers()
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			// any ragdoll and IK animation controllers should be updated here
+			return false;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// Any key/value pair that might change during the course of the game (e.g. via a gui)
+		/// should be initialize here so a gui or other trigger can change something and have it updated
+		/// properly. 
+		/// <para/>
+		/// An optional source may be provided if the values reside in an outside dictionary and
+		/// first need copied over to spawnArgs.
+		/// </remarks>
+		/// <param name="source"></param>
+		public virtual void UpdateChangeableSpawnArgs(idDict source)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idEntity.UpdateChangeableSpawnArgs");
+		}
+
+		public virtual void WriteToSnapshot(idBitMsgDelta msg)
+		{
+
 		}
 		#endregion
 		#endregion

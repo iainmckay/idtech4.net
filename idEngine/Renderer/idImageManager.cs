@@ -1167,6 +1167,12 @@ namespace idTech4.Renderer
 
 			name = Path.Combine(Path.GetDirectoryName(name), Path.GetFileNameWithoutExtension(name));
 
+			if(name == "_emptyName")
+			{
+				idConsole.Warning("FIXME: this shouldn't be happening!!!!");
+				return null;
+			}
+
 			return idE.System.Content.Load<Texture2D>(name);
 		}
 

@@ -68,7 +68,7 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Methods
-		public override idBounds GetBounds(idRenderEntity renderEntity = null)
+		public override idBounds GetBounds(RenderEntityComponent renderEntity = null)
 		{
 			if(this.Disposed == true)
 			{

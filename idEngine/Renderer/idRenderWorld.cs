@@ -94,22 +94,19 @@ namespace idTech4.Renderer
 
 		private idScreenRect[] _areaScreenRect = null;
 		private List<idRenderModel> _localModels = new List<idRenderModel>();
-
-		/*idList<idRenderEntityLocal*>	entityDefs;
+		private List<idRenderEntity> _entityDefinitions = new List<idRenderEntity>();
+		/*
 		idList<idRenderLightLocal*>		lightDefs;
-
-		idBlockAlloc<areaReference_t, 1024> areaReferenceAllocator;
-		idBlockAlloc<idInteraction, 256>	interactionAllocator;
-		idBlockAlloc<areaNumRef_t, 1024>	areaNumRefAllocator;
+		*/
 
 		// all light / entity interactions are referenced here for fast lookup without
 		// having to crawl the doubly linked lists.  EnntityDefs are sequential for better
 		// cache access, because the table is accessed by light in idRenderWorldLocal::CreateLightDefInteractions()
 		// Growing this table is time consuming, so we add a pad value to the number
 		// of entityDefs and lightDefs
-		idInteraction **		interactionTable;
-		int						interactionTableWidth;		// entityDefs
-		int						interactionTableHeight;		// lightDefs*/
+		/*private idInteraction[] _interactionTable;
+		private int _interactionTableWidth;	 // entityDefs
+		private int _interactionTableHeight;*/ // lightDefs*/
 
 
 		private bool _generateInteractionsCalled;
@@ -129,6 +126,25 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region General
+		public RenderEntityComponent GetRenderEntity(int handle)
+		{
+			if((handle < 0) || (handle >= _entityDefinitions.Count))
+			{
+				idConsole.WriteLine("idRenderWord::GetRenderEntity: invalid handle {0} [0, {1}]", handle, _entityDefinitions.Count);
+				return null;
+			}
+
+			idRenderEntity def = _entityDefinitions[handle];
+
+			if(def == null)
+			{
+				idConsole.WriteLine("idRenderWord::GetRenderEntity: handle {0} is null", handle);
+				return null;
+			}
+
+			return def.Parameters;
+		}
+
 		/// <summary>
 		/// 
 		/// </summary>
@@ -273,6 +289,11 @@ namespace idTech4.Renderer
 		/// Force the generation of all light / surface interactions at the start of a level.
 		/// If this isn't called, they will all be dynamically generated
 		/// </summary>
+		/// <remarks>
+		/// This really isn't all that helpful anymore, because the calculation of shadows
+		/// and light interactions is deferred from idRenderWorld::CreateLightDefInteractions(), but we
+		/// use it as an oportunity to size the interactionTable.
+		/// </remarks>
 		public void GenerateInteractions()
 		{
 			if(this.Disposed == true)
@@ -280,7 +301,70 @@ namespace idTech4.Renderer
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: idRenderWorld.GenerateInteractions");
+			if(idE.RenderSystem.IsRunning == false)
+			{
+				return;
+			}
+
+			int start = idE.System.Milliseconds;
+
+			_generateInteractionsCalled = false;
+
+			// watch how much memory we allocate
+			// TODO: tr.staticAllocCount = 0;
+
+			// let idRenderWorld::CreateLightDefInteractions() know that it shouldn't
+			// try and do any view specific optimizations
+			idE.RenderSystem.ViewDefinition = null;
+
+			idConsole.Warning("TODO: light interactions");
+
+			/*for ( int i = 0 ; i < this->lightDefs.Num() ; i++ ) {
+				idRenderLightLocal	*ldef = this->lightDefs[i];
+				if ( !ldef ) {
+					continue;
+				}
+				this->CreateLightDefInteractions( ldef );
+			}*/
+
+			int end = idE.System.Milliseconds;
+			int msec = end - start;
+
+			idConsole.WriteLine("idRenderWorld::GenerateAllInteractions, msec = {0}, staticAllocCount = {1}.", msec, 0 /* TODO: tr.staticAllocCount*/);
+	
+			// build the interaction table
+			/*if(idE.CvarSystem.GetBool("r_useInteractionTable") == true)
+			{
+				_interactionTableWidth = _entityDefinitions.Count + 100;
+				_interactionTableHeight = /* TODO: lightDefs *//* 0 + 100;
+
+				_interactionTable = new idInteraction[_interactionTableWidth * _interactionTableHeight];
+
+				int count = 0;
+
+				idConsole.Warning("TODO: light interactions");
+				
+				/*for ( int i = 0 ; i < this->lightDefs.Num() ; i++ ) {
+					idRenderLightLocal	*ldef = this->lightDefs[i];
+					if ( !ldef ) {
+						continue;
+					}
+					idInteraction	*inter;
+					for ( inter = ldef->firstInteraction; inter != NULL; inter = inter->lightNext ) {
+						idRenderEntityLocal	*edef = inter->entityDef;
+						int index = ldef->index * interactionTableWidth + edef->index;
+
+						interactionTable[ index ] = inter;
+						count++;
+					}
+				}*/
+
+				/*common->Printf( "interactionTable size: %i bytes\n", size );
+				comon->Printf( "%i interaction take %i bytes\n", count, count * sizeof( idInteraction ) );*//*
+			}
+
+			// entities flagged as noDynamicInteractions will no longer make any*/
+			_generateInteractionsCalled = true;
 		}
 		#endregion
 
@@ -311,65 +395,95 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Private
+		/// <summary>
+		/// This is called by R_PushVolumeIntoTree and also directly
+		/// for the world model references that are precalculated.
+		/// </summary>
+		/// <param name="def"></param>
+		/// <param name="area"></param>
+		private void AddEntityRefToArea(idRenderEntity def, PortalArea area)
+		{
+			if(def == null)
+			{
+				idConsole.Error("idRenderWorld::AddEntityRefToArea: null def");
+			}
+
+			AreaReference areaRef = new AreaReference();
+
+			// TODO: counters tr.pc.c_entityReferences++;
+
+			areaRef.Entity = def;
+
+			// link to entityDef
+			areaRef.NextOwner = def.EntityReference;
+			def.EntityReference = areaRef;
+
+			// link to end of area list
+			areaRef.Area = area;
+			areaRef.NextArea = area.EntityReference;
+			areaRef.PreviousArea = area.EntityReference.PreviousArea;
+			areaRef.NextArea.PreviousArea = areaRef;
+			areaRef.PreviousArea.NextArea = areaRef;
+		}
+
 		private void AddWorldModelEntities()
 		{
-			idConsole.Warning("TODO: AddWorldModelEntities");
 			// add the world model for each portal area
 			// we can't just call AddEntityDef, because that would place the references
 			// based on the bounding box, rather than explicitly into the correct area
 			for(int i = 0; i < _portalAreaCount; i++)
 			{
+				idRenderEntity def = new idRenderEntity();
+				int index = _entityDefinitions.FindIndex(x => x == null);
 
-
-				/*idRenderEntityLocal	*def;
-				int			index;
-
-				def = new idRenderEntityLocal;
-
-				// try and reuse a free spot
-				index = entityDefs.FindNull();
-				if ( index == -1 ) {
-					index = entityDefs.Append(def);
-				} else {
-					entityDefs[index] = def;
+				if(index == -1)
+				{
+					index = _entityDefinitions.Count;
+					_entityDefinitions.Add(def);
+				}
+				else
+				{
+					_entityDefinitions[index] = def;
 				}
 
-				def->index = index;
-				def->world = this;
+				def.EntityIndex = index;
+				def.World = this;
+				def.Parameters.Model = idE.RenderModelManager.FindModel(string.Format("_area{0}", i));
 
-				def->parms.hModel = renderModelManager->FindModel( va("_area%i", i ) );
-				if ( def->parms.hModel->IsDefaultModel() || !def->parms.hModel->IsStaticWorldModel() ) {
-					common->Error( "idRenderWorldLocal::InitFromMap: bad area model lookup" );
+				if((def.Parameters.Model.IsDefaultModel == true) || (def.Parameters.Model.IsStaticWordModel == false))
+				{
+					idConsole.Error("idRenderWorld::InitFromMap: bad area model lookup");
 				}
 
-				idRenderModel *hModel = def->parms.hModel;
+				idRenderModel model = def.Parameters.Model;
 
-				for ( int j = 0; j < hModel->NumSurfaces(); j++ ) {
-					const modelSurface_t *surf = hModel->Surface( j );
+				for(int j = 0; j < model.SurfaceCount; j++)
+				{
+					RenderModelSurface surf = model.GetSurface(j);
 
-					if ( surf->shader->GetName() == idStr( "textures/smf/portal_sky" ) ) {
-						def->needsPortalSky = true;
+					if(surf.Material.Name == "textures/smf/portal_sky")
+					{
+						def.NeedsPortalSky = true;
 					}
 				}
 
-				def->referenceBounds = def->parms.hModel->Bounds();
+				def.ReferenceBounds = def.Parameters.Model.GetBounds();
+				def.Parameters.Axis = new Matrix(
+					1, 0, 0, 0, 
+					0, 1, 0, 0, 
+					0, 0, 1, 0, 
+					0, 0, 0, 0);
 
-				def->parms.axis[0][0] = 1;
-				def->parms.axis[1][1] = 1;
-				def->parms.axis[2][2] = 1;
-
-				R_AxisToModelMatrix( def->parms.axis, def->parms.origin, def->modelMatrix );
+				def.ModelMatrix = idHelper.AxisToModelMatrix(def.Parameters.Axis, def.Parameters.Origin);
 
 				// in case an explicit shader is used on the world, we don't
 				// want it to have a 0 alpha or color
-				def->parms.shaderParms[0] =
-				def->parms.shaderParms[1] =
-				def->parms.shaderParms[2] =
-				def->parms.shaderParms[3] = 1;
+				def.Parameters.MaterialParameters[0] =
+					def.Parameters.MaterialParameters[1] =
+					def.Parameters.MaterialParameters[2] =
+					def.Parameters.MaterialParameters[3] = 1;
 
-				AddEntityRefToArea( def, &portalAreas[i] );
-			}
-		}*/
+				AddEntityRefToArea(def, _portalAreas[i]);
 			}
 		}
 
@@ -474,64 +588,183 @@ namespace idTech4.Renderer
 			}
 		}
 
+		private void FreeDefs()
+		{
+			_generateInteractionsCalled = false;
+
+
+			/*if(_interactionTable != null)
+			{
+				_interactionTable = null;
+			}*/
+
+			// free all lightDefs
+			idConsole.Warning("TODO: free light defs");
+
+			/*for(i = 0; i < lightDefs.Num(); i++)
+			{
+				idRenderLightLocal* light;
+
+				light = lightDefs[i];
+				if(light && light->world == this)
+				{
+					FreeLightDef(i);
+					lightDefs[i] = NULL;
+				}
+			}*/
+
+			// free all entityDefs
+			for(int i = 0; i < _entityDefinitions.Count; i++)
+			{
+				idRenderEntity mod = _entityDefinitions[i];
+
+				if((mod != null) && (mod.World == this))
+				{
+					FreeEntityDef(i);
+					_entityDefinitions[i] = null;
+				}
+			}
+		}
+
+		private void FreeEntityDef(int index)
+		{
+			if((index < 0) || (index > _entityDefinitions.Count))
+			{
+				idConsole.WriteLine("idRenderWorld::FreeEntityDef: handle {0} > {1}", index, _entityDefinitions.Count);
+				return;
+			}
+
+			idRenderEntity def = _entityDefinitions[index];
+
+			if(def == null)
+			{
+				idConsole.WriteLine("idRenderWorld::FreeEntityDef: handle {0} is null", index);
+				return;
+			}
+
+			FreeEntityDefDerivedData(def, false, false);
+
+			// TODO
+			/*if ( session->writeDemo && def->archived ) {
+				WriteFreeEntity( entityHandle );
+			}*/
+
+			// if we are playing a demo, these will have been freed
+			// in R_FreeEntityDefDerivedData(), otherwise the gui
+			// object still exists in the game
+
+			def.Parameters.Gui[0] = null;
+			def.Parameters.Gui[1] = null;
+			def.Parameters.Gui[2] = null;
+			
+			_entityDefinitions[index] = null;
+		}
+
+		private void FreeEntityDefDerivedData(idRenderEntity def, bool keepDecals, bool keepCachedDynamicModel) 
+		{
+			// TODO:
+
+			// demo playback needs to free the joints, while normal play
+			// leaves them in the control of the game			
+			/*if ( session->readDemo ) {
+				if ( def->parms.joints ) {
+					Mem_Free16( def->parms.joints );
+					def->parms.joints = NULL;
+				}
+				if ( def->parms.callbackData ) {
+					Mem_Free( def->parms.callbackData );
+					def->parms.callbackData = NULL;
+				}
+				for ( i = 0; i < MAX_RENDERENTITY_GUI; i++ ) {
+					if ( def->parms.gui[ i ] ) {
+						delete def->parms.gui[ i ];
+						def->parms.gui[ i ] = NULL;
+					}
+				}
+			}*/
+
+			// free all the interactions
+			/*while ( def->firstInteraction != NULL ) {
+				def->firstInteraction->UnlinkAndFree();
+			}*/
+
+			// clear the dynamic model if present
+			if(def.DynamicModel != null)
+			{
+				def.DynamicModel = null;
+			}
+
+			if(keepDecals == false)
+			{
+				idConsole.Warning("TODO: free decals");
+
+				/*R_FreeEntityDefDecals( def );
+				R_FreeEntityDefOverlay( def );*/
+			}
+
+			if(keepCachedDynamicModel == false)
+			{
+				if(def.CachedDynamicModel != null)
+				{
+					def.CachedDynamicModel.Dispose();
+					def.CachedDynamicModel = null;
+				}
+			}
+
+			// free the entityRefs from the areas
+			AreaReference areaRef, next;
+
+			for(areaRef = def.EntityReference; areaRef != null;  areaRef = next)
+			{
+				next = areaRef.NextOwner;
+
+				// unlink from the area
+				areaRef.NextArea.PreviousArea = areaRef.PreviousArea;
+				areaRef.PreviousArea.NextArea = areaRef.NextArea;
+			}	
+
+			def.EntityReference = null;
+		}
+
 		private void FreeWorld()
 		{
-			idConsole.Warning("TODO: idRenderWorld.FreeWorld");
 			// this will free all the lightDefs and entityDefs
-			/*FreeDefs();
+			FreeDefs();
 
 			// free all the portals and check light/model references
-			for ( i = 0 ; i < numPortalAreas ; i++ ) {
-				portalArea_t	*area;
-				portal_t		*portal, *nextPortal;
-
-				area = &portalAreas[i];
-				for ( portal = area->portals ; portal ; portal = nextPortal ) {
-					nextPortal = portal->next;
-					delete portal->w;
-					R_StaticFree( portal );
-				}
-
-				// there shouldn't be any remaining lightRefs or entityRefs
-				if ( area->lightRefs.areaNext != &area->lightRefs ) {
-					common->Error( "FreeWorld: unexpected remaining lightRefs" );
-				}
-				if ( area->entityRefs.areaNext != &area->entityRefs ) {
-					common->Error( "FreeWorld: unexpected remaining entityRefs" );
-				}
+			if(_portalAreas != null)
+			{
+				_portalAreas = null;
+				_portalAreaCount = 0;
 			}
 
-			if ( portalAreas ) {
-				R_StaticFree( portalAreas );
-				portalAreas = NULL;
-				numPortalAreas = 0;
-				R_StaticFree( areaScreenRect );
-				areaScreenRect = NULL;
+			if(_portalAreas != null)
+			{
+				_portalAreas = null;
+				_portalAreaCount = 0;
+				_areaScreenRect = null;
 			}
 
-			if ( doublePortals ) {
-				R_StaticFree( doublePortals );
-				doublePortals = NULL;
-				numInterAreaPortals = 0;
+			if(_doublePortals != null)
+			{
+				_doublePortals = null;
+				_interAreaPortalCount = 0;
 			}
 
-			if ( areaNodes ) {
-				R_StaticFree( areaNodes );
-				areaNodes = NULL;
+			if(_areaNodes != null)
+			{
+				_areaNodes = null;
 			}
 
 			// free all the inline idRenderModels 
-			for ( i = 0 ; i < localModels.Num() ; i++ ) {
-				renderModelManager->RemoveModel( localModels[i] );
-				delete localModels[i];
+			foreach(idRenderModel model in _localModels)
+			{
+				model.Dispose();
+				idE.RenderModelManager.RemoveModel(model);
 			}
-			localModels.Clear();
 
-			areaReferenceAllocator.Shutdown();
-			interactionAllocator.Shutdown();
-			areaNumRefAllocator.Shutdown();
-
-			mapName = "<FREED>";*/
+			_localModels.Clear();
+			_mapName = "<FREED>";
 		}
 
 		private void ParseInterAreaPortals(idLexer lexer)
@@ -638,7 +871,7 @@ namespace idTech4.Renderer
 				modelSurface.Geometry = new Surface();
 				modelSurface.Geometry.Vertices = new Vertex[lexer.ParseInt()];
 				modelSurface.Geometry.Indexes = new int[lexer.ParseInt()];
-
+				
 				for(int j = 0; j < modelSurface.Geometry.Vertices.Length; j++)
 				{
 					float[] vec = lexer.Parse1DMatrix(8);
@@ -742,17 +975,19 @@ namespace idTech4.Renderer
 		{
 			_connectedAreaNumber = 0;
 
+			idConsole.Warning("TODO: light refs");
+
 			for(int i = 0; i < _portalAreaCount; i++)
 			{
 				_portalAreas[i].AreaNumber = i;
-
-				// TODO: biggie!
+				
 				/*portalAreas[i].lightRefs.areaNext =
 				portalAreas[i].lightRefs.areaPrev =
-					&portalAreas[i].lightRefs;
-				portalAreas[i].entityRefs.areaNext =
-				portalAreas[i].entityRefs.areaPrev =
-					&portalAreas[i].entityRefs;*/
+					&portalAreas[i].lightRefs;*/
+
+				_portalAreas[i].EntityReference.NextArea 
+					= _portalAreas[i].EntityReference.PreviousArea
+						= _portalAreas[i].EntityReference;
 			}
 		}
 		#endregion
@@ -791,16 +1026,6 @@ namespace idTech4.Renderer
 			if(disposing == true)
 			{
 				FreeWorld();
-
-				_areaNodes = null;
-				_portalAreas = null;
-				_doublePortals = null;
-				_areaScreenRect = null;
-				_localModels = null;
-
-				/* TODO: entityDefs;
-				lightDefs;			
-				idInteraction **		interactionTable;*/
 			}
 
 			// free up the debug lines, polys, and text
@@ -888,8 +1113,15 @@ namespace idTech4.Renderer
 		/// </summary>
 		public Portal Portals;
 
-		// TODO: areaReference_t	entityRefs;		// head/tail of doubly linked list, may change
-		// TODO: areaReference_t	lightRefs;		// head/tail of doubly linked list, may change
+		/// <summary>
+		/// Head/tail of doubly linked list, may change.
+		/// </summary>
+		public AreaReference EntityReference = new AreaReference();
+
+		/// <summary>
+		/// Head/tail of doubly linked list, may change.
+		/// </summary>
+		public AreaReference LightReference = new AreaReference();
 	}
 
 	public class AreaNode
@@ -905,5 +1137,19 @@ namespace idTech4.Renderer
 		/// If all children are either solid or a single area, this is the area number, else CHILDREN_HAVE_MULTIPLE_AREAS.
 		/// </summary>
 		public int CommonChildrenArea;
+	}
+
+	/// <summary>
+	/// Areas have references to hold all the lights and entities in them.
+	/// </summary>
+	public class AreaReference
+	{
+		public AreaReference NextArea;
+		public AreaReference PreviousArea;
+		public AreaReference NextOwner;
+
+		public idRenderEntity Entity;
+		// idRenderLightLocal *	light;					// only one of entity / light will be non-NULL
+		public PortalArea Area;
 	}
 }

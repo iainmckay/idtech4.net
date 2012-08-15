@@ -196,6 +196,11 @@ namespace idTech4.Renderer
 			spriteModel = sprite;
 			AddModel( sprite );*/
 		}
+
+		public void RemoveModel(idRenderModel model)
+		{
+			_models.Remove(model.Name);
+		}
 		#endregion
 
 		#region Private

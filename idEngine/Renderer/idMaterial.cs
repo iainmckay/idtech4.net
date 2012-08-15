@@ -151,6 +151,14 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public DeformType Deform
+		{
+			get
+			{
+				return _deformType;
+			}
+		}
+
 		public idUserInterface GlobalInterface
 		{
 			get
@@ -262,6 +270,24 @@ namespace idTech4.Renderer
 			}
 		}
 
+		/// <summary>
+		/// Should we duplicate surfaces to create back sides?
+		/// </summary>
+		/// <remarks>
+		/// Standard two-sided triangle rendering won't work with bump map lighting, because
+		/// the normal and tangent vectors won't be correct for the back sides.  When two
+		/// sided lighting is desired. typically for alpha tested surfaces, this is
+		/// addressed by having CleanupModelSurfaces() create duplicates of all the triangles
+		/// with apropriate order reversal.
+		/// </remarks>
+		public bool ShouldCreateBackSides
+		{
+			get
+			{
+				return _shouldCreateBackSides;
+			}
+		}
+		
 		/// <summary>
 		/// This is only used by the gui system to force sorting order
 		/// on images referenced from tga's instead of materials. 

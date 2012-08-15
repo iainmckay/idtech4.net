@@ -53,9 +53,9 @@ namespace idTech4.Game
 
 		#region idBaseGameEdit implementation
 		#region Methods
-		public override idRenderEntity ParseSpawnArgsToRenderEntity(idDict args)
+		public override RenderEntityComponent ParseSpawnArgsToRenderEntity(idDict args)
 		{
-			idRenderEntity renderEntity = new idRenderEntity();
+			RenderEntityComponent renderEntity = new RenderEntityComponent();
 			idDeclModel modelDef = null;
 			
 			string temp = args.GetString("model");

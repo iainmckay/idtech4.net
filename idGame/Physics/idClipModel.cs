@@ -5,7 +5,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
-using idTech4;
+using idTech4.Collision;
 using idTech4.Geometry;
 using idTech4.Renderer;
 
@@ -346,7 +346,9 @@ idClipModel::idClipModel( const int renderModelHandle ) {
 		#region Static
 		public static int CheckModel(string name)
 		{
-			return idR.CollisionModelManager.LoadModel(name, false);
+			idConsole.Warning("TODO: idClipModel.CheckModel");
+			return -1;
+		//	return idR.CollisionModelManager.LoadModel(name, false);
 		}
 		#endregion
 	
@@ -421,7 +423,7 @@ idClipModel::idClipModel( const int renderModelHandle ) {
 			{
 				_renderModelHandle = renderModelHandle;
 
-				idRenderEntity renderEntity = idR.Game.RenderWorld.GetRenderEntity(renderModelHandle);
+				RenderEntityComponent renderEntity = idR.Game.RenderWorld.GetRenderEntity(renderModelHandle);
 
 				if(renderEntity != null)
 				{
@@ -471,13 +473,14 @@ idClipModel::idClipModel( const int renderModelHandle ) {
 			_collisionModelHandle = 0;
 			_renderModelHandle = -1;
 
-			if(_traceModelIndex != -1)
+			idConsole.Warning("TODO: idClipModel.LoadModel");
+			/*if(_traceModelIndex != -1)
 			{
 				FreeTraceModel(_traceModelIndex);
 			}
 
 			_traceModelIndex = AllocTraceModel(traceModel);
-			_bounds = traceModel.Bounds;
+			_bounds = traceModel.Bounds;*/
 		}
 		#endregion
 
@@ -569,16 +572,20 @@ idClipModel::idClipModel( const int renderModelHandle ) {
 				throw new ObjectDisposedException("idClipModel");
 			}
 
-			// make sure the clip model is no longer linked
-			Unlink();
-
-			if(_traceModelIndex != -1)
+			if(disposing == true)
 			{
-				FreeTraceModel(_traceModelIndex);
-			}
+				// make sure the clip model is no longer linked
+				Unlink();
 
-			_traceModelIndex = -1;			
-			_disposed = true;
+				idConsole.Warning("TODO: idClipModel.Dispose");
+				/*if(_traceModelIndex != -1)
+				{
+					FreeTraceModel(_traceModelIndex);
+				}*/
+
+				_traceModelIndex = -1;
+				_disposed = true;
+			}
 		}
 		#endregion
 		#endregion

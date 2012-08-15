@@ -31,6 +31,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Windows.Forms;
+
 using Microsoft.Xna.Framework;
 
 using idTech4.Math;
@@ -40,6 +41,32 @@ namespace idTech4
 {
 	public static class idHelper
 	{
+		public static Matrix AxisToModelMatrix(Matrix axis, Vector3 origin)
+		{
+			Matrix modelMatrix = new Matrix();
+			modelMatrix.M11 = axis.M11;
+			modelMatrix.M21 = axis.M21;
+			modelMatrix.M31 = axis.M31;
+			modelMatrix.M41 = origin.X;
+
+			modelMatrix.M12 = axis.M12;
+			modelMatrix.M22 = axis.M22;
+			modelMatrix.M32 = axis.M32;
+			modelMatrix.M42 = origin.Y;
+
+			modelMatrix.M13 = axis.M13;
+			modelMatrix.M23 = axis.M23;
+			modelMatrix.M33 = axis.M33;
+			modelMatrix.M43 = origin.Z;
+			
+			modelMatrix.M14 = 0;
+			modelMatrix.M24 = 0;
+			modelMatrix.M34 = 0;
+			modelMatrix.M44 = 1;
+
+			return modelMatrix;
+		}
+
 		public static float CalculateW(Quaternion q)
 		{
 			// take the absolute value because floating point rounding may cause the dot of x,y,z to be larger than 1
@@ -328,6 +355,11 @@ namespace idTech4
 			}
 
 			return pot;
+		}
+		
+		public static void BoundTriangleSurface(Surface surf)
+		{
+			MinMax(ref surf.Bounds.Min, ref surf.Bounds.Max, surf.Vertices, surf.Vertices.Length);
 		}
 
 		public static void MinMax(ref Vector3 min, ref Vector3 max, Vertex[] src, int count)

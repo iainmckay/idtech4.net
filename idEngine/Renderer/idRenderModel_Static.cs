@@ -31,6 +31,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+
 using idTech4.Geometry;
 
 namespace idTech4.Renderer
@@ -65,7 +67,34 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region Private
+		private void AddCubeFace(Surface tri, int faceNumber, Vector3 v1, Vector3 v2, Vector3 v3, Vector3 v4)
+		{
+			int verticeOffset = faceNumber * 4;
+			int indexOffset = faceNumber * 6;
 
+			tri.Vertices[verticeOffset + 0].Clear();
+			tri.Vertices[verticeOffset + 0].Position = v1 * 8;
+			tri.Vertices[verticeOffset + 0].TextureCoordinates = new Vector2(0, 0);
+
+			tri.Vertices[verticeOffset + 1].Clear();
+			tri.Vertices[verticeOffset + 1].Position = v2 * 8;
+			tri.Vertices[verticeOffset + 1].TextureCoordinates = new Vector2(1, 0);
+
+			tri.Vertices[verticeOffset + 2].Clear();
+			tri.Vertices[verticeOffset + 2].Position = v3 * 8;
+			tri.Vertices[verticeOffset + 2].TextureCoordinates = new Vector2(1, 1);
+
+			tri.Vertices[verticeOffset + 3].Clear();
+			tri.Vertices[verticeOffset + 3].Position = v4 * 8;
+			tri.Vertices[verticeOffset + 3].TextureCoordinates = new Vector2(0, 1);
+
+			tri.Indexes[indexOffset + 0] = verticeOffset + 0;
+			tri.Indexes[indexOffset + 1] = verticeOffset + 1;
+			tri.Indexes[indexOffset + 2] = verticeOffset + 2;
+			tri.Indexes[indexOffset + 3] = verticeOffset + 0;
+			tri.Indexes[indexOffset + 4] = verticeOffset + 2;
+			tri.Indexes[indexOffset + 5] = verticeOffset + 3;
+		}
 		#endregion
 		#endregion
 
@@ -204,6 +233,19 @@ namespace idTech4.Renderer
 				return _name;
 			}
 		}
+
+		public override int SurfaceCount
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return _surfaces.Count;
+			}
+		}
 		#endregion
 
 		#region Methods
@@ -214,9 +256,37 @@ namespace idTech4.Renderer
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: idStaticRenderModel.AddSurface");
+			_surfaces.Add(surface);
+
+			if(surface.Geometry != null)
+			{
+				_bounds += surface.Geometry.Bounds;
+			}
 		}
 
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// The mergeShadows option allows surfaces with different textures to share
+		/// silhouette edges for shadow calculation, instead of leaving shared edges
+		/// hanging.
+		/// <para/>
+		/// If any of the original shaders have the noSelfShadow flag set, the surfaces
+		/// can't be merged, because they will need to be drawn in different order.
+		/// <para/>
+		/// If there is only one surface, a separate merged surface won't be generated.
+		/// <para/>
+		/// A model with multiple surfaces can't later have a skinned shader change the
+		/// state of the noSelfShadow flag.
+		/// <para/>
+		/// -----------------
+		/// <para/>
+		/// Creates mirrored copies of two sided surfaces with normal maps, which would
+		/// otherwise light funny.
+		/// <para/>
+		/// Extends the bounds of deformed surfaces so they don't cull incorrectly at screen edges.
+		/// </remarks>
 		public override void FinishSurfaces()
 		{
 			if(this.Disposed == true)
@@ -224,7 +294,159 @@ namespace idTech4.Renderer
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: idStaticRenderModel.FinishSurfaces");
+			_purged = false;
+
+			// make sure we don't have a huge bounds even if we don't finish everything
+			_bounds = idBounds.Zero;
+
+			if(_surfaces.Count == 0)
+			{
+				return;
+			}
+			
+			// renderBump doesn't care about most of this
+			if(_fastLoad == true)
+			{
+				_bounds = idBounds.Zero;
+
+				foreach(RenderModelSurface surf in _surfaces)
+				{
+					idHelper.BoundTriangleSurface(surf.Geometry);
+					_bounds.AddBounds(surf.Geometry.Bounds);
+				}
+
+				return;
+			}
+
+			// cleanup all the final surfaces, but don't create sil edges
+			int totalVerts = 0;
+			int totalIndexes = 0;
+
+			// decide if we are going to merge all the surfaces into one shadower
+			int	numOriginalSurfaces = _surfaces.Count;
+
+			// make sure there aren't any NULL shaders or geometry
+			for(int i = 0; i < numOriginalSurfaces; i++)
+			{
+				RenderModelSurface surf = _surfaces[i];
+
+				if((surf.Geometry == null) || (surf.Material == null))
+				{
+					MakeDefault();
+					idConsole.Error("Model {0}, surface {1} had NULL goemetry", this.Name, i);
+				}
+
+				if(surf.Material == null)
+				{
+					MakeDefault();
+					idConsole.Error("Model {0}, surface {1} had NULL material", this.Name, i);
+				}
+			}
+
+			// duplicate and reverse triangles for two sided bump mapped surfaces
+			// note that this won't catch surfaces that have their shaders dynamically
+			// changed, and won't work with animated models.
+			// It is better to create completely separate surfaces, rather than
+			// add vertexes and indexes to the existing surface, because the
+			// tangent generation wouldn't like the acute shared edges
+			for(int i = 0; i < numOriginalSurfaces; i++)
+			{
+				RenderModelSurface surf = _surfaces[i];
+				
+				if(surf.Material.ShouldCreateBackSides == true)
+				{
+					idConsole.Warning("TODO: should create back sides");
+
+					/*srfTriangles_t *newTri;
+
+					newTri = R_CopyStaticTriSurf( surf->geometry );
+					R_ReverseTriangles( newTri );
+
+					modelSurface_t	newSurf;
+
+					newSurf.shader = surf->shader;
+					newSurf.geometry = newTri;
+
+					AddSurface( newSurf );*/
+				}
+			}
+
+			// clean the surfaces
+			// TODO: clean surfaces	
+			/*for ( i = 0 ; i < surfaces.Num() ; i++ ) {
+				const modelSurface_t	*surf = &surfaces[i];
+
+				R_CleanupTriangles( surf->geometry, surf->geometry->generateNormals, true, surf->shader->UseUnsmoothedTangents() );
+				if ( surf->shader->SurfaceCastsShadow() ) {
+					totalVerts += surf->geometry->numVerts;
+					totalIndexes += surf->geometry->numIndexes;
+				}
+			}*/
+
+			// add up the total surface area for development information
+			// TODO: surf dev info
+			/*for ( i = 0 ; i < surfaces.Num() ; i++ ) {
+				const modelSurface_t	*surf = &surfaces[i];
+				srfTriangles_t	*tri = surf->geometry;
+
+				for ( int j = 0 ; j < tri->numIndexes ; j += 3 ) {
+					float	area = idWinding::TriangleArea( tri->verts[tri->indexes[j]].xyz,
+						 tri->verts[tri->indexes[j+1]].xyz,  tri->verts[tri->indexes[j+2]].xyz );
+					const_cast<idMaterial *>(surf->shader)->AddToSurfaceArea( area );
+				}
+			}*/
+
+			// calculate the bounds
+			if(_surfaces.Count == 0)
+			{
+				_bounds = idBounds.Zero;
+			}
+			else
+			{
+				_bounds.Clear();
+
+				for(int i = 0; i < _surfaces.Count; i++)
+				{
+					RenderModelSurface surf = _surfaces[i];
+
+					// if the surface has a deformation, increase the bounds
+					// the amount here is somewhat arbitrary, designed to handle
+					// autosprites and flares, but could be done better with exact
+					// deformation information.
+					// Note that this doesn't handle deformations that are skinned in
+					// at run time...
+					if(surf.Material.Deform != DeformType.None)
+					{
+						idConsole.Warning("TODO: deform");
+
+						/*srfTriangles_t	*tri = surf->geometry;
+						idVec3	mid = ( tri->bounds[1] + tri->bounds[0] ) * 0.5f;
+						float	radius = ( tri->bounds[0] - mid ).Length();
+						radius += 20.0f;
+
+						tri->bounds[0][0] = mid[0] - radius;
+						tri->bounds[0][1] = mid[1] - radius;
+						tri->bounds[0][2] = mid[2] - radius;
+
+						tri->bounds[1][0] = mid[0] + radius;
+						tri->bounds[1][1] = mid[1] + radius;
+						tri->bounds[1][2] = mid[2] + radius;*/
+					}
+
+					// add to the model bounds
+					_bounds.AddBounds(surf.Geometry.Bounds);
+				}
+			}
+		}
+
+		public override RenderModelSurface GetSurface(int index)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			return _surfaces[index];
 		}
 
 		public override void FreeVertexCache()
@@ -237,7 +459,7 @@ namespace idTech4.Renderer
 			idConsole.Warning("TODO: idStaticRenderModel.FreeVertexCache");
 		}
 
-		public override idBounds GetBounds(idRenderEntity renderEntity = null)
+		public override idBounds GetBounds(RenderEntityComponent renderEntity = null)
 		{
 			if(this.Disposed == true)
 			{
@@ -384,7 +606,31 @@ namespace idTech4.Renderer
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: idStaticRenderModel.MakeDefault");
+			_defaulted = true;
+
+			// throw out any surfaces we already have
+			Purge();
+
+			// create one new surface
+			RenderModelSurface surf = new RenderModelSurface();
+			surf.Material = idE.RenderSystem.DefaultMaterial;
+			surf.Geometry = new Surface();
+			surf.Geometry.Vertices = new Vertex[24];
+			surf.Geometry.Indexes = new int[36];
+
+			AddCubeFace(surf.Geometry, 0, new Vector3(-1, 1, 1), new Vector3(1, 1, 1), new Vector3(1, -1, 1), new Vector3(-1, -1, 1));
+			AddCubeFace(surf.Geometry, 1, new Vector3(-1, 1, -1), new Vector3(-1, -1, -1), new Vector3(1, -1, -1), new Vector3(-1, 1, -1));
+
+			AddCubeFace(surf.Geometry, 2, new Vector3(1, -1, 1), new Vector3(1, 1, 1), new Vector3(1, 1, -1), new Vector3(1, -1, -1));
+			AddCubeFace(surf.Geometry, 3, new Vector3(-1, -1, 1), new Vector3(-1, -1, -1), new Vector3(-1, 1, -1), new Vector3(-1, 1, 1));
+
+			AddCubeFace(surf.Geometry, 4, new Vector3(-1, -1, 1), new Vector3(1, -1, 1), new Vector3(1, -1, -1), new Vector3(-1, -1, -1));
+			AddCubeFace(surf.Geometry, 5, new Vector3(-1, 1, 1), new Vector3(-1, 1, -1), new Vector3(1, 1, -1), new Vector3(1, 1, 1));
+
+			surf.Geometry.GenerateNormals = true;
+
+			AddSurface(surf);
+			FinishSurfaces();
 		}
 
 		public override void PartialInitFromFile(string fileName)
