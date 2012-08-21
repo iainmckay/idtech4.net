@@ -67,6 +67,8 @@ namespace idTech4
 				{
 					idConsole.Warning("TODO: serverDrawClient");
 
+					idConsole.Warning("TODO: server.IsClientInGame");
+
 					if(idE.CvarSystem.GetInteger("net_serverDedicated") == 0)
 					{
 						return 0;
@@ -169,11 +171,14 @@ namespace idTech4
 
 			// if the console is down, we don't need to hold
 			// the mouse cursor
-			/* TODO: if ( console->Active() || com_editorActive ) {
-				Sys_GrabMouseCursor( false );
-			} else {
-				Sys_GrabMouseCursor( true );
-			}*/
+			if(idE.Console.IsActive == true)
+			{
+				idE.Input.GrabMouse = false;
+			}
+			else
+			{
+				idE.Input.GrabMouse = true;
+			}
 
 			// save the screenshot and audio from the last draw if needed
 			/* TODO: if ( aviCaptureMode ) {
@@ -367,7 +372,7 @@ namespace idTech4
 		{
 			// stop generating move and button commands when a local console or menu is active
 			// running here so SP, async networking and no game all go through it
-			// TODO:
+			// TODO: inhibit usercmd in console
 			/*if ( console->Active() || guiActive ) {
 				usercmdGen->InhibitUsercmd( INHIBIT_SESSION, true );
 			} else {
@@ -498,15 +503,16 @@ namespace idTech4
 				}
 				StartMenu();
 				return true;
-			}
+			}*/
 
 			// let the pull-down console take it if desired
-			if ( console->ProcessEvent( event, false ) ) {
+			if(idE.Console.ProcessEvent(ev, false) == true)
+			{
 				return true;
 			}
 
 			// if we are testing a GUI, send all events to it
-			if ( guiTest ) {
+			/*if ( guiTest ) {
 				// hitting escape exits the testgui
 				if ( event->evType == SE_KEY && event->evValue2 == 1 && event->evValue == K_ESCAPE ) {
 					guiTest = NULL;
@@ -530,13 +536,14 @@ namespace idTech4
 
 			idConsole.Warning("TODO: process event");
 			// if we aren't in a game, force the console to take it
-			/*if ( !mapSpawned ) {
-				console->ProcessEvent( event, true );
+			if(_mapSpawned == false)
+			{
+				idE.Console.ProcessEvent(ev, true);
 				return true;
 			}
 
 			// in game, exec bindings for all key downs
-			if ( event->evType == SE_KEY && event->evValue2 == 1 ) {
+			/*if ( event->evType == SE_KEY && event->evValue2 == 1 ) {
 				idKeyInput::ExecKeyBinding( event->evValue );
 				return true;
 			}

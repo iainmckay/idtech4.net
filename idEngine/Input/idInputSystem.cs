@@ -37,6 +37,18 @@ namespace idTech4.Input
 	public class idInputSystem
 	{
 		#region Properties
+		public bool GrabMouse
+		{
+			get
+			{
+				return _grabMouse;
+			}
+			set
+			{
+				_grabMouse = value;
+			}
+		}
+
 		public int MouseX
 		{
 			get
@@ -72,6 +84,7 @@ namespace idTech4.Input
 
 		#region Members
 		private bool _initialized;
+		private bool _grabMouse = true;
 
 		private int _mouseX;
 		private int _mouseY;
@@ -412,8 +425,11 @@ namespace idTech4.Input
 			{
 				idE.EventLoop.Queue(SystemEventType.Mouse, _mouseDeltaX, _mouseDeltaY);
 			}
-			
-			Mouse.SetPosition(screenHalfWidth, screenHalfHeight);
+
+			if(this.GrabMouse == true)
+			{
+				Mouse.SetPosition(screenHalfWidth, screenHalfHeight);
+			}
 		}
 		#endregion
 

@@ -31,6 +31,9 @@ using System.IO;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+
+using idTech4.Input;
 using idTech4.Renderer;
 using idTech4.UI;
 
@@ -41,6 +44,10 @@ namespace idTech4
 		#region Constants
 		private const int Repeat = 100;
 		private const int FirstRepeat = 200;
+		private const int LineWidth = 78;
+		private const int TextSize = 0x30000;
+		private const int TotalLines = (TextSize / LineWidth);
+		private const int NotificationCount = 4;
 		#endregion
 
 		#region Properties
@@ -55,12 +62,20 @@ namespace idTech4
 				_fractionTime = idE.System.FrameTime;
 			}
 		}
+
+		public bool IsActive
+		{
+			get
+			{
+				return _keyCatching;
+			}
+		}
 		#endregion
 
 		#region Members
 		private idInputField _consoleField = new idInputField();
 		private List<string> _buffer = new List<string>();
-		private Queue<int> _notificationTimes = new Queue<int>();
+		private int[] _notificationTimes = new int[idGameConsole.NotificationCount];
 
 		private bool _keyCatching;
 
@@ -73,6 +88,8 @@ namespace idTech4
 		private int _display;			// bottom of console displays this line
 		private int _lastKeyEvent;		// time of last key event for scroll delay
 		private int _nextKeyEvent;		// keyboard repeat rate
+
+		private int _visibleLines;
 
 		// fps counter
 		private int _previousFrameTime;
@@ -102,7 +119,7 @@ namespace idTech4
 			_keyCatching = false;
 			_displayFraction = 0;	// don't scroll to that point, go immediately
 
-			// TODO: ClearNotifyLines();
+			ClearNotificationLines(); 
 		}
 
 		public void Draw(bool forceFullScreen)
@@ -124,9 +141,8 @@ namespace idTech4
 				_keyCatching = true;
 			}
 
-			Scroll();
-			// TODO
-			/*UpdateDisplayFraction();
+			Scroll();			
+			UpdateDisplayFraction();
 
 			if(forceFullScreen == true)
 			{
@@ -144,28 +160,27 @@ namespace idTech4
 				{
 					DrawNotify();
 				}
-			}*/
+			}
 
 			if(idE.CvarSystem.GetBool("com_showFPS") == true)
 			{
 				y = DrawFPS(0);
 			}
 
-			// TODO
-			/*if(com_showMemoryUsage.GetBool())
+			if(idE.CvarSystem.GetBool("com_showMemoryUsage") == true)
 			{
-				y = SCR_DrawMemoryUsage(y);
+				idConsole.Warning("TODO: y = SCR_DrawMemoryUsage(y);");
 			}
 
-			if(com_showAsyncStats.GetBool())
+			if(idE.CvarSystem.GetBool("com_showAsyncStats") == true)
 			{
-				y = SCR_DrawAsyncStats(y);
+				idConsole.Warning("TODO: y = SCR_DrawAsyncStats(y);");
 			}
 
-			if(com_showSoundDecoders.GetBool())
+			if(idE.CvarSystem.GetBool("com_showSoundDecoders") == true)
 			{
-				y = SCR_DrawSoundDecoders(y);
-			}*/
+				idConsole.Warning("TODO: y = SCR_DrawSoundDecoders(y);");
+			}
 		}
 
 		public void Dump(string file)
@@ -204,22 +219,116 @@ namespace idTech4
 			_consoleShader = idE.DeclManager.FindMaterial("console");
 		}
 
-		public void Print(string msg)
+		public void WriteLine(string msg)
 		{
-			// TODO: colors
 			List<string> parts = new List<string>(msg.Replace("\r", "").Split('\n'));
 			parts.RemoveAll(m => m.Length == 0);
 
+			if(_display == _currentLine)
+			{
+				_display += parts.Count;
+			}
+
+			_currentLine += parts.Count;
 			_buffer.AddRange(parts);
 
 			// mark time for transparent overlay
-			/*if ( current >= 0 ) {
-				times[current % NUM_CON_TIMES] = com_frameTime;
-			}*/
+			if(_currentLine >= 0)
+			{
+				_notificationTimes[_currentLine % idGameConsole.NotificationCount] = idE.System.FrameTime;
+			}
+		}
+
+		public bool ProcessEvent(SystemEvent ev, bool forceAccept)
+		{
+			 bool consoleKey = (ev.Type == SystemEventType.Key)
+									&& ((Keys) ev.Value == Keys.Oem8);
+
+			// we always catch the console key event
+			if((forceAccept == false) && (consoleKey == true))
+			{
+				// ignore up events
+				if(ev.Value2 == 0)
+				{
+					return true;
+				}			
+
+				idConsole.Warning("TODO: _consoleField.ClearAutoComplete();");
+
+				// a down event will toggle the destination lines
+				if(_keyCatching == true)
+				{
+					Close();
+
+					idE.Input.GrabMouse = true;
+					idE.CvarSystem.SetBool("ui_chat", false);
+				}
+				else
+				{
+					_consoleField.Clear();
+					_keyCatching = true;
+
+					if(idE.Input.IsKeyDown(Keys.LeftShift) == true)
+					{
+						// if the shift key is down, don't open the console as much
+						SetDisplayFraction(0.2f);
+					}
+					else
+					{
+						SetDisplayFraction(0.5f);
+					}
+
+					idE.CvarSystem.SetBool("ui_chat", true);
+				}
+
+				return true;
+			}
+
+			// if we aren't key catching, dump all the other events
+			if((forceAccept == false) && (_keyCatching == false))
+			{
+				return false;
+			}
+
+			// handle key and character events
+			if(ev.Type == SystemEventType.Char)
+			{
+				idConsole.Warning("TODO: ev char");
+
+				// never send the console key as a character
+				/*if ( event->evValue != Sys_GetConsoleKey( false ) && event->evValue != Sys_GetConsoleKey( true ) ) {
+					consoleField.CharEvent( event->evValue );
+				}*/
+				return true;
+			}
+
+			if(ev.Type == SystemEventType.Key)
+			{
+				// ignore up key events
+				if(ev.Value2 == 0)
+				{
+					return true;
+				}
+
+				idConsole.Warning("TODO: KeyDownEvent( event->evValue );");
+		
+				return true;
+			}
+
+			// we don't handle things like mouse, joystick, and network packets
+			return false;
 		}
 		#endregion
 
 		#region Private
+		private void ClearNotificationLines()
+		{
+			for(int i = 0; i < _notificationTimes.Length; i++)
+			{
+				_notificationTimes[i] = 0;
+			}
+		}
+
 		private float DrawFPS(float y)
 		{
 			// don't use serverTime, because that will be drifting to
@@ -259,6 +368,213 @@ namespace idTech4
 			return (y + idE.BigCharacterHeight + 4);
 		}
 
+		private void DrawInput()
+		{
+			int y = _visibleLines - (idE.SmallCharacterHeight * 2);
+
+			// TODO
+			/*if ( consoleField.GetAutoCompleteLength() != 0 ) {
+				autoCompleteLength = strlen( consoleField.GetBuffer() ) - consoleField.GetAutoCompleteLength();
+
+				if ( autoCompleteLength > 0 ) {
+					renderSystem->SetColor4( .8f, .2f, .2f, .45f );
+
+					renderSystem->DrawStretchPic( 2 * SMALLCHAR_WIDTH + consoleField.GetAutoCompleteLength() * SMALLCHAR_WIDTH,
+									y + 2, autoCompleteLength * SMALLCHAR_WIDTH, SMALLCHAR_HEIGHT - 2, 0, 0, 0, 0, whiteShader );
+
+				}
+			}*/
+
+			idE.RenderSystem.Color = idColor.Cyan;
+			idE.RenderSystem.DrawSmallCharacter(1 * idE.SmallCharacterWidth, y, ']', _charSetShader);
+
+			//_consoleField.Draw(2 * idE.SmallCharacterWidth, y, idE.VirtualScreenWidth - 3 * idE.SmallCharacterWidth, true, _charSetShader);
+		}
+
+		private void DrawNotify()
+		{
+			if(idE.CvarSystem.GetBool("con_noPrint") == true)
+			{
+				return;
+			}
+
+			Vector4 color = idColor.White;
+			idE.RenderSystem.Color = color;
+
+			int y = 0;
+
+			for(int i = _currentLine - (idGameConsole.NotificationCount + 1); i <= _currentLine; i++)
+			{
+				if(i < 0)
+				{
+					continue;
+				}
+
+				int time = _notificationTimes[i % idGameConsole.NotificationCount];
+
+				if(time == 0)
+				{
+					continue;
+				}
+
+				time = idE.System.FrameTime - time;
+
+				if(time > (idE.CvarSystem.GetFloat("con_notifyTime") * 1000))
+				{
+					continue;
+				}
+
+				if(i >= _buffer.Count)
+				{
+					break;
+				}
+
+				string text = _buffer[i];
+
+				for(int n = 0, x = 0;  n < text.Length; n++, x++)
+				{
+					if(idHelper.IsColor(text, n) == true)
+					{
+						color = idHelper.ColorForIndex(text[n + 1]);
+						idE.RenderSystem.Color = color;
+						n += 1;
+		
+						continue;
+					}
+
+					idE.RenderSystem.DrawSmallCharacter((x + 1) * idE.SmallCharacterWidth, y, text[n], _charSetShader);
+				}
+
+				y += idE.SmallCharacterHeight;
+			}
+
+			idE.RenderSystem.Color = idColor.Cyan;
+		}
+
+		/// <summary>
+		/// Draws the console with the solid background.
+		/// </summary>
+		/// <param name="fraction"></param>
+		private void DrawSolidConsole(float fraction)
+		{
+			int lines = (int) ((float) idE.VirtualScreenHeight * fraction);
+
+			if(lines <= 0)
+			{
+				return;
+			}
+
+			if(lines > idE.VirtualScreenHeight)
+			{
+				lines = idE.VirtualScreenHeight;
+			}
+
+			// draw the background
+			float y = fraction * idE.VirtualScreenHeight - 2;
+
+			if(y < 1.0f)
+			{
+				y = 0.0f;
+			}
+			else
+			{
+				idE.RenderSystem.DrawStretchPicture(0, 0, idE.VirtualScreenWidth, y, 0, 1.0f - _displayFraction, 1, 1, _consoleShader);
+			}
+
+			idE.RenderSystem.Color = idColor.Cyan;
+			idE.RenderSystem.DrawStretchPicture(0, y, idE.VirtualScreenWidth, 2, 0, 0, 0, 0, _whiteShader);
+			idE.RenderSystem.Color = idColor.White;
+
+			DrawVersion(lines);
+			DrawText(lines, y);
+
+			// draw the input prompt, user text, and cursor if desired
+			DrawInput();
+
+			idE.RenderSystem.Color = idColor.Cyan;
+		}
+
+		private void DrawText(int lines, float y)
+		{
+			_visibleLines = lines;
+
+			int rows = (lines - idE.SmallCharacterWidth) / idE.SmallCharacterWidth; // rows of text to draw
+			int n, x = 0;
+			y = lines - (idE.SmallCharacterHeight * 3);
+			Vector4 color = idColor.Cyan;
+
+			// draw from the bottom up
+			if(_display != _currentLine)
+			{
+				// draw arrows to show the buffer is backscrolled
+				idE.RenderSystem.Color = idColor.Cyan;
+
+				for(x = 0; x < LineWidth; x += 4)
+				{
+					idE.RenderSystem.DrawSmallCharacter((x + 1) * idE.SmallCharacterWidth, (int) y, '^', _charSetShader);
+				}
+
+				y -= idE.SmallCharacterHeight;
+				rows--;
+			}
+
+			int row = _display;
+
+			if(x == 0)
+			{
+				row--;
+			}
+
+			Vector4 currentColor = idColor.White;
+			idE.RenderSystem.Color = currentColor;
+			
+			for(int i = 0; i < rows; i++, y -= idE.SmallCharacterHeight, row--)
+			{
+				if((row < 0) || (row > _buffer.Count))
+				{
+					break;
+				}
+
+				if((_currentLine - row) >= TotalLines)
+				{
+					// past scrollback wrap point
+					continue;
+				}
+
+				string text = _buffer[row];
+
+				for(n = 0, x = 0; n < text.Length; n++, x++)
+				{
+					if(idHelper.IsColor(text, n) == true)
+					{
+						color = idHelper.ColorForIndex(text[n + 1]);
+						n += 1;
+
+						continue;
+					}
+
+					if(color != currentColor)
+					{
+						currentColor = color;
+						idE.RenderSystem.Color = color;
+					}
+
+					idE.RenderSystem.DrawSmallCharacter((x + 1) * idE.SmallCharacterWidth, (int) y, text[n], _charSetShader);
+				}
+			}
+		}
+
+		private void DrawVersion(int lines)
+		{
+			string version = string.Format("{0}.{1}", idE.EngineVersion, idVersion.BuildCount);
+
+			idE.RenderSystem.Color = idColor.Cyan;
+			idE.RenderSystem.DrawSmallString(
+				idE.VirtualScreenWidth - (version.Length * idE.SmallCharacterWidth),
+				(lines - (idE.SmallCharacterHeight + (idE.SmallCharacterHeight / 2))),
+				version, idColor.White, false, _charSetShader);
+		}
+
 		/// <summary>
 		/// Deals with scrolling text because we don't have key repeat.
 		/// </summary>
@@ -282,6 +598,54 @@ namespace idTech4
 				nextKeyEvent = CONSOLE_REPEAT;
 				return;
 			}*/
+		}
+
+		/// <summary>
+		/// Causes the console to start opening the desired amount.
+		/// </summary>
+		/// <param name="fraction"></param>
+		private void SetDisplayFraction(float fraction)
+		{
+			_finalFraction = fraction;
+			_fractionTime = idE.System.FrameTime;
+		}
+
+		/// <summary>
+		/// Scrolls the console up or down based on conspeed.
+		/// </summary>
+		private void UpdateDisplayFraction()
+		{
+			if(idE.CvarSystem.GetFloat("con_speed") <= 0.1f)
+			{
+				_fractionTime = idE.System.FrameTime;
+				_displayFraction = _finalFraction;
+			}
+			else
+			{
+				// scroll towards the destination height
+				if(_finalFraction < _displayFraction)
+				{
+					_displayFraction -= idE.CvarSystem.GetFloat("con_speed") * (idE.System.FrameTime - _fractionTime) * 0.001f;
+
+					if(_finalFraction > _displayFraction)
+					{
+						_displayFraction = _finalFraction;
+					}
+
+					_fractionTime = idE.System.FrameTime;
+				}
+				else if(_finalFraction > _displayFraction)
+				{
+					_displayFraction += idE.CvarSystem.GetFloat("con_speed") * (idE.System.FrameTime - _fractionTime) * 0.001f;
+
+					if(_finalFraction < _displayFraction)
+					{
+						_displayFraction = _finalFraction;
+					}
+
+					_fractionTime = idE.System.FrameTime;
+				}
+			}
 		}
 		#endregion
 
@@ -307,8 +671,9 @@ namespace idTech4
 					fileName += ".txt";
 				}
 
-				idConsole.WriteLine("Dumped console text to {0}.", fileName);
 				Dump(fileName);
+
+				idConsole.WriteLine("Dumped console text to {0}.", fileName);
 			}
 		}
 		#endregion

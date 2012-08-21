@@ -219,7 +219,7 @@ namespace idTech4
 			}
 
 			// echo to console buffer
-			AddToScreenBuffer(msg);
+			AddToConsoleBuffer(msg);
 			AddToDedicatedBuffer(idHelper.RemoveColors(msg));
 
 			// print to script debugger server
@@ -328,9 +328,9 @@ namespace idTech4
 			/*}*/
 		}
 
-		private static void AddToScreenBuffer(string msg)
+		private static void AddToConsoleBuffer(string msg)
 		{
-			idE.Console.Print(msg);
+			idE.Console.WriteLine(msg);
 		}		
 		#endregion
 		#endregion

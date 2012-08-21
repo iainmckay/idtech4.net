@@ -5,7 +5,8 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
-using idTech4.CollisionManager;
+using idTech4.Collision;
+using idTech4.Net;
 
 namespace idTech4.Game.Physics
 {
@@ -173,9 +174,11 @@ namespace idTech4.Game.Physics
 		#endregion
 
 		#region Methods
-		public override void Save(idSaveGame saveFile)
+		public override void Save(object saveFile)
 		{
 			base.Save(saveFile);
+
+			idConsole.Warning("TODO: idPhysics_Static.Save");
 
 			// TODO
 			/*savefile->WriteObject( self );
@@ -190,9 +193,11 @@ namespace idTech4.Game.Physics
 			savefile->WriteBool( isOrientated );*/
 		}
 
-		public override void Restore(idRestoreGame saveFile)
+		public override void Restore(object saveFile)
 		{
 			base.Restore(saveFile);
+
+			idConsole.Warning("TODO: idPhysics_Static.Restore");
 
 			// TODO
 			/*savefile->ReadObject( reinterpret_cast<idClass *&>( self ) );

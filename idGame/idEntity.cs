@@ -431,7 +431,7 @@ namespace idTech4.Game
 		// for being linked into activeEntities list
 		private LinkedListNode<idEntity> _activeNode;
 
-		private idPhysics_Static _defaultPhysicsObject;
+		private idPhysics _defaultPhysicsObject;
 		private idPhysics _physics;
 		#endregion
 

@@ -1148,10 +1148,7 @@ namespace idTech4
 				// init commands
 				InitCommands();
 
-				// initialize the file system
 				idE.FileSystem.Init();
-
-				// initialize the declaration manager
 				idE.DeclManager.Init();
 
 				bool sysDetect = idE.FileSystem.FileExists(idE.ConfigSpecification, "fs_savepath") == false;
