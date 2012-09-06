@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 
 using idTech4.Game;
+using idTech4.Game.Physics;
 using idTech4.Game.Rules;
 using idTech4.Math;
 using idTech4.Net;
@@ -18,6 +19,8 @@ namespace idTech4.Game.Entities
 	public class idPlayer : idActor
 	{
 		#region Constants
+		public static readonly int SpectateRaise = 25;
+
 		public static readonly Vector3[] ColorBarTable = new Vector3[] {
 			new Vector3(0.25f, 0.25f, 0.25f),
 			new Vector3(1.00f, 0.00f, 0.00f),
@@ -25,7 +28,6 @@ namespace idTech4.Game.Entities
 			new Vector3(0.20f, 0.50f, 0.80f),
 			new Vector3(1.00f, 0.80f, 0.10f)
 		};
-
 		#endregion
 
 		#region Properties
@@ -212,6 +214,8 @@ namespace idTech4.Game.Entities
 		#endregion
 
 		#region Members
+		private idPhysics_Player _physicsObject; // player physics
+
 		private bool _showWeaponViewModel;
 
 		// handles damage kicks and effects
@@ -428,9 +432,12 @@ namespace idTech4.Game.Entities
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
+			idConsole.Warning("TODO: idPlayer.Init");
+
+			string value;
 			// TODO
 			// TODO: idKeyValue kv;
-			/*const char			*value;
+			/*
 const idKeyValue	*kv;
 
 noclip					= false;
@@ -513,7 +520,7 @@ oldViewYaw = 0.0f;*/
 			// set the pm_ cvars
 			if((idR.Game.IsMultiplayer == false) || (idR.Game.IsServer == true))
 			{
-				// TODO
+				idConsole.Warning("TODO: player pm_");
 				/*kv = this.SpawnArgs.MatchPrefix("pm_", null);
 
 				while(kv != null)
@@ -539,24 +546,26 @@ oldViewYaw = 0.0f;*/
 
 			gibDeath = false;
 			gibsLaunched = false;
-			gibsDir.Zero();
+			gibsDir.Zero();*/
 
 			// set the gravity
-			physicsObj.SetGravity(gameLocal.GetGravity());
+			_physicsObject = new idPhysics_Player();
+			_physicsObject.Gravity = idR.Game.Gravity;
 
 			// start out standing
-			SetEyeHeight(pm_normalviewheight.GetFloat());
+			/*SetEyeHeight(pm_normalviewheight.GetFloat());
 
 			stepUpTime = 0;
 			stepUpDelta = 0.0f;
 			viewBobAngles.Zero();
-			viewBob.Zero();
+			viewBob.Zero();*/
 
-			value = spawnArgs.GetString("model");
-			if(value && (*value != 0))
+			value = this.SpawnArgs.GetString("model", "");
+
+			if(value != string.Empty)
 			{
 				SetModel(value);
-			}*/
+			}
 
 			if(_cursor != null)
 			{
@@ -656,12 +665,12 @@ oldViewYaw = 0.0f;*/
 			lastMPAim = -1;
 			lastMPAimTime = 0;
 			MPAimFadeTime = 0;
-			MPAimHighlight = false;
+			MPAimHighlight = false;*/
 
-			if(hud)
+			if(_hud != null)
 			{
-				hud->HandleNamedEvent("aim_clear");
-			}*/
+				_hud.HandleNamedEvent("aim_clear");
+			}
 
 			idR.CvarSystem.SetBool("ui_chat", false);
 		}
@@ -687,16 +696,13 @@ oldViewYaw = 0.0f;*/
 				this.SpawnArgs.Set("spawn_skin", skin);
 			}
 
-			origin = Vector3.Zero;
-			angles = new idAngles();
-
 			// activate the spawn locations targets
-			// TODO: spot->PostEventMS(&EV_ActivateTargets, 0, this);
+			idConsole.Warning("TODO: spot->PostEventMS(&EV_ActivateTargets, 0, this);");
 
-			// TODO
-			/*origin = spot->GetPhysics()->GetOrigin();
-			origin[2] += 4.0f + CM_BOX_EPSILON;		// move up to make sure the player is at least an epsilon above the floor
-			angles = spot->GetPhysics()->GetAxis().ToAngles();*/
+			origin = spot.Physics.GetOrigin();
+			origin.Z += 4.0f + idClipModel.BoxEpsilon; // move up to make sure the player is at least an epsilon above the floor
+
+			angles = idHelper.AxisToAngles(spot.Physics.GetAxis());
 		}
 
 		/// <summary>
@@ -739,19 +745,19 @@ oldViewYaw = 0.0f;*/
 			/*fl.noknockback = false;
 
 			// stop any ragdolls being used
-			StopRagdoll();
+			StopRagdoll();*/
 
 			// set back the player physics
-			SetPhysics( &physicsObj );
+			SetPhysics(_physicsObject);
 
-			physicsObj.SetClipModelAxis();
-			physicsObj.EnableClip();
+			_physicsObject.SetClipModelAxis();
+			_physicsObject.EnableClip();
 
-			if ( !spectating ) {
+			/*if ( !spectating ) {
 				SetCombatContents( true );
-			}
+			}*/
 
-			physicsObj.SetLinearVelocity( vec3_origin );*/
+			_physicsObject.SetLinearVelocity(Vector3.Zero);
 
 			// setup our initial view
 			if(this.IsSpectating == false)
@@ -761,9 +767,9 @@ oldViewYaw = 0.0f;*/
 			else
 			{
 				spectatorOrigin = origin;
+				spectatorOrigin.Z += idR.CvarSystem.GetFloat("pm_normalheight");
+				spectatorOrigin.Z += SpectateRaise;
 
-				// TODO: spec_origin[ 2 ] += pm_normalheight.GetFloat();
-				// spec_origin[ 2 ] += SPECTATE_RAISE;
 				this.Origin = spectatorOrigin;
 			}
 
@@ -780,7 +786,7 @@ oldViewYaw = 0.0f;*/
 			legsYaw = 0.0f;
 			idealLegsYaw = 0.0f;
 			oldViewYaw = viewAngles.yaw;*/
-
+			
 			if(this.IsSpectating == true)
 			{
 				Hide();
@@ -992,6 +998,7 @@ oldViewYaw = 0.0f;*/
 		{
 			base.Hide();
 
+			idConsole.Warning("TODO: idPlayer.Hide");
 			// TODO
 			/*	idActor::Hide();
 	weap = weapon.GetEntity();
@@ -1056,6 +1063,7 @@ oldViewYaw = 0.0f;*/
 		{
 			base.Show();
 
+			idConsole.Warning("TODO: idPlayer.Show");
 			// TODO
 			/*idWeapon *weap;
 	
@@ -1086,14 +1094,18 @@ if ( weap ) {
 			}
 
 			// set our collision model
+			_physicsObject.Self = this;
 			// TODO
-			/*physicsObj.SetSelf( this );
-			SetClipModel();
-			physicsObj.SetMass( spawnArgs.GetFloat( "mass", "100" ) );
-			physicsObj.SetContents( CONTENTS_BODY );
-			physicsObj.SetClipMask( MASK_PLAYERSOLID );
-			SetPhysics( &physicsObj );
-			InitAASLocation();*/
+			/*
+			SetClipModel();*/
+
+			_physicsObject.SetMass(this.SpawnArgs.GetFloat("mass", 100));
+			_physicsObject.SetContents(ContentFlags.Body);
+			_physicsObject.SetClipMask(ContentFlags.MaskPlayerSolid);
+
+			SetPhysics(_physicsObject);
+
+			idConsole.Warning("TODO: InitAASLocation();");
 
 			_skin = this.RenderEntity.CustomSkin;
 

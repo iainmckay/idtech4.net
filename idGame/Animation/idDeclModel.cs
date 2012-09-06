@@ -126,8 +126,9 @@ namespace idTech4.Game.Animation
 			}
 
 			idMD5Joint[] joints = _model.Joints;
+			int count = _joints.Length;
 				
-			for(int i = 0; i < _joints.Length; i++)
+			for(int i = 0; i < count; i++)
 			{
 				if(joints[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase) == true)
 				{
@@ -153,8 +154,9 @@ namespace idTech4.Game.Animation
 			bool subtract = false;
 			bool getChildren = false;
 			string jointName;
+			int nameCount = jointNames.Length;
 
-			for(int i = 0; i < jointNames.Length; i++)
+			for(int i = 0; i < nameCount; i++)
 			{
 				while((i != jointNames.Length) && (jointNames[i] == ' '))
 				{
@@ -267,9 +269,10 @@ namespace idTech4.Game.Animation
 			}
 
 			string alias = realName.ToString();
-			int i; 
+			int i;
+			int count = _anims.Count;
 
-			for(i = 0; i < _anims.Count; i++)
+			for(i = 0; i < count; i++)
 			{
 				if(_anims[i].FullName.Equals(alias, StringComparison.OrdinalIgnoreCase) == true)
 				{
@@ -277,7 +280,7 @@ namespace idTech4.Game.Animation
 				}
 			}
 
-			if((i < _anims.Count) && (i >= defaultAnimCount))
+			if((i < count) && (i >= defaultAnimCount))
 			{
 				lexer.Warning("Duplicate anim '{0}'", realName);
 				MakeDefault();
@@ -729,8 +732,9 @@ namespace idTech4.Game.Animation
 					}
 
 					int i;
+					int channelCount = (int) AnimationChannel.Count;
 
-					for(i = (int) AnimationChannel.All + 1; i < (int) AnimationChannel.Count; i++)
+					for(i = (int) AnimationChannel.All + 1; i < channelCount; i++)
 					{
 						if(ChannelNames[i].Equals(token2.ToString(), StringComparison.OrdinalIgnoreCase) == true)
 						{
@@ -738,7 +742,7 @@ namespace idTech4.Game.Animation
 						}
 					}
 
-					if(i >= (int) AnimationChannel.Count)
+					if(i >= channelCount)
 					{
 						lexer.Warning("Unknown channel '{0}'", token2.ToString());
 						MakeDefault();
@@ -770,10 +774,11 @@ namespace idTech4.Game.Animation
 					}
 
 					int[] jointList = GetJointList(jointNames.ToString());
+					int jointLength = jointList.Length;
 
 					List<int> channelJoints = new List<int>();
 					
-					for(count = i = 0; i < jointList.Length; i++)
+					for(count = i = 0; i < jointLength; i++)
 					{
 						int jointIndex = jointList[i];
 
@@ -1401,11 +1406,12 @@ namespace idTech4.Game.Animation
 
 			// calculate the index of the new command
 			int index = _frameLookups[frameIndex].FirstCommand + _frameLookups[frameIndex].Index;
+			int count = _frameLookups.Count;
 
 			_frameCommands.Insert(index, frameCommand);
 
 			// fix the indices of any later frames to account for the inserted command
-			for(int i = frameIndex + 1; i < _frameLookups.Count; i++)
+			for(int i = frameIndex + 1; i < count; i++)
 			{
 				_frameLookups[i].FirstCommand++;
 			}

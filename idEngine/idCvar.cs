@@ -514,8 +514,9 @@ namespace idTech4
 				if(_valueStrings != null)
 				{
 					_intValue = 0;
+					int count = _valueStrings.Length;
 
-					for(int i = 0; i < _valueStrings.Length; i++)
+					for(int i = 0; i < count; i++)
 					{
 						if(_valueString.ToLower() == _valueStrings[i].ToLower())
 						{

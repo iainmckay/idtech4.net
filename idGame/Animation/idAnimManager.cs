@@ -60,7 +60,9 @@ namespace idTech4.Game.Animation
 
 		public int GetJointIndex(string name)
 		{
-			for(int i = 0; i < _jointNames.Count; i++)
+			int count = _jointNames.Count;
+
+			for(int i = 0; i < count; i++)
 			{
 				if(_jointNames[i].Equals(name) == true)
 				{

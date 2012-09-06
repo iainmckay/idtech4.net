@@ -209,8 +209,9 @@ namespace idTech4
 				}
 
 				int quotes = 0, i;
+				int len = _cmdBuffer.Length;
 
-				for(i = 0; i < _cmdBuffer.Length; i++)
+				for(i = 0; i < len; i++)
 				{
 					if(_cmdBuffer[i] == '"')
 					{
@@ -428,7 +429,9 @@ namespace idTech4
 		/// <param name="e"></param>
 		private void Cmd_Echo(object sender, CommandEventArgs e)
 		{
-			for(int i = 1; i < e.Args.Length; i++)
+			int count = e.Args.Length;
+			
+			for(int i = 1; i < count; i++)
 			{
 				idConsole.Write("{0} ", e.Args.Get(i));
 			}
@@ -460,7 +463,9 @@ namespace idTech4
 		/// <param name="e"></param>
 		private void Cmd_Parse(object sender, CommandEventArgs e)
 		{
-			for(int i = 0; i < e.Args.Length; i++)
+			int count = e.Args.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				idConsole.WriteLine("{0}: {1}", i, e.Args.Get(i));
 			}

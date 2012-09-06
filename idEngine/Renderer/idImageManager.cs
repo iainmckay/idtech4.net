@@ -769,8 +769,9 @@ namespace idTech4.Renderer
 		{
 			// solid white texture
 			byte[] data = new byte[DefaultImageSize * DefaultImageSize * 4];
+			int count = data.Length;
 
-			for(int i = 0; i < data.Length; i++)
+			for(int i = 0; i < count; i++)
 			{
 				data[i] = 255;
 			}

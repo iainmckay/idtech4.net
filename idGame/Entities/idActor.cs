@@ -16,6 +16,14 @@ namespace idTech4.Game.Entities
 	public class idActor : idAFEntity_Gibbable
 	{
 		#region Properties
+		public float Fov
+		{
+			set
+			{
+				_fovDot = (float) idMath.Cos(MathHelper.ToRadians(value * 0.5f));
+			}
+		}
+
 		public virtual bool IsOnLadder
 		{
 			get
@@ -45,14 +53,46 @@ namespace idTech4.Game.Entities
 				_team = value;
 			}
 		}
+
+		public virtual Matrix ViewAxis
+		{
+			get
+			{
+				return _viewAxis;
+			}
+			set
+			{
+				_viewAxis = value;
+			}
+		}
 		#endregion
 
 		#region Members
 		private PlayerTeam _team;
+		private int _rank;
+
+		private int _painDebounceTime;	// next time the actor can show pain
+		private int _painDelay;			// time between playing pain sound
+		private int _painThreshold;		// how much damage monster can take at any one time before playing pain animation
+		
+		private Matrix _viewAxis;		// view axis of the actor
+		
+		private float _fovDot;			// cos( fovDegrees )
+		private Vector3 _eyeOffset;		// offset of eye relative to physics origin
+		private Vector3 _modelOffset;	// offset of visual model relative to the physics origin
+			
+		private bool _useCombatBoundingBox;	// whether to use the bounding box for combat collision
+
+		private bool _allowPain;
+		private bool _allowEyeFocus;
+		private bool _finalBoss;
 
 		private int _leftEyeJoint;
 		private int _rightEyeJoint;
 		private int _soundJoint;
+
+		private string _painAnim;
+		private string _animPrefix;
 
 		// script variables
 		private string _waitState;
@@ -347,30 +387,26 @@ namespace idTech4.Game.Entities
 
 			// TODO
 			idConsole.Warning("TODO: idActor.Spawn");
-			/*idEntity* ent;
-			idStr jointName;
-			float fovDegrees;
-			copyJoints_t copyJoint;
-
-			animPrefix = "";
+			/*
 			state = NULL;
 			idealState = NULL;*/
 
-			/*_rank = this.SpawnArgs.GetInteger("rank", 0);
-			_team = this.SpawnArgs.GetInteger("team", 0);
+			_animPrefix = null;
+
+			_rank = this.SpawnArgs.GetInteger("rank", 0);
+			_team = (PlayerTeam) this.SpawnArgs.GetInteger("team", 0);
 			_modelOffset = this.SpawnArgs.GetVector3("offsetModel", Vector3.Zero);
 			_useCombatBoundingBox = this.SpawnArgs.GetBool("use_combat_bbox", false);
-			_viewAxis = this.Physics.GetAxis();
-			_fovDegrees = this.SpawnArgs.GetFloat("fov", 90);
+			_viewAxis = this.Physics.GetAxis();			
 			_finalBoss = this.SpawnArgs.GetBool("finalBoss");
 
-			SetFOV(fovDegrees);
-
 			_painDebounceTime = 0;
-			_painDelay = this.SpawnArgs.GetFloat("pain_delay") * 1000.0f;
+			_painDelay = (int) (this.SpawnArgs.GetFloat("pain_delay") * 1000.0f);
 			_painThreshold = this.SpawnArgs.GetInteger("pain_threshold");
 
-			LoadAF();
+			this.Fov = this.SpawnArgs.GetFloat("fov", 90);
+
+			/*LoadAF();
 
 			walkIK.Init(this, IK_ANIM, modelOffset);
 

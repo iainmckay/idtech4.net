@@ -1019,8 +1019,9 @@ namespace idTech4
 			idE.UserCommandGenerator.InitForNewMap();
 
 			_mapSpawnData.MapSpawnUserCommand = new idUserCommand[idE.MaxAsynchronousClients];
+			int count = _mapSpawnData.MapSpawnUserCommand.Length;
 
-			for(int i = 0; i < _mapSpawnData.MapSpawnUserCommand.Length; i++)
+			for(int i = 0; i < count; i++)
 			{
 				_mapSpawnData.MapSpawnUserCommand[i] = new idUserCommand();
 			}

@@ -21,6 +21,7 @@
     <DefineConstants>DEBUG;TRACE</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
+    <CodeAnalysisRuleSet>AllRules.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>pdbonly</DebugType>
@@ -60,6 +61,10 @@
     <Compile Include="Physics\idClip.cs" />
     <Compile Include="Physics\idClipModel.cs" />
     <Compile Include="Physics\idPhysics.cs" />
+    <Compile Include="Physics\idPhysics_Actor.cs" />
+    <Compile Include="Physics\idPhysics_Base.cs" />
+    <Compile Include="Physics\idPhysics_Player.cs" />
+    <Compile Include="Physics\idPhysics_Static.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="idTypes.cs" />
     <Compile Include="Rules\Deathmatch.cs" />

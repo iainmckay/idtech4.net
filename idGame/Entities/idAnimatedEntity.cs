@@ -71,15 +71,6 @@ namespace idTech4.Game.Entities
 
 				return null;
 			}
-			set
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				idConsole.Warning("TODO: idAnimatedEntity.Model set");
-			}
 		}
 		#endregion
 
@@ -134,6 +125,16 @@ namespace idTech4.Game.Entities
 			}
 
 			idConsole.Warning("TODO: idAnimatedEntity.Save");
+		}
+
+		protected override void SetModel(string modelName)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			idConsole.Warning("TODO: idAnimatedEntity.Model set");
 		}
 
 		public override void Think()

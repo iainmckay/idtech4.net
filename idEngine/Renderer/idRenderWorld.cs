@@ -532,8 +532,9 @@ namespace idTech4.Renderer
 		private int CommonChildrenArea(AreaNode node)
 		{
 			int[] nums = new int[2];
+			int count = nums.Length;
 
-			for(int i = 0; i < nums.Length; i++)
+			for(int i = 0; i < count; i++)
 			{
 				if(node.Children[i] <= 0)
 				{
@@ -591,7 +592,7 @@ namespace idTech4.Renderer
 		private void FreeDefs()
 		{
 			_generateInteractionsCalled = false;
-
+			int count;
 
 			/*if(_interactionTable != null)
 			{
@@ -614,7 +615,9 @@ namespace idTech4.Renderer
 			}*/
 
 			// free all entityDefs
-			for(int i = 0; i < _entityDefinitions.Count; i++)
+			count = _entityDefinitions.Count;
+
+			for(int i = 0; i < count; i++)
 			{
 				idRenderEntity mod = _entityDefinitions[i];
 
@@ -853,6 +856,7 @@ namespace idTech4.Renderer
 			model.InitEmpty(token.ToString());
 
 			int surfaceCount = lexer.ParseInt();
+			int loopCount = 0;
 
 			if(surfaceCount < 0)
 			{
@@ -871,8 +875,10 @@ namespace idTech4.Renderer
 				modelSurface.Geometry = new Surface();
 				modelSurface.Geometry.Vertices = new Vertex[lexer.ParseInt()];
 				modelSurface.Geometry.Indexes = new int[lexer.ParseInt()];
-				
-				for(int j = 0; j < modelSurface.Geometry.Vertices.Length; j++)
+
+				loopCount = modelSurface.Geometry.Vertices.Length;
+
+				for(int j = 0; j < loopCount; j++)
 				{
 					float[] vec = lexer.Parse1DMatrix(8);
 
@@ -881,7 +887,9 @@ namespace idTech4.Renderer
 					modelSurface.Geometry.Vertices[j].Normal = new Vector3(vec[5], vec[6], vec[7]);
 				}
 
-				for(int j = 0; j < modelSurface.Geometry.Indexes.Length; j++)
+				loopCount = modelSurface.Geometry.Indexes.Length;
+
+				for(int j = 0; j < loopCount; j++)
 				{
 					modelSurface.Geometry.Indexes[j] = lexer.ParseInt();
 				}
@@ -947,7 +955,9 @@ namespace idTech4.Renderer
 			modelSurface.Geometry.Indexes = new int[lexer.ParseInt()];
 			modelSurface.Geometry.ShadowCapPlaneBits = lexer.ParseInt();
 
-			for(int j = 0; j < modelSurface.Geometry.Vertices.Length; j++)
+			int count = modelSurface.Geometry.Vertices.Length;
+
+			for(int j = 0; j < count; j++)
 			{
 				float[] vec = lexer.Parse1DMatrix(8);
 
@@ -955,7 +965,9 @@ namespace idTech4.Renderer
 				modelSurface.Geometry.Bounds.AddPoint(modelSurface.Geometry.ShadowVertices[j].Position);
 			}
 
-			for(int j = 0; j < modelSurface.Geometry.Indexes.Length; j++)
+			count = modelSurface.Geometry.Indexes.Length;
+
+			for(int j = 0; j < count; j++)
 			{
 				modelSurface.Geometry.Indexes[j] = lexer.ParseInt();
 			}

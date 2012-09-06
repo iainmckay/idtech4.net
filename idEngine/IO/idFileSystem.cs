@@ -1191,9 +1191,10 @@ namespace idTech4.IO
 			}
 
 			string[] dirExtensions = extensions;
+			int count = dirExtensions.Length;
 
 			// build extension search pattern
-			for(int i = 0; i < dirExtensions.Length; i++)
+			for(int i = 0; i < count; i++)
 			{
 				if(dirExtensions[i] != "/")
 				{
@@ -1255,7 +1256,9 @@ namespace idTech4.IO
 					sysFiles.Remove("..");
 
 					// if we are searching for directories, remove . and ..					
-					for(int j = 0; j < sysFiles.Count; j++)
+					count = sysFiles.Count;
+
+					for(int j = 0; j < count; j++)
 					{
 						sysFiles[j] = sysFiles[j].Substring(netPath.Length + 1);
 

@@ -34,5 +34,8 @@ namespace idTech4.Math
 {
 	public struct idAngles
 	{
+		public float Pitch;
+		public float Yaw;
+		public float Roll;
 	}
 }

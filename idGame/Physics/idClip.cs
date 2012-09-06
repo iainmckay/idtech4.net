@@ -11,7 +11,6 @@ using idTech4.Renderer;
 
 namespace idTech4.Game.Physics
 {
-	// would prefer value semantics for this
 	public class ClipSector
 	{
 		public int Axis; // -1 = leaf node
@@ -20,7 +19,6 @@ namespace idTech4.Game.Physics
 		public ClipLink Links;
 	}
 
-	// again, would prefer value semantics
 	public class ClipLink
 	{
 		public idClipModel Model;
@@ -38,6 +36,14 @@ namespace idTech4.Game.Physics
 		#endregion
 
 		#region Properties
+		public idClipModel DefaultClipModel
+		{
+			get
+			{
+				return _defaultClipModel;
+			}
+		}
+
 		public ClipSector[] Sectors
 		{
 			get
@@ -46,11 +52,11 @@ namespace idTech4.Game.Physics
 			}
 		}
 
-		public idClipModel DefaultClipModel
+		public idBounds WorldBounds
 		{
 			get
 			{
-				return _defaultClipModel;
+				return _worldBounds;
 			}
 		}
 		#endregion
@@ -88,12 +94,14 @@ namespace idTech4.Game.Physics
 			_clipSectors = new ClipSector[MaxSectors];
 			_clipSectorCount = 0;
 			_touchCount = -1;
-
-			idConsole.Warning("TODO: idClip.Init");
-
+			
 			// get world map bounds
-			/*int h = idR.CollisionModelManager.LoadModel("worldMap", false);
-			_worldBounds = idR.CollisionModelManager.GetModelBounds(h);*/
+			CollisionModel collisionModel = idR.CollisionModelManager.LoadModel("worldMap", false);
+
+			if(collisionModel != null)
+			{
+				_worldBounds = collisionModel.Bounds;
+			}
 
 			// create world sectors
 			CreateClipSectors(0, _worldBounds, ref maxSector);
@@ -105,7 +113,7 @@ namespace idTech4.Game.Physics
 
 			// initialize a default clip model
 			_defaultClipModel = new idClipModel();
-			// TODO: _defaultClipModel.LoadModel(new idTraceModel(idBounds.Expand(8)));
+			_defaultClipModel.LoadModel(new idTraceModel(idBounds.Expand(8)));
 
 			// set counters to zero
 			_rotationCount = 0;
@@ -118,6 +126,7 @@ namespace idTech4.Game.Physics
 
 		public bool Translation(out TraceResult result, Vector3 start, Vector3 end, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, idEntity passEntity)
 		{
+			idConsole.Warning("TODO: idClip.Translation");
 			// TODO
 			/*if(TestHugeTranslation(result, model, start, end, traceModelAxis) == true)
 			{
@@ -202,6 +211,7 @@ namespace idTech4.Game.Physics
 
 		public bool Rotation(out TraceResult result, Vector3 start, idRotation rotation, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, idEntity passEntity)
 		{
+			idConsole.Warning("TODO: idClip.Rotation");
 			/*idTraceModel traceModel = TraceModelForClipModel(model);
 			idBounds traceBounds = new idBounds();
 			TraceResult traceResult;
@@ -273,6 +283,7 @@ namespace idTech4.Game.Physics
 
 		public ContentFlags Contents(Vector3 start, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, idEntity passEntity)
 		{
+			idConsole.Warning("TODO: idClip.Contents");
 			ContentFlags contents = ContentFlags.None;
 			idBounds traceModelBounds = new idBounds();
 			
@@ -344,8 +355,9 @@ namespace idTech4.Game.Physics
 			return contents;
 		}
 
-		public ContentFlags ContentsModel(Vector3 start, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, int modelHandle, Vector3 modelOrigin, Matrix modelAxis)
+		public ContentFlags ContentsModel(Vector3 start, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, object modelHandle, Vector3 modelOrigin, Matrix modelAxis)
 		{
+			idConsole.Warning("TODO: idClip.ContentsModel");
 			_contentCount++;
 
 			// TODO: NEED ENGINE SOURCE return idR.CollisionModelManager.Contents(start, TraceModelForClipModel(model), traceModelAxis, contentMask, modelHandle, modelOrigin, modelAxis);
@@ -354,6 +366,7 @@ namespace idTech4.Game.Physics
 
 		public TraceResult TranslationModel(Vector3 start, Vector3 end, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, int modelHandle, Vector3 modelOrigin, Matrix modelAxis)
 		{
+			idConsole.Warning("TODO: idClip.TranslationModel");
 			// TODO: idTraceModel traceModel = TraceModelForClipModel(model);
 
 			_translationCount++;
@@ -364,6 +377,7 @@ namespace idTech4.Game.Physics
 
 		public TraceResult RotationModel(Vector3 start, idRotation rotation, idClipModel model, Matrix traceModelAxis, ContentFlags contentMask, int modelHandle, Vector3 modelOrigin, Matrix modelAxis)
 		{
+			idConsole.Warning("TODO: idClip.RotationModel");
 			// TODO: idTraceModel traceModel = TraceModelForClipModel(model);
 
 			_rotationCount++;
@@ -385,7 +399,7 @@ namespace idTech4.Game.Physics
 		{
 			idBounds front, back;
 
-			ClipSector anode = _clipSectors[_clipSectorCount];
+			ClipSector anode = _clipSectors[_clipSectorCount] = new ClipSector();
 			_clipSectorCount++;
 
 			if(depth == idClip.MaxSectorDepth)
@@ -456,6 +470,7 @@ namespace idTech4.Game.Physics
 		/// <returns></returns>
 		private idClipModel[] GetTraceClipModels(idBounds bounds, ContentFlags contentMask, idEntity passEntity)
 		{
+			idConsole.Warning("TODO: idClip.GetTraceClipModels");
 			// TODO
 			/*int i, num;
 			idClipModel	*cm;

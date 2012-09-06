@@ -154,9 +154,10 @@ namespace idTech4.Game
 			// check noselfshadows flag
 			renderEntity.NoSelfShadow = args.GetBool("noselfshadows");
 
-			// TODO
 			// init any guis, including entity-specific states
-			for(int i = 0; i < renderEntity.Gui.Length; i++)
+			int count = renderEntity.Gui.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				temp = args.GetString(i == 0 ? "gui" : string.Format("gui{0}", i + 1));
 

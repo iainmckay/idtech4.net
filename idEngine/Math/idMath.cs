@@ -43,7 +43,7 @@ namespace idTech4.Math
 		public const float HalfPi = MathHelper.PiOver2;
 		public const float Radian = MathHelper.Pi / 180.0f;
 		public const float Infinity = 1e30f;
-
+		public const float Epsilon = 1.192092896e-07f;
 		public const float Sqrt1Over2 = 0.70710678118654752440f;
 
 		public static float Abs(float a)
@@ -84,6 +84,15 @@ namespace idTech4.Math
 		public static float Sqrt(float v)
 		{
 			return (float) XMath.Sqrt(v);
+		}
+
+		public static float InvSqrt(float x)
+		{
+			float xHalf = 0.5f * x;
+			int i = (int) x;
+			i = 0x5f3759df - (i >> 1);
+
+			return (x * (1.5f - xHalf * x * x));
 		}
 
 		public static float Sin(float s)

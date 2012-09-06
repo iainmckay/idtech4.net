@@ -172,7 +172,7 @@ namespace idTech4
 		public static void Write(string format, params object[] args)
 		{
 			int timeLength = 0;
-
+		
 			// if the cvar system is not initialized
 			if(idE.CvarSystem.IsInitialized == false)
 			{

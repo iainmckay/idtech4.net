@@ -14,14 +14,11 @@ namespace idTech4.Game.Physics
 	public class idClipModel : IDisposable
 	{
 		#region Constants
-		public readonly float BoxEpsilon = 1.0f;
+		public static readonly float BoxEpsilon = 1.0f;
 		#endregion
 
 		#region Properties
-		/// <summary>
-		/// ID for entities that use multiple clip models.
-		/// </summary>
-		public int ID
+		public idBounds AbsoluteBounds
 		{
 			get
 			{
@@ -30,7 +27,77 @@ namespace idTech4.Game.Physics
 					throw new ObjectDisposedException("idClipModel");
 				}
 
-				return _id;
+				return _absBounds;
+			}
+		}
+
+		/// <summary>
+		/// Orientation of clip model.
+		/// </summary>
+		public Matrix Axis
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idClipModel");
+				}
+
+				return _axis;
+			}
+		}
+
+		public idBounds Bounds
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idClipModel");
+				}
+
+				return _bounds;
+			}
+		}
+
+		/// <summary>
+		/// Handle to collision model.
+		/// </summary>
+		public int CollisionModelHandle
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idClipModel");
+				}
+
+				return _collisionModelHandle;
+			}
+		}
+
+		/// <summary>
+		/// All contents ored together.
+		/// </summary>
+		public ContentFlags Contents
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idClipModel");
+				}
+
+				return _contents;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException("idClipModel");
+				}
+
+				_contents = value;
 			}
 		}
 
@@ -75,26 +142,31 @@ namespace idTech4.Game.Physics
 			}
 		}
 
-		/// <summary>
-		/// Owner of the entity that owns this clip model.
-		/// </summary>
-		public idEntity Owner
+		public int Handle
 		{
 			get
 			{
-				if(this.Disposed == true)
+				if(_collisionModelHandle > 0)
 				{
-					throw new ObjectDisposedException("idClipModel");
+					return _collisionModelHandle;
+				}
+				else if(_traceModelCache != null)
+				{
+					idConsole.Warning("TODO: TODO: return idR.CollisionModelManager.SetupTraceModel(GetCachedTraceModel(_traceModelIndex), _material);");
 				}
 
-				return _owner;
+				// this happens in multiplayer on the combat models
+				idConsole.Warning("idClipModel.Handle: clip model {0} on '{1}' ({2:X}) is not a collision or trace model", _id, _entity.Name, Entity.Index);
+
+				return 0;
+
 			}
 		}
 
 		/// <summary>
-		/// Origin of clip model.
+		/// ID for entities that use multiple clip models.
 		/// </summary>
-		public Vector3 Origin
+		public int ID
 		{
 			get
 			{
@@ -103,49 +175,15 @@ namespace idTech4.Game.Physics
 					throw new ObjectDisposedException("idClipModel");
 				}
 
-				return _origin;
+				return _id;
 			}
 		}
 
-		/// <summary>
-		/// Orientation of clip model.
-		/// </summary>
-		public Matrix Axis
+		public bool IsTraceModel
 		{
 			get
 			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idClipModel");
-				}
-
-				return _axis;
-			}
-		}
-
-		public idBounds Bounds
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idClipModel");
-				}
-
-				return _bounds;
-			}
-		}
-
-		public idBounds AbsoluteBounds
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idClipModel");
-				}
-
-				return _absBounds;
+				return (_traceModelCache != null);
 			}
 		}
 
@@ -166,9 +204,9 @@ namespace idTech4.Game.Physics
 		}
 
 		/// <summary>
-		/// All contents ored together.
+		/// Origin of clip model.
 		/// </summary>
-		public ContentFlags Contents
+		public Vector3 Origin
 		{
 			get
 			{
@@ -177,23 +215,14 @@ namespace idTech4.Game.Physics
 					throw new ObjectDisposedException("idClipModel");
 				}
 
-				return _contents;
-			}
-			set
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idClipModel");
-				}
-
-				_contents = value;
+				return _origin;
 			}
 		}
 
 		/// <summary>
-		/// Handle to collision model.
+		/// Owner of the entity that owns this clip model.
 		/// </summary>
-		public int CollisionModelHandle
+		public idEntity Owner
 		{
 			get
 			{
@@ -202,23 +231,7 @@ namespace idTech4.Game.Physics
 					throw new ObjectDisposedException("idClipModel");
 				}
 
-				return _collisionModelHandle;
-			}
-		}
-
-		/// <summary>
-		/// Trace model used for collision detection.
-		/// </summary>
-		public int TraceModelIndex
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException("idClipModel");
-				}
-
-				return _traceModelIndex;
+				return _owner;
 			}
 		}
 
@@ -238,23 +251,19 @@ namespace idTech4.Game.Physics
 			}
 		}
 
-		public int Handle
+		/// <summary>
+		/// Trace model used for collision detection.
+		/// </summary>
+		public TraceModelCache TraceModelCache
 		{
 			get
 			{
-				if(_collisionModelHandle > 0)
+				if(this.Disposed == true)
 				{
-					return _collisionModelHandle;
+					throw new ObjectDisposedException("idClipModel");
 				}
-				else if(_traceModelIndex != -1)
-				{
-					// TODO: return idR.CollisionModelManager.SetupTraceModel(GetCachedTraceModel(_traceModelIndex), _material);
-				}
-					
-				// this happens in multiplayer on the combat models
-				idConsole.Warning("idClipModel.Handle: clip model {0} on '{1}' ({2:X}) is not a collision or trace model", _id, _entity.Name, Entity.Index);
-				return 0;
 
+				return _traceModelCache;
 			}
 		}
 		#endregion
@@ -276,12 +285,14 @@ namespace idTech4.Game.Physics
 		
 		private int _collisionModelHandle;	// handle to collision model.
 
-		private int _traceModelIndex; // trace model used for collision detection.
+		private TraceModelCache _traceModelCache; // trace model used for collision detection.
 		private int _renderModelHandle;	// render model def handle.
 
 		private ClipLink _clipLinks = new ClipLink(); // links into sectors.
 
 		private int _touchCount;
+
+		private static Dictionary<idTraceModel, WeakReference> _traceModelCacheDict = new Dictionary<idTraceModel, WeakReference>();
 		#endregion
 
 		#region Constructor
@@ -302,12 +313,6 @@ namespace idTech4.Game.Physics
 			Init();
 			LoadModel(traceModel);
 		}
-		/*
-idClipModel::idClipModel( const int renderModelHandle ) {
-	Init();
-	contents = CONTENTS_RENDERMODEL;
-	LoadModel( renderModelHandle );
-}*/
 
 		public idClipModel(idClipModel model)
 		{
@@ -325,12 +330,12 @@ idClipModel::idClipModel( const int renderModelHandle ) {
 			_material = model.Material;
 			_contents = model.Contents;
 			_collisionModelHandle = model.CollisionModelHandle;
-			_traceModelIndex = -1;
+			_traceModelCache = null;
 
-			// TODO
-			/*if ( model->traceModelIndex != -1 ) {
-				LoadModel( *GetCachedTraceModel( model->traceModelIndex ) );
-			}*/
+			if(model.TraceModelCache != null)
+			{
+				idConsole.Warning("TODO: LoadModel( *GetCachedTraceModel( model->traceModelIndex ) );");
+			}
 
 			_renderModelHandle = model.RenderModelHandle;
 			_touchCount = -1;
@@ -344,11 +349,35 @@ idClipModel::idClipModel( const int renderModelHandle ) {
 
 		#region Methods
 		#region Static
-		public static int CheckModel(string name)
+		public static CollisionModel CheckModel(string name)
 		{
-			idConsole.Warning("TODO: idClipModel.CheckModel");
-			return -1;
-		//	return idR.CollisionModelManager.LoadModel(name, false);
+			return idR.CollisionModelManager.LoadModel(name, false);
+		}
+
+		private TraceModelCache GetTraceModelCache(idTraceModel model)
+		{
+			if(_traceModelCacheDict.ContainsKey(model) == true)
+			{
+				if(_traceModelCacheDict[model].IsAlive == true)
+				{
+					return (TraceModelCache) _traceModelCacheDict[model].Target;
+				}
+
+				_traceModelCacheDict.Remove(model);
+			}
+
+			idConsole.Warning("TODO: GetTraceModelCache");
+
+			/*TraceModelCache entry = new TraceModelCache();
+			entry.TraceModel = model;
+			entry.TraceModel.GetMassProperties(1.0f, ref entry.Volume, ref entry.CenterOfMass, ref entry.InertiaTensor);
+
+			WeakReference weakRef = new WeakReference(entry);
+			_traceModelCache.Add(model, weakRef);
+
+			return entry;*/
+
+			return null;
 		}
 		#endregion
 	
@@ -471,16 +500,10 @@ idClipModel::idClipModel( const int renderModelHandle ) {
 			}
 
 			_collisionModelHandle = 0;
-			_renderModelHandle = -1;
+			_renderModelHandle = -1;			
+			_traceModelCache = GetTraceModelCache(traceModel);
 
-			idConsole.Warning("TODO: idClipModel.LoadModel");
-			/*if(_traceModelIndex != -1)
-			{
-				FreeTraceModel(_traceModelIndex);
-			}
-
-			_traceModelIndex = AllocTraceModel(traceModel);
-			_bounds = traceModel.Bounds;*/
+			_bounds = traceModel.Bounds;
 		}
 		#endregion
 
@@ -493,11 +516,10 @@ idClipModel::idClipModel( const int renderModelHandle ) {
 			}
 
 			_enabled = true;
-
 			_contents = ContentFlags.Body;
 
 			_renderModelHandle = -1;
-			_traceModelIndex = -1;
+			_traceModelCache = null;
 			_touchCount = -1;
 		}		
 
@@ -577,17 +599,19 @@ idClipModel::idClipModel( const int renderModelHandle ) {
 				// make sure the clip model is no longer linked
 				Unlink();
 
-				idConsole.Warning("TODO: idClipModel.Dispose");
-				/*if(_traceModelIndex != -1)
-				{
-					FreeTraceModel(_traceModelIndex);
-				}*/
-
-				_traceModelIndex = -1;
+				_traceModelCache = null;
 				_disposed = true;
 			}
 		}
 		#endregion
 		#endregion
+	}
+
+	public class TraceModelCache
+	{
+		public idTraceModel TraceModel;
+		public float Volume;
+		public Vector3 CenterOfMass;
+		public Matrix InertiaTensor;
 	}
 }

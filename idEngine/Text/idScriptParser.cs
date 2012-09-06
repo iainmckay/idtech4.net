@@ -1073,8 +1073,7 @@ namespace idTech4.Text
 		{
 			int indent;
 			bool defined = false;
-			idToken token, t;
-			ScriptDefinition define;
+			idToken token;
 			List<idToken> tokens = new List<idToken>();
 
 			intValue = 0;
@@ -1163,9 +1162,8 @@ namespace idTech4.Text
 
 		private bool Evaluate(out long intValue, out double floatValue, bool integer)
 		{
-			idToken token, t;
+			idToken token;
 			List<idToken> tokens = new List<idToken>();
-			ScriptDefinition define;
 			bool defined = false;
 
 			intValue = 0;

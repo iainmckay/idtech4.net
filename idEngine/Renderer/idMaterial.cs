@@ -132,6 +132,14 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public ContentFlags ContentFlags
+		{
+			get
+			{
+				return _contentFlags;
+			}
+		}
+
 		/// <summary>
 		/// For interaction list linking and dmap flood filling.  The depth buffer will not be filled for translucent surfaces.
 		/// </summary>
@@ -617,8 +625,6 @@ namespace idTech4.Renderer
 		/// <param name="lexer"></param>
 		private void ParseMaterial(idLexer lexer)
 		{
-			int s = 0;
-
 			_registerCount = PredefinedRegisterCount; // leave space for the parms to be copied in.
 
 			for(int i = 0; i < _registerCount; i++)
@@ -631,6 +637,7 @@ namespace idTech4.Renderer
 
 			string tokenValue;
 			string tokenLower;
+			int count;
 
 			while(true)
 			{
@@ -909,7 +916,9 @@ namespace idTech4.Renderer
 			// in temporary form.
 			if(_cullType == CullType.TwoSided)
 			{
-				for(int i = 0; i < _parsingData.Stages.Count; i++)
+				count = _parsingData.Stages.Count;
+
+				for(int i = 0; i < count; i++)
 				{
 					if((_parsingData.Stages[i].Lighting != StageLighting.Ambient) || (_parsingData.Stages[i].Texture.TextureCoordinates != TextureCoordinateGeneration.Explicit))
 					{
@@ -927,7 +936,9 @@ namespace idTech4.Renderer
 			// currently a surface can only have one unique texgen for all the stages on old hardware.
 			TextureCoordinateGeneration firstGen = TextureCoordinateGeneration.Explicit;
 
-			for(int i = 0; i < _parsingData.Stages.Count; i++)
+			count = _parsingData.Stages.Count;
+
+			for(int i = 0; i < count; i++)
 			{
 				if(_parsingData.Stages[i].Texture.TextureCoordinates != TextureCoordinateGeneration.Explicit)
 				{
@@ -962,8 +973,10 @@ namespace idTech4.Renderer
 			bool hasSpecular = false;
 			bool hasBump = false;
 			bool hasReflection = false;
+			int count = _parsingData.Stages.Count;
 
-			for(int i = 0; i < _parsingData.Stages.Count; i++)
+			for(int i = 0; i < 
+				count; i++)
 			{
 				switch(_parsingData.Stages[i].Lighting)
 				{
@@ -1026,11 +1039,12 @@ namespace idTech4.Renderer
 		private void SortInteractionStages()
 		{
 			int i = 0, j = 0;
+			int count = _parsingData.Stages.Count;
 
-			for(i = 0; i < _parsingData.Stages.Count; i = j)
+			for(i = 0; i < count; i = j)
 			{
 				// find the next bump map
-				for(j = i + 1; j < _parsingData.Stages.Count; j++)
+				for(j = i + 1; j < count; j++)
 				{
 					if(_parsingData.Stages[j].Lighting == StageLighting.Bump)
 					{
@@ -1078,7 +1092,7 @@ namespace idTech4.Renderer
 			{
 				_sort = (int) Enum.Parse(typeof(MaterialSort), token.ToString(), true);
 			}
-			catch(Exception x)
+			catch(Exception)
 			{
 				float.TryParse(token.ToString(), out _sort);
 			}
@@ -2592,8 +2606,9 @@ namespace idTech4.Renderer
 			else
 			{
 				_hasSubview = false;
+				int count = _parsingData.Stages.Count;
 
-				for(int i = 0; i < _parsingData.Stages.Count; i++)
+				for(int i = 0; i < count; i++)
 				{
 					if(_parsingData.Stages[i].Texture.Dynamic != null)
 					{
@@ -2685,8 +2700,9 @@ namespace idTech4.Renderer
 				if(stage.NewStage.IsEmpty == false)
 				{
 					NewMaterialStage newShaderStage = stage.NewStage;
+					int imageCount = newShaderStage.FragmentProgramImages.Length;
 
-					for(int j = 0; j < newShaderStage.FragmentProgramImages.Length; j++)
+					for(int j = 0; j < imageCount; j++)
 					{
 						if(newShaderStage.FragmentProgramImages[j] == idE.ImageManager.CurrentRenderImage)
 						{
@@ -2868,7 +2884,16 @@ namespace idTech4.Renderer
 
 		RemoveUtil = ~(AreaPortal | NoCsg),
 
-		None = 0
+		None = 0,
+
+		MaskSolid = Solid,
+		MaskMonsterSolid = Solid | MonsterClip | Body,
+		MaskPlayerSolid = Solid | PlayerClip | Body,
+		MaskDeadSolid = Solid | PlayerClip,
+		MaskWater = Water,
+		MaskOpaque = Opaque,
+		MaskShotRenderModel = Solid | RenderModel,
+		MaskShotBoundingBox = Solid | Body
 	}
 
 	internal sealed class MaterialParsingData

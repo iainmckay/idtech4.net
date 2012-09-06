@@ -488,7 +488,9 @@ namespace idTech4.UI
 					return false;
 				}
 
-				for(int i = 0; i < _scripts.Length; i++)
+				int count = _scripts.Length;
+
+				for(int i = 0; i < count; i++)
 				{
 					if(_scripts[i] != null)
 					{
@@ -1238,7 +1240,9 @@ namespace idTech4.UI
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			for(int find = 0; find < _drawWindows.Count; find++)
+			int count = _drawWindows.Count;
+
+			for(int find = 0; find < count; find++)
 			{
 				if(_drawWindows[find].Window == window)
 				{
@@ -1690,7 +1694,9 @@ namespace idTech4.UI
 				child.FixupParameters();
 			}
 
-			for(int i = 0; i < _scripts.Length; i++)
+			int scriptCount = _scripts.Length;
+
+			for(int i = 0; i < scriptCount; i++)
 			{
 				if(_scripts[i] != null)
 				{
@@ -2488,7 +2494,9 @@ namespace idTech4.UI
 
 			RunScript(ScriptName.Trigger);
 
-			for(int i = 0; i < _children.Count; i++)
+			int count = _children.Count;
+
+			for(int i = 0; i < count; i++)
 			{
 				_children[i].Trigger();
 			}
@@ -2929,7 +2937,9 @@ namespace idTech4.UI
 
 		private void CleanUp()
 		{
-			for(int i = 0; i < _drawWindows.Count; i++)
+			int count = _drawWindows.Count;
+
+			for(int i = 0; i < count; i++)
 			{
 				_drawWindows[i].Simple = null;
 			}
@@ -2949,7 +2959,9 @@ namespace idTech4.UI
 			_definedVariables.Clear();
 			_timeLineEvents.Clear();
 
-			for(int i = 0; i < _scripts.Length; i++)
+			count = _scripts.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				_scripts[i] = null;
 			}
@@ -3065,8 +3077,9 @@ namespace idTech4.UI
 		private int ExpressionConstant(float f)
 		{
 			int i;
+			int count = _expressionRegisters.Count;
 
-			for(i = (int) WindowExpressionRegister.PredefinedCount; i < _expressionRegisters.Count; i++)
+			for(i = (int) WindowExpressionRegister.PredefinedCount; i < count; i++)
 			{
 				if((_registerIsTemporary[i] == false) && (_expressionRegisters[i] == f))
 				{
@@ -3502,8 +3515,10 @@ namespace idTech4.UI
 			_timeLine = -1;
 			_textShadow = 0;
 			_hover = false;
+
+			int count = _scripts.Length;
 			
-			for(int i = 0; i < _scripts.Length; i++)
+			for(int i = 0; i < count; i++)
 			{
 				_scripts[i] = null;
 			}
@@ -3803,9 +3818,12 @@ namespace idTech4.UI
 
 		private bool ParseScriptEntry(idToken token, idScriptParser parser)
 		{
-			for(int i = 0; i < (int) ScriptName.Count; i++)
+			int count = (int) ScriptName.Count;
+			string tokenLower = token.ToString().ToLower();
+
+			for(int i = 0; i < count; i++)
 			{
-				if(token.ToString().ToLower() == ScriptNames[i].ToLower())
+				if(tokenLower == ScriptNames[i].ToLower())
 				{
 					_scripts[i] = new idGuiScriptList();
 

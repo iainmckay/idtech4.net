@@ -800,7 +800,9 @@ namespace idTech4.Renderer
 			}
 
 			// clear all the current binding caches, so the next bind will do a real one
-			for(int i = 0; i < idE.Backend.GLState.TextureUnits.Length; i++)
+			int unitCount = idE.Backend.GLState.TextureUnits.Length;
+
+			for(int i = 0; i < unitCount; i++)
 			{
 				idE.Backend.GLState.TextureUnits[i].CurrentTexture = null;
 			}

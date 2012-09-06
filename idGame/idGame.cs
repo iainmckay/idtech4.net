@@ -4,8 +4,11 @@ using System.Linq;
 using System.Text;
 using System.Reflection;
 
+using Microsoft.Xna.Framework;
+
 using idTech4.Game.Animation;
 using idTech4.Game.Entities;
+using idTech4.Game.Physics;
 using idTech4.Game.Rules;
 using idTech4.Input;
 using idTech4.Renderer;
@@ -58,19 +61,27 @@ namespace idTech4.Game
 		}
 
 		// TODO
-		/*public idClip Clip
+		public idClip Clip
 		{
 			get
 			{
 				return _clip;
 			}
-		}*/
+		}
 
 		public idEntity[] Entities
 		{
 			get
 			{
 				return _entities;
+			}
+		}
+
+		public Vector3 Gravity
+		{
+			get
+			{
+				return _gravity;
 			}
 		}
 
@@ -144,6 +155,14 @@ namespace idTech4.Game
 				}
 
 				return (idPlayer) _entities[_localClientIndex];
+			}
+		}
+
+		public string MapName
+		{
+			get
+			{
+				return _currentMapFileName;
 			}
 		}
 
@@ -263,6 +282,7 @@ namespace idTech4.Game
 		private int _currentInitialSpawnPoint;
 
 		private idWorldSpawn _world;
+		private Vector3 _gravity; // global gravity vector
 
 		private Random _random;
 
@@ -293,7 +313,7 @@ namespace idTech4.Game
 
 		private List<int>[,] _clientDeclRemap;
 
-		// TODO: private idClip _clip; // collision detection
+		private idClip _clip = new idClip(); // collision detection
 		#endregion
 
 		#region Constructor
@@ -302,9 +322,11 @@ namespace idTech4.Game
 			idR.Game = this;
 			idR.GameEdit = new idGameEdit();
 
-			InitCvars();			
+			InitCvars();
 
-			for(int i = 0; i < _userInfo.Length; i++)
+			int count = _userInfo.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				_userInfo[i] = new idDict();
 				_persistentPlayerInfo[i] = new idDict();
@@ -610,7 +632,9 @@ namespace idTech4.Game
 		{
 			_serverInfo.Clear();
 
-			for(int i = 0; i < _userInfo.Length; i++)
+			int count = _userInfo.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				_userInfo[i].Clear();
 				_persistentPlayerInfo[i].Clear();
@@ -637,7 +661,9 @@ namespace idTech4.Game
 			_entities = new idEntity[idR.MaxGameEntities];
 			_playerStates = new PlayerState[idR.MaxClients];
 
-			for(int i = 0; i < _playerStates.Length; i++)
+			count = _playerStates.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				_playerStates[i] = new PlayerState();
 			}
@@ -789,7 +815,7 @@ namespace idTech4.Game
 			_currentMapFileName = _currentMapFile.Name;
 
 			// load the collision map
-			// TODO: idR.CollisionModelManager.LoadMap(_currentMapFile);
+			idR.CollisionModelManager.LoadMap(_currentMapFile);
 
 			_clientCount = 0;
 
@@ -797,9 +823,7 @@ namespace idTech4.Game
 			_entities = new idEntity[idR.MaxGameEntities];
 			_spawnIds = new int[idR.MaxGameEntities];
 
-			// TODO
-			// memset( usercmds, 0, sizeof( usercmds ) );
-
+			_userCommands = new idUserCommand[0];
 			_spawnCount = idGame.InitialSpawnCount;
 
 			_spawnedEntities.Clear();
@@ -811,7 +835,7 @@ namespace idTech4.Game
 			lastGUI = 0;
 
 			globalMaterial = NULL;*/
-
+			
 			/*memset( globalShaderParms, 0, sizeof( globalShaderParms ) );*/
 
 			// always leave room for the max number of clients,
@@ -832,9 +856,8 @@ namespace idTech4.Game
 			testFx			= NULL;
 
 			lastAIAlertEntity = NULL;
-			lastAIAlertTime = 0;
-	
-			previousTime	= 0;*/
+			lastAIAlertTime = 0;*/
+			_previousTime = 0;
 			_time = 0;
 			_frameCount = 0;
 
@@ -846,10 +869,9 @@ namespace idTech4.Game
 
 			if ( !editEntities ) {
 				editEntities = new idEditEntities;
-			}
+			}*/
 
-			gravity.Set( 0, 0, -g_gravity.GetFloat() );*/
-
+			_gravity = new Vector3(0, 0, -idR.CvarSystem.GetFloat("g_gravity"));
 			_spawnArgs.Clear();
 
 			/*skipCinematic = false;
@@ -858,7 +880,7 @@ namespace idTech4.Game
 			cinematicStopTime = 0;
 			cinematicMaxSkipTime = 0;*/
 
-			// TODO: _clip.Init();
+			_clip.Init();
 
 			/*pvs.Init();
 			playerPVS.i = -1;
@@ -927,8 +949,7 @@ namespace idTech4.Game
 				idConsole.Error("...no entities");
 			}
 
-			// the worldspawn is a special that performs any global setup
-			// needed by a level
+			// the worldspawn is a special that performs any global setup needed by a level
 			idMapEntity mapEntity = _currentMapFile.GetEntity(0);
 
 			idDict args = mapEntity.Dict;
@@ -1062,7 +1083,9 @@ namespace idTech4.Game
 			_spawnPoints = points.ToArray();
 			_initialSpawnPoints = initialPoints.ToArray();
 
-			for(int i = 0; i < _initialSpawnPoints.Length; i++)
+			int count = _initialSpawnPoints.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				int j = _random.Next(_initialSpawnPoints.Length);
 				idEntity ent = _initialSpawnPoints[i];
@@ -1136,7 +1159,7 @@ namespace idTech4.Game
 				return _spawnPoints[_random.Next(_spawnPoints.Length)].Entity;
 				/*} else if ( player->useInitialSpawns && currentInitialSpot < initialSpots.Num() ) {
 			return initialSpots[ currentInitialSpot++ ];*/
-			/*}
+			}
 			else
 			{
 				// check if we are alone in map
@@ -1743,13 +1766,13 @@ namespace idTech4.Game
 			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("model"))
 			{
 				// precache model/animations
-				if(idR.DeclManager.FindType<idDecl>(DeclType.ModelDef, kvp.Value, false) == null)
+				if((kvp.Value != string.Empty) && (idR.DeclManager.FindType<idDecl>(DeclType.ModelDef, kvp.Value, false) == null))
 				{
 					// precache the render model
 					idR.RenderModelManager.FindModel(kvp.Value);
 
 					// precache .cm files only
-					idConsole.Warning("TODO: idR.CollisionModelManager.LoadModel(kvp.Value, true);");
+					idR.CollisionModelManager.LoadModel(kvp.Value, true);
 				}
 			}
 			#endregion

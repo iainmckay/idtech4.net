@@ -397,7 +397,9 @@ namespace idTech4.Renderer
 			}*/
 
 			// calculate the bounds
-			if(_surfaces.Count == 0)
+			int surfaceCount = _surfaces.Count;
+
+			if(surfaceCount == 0)
 			{
 				_bounds = idBounds.Zero;
 			}
@@ -405,7 +407,7 @@ namespace idTech4.Renderer
 			{
 				_bounds.Clear();
 
-				for(int i = 0; i < _surfaces.Count; i++)
+				for(int i = 0; i < surfaceCount; i++)
 				{
 					RenderModelSurface surf = _surfaces[i];
 
@@ -663,8 +665,9 @@ namespace idTech4.Renderer
 			}
 
 			RenderModelSurface surf;
+			int surfaceCount = _surfaces.Count;
 
-			for(int i = 0; i < _surfaces.Count; i++)
+			for(int i = 0; i < surfaceCount; i++)
 			{
 				surf = _surfaces[i];
 

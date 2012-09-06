@@ -198,14 +198,18 @@ namespace idTech4.Text
 
 				// "overrideMaterial" "material" can be set in the worldspawn to reset all materials
 				string material;
+				int entityCount = _entities.Count;
+				int primitiveCount = 0;
+				int sideCount = 0;
 
 				if((material = (_entities[0].Dict.GetString("overrideMaterial", ""))) != string.Empty)
 				{
-					for(int i = 0; i < _entities.Count; i++)
+					for(int i = 0; i < entityCount; i++)
 					{
 						mapEnt = _entities[i];
+						primitiveCount = mapEnt.Primitives.Count;
 
-						for(int j = 0; j < mapEnt.Primitives.Count; j++)
+						for(int j = 0; j < primitiveCount; j++)
 						{
 							idMapPrimitive mapPrimitive = mapEnt.GetPrimitive(j);
 
@@ -213,8 +217,9 @@ namespace idTech4.Text
 							{
 								case MapPrimitiveType.Brush:
 									idMapBrush mapBrush = (idMapBrush) mapPrimitive;
+									sideCount = mapBrush.SideCount;
 
-									for(int k = 0; k < mapBrush.SideCount; k++)
+									for(int k = 0; k < sideCount; k++)
 									{
 										mapBrush.GetSide(k).Material = material;
 									}
@@ -232,7 +237,7 @@ namespace idTech4.Text
 				// force all entities to have a name key/value pair
 				if(_entities[0].Dict.GetBool("forceEntityNames") == true)
 				{
-					for(int i = 1; i < _entities.Count; i++)
+					for(int i = 1; i < entityCount; i++)
 					{
 						mapEnt = _entities[i];
 
@@ -246,7 +251,7 @@ namespace idTech4.Text
 				// move the primitives of any func_group entities to the worldspawn
 				if(_entities[0].Dict.GetBool("moveFuncGroups") == true)
 				{
-					for(int i = 1; i < _entities.Count; i++)
+					for(int i = 1; i < entityCount; i++)
 					{
 						mapEnt = _entities[i];
 
@@ -271,7 +276,9 @@ namespace idTech4.Text
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			for(int i = 0; i < _entities.Count; i++)
+			int count = _entities.Count;
+
+			for(int i = 0; i < count; i++)
 			{
 				idMapEntity ent = _entities[i];
 

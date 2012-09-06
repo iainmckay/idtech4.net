@@ -28,13 +28,13 @@ namespace idTech4.Game.Rules
 			// server maintains TDM balance
 			if((canModify == true) && (this.IsInGame(clientIndex) == true) && (idR.CvarSystem.GetBool("g_balanceTDM") == true))
 			{
-				// TODO: modifiedInfo |= BalanceTeams();
+				idConsole.Warning("TODO: modifiedInfo |= BalanceTeams();");
 			}
 
 			// TODO: REFACTOR THIS AWAY
 			if((idR.Game.IsClient == false) && (player.Team != player.LatchedTeam))
 			{
-				// TODO: gameLocal.mpGame.SwitchToTeam(entityNumber, latchedTeam, team);
+				idConsole.Warning("TODO: gameLocal.mpGame.SwitchToTeam(entityNumber, latchedTeam, team);");
 			}
 
 			player.LatchedTeam = player.Team;
@@ -64,7 +64,7 @@ namespace idTech4.Game.Rules
 
 			if(idR.Game.IsClient == false)
 			{
-				// TODO SwitchToTeam(clientIndex, -1, idR.Game.Entites[clientIndex]->Team);
+				idConsole.Warning("TODO: SwitchToTeam(clientIndex, -1, idR.Game.Entites[clientIndex]->Team);");
 			}
 		}
 		#endregion

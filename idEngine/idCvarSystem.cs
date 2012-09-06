@@ -510,7 +510,9 @@ namespace idTech4
 						{
 							idConsole.Write("{0}{1}string {2}[", cvar.Name.PadRight(32), idColorString.White, idColorString.White);
 
-							for(int j = 0; j < cvar.ValueStrings.Length; j++)
+							int count = cvar.ValueStrings.Length;
+
+							for(int j = 0; j < count; j++)
 							{
 								if(j > 0)
 								{
@@ -609,7 +611,9 @@ namespace idTech4
 		#region Command handlers
 		private void Cmd_Toggle(object sender, CommandEventArgs e)
 		{
-			if(e.Args.Length < 2)
+			int argCount = e.Args.Length;
+
+			if(argCount < 2)
 			{
 				idConsole.WriteLine("usage:");
 				idConsole.WriteLine("    toggle <variable> - toggles between 0 and 1");
@@ -624,13 +628,14 @@ namespace idTech4
 				{
 					idConsole.WriteLine("toggle: cvar \"{0}\" not found", e.Args.Get(1));
 				}
-				else if(e.Args.Length > 3)
+				else if(argCount > 3)
 				{
 					// cycle through multiple values
 					string text = cvar.ToString();
 					int i = 0;
 
-					for(i = 2; i < e.Args.Length; i++)
+
+					for(i = 2; i < argCount; i++)
 					{
 						if(StringComparer.CurrentCultureIgnoreCase.Compare(text, e.Args.Get(i)) == 0)
 						{
@@ -639,7 +644,7 @@ namespace idTech4
 						}
 					}
 
-					if(i >= e.Args.Length)
+					if(i >= argCount)
 					{
 						i = 2;
 					}

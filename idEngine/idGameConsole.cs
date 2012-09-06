@@ -323,7 +323,9 @@ namespace idTech4
 		#region Private
 		private void ClearNotificationLines()
 		{
-			for(int i = 0; i < _notificationTimes.Length; i++)
+			int count = _notificationTimes.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				_notificationTimes[i] = 0;
 			}
@@ -430,8 +432,9 @@ namespace idTech4
 				}
 
 				string text = _buffer[i];
+				int length = text.Length;
 
-				for(int n = 0, x = 0;  n < text.Length; n++, x++)
+				for(int n = 0, x = 0; n < length; n++, x++)
 				{
 					if(idHelper.IsColor(text, n) == true)
 					{
@@ -542,8 +545,9 @@ namespace idTech4
 				}
 
 				string text = _buffer[row];
+				int length = text.Length;
 
-				for(n = 0, x = 0; n < text.Length; n++, x++)
+				for(n = 0, x = 0; n < length; n++, x++)
 				{
 					if(idHelper.IsColor(text, n) == true)
 					{

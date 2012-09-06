@@ -11,36 +11,352 @@ using idTech4.Renderer;
 
 namespace idTech4.Game.Physics
 {
-	public class idPhysics_Static : idPhysics
+	/// <summary>
+	/// Physics base for a moving object using one or more collision models.
+	/// </summary>
+	public class idPhysics_Base : idPhysics
 	{
+		#region Properties
+		/// <summary>
+		/// True if the whole physics object is outside the world bounds.
+		/// </summary>
+		public bool IsOutsideWorld
+		{
+			get
+			{
+				idConsole.Warning("idPhysics_Base.IsOutsideWorld");
+
+				return false;
+				/*if(idBounds.Expand(idR.Game.Clip.WorldBounds, 128.0f).IntersectsBounds(GetAbsoluteBounds()) == false)
+				{
+					return true;
+				}
+
+				return false;*/
+			}
+		}
+		#endregion
+
 		#region Members
-		private idEntity _self;
-		private idClipModel _clipModel;
-
-		private Vector3 _origin;
-		private Matrix _axis;
-		private Vector3 _localOrigin;
-		private Matrix _localAxis;
-
-		private bool _hasMaster;
-		private bool _isOrientated;
+		protected idEntity _self;					// entity using this physics object
+		protected ContentFlags _clipMask;			// contents the physics object collides with
+		protected Vector3 _gravityVector;			// direction and magnitude of gravity
+		protected Vector3 _gravityNormal;			// normalized direction of gravity
+	
+		protected List<ContactInfo> _contacts = new List<ContactInfo>();	// contacts with other physics objects
+		protected List<idEntity> _contactEntities = new List<idEntity>();	// entities touching this physics object
 		#endregion
 
 		#region Constructor
-		public idPhysics_Static()
+		public idPhysics_Base()
 			: base()
 		{
-
+			this.Gravity = idR.Game.Gravity;
+			ClearContacts();
 		}
 
-		~idPhysics_Static()
+		~idPhysics_Base()
 		{
 			Dispose(false);
 		}
 		#endregion
 
+		#region Methods
+		#region Protected
+		protected void AddGroundContacts(idClipModel clipModel)
+		{
+			idConsole.Warning("TODO: idPhysics_Base.AddGroundContacts");
+
+			/*idVec6 dir;
+			int index, num;
+
+			index = contacts.Num();
+			contacts.SetNum(index + 10, false);
+
+			dir.SubVec3(0) = gravityNormal;
+			dir.SubVec3(1) = vec3_origin;
+			num = gameLocal.clip.Contacts(&contacts[index], 10, clipModel->GetOrigin(),
+							dir, CONTACT_EPSILON, clipModel, clipModel->GetAxis(), clipMask, self);
+			contacts.SetNum(index + num, false);*/
+		}
+
+		/// <summary>
+		/// Add ground contacts for the clip model.
+		/// </summary>
+		/// <param name="clipModel"></param>
+		protected void AddGroupContacts(idClipModel clipModel)
+		{
+			idConsole.Warning("idPhysics_Base.AddGroupContacts");
+
+			/*idVec6 dir;
+			int index, num;
+
+			index = contacts.Num();
+			contacts.SetNum( index + 10, false );
+
+			dir.SubVec3(0) = gravityNormal;
+			dir.SubVec3(1) = vec3_origin;
+			num = gameLocal.clip.Contacts( &contacts[index], 10, clipModel->GetOrigin(),
+							dir, CONTACT_EPSILON, clipModel, clipModel->GetAxis(), clipMask, self );
+			contacts.SetNum( index + num, false );*/
+		}
+
+		/// <summary>
+		/// Add contact entity links to contact entities.
+		/// </summary>
+		protected void AddContactEntitiesForContacts()
+		{
+			int count = _contacts.Count;
+
+			for(int i = 0; i < count; i++)
+			{
+				idEntity ent = idR.Game.Entities[_contacts[i].EntityIndex];
+
+				if((ent != null) && (ent != this.Self))
+				{
+					ent.AddContactEntity(this.Self);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Active all contact entities.
+		/// </summary>
+		protected void ActivateContactEntities()
+		{
+			for(int i = 0; i < _contactEntities.Count; i++)
+			{
+				idEntity ent = _contactEntities[i];
+
+				if(ent != null)
+				{
+					ent.ActivatePhysics(this.Self);
+				}
+				else
+				{
+					_contactEntities.RemoveAt(i--);
+				}
+			}
+		}
+
+		/// <summary>
+		/// Draw linear and angular velocity.
+		/// </summary>
+		/// <param name="id"></param>
+		/// <param name="linearScale"></param>
+		/// <param name="angularScale"></param>
+		protected void DrawVelocity(int id, float linearScale, float angularScale)
+		{
+			idConsole.Warning("idPhysics_Base.DrawVelocity");
+
+			/*idVec3 dir, org, vec, start, end;
+			idMat3 axis;
+			float length, a;
+
+			dir = GetLinearVelocity( id );
+			dir *= linearScale;
+			if ( dir.LengthSqr() > Square( 0.1f ) ) {
+				dir.Truncate( 10.0f );
+				org = GetOrigin( id );
+				gameRenderWorld->DebugArrow( colorRed, org, org + dir, 1 );
+			}
+
+			dir = GetAngularVelocity( id );
+			length = dir.Normalize();
+			length *= angularScale;
+			if ( length > 0.1f ) {
+				if ( length < 60.0f ) {
+					length = 60.0f;
+				}
+				else if ( length > 360.0f ) {
+					length = 360.0f;
+				}
+				axis = GetAxis( id );
+				vec = axis[2];
+				if ( idMath::Fabs( dir * vec ) > 0.99f ) {
+					vec = axis[0];
+				}
+				vec -= vec * dir * vec;
+				vec.Normalize();
+				vec *= 4.0f;
+				start = org + vec;
+				for ( a = 20.0f; a < length; a += 20.0f ) {
+					end = org + idRotation( vec3_origin, dir, -a ).ToMat3() * vec;
+					gameRenderWorld->DebugLine( colorBlue, start, end, 1 );
+					start = end;
+				}
+				end = org + idRotation( vec3_origin, dir, -length ).ToMat3() * vec;
+				gameRenderWorld->DebugArrow( colorBlue, start, end, 1 );
+			}*/
+		}
+		#endregion
+		#endregion
+
 		#region idPhysics implementation
 		#region Properties
+		public override int AngularEndTime
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return 0;
+			}
+		}
+
+		public override idEntity BlockingEntity
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return null;
+			}
+		}
+		
+		public override TraceResult BlockingInfo
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return null;
+			}
+		}
+
+		public override int ClipModelCount
+		{
+			get
+			{
+				return 0;
+			}
+		}
+
+		public override int ContactCount
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return _contacts.Count;
+			}
+		}
+
+		public override Vector3 Gravity
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return _gravityVector;
+			}
+
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				_gravityVector = value;
+				_gravityNormal = value;
+				_gravityNormal.Normalize();
+			}
+		}
+
+		public override Vector3 GravityNormal
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return _gravityNormal;
+			}
+		}
+
+		public override bool HasGroundContacts
+		{
+			get
+			{
+				int count = _contacts.Count;
+
+				for(int i = 0; i < count; i++)
+				{
+					if((_contacts[i].Normal * -_gravityNormal).X > 0.0f)
+					{
+						return true;
+					}
+				}
+
+				return false;
+			}
+		}
+
+		public override bool IsAtRest
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return true;
+			}
+		}
+		
+		public override bool IsPushable
+		{
+			get
+			{
+				return true;
+			}
+		}
+
+		public override int LinearEndTime
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return 0;
+			}
+		}
+
+		public override int RestStartTime
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return 0;
+			}
+		}
+
 		public override idEntity Self
 		{
 			get
@@ -63,172 +379,7 @@ namespace idTech4.Game.Physics
 			}
 		}
 
-		public override int ClipModelCount
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				if(_clipModel != null)
-				{
-					return 1;
-				}
-
-				return 0;
-			}
-		}
-
 		public override int Time
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return 0;
-			}
-		}
-
-		public override bool IsAtRest
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return true;
-			}
-		}
-
-		public override int RestStartTime
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return 0;
-			}
-		}
-
-		public override bool IsPushable
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return false;
-			}
-		}
-
-		public override Vector3 Gravity
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return new Vector3(0, 0, -idR.CvarSystem.GetFloat("g_gravity"));
-			}
-			set
-			{
-
-			}
-		}
-
-		public override Vector3 GravityNormal
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return new Vector3(0, 0, -1);
-			}
-		}
-
-		public override int ContactCount
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return 0;
-			}
-		}
-
-		public override bool HasGroundContacts
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return false;
-			}
-		}
-
-		public override TraceResult BlockingInfo
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return new TraceResult();
-			}
-		}
-
-		public override idEntity BlockingEntity
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return null;
-			}
-		}
-
-		public override int LinearEndTime
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return 0;
-			}
-		}
-
-		public override int AngularEndTime
 		{
 			get
 			{
@@ -250,21 +401,24 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			base.Save(saveFile);
+			idConsole.Warning("TODO: idPhysics_Base.Save");
 
-			idConsole.Warning("TODO: idPhysics_Static.Save");
+			/*int i;
 
-			// TODO
-			/*savefile->WriteObject( self );
+			savefile->WriteObject( self );
+			savefile->WriteInt( clipMask );
+			savefile->WriteVec3( gravityVector );
+			savefile->WriteVec3( gravityNormal );
 
-			savefile->WriteVec3( current.origin );
-			savefile->WriteMat3( current.axis );
-			savefile->WriteVec3( current.localOrigin );
-			savefile->WriteMat3( current.localAxis );
-			savefile->WriteClipModel( clipModel );
+			savefile->WriteInt( contacts.Num() );
+			for ( i = 0; i < contacts.Num(); i++ ) {
+				savefile->WriteContactInfo( contacts[i] );
+			}
 
-			savefile->WriteBool( hasMaster );
-			savefile->WriteBool( isOrientated );*/
+			savefile->WriteInt( contactEntities.Num() );
+			for ( i = 0; i < contactEntities.Num(); i++ ) {
+				contactEntities[i].Save( savefile );
+			}*/
 		}
 
 		public override void Restore(object saveFile)
@@ -274,21 +428,27 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			base.Restore(saveFile);
+			idConsole.Warning("TODO: idPhysics_Base.Restore");
 
-			idConsole.Warning("TODO: idPhysics_Static.Restore");
 
-			// TODO
-			/*savefile->ReadObject( reinterpret_cast<idClass *&>( self ) );
+			/*int i, num;
 
-			savefile->ReadVec3( current.origin );
-			savefile->ReadMat3( current.axis );
-			savefile->ReadVec3( current.localOrigin );
-			savefile->ReadMat3( current.localAxis );
-			savefile->ReadClipModel( clipModel );
+			savefile->ReadObject( reinterpret_cast<idClass *&>( self ) );
+			savefile->ReadInt( clipMask );
+			savefile->ReadVec3( gravityVector );
+			savefile->ReadVec3( gravityNormal );
 
-			savefile->ReadBool( hasMaster );
-			savefile->ReadBool( isOrientated );*/
+			savefile->ReadInt( num );
+			contacts.SetNum( num );
+			for ( i = 0; i < contacts.Num(); i++ ) {
+				savefile->ReadContactInfo( contacts[i] );
+			}
+
+			savefile->ReadInt( num );
+			contactEntities.SetNum( num );
+			for ( i = 0; i < contactEntities.Num(); i++ ) {
+				contactEntities[i].Restore( savefile );
+			}*/
 		}
 
 		public override void SetClipModel(idClipModel model, float density, int id = 0, bool disposeOld = true)
@@ -296,18 +456,6 @@ namespace idTech4.Game.Physics
 			if(this.Disposed == true)
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			if((_clipModel != null) && (_clipModel != model) && (disposeOld == true))
-			{
-				_clipModel.Dispose();
-			}
-
-			_clipModel = model;
-
-			if(_clipModel != null)
-			{
-				_clipModel.Link(idR.Game.Clip, _self, 0, _origin, _axis);
 			}
 		}
 
@@ -318,12 +466,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			if(_clipModel != null)
-			{
-				return _clipModel;
-			}
-
-			return idR.Game.Clip.DefaultClipModel;
+			return null;
 		}
 
 		public override void SetMass(float mass, int id = -1)
@@ -350,11 +493,6 @@ namespace idTech4.Game.Physics
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
-
-			if(_clipModel != null)
-			{
-				_clipModel.Contents = contents;
-			}
 		}
 
 		public override ContentFlags GetContents(int id = -1)
@@ -364,12 +502,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			if(_clipModel != null)
-			{
-				return _clipModel.Contents;
-			}
-
-			return ContentFlags.None;
+			return 0;
 		}
 
 		public override void SetClipMask(ContentFlags mask, int id = -1)
@@ -378,6 +511,8 @@ namespace idTech4.Game.Physics
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
+
+			_clipMask = mask;
 		}
 
 		public override ContentFlags GetClipMask(int id = -1)
@@ -387,7 +522,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			return ContentFlags.None;
+			return _clipMask;
 		}
 
 		public override idBounds GetBounds(int id = -1)
@@ -397,12 +532,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			if(_clipModel != null)
-			{
-				return _clipModel.Bounds;
-			}
-
-			return new idBounds();
+			return idBounds.Zero;
 		}
 
 		public override idBounds GetAbsoluteBounds(int id = -1)
@@ -412,12 +542,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			if(_clipModel != null)
-			{
-				return _clipModel.AbsoluteBounds;
-			}
-
-			return new idBounds(_origin, _origin);
+			return idBounds.Zero;
 		}
 
 		public override bool Evaluate(int timeStep, int endTime)
@@ -425,34 +550,6 @@ namespace idTech4.Game.Physics
 			if(this.Disposed == true)
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			Vector3 masterOrigin, oldOrigin;
-			Matrix masterAxis, oldAxis;
-
-			if(_hasMaster == true)
-			{
-				oldOrigin = _origin;
-				oldAxis = _axis;
-
-				_self.GetMasterPosition(out masterOrigin, out masterAxis);
-				_origin = Vector3.Transform(masterOrigin + _localOrigin, masterAxis);
-
-				if(_isOrientated == true)
-				{
-					_axis = _localAxis * masterAxis;
-				}
-				else
-				{
-					_axis = _localAxis;
-				}
-
-				if(_clipModel != null)
-				{
-					_clipModel.Link(idR.Game.Clip, _self, 0, _origin, _axis);
-				}
-
-				return ((_origin != oldOrigin) || (_axis != oldAxis));
 			}
 
 			return false;
@@ -530,26 +627,6 @@ namespace idTech4.Game.Physics
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
-
-			Vector3 masterOrigin;
-			Matrix masterAxis;
-
-			_localOrigin = origin;
-
-			if(_hasMaster == true)
-			{
-				_self.GetMasterPosition(out masterOrigin, out masterAxis);
-				_origin = Vector3.Transform(masterOrigin + origin, masterAxis);
-			}
-			else
-			{
-				_origin = origin;
-			}
-
-			if(_clipModel != null)
-			{
-				_clipModel.Link(idR.Game.Clip, _self, 0, _origin, _axis);
-			}
 		}
 
 		public override void SetAxis(Matrix axis, int id = -1)
@@ -557,26 +634,6 @@ namespace idTech4.Game.Physics
 			if(this.Disposed == true)
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			Vector3 masterOrigin;
-			Matrix masterAxis;
-
-			_localAxis = axis;
-
-			if((_hasMaster == true) && (_isOrientated == true))
-			{
-				_self.GetMasterPosition(out masterOrigin, out masterAxis);
-				_axis = axis * masterAxis;
-			}
-			else
-			{
-				_axis = axis;
-			}
-
-			if(_clipModel != null)
-			{
-				_clipModel.Link(idR.Game.Clip, _self, 0, _origin, _axis);
 			}
 		}
 
@@ -586,45 +643,13 @@ namespace idTech4.Game.Physics
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
-
-			_localOrigin += translation;
-			_origin += translation;
-
-			if(_clipModel != null)
-			{
-				_clipModel.Link(idR.Game.Clip, _self, 0, _origin, _axis);
-			}
 		}
 
-		public override void Rotate(idRotation rotation, int id = -1)
+		public override void Rotate(idRotation rotation, int id = 1)
 		{
 			if(this.Disposed == true)
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			Vector3 masterOrigin;
-			Matrix masterAxis;
-
-			_origin *= rotation;
-			_axis *= rotation.ToMatrix();
-
-			if(_hasMaster == true)
-			{
-				_self.GetMasterPosition(out masterOrigin, out masterAxis);
-
-				_localAxis *= rotation.ToMatrix();
-				_localOrigin = Vector3.Transform(_origin - masterOrigin, Matrix.Transpose(masterAxis));
-			}
-			else
-			{
-				_localAxis = _axis;
-				_localOrigin = _origin;
-			}
-
-			if(_clipModel != null)
-			{
-				_clipModel.Link(idR.Game.Clip, _self, 0, _origin, _axis);
 			}
 		}
 
@@ -635,7 +660,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			return _origin;
+			return Vector3.Zero;
 		}
 
 		public override Matrix GetAxis(int id = 0)
@@ -645,7 +670,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			return _axis;
+			return Matrix.Identity;
 		}
 
 		public override void SetLinearVelocity(Vector3 velocity, int id = 0)
@@ -691,19 +716,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			TraceResult result;
-
-			if(model != null)
-			{
-				result = idR.Game.Clip.TranslationModel(_origin, _origin + translation, _clipModel,
-					_axis, ContentFlags.MaskSolid, model.Handle, model.Origin, model.Axis);
-			}
-			else
-			{
-				idR.Game.Clip.Translation(out result, _origin, _origin + translation, _clipModel, _axis, ContentFlags.MaskSolid, _self);
-			}
-
-			return result;
+			return new TraceResult();
 		}
 
 		public override TraceResult ClipRotation(idRotation rotation, idClipModel model)
@@ -713,19 +726,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			TraceResult result;
-
-			if(model != null)
-			{
-				result = idR.Game.Clip.RotationModel(_origin, rotation, _clipModel, _axis, ContentFlags.MaskSolid,
-					model.Handle, model.Origin, model.Axis);
-			}
-			else
-			{
-				idR.Game.Clip.Rotation(out result, _origin, rotation, _clipModel, _axis, ContentFlags.MaskSolid, _self);
-			}
-
-			return result;
+			return new TraceResult();
 		}
 
 		public override ContentFlags ClipContents(idClipModel model)
@@ -735,18 +736,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			if(_clipModel != null)
-			{
-				if(model != null)
-				{
-					return idR.Game.Clip.ContentsModel(_clipModel.Origin, _clipModel, _clipModel.Axis, ContentFlags.None,
-						model.Handle, model.Origin, model.Axis);
-				}
-
-				return idR.Game.Clip.Contents(_clipModel.Origin, _clipModel, _clipModel.Axis, ContentFlags.None, null);
-			}
-
-			return 0;
+			return ContentFlags.None;
 		}
 
 		public override void DisableClip()
@@ -754,11 +744,6 @@ namespace idTech4.Game.Physics
 			if(this.Disposed == true)
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			if(_clipModel != null)
-			{
-				_clipModel.Enabled = false;
 			}
 		}
 
@@ -768,11 +753,6 @@ namespace idTech4.Game.Physics
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
-
-			if(_clipModel != null)
-			{
-				_clipModel.Enabled = true;
-			}
 		}
 
 		public override void UnlinkClip()
@@ -780,11 +760,6 @@ namespace idTech4.Game.Physics
 			if(this.Disposed == true)
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			if(_clipModel != null)
-			{
-				_clipModel.Unlink();
 			}
 		}
 
@@ -794,11 +769,6 @@ namespace idTech4.Game.Physics
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
-
-			if(_clipModel != null)
-			{
-				_clipModel.Link(idR.Game.Clip, _self, 0, _origin, _axis);
-			} 
 		}
 
 		public override bool EvaluateContacts()
@@ -818,7 +788,7 @@ namespace idTech4.Game.Physics
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			return new ContactInfo();
+			return _contacts[index];
 		}
 
 		public override void ClearContacts()
@@ -827,6 +797,20 @@ namespace idTech4.Game.Physics
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
+
+			int count = _contacts.Count;
+
+			for(int i = 0; i < count; i++)
+			{
+				idEntity ent = idR.Game.Entities[_contacts[i].EntityIndex];
+
+				if(ent != null)
+				{
+					ent.RemoveContactEntity(_self);
+				}
+			}
+
+			_contacts.Clear();
 		}
 
 		public override void AddContactEntity(idEntity entity)
@@ -834,6 +818,28 @@ namespace idTech4.Game.Physics
 			if(this.Disposed == true)
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			bool found = false;
+
+			for(int i = 0; i < _contactEntities.Count; i++)
+			{
+				idEntity ent = _contactEntities[i];
+
+				if(ent == null)
+				{
+					_contactEntities.RemoveAt(i--);
+				}
+
+				if(ent == entity)
+				{
+					found = true;
+				}
+			}
+
+			if(found == false)
+			{
+				_contactEntities.Add(entity);
 			}
 		}
 
@@ -843,23 +849,58 @@ namespace idTech4.Game.Physics
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
+
+			for(int i = 0; i < _contactEntities.Count; i++)
+			{
+				idEntity ent = _contactEntities[i];
+
+				if(ent == null)
+				{
+					_contactEntities.RemoveAt(i--);
+				}
+				else if(ent == entity)
+				{
+					_contactEntities.RemoveAt(i--);
+					return;
+				}
+			}				
 		}
 
-		public override bool IsGroundEntity(int entityIndex)
+		public override bool IsGroundEntity(int index)
 		{
 			if(this.Disposed == true)
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
+			int count = _contacts.Count;
+
+			for(int i = 0; i < count; i++)
+			{
+				if((_contacts[i].EntityIndex == i) && ((_contacts[i].Normal * -_gravityNormal).X > 0.0f))
+				{
+					return true;
+				}
+			}
+
 			return false;
 		}
 
-		public override bool IsGroundClipModel(int entityIndex, int id)
+		public override bool IsGroundClipModel(int index, int id)
 		{
 			if(this.Disposed == true)
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			int count = _contacts.Count;
+
+			for(int i = 0; i < count; i++)
+			{
+				if((_contacts[i].EntityIndex == index) && (_contacts[i].ID == id) && ((_contacts[i].Normal * -_gravityNormal).X > 0.0f))
+				{
+					return true;
+				}
 			}
 
 			return false;
@@ -873,7 +914,7 @@ namespace idTech4.Game.Physics
 			}
 		}
 
-		public override Vector3 GetPushedAngularVelocity(int id = 0)
+		public override Vector3 GetPushedLinearVelocity(int id = 0)
 		{
 			if(this.Disposed == true)
 			{
@@ -883,7 +924,7 @@ namespace idTech4.Game.Physics
 			return Vector3.Zero;
 		}
 
-		public override Vector3 GetPushedLinearVelocity(int id = 0)
+		public override Vector3 GetPushedAngularVelocity(int id = 0)
 		{
 			if(this.Disposed == true)
 			{
@@ -899,99 +940,26 @@ namespace idTech4.Game.Physics
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
-
-			Vector3 masterOrigin;
-			Matrix masterAxis;
-
-			if(master != null)
-			{
-				if(_hasMaster == false)
-				{
-					// transform from world space to master space
-					_self.GetMasterPosition(out masterOrigin, out masterAxis);
-					_localOrigin = Vector3.Transform(_origin - masterOrigin, Matrix.Transpose(masterAxis));
-
-					if(orientated == true)
-					{
-						_localAxis = _axis * Matrix.Transpose(masterAxis);
-					}
-					else
-					{
-						_localAxis = _axis;
-					}
-
-					_hasMaster = true;
-					_isOrientated = orientated;
-				}
-			}
-			else
-			{
-				if(_hasMaster == true)
-				{
-					_hasMaster = false;
-				}
-			}
 		}
 
 		public override void WriteToSnapshot(idBitMsgDelta msg)
 		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			idConsole.Warning("TODO: idPhysics_Static.WriteToSnapshot");
-			// TODO
-			/*idCQuat quat, localQuat;
-
-			quat = current.axis.ToCQuat();
-			localQuat = current.localAxis.ToCQuat();
-
-			msg.WriteFloat( current.origin[0] );
-			msg.WriteFloat( current.origin[1] );
-			msg.WriteFloat( current.origin[2] );
-			msg.WriteFloat( quat.x );
-			msg.WriteFloat( quat.y );
-			msg.WriteFloat( quat.z );
-			msg.WriteDeltaFloat( current.origin[0], current.localOrigin[0] );
-			msg.WriteDeltaFloat( current.origin[1], current.localOrigin[1] );
-			msg.WriteDeltaFloat( current.origin[2], current.localOrigin[2] );
-			msg.WriteDeltaFloat( quat.x, localQuat.x );
-			msg.WriteDeltaFloat( quat.y, localQuat.y );
-			msg.WriteDeltaFloat( quat.z, localQuat.z );*/
+			
 		}
 
 		public override void ReadFromSnapshot(idBitMsgDelta msg)
 		{
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
-			idConsole.Warning("TODO: idPhysics_Static.ReadFromSnapshot");
-			// TODO	
-			/*idCQuat quat, localQuat;
-
-			current.origin[0] = msg.ReadFloat();
-			current.origin[1] = msg.ReadFloat();
-			current.origin[2] = msg.ReadFloat();
-			quat.x = msg.ReadFloat();
-			quat.y = msg.ReadFloat();
-			quat.z = msg.ReadFloat();
-			current.localOrigin[0] = msg.ReadDeltaFloat( current.origin[0] );
-			current.localOrigin[1] = msg.ReadDeltaFloat( current.origin[1] );
-			current.localOrigin[2] = msg.ReadDeltaFloat( current.origin[2] );
-			localQuat.x = msg.ReadDeltaFloat( quat.x );
-			localQuat.y = msg.ReadDeltaFloat( quat.y );
-			localQuat.z = msg.ReadDeltaFloat( quat.z );
-
-			current.axis = quat.ToMat3();
-			current.localAxis = localQuat.ToMat3();*/
+			
 		}
 
 		protected override void Dispose(bool disposing)
 		{
 			base.Dispose(disposing);
+
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
 
 			if((_self != null) && (_self.Physics == this))
 			{
@@ -1000,11 +968,7 @@ namespace idTech4.Game.Physics
 
 			idConsole.Warning("TODO: idForce::DeletePhysics( this );");
 
-			if(_clipModel != null)
-			{
-				_clipModel.Dispose();
-				_clipModel = null;
-			}			
+			ClearContacts();
 		}
 		#endregion
 		#endregion

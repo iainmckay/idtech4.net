@@ -340,7 +340,9 @@ namespace idTech4.Renderer
 			idE.RenderSystem.ViewDefinition = viewDef;
 
 			// add the surfaces to this view
-			for(int i = 0; i < _surfaces.Count; i++)
+			int count = _surfaces.Count;
+
+			for(int i = 0; i < count; i++)
 			{
 				EmitSurface(_surfaces[i], viewDef.WorldSpace.ModelMatrix, viewDef.WorldSpace.ModelViewMatrix, false);
 			}

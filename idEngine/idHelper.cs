@@ -41,6 +41,42 @@ namespace idTech4
 {
 	public static class idHelper
 	{
+		public static idAngles AxisToAngles(Matrix axis)
+		{
+			idAngles angles = new idAngles();
+
+			float sp = axis.M13;
+
+			// cap off our sin value so that we don't get any NANs
+
+			if(sp > 1.0f)
+			{
+				sp = 1.0f;
+			}
+			else if(sp < -1.0f)
+			{
+				sp = -1.0f;
+			}
+
+			double theta = -System.Math.Asin(sp);
+			double cp = System.Math.Cos(theta);
+
+			if(cp > 8192.0f * idMath.Epsilon)
+			{
+				angles.Pitch = MathHelper.ToDegrees((float) theta);
+				angles.Yaw = MathHelper.ToDegrees((float) System.Math.Atan2(axis.M12, axis.M11));
+				angles.Roll = MathHelper.ToDegrees((float) System.Math.Atan2(axis.M23, axis.M33));
+			}
+			else
+			{
+				angles.Pitch = MathHelper.ToDegrees((float) theta);
+				angles.Yaw = MathHelper.ToDegrees((float) -System.Math.Atan2(axis.M21, axis.M22));
+				angles.Roll = 0;
+			}
+
+			return angles;
+		}
+
 		public static Matrix AxisToModelMatrix(Matrix axis, Vector3 origin)
 		{
 			Matrix modelMatrix = new Matrix();
@@ -356,7 +392,24 @@ namespace idTech4
 
 			return pot;
 		}
-		
+
+		public static void NormalVectors(Vector3 n, ref Vector3 left, ref Vector3 down)
+		{
+			float d = n.X * n.X + n.Y * n.Y;
+
+			if(d == 0)
+			{
+				left = new Vector3(1, 0, 0);
+			}
+			else
+			{
+				d = idMath.InvSqrt(d);
+				left = new Vector3(-n.Y * d, n.X * d, 0);
+			}
+
+			down = Vector3.Cross(left, n);
+		}
+
 		public static void BoundTriangleSurface(Surface surf)
 		{
 			MinMax(ref surf.Bounds.Min, ref surf.Bounds.Max, surf.Vertices, surf.Vertices.Length);
@@ -531,8 +584,9 @@ namespace idTech4
 		public static string RemoveColors(string str)
 		{
 			StringBuilder newStr = new StringBuilder();
+			int length = str.Length;
 
-			for(int i = 0; i < str.Length; i++)
+			for(int i = 0; i < length; i++)
 			{
 				char c = str[i];
 

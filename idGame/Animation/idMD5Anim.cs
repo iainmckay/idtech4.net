@@ -110,11 +110,12 @@ namespace idTech4.Game.Animation
 				idConsole.Error("Model '{0}' has different # of joints than anim '{1}'", model.Name, this.Name);
 			}
 
-
 			idMD5Joint[] modelJoints = model.Joints;
 			int parent = -1;
+			int jointCount = _jointInfo.Length;
+			int modelJointCount = modelJoints.Length;
 
-			for(int i = 0; i < _jointInfo.Length; i++)
+			for(int i = 0; i < jointCount; i++)
 			{
 				int jointIndex = _jointInfo[i].NameIndex;
 
@@ -124,7 +125,7 @@ namespace idTech4.Game.Animation
 				}
 				else if(modelJoints[i].Parent != null)
 				{
-					for(int j = 0; j < modelJoints.Length; j++)
+					for(int j = 0; j < modelJointCount; j++)
 					{
 						if(modelJoints[j] == modelJoints[i].Parent)
 						{

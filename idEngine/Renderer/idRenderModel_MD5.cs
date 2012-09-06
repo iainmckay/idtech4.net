@@ -189,7 +189,9 @@ namespace idTech4.Renderer
 
 		public override int GetJointIndex(string name)
 		{
-			for(int i = 0; i < _joints.Length; i++)
+			int jointCount = _joints.Length;
+
+			for(int i = 0; i < jointCount; i++)
 			{
 				if(_joints[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase) == true)
 				 {
@@ -202,7 +204,9 @@ namespace idTech4.Renderer
 
 		public override int GetJointIndex(idMD5Joint joint)
 		{
-			for(int i = 0; i < _joints.Length; i++)
+			int jointCount = _joints.Length;
+
+			for(int i = 0; i < jointCount; i++)
 			{
 				if(_joints[i] == joint)
 				{
@@ -336,7 +340,9 @@ namespace idTech4.Renderer
 			lexer.ExpectTokenString("joints");
 			lexer.ExpectTokenString("{");
 
-			for(int i = 0; i < _joints.Length; i++)
+			int jointCount = _joints.Length;
+
+			for(int i = 0; i < jointCount; i++)
 			{
 				idMD5Joint joint = _joints[i] = new idMD5Joint();
 				idJointQuaternion pose = new idJointQuaternion();
@@ -362,7 +368,9 @@ namespace idTech4.Renderer
 
 			lexer.ExpectTokenString("}");
 
-			for(int i = 0; i < _meshes.Length; i++)
+			int meshCount = _meshes.Length;
+
+			for(int i = 0; i < meshCount; i++)
 			{
 				lexer.ExpectTokenString("mesh");
 
@@ -566,10 +574,11 @@ namespace idTech4.Renderer
 			int[] firstWeightForVertex = new int[count];
 			int[] weightCountForVertex = new int[count];
 			int maxWeight = 0;
+			int coordCount = _texCoords.Length;
 
 			_weightCount = 0;
 
-			for(int i = 0; i < _texCoords.Length; i++)
+			for(int i = 0; i < coordCount; i++)
 			{
 				lexer.ExpectTokenString("vert");
 				lexer.ParseInt();
@@ -660,12 +669,14 @@ namespace idTech4.Renderer
 			_weightIndex = new int[_weightCount * 2];
 
 			count = 0;
+			coordCount = _texCoords.Length;
 
-			for(int i = 0; i < _texCoords.Length; i++)
+			for(int i = 0; i < coordCount; i++)
 			{
 				int num = firstWeightForVertex[i];
+				int weightCount = weightCountForVertex[i];
 
-				for(int j = 0; j < weightCountForVertex[i]; j++, num++, count++)
+				for(int j = 0; j < weightCount; j++, num++, count++)
 				{
 					Vector3 tmp = tempWeights[num].Offset * tempWeights[num].JointWeight;
 
@@ -697,8 +708,9 @@ namespace idTech4.Renderer
 			// silhouette edge connectivity and normal / tangent generation information
 			//
 			Vertex[] verts = new Vertex[_texCoords.Length];
+			int vertCount = verts.Length;
 
-			for(int i = 0; i < verts.Length; i++)
+			for(int i = 0; i < vertCount; i++)
 			{
 				verts[i].TextureCoordinates = _texCoords[i];
 			}
@@ -714,8 +726,9 @@ namespace idTech4.Renderer
 		private void TransformVertices(Vertex[] verts, idJointMatrix[] entityJoints)
 		{
 			int j, i;
+			int vertCount = verts.Length;
 
-			for(j = i = 0; i < verts.Length; i++)
+			for(j = i = 0; i < vertCount; i++)
 			{
 				Vector3 w = new Vector3(_scaledWeights[j].X, _scaledWeights[j].Y, _scaledWeights[j].Z);
 				Vector3 v = entityJoints[_weightIndex[j * 2 + 0]].ToVector3() * w;

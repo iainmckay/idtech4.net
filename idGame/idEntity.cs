@@ -5,7 +5,9 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Collision;
 using idTech4.Game.Animation;
+using idTech4.Game.Entities;
 using idTech4.Game.Physics;
 using idTech4.Game.Scripting;
 using idTech4.Math;
@@ -55,13 +57,14 @@ namespace idTech4.Game
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				idConsole.Warning("TODO: idEntity.Axis set");
-				// TODO
-				/*if ( GetPhysics()->IsType( idPhysics_Actor::Type ) ) {
-		static_cast<idActor *>(this)->viewAxis = axis;
-	} else {
-		GetPhysics()->SetAxis( axis );
-	}*/
+				if(this.Physics is idPhysics_Actor)
+				{
+					((idActor) this).ViewAxis = value;
+				}
+				else
+				{
+					this.Physics.SetAxis(value);
+				}
 
 				UpdateVisuals();
 			}
@@ -204,15 +207,6 @@ namespace idTech4.Game
 				idConsole.Warning("TODO: idEntity.Model get");
 
 				return null;
-			}
-			set
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				idConsole.Warning("TODO: idEntity.Model set");
 			}
 		}
 
@@ -431,7 +425,7 @@ namespace idTech4.Game
 		// for being linked into activeEntities list
 		private LinkedListNode<idEntity> _activeNode;
 
-		private idPhysics _defaultPhysicsObject;
+		private idPhysics_Static _defaultPhysicsObject;
 		private idPhysics _physics;
 		#endregion
 
@@ -444,6 +438,7 @@ namespace idTech4.Game
 			_className = "unknown";
 
 			_renderEntity = new RenderEntityComponent();
+			_defaultPhysicsObject = new idPhysics_Static();
 
 			idConsole.Warning("TODO: idEntity");
 			/*			
@@ -473,6 +468,27 @@ namespace idTech4.Game
 		#endregion
 
 		#region Methods
+		#region Public
+		/// <summary>
+		/// Activate the physics object.
+		/// </summary>
+		/// <param name="entity">Entity activating us.</param>
+		public void ActivatePhysics(idEntity entity)
+		{
+			this.Physics.Activate();
+		}
+
+		public void AddContactEntity(idEntity entity)
+		{
+			this.Physics.AddContactEntity(entity);
+		}
+
+		public void RemoveContactEntity(idEntity entity)
+		{
+			this.Physics.RemoveContactEntity(entity);
+		}
+		#endregion
+
 		#region Private
 		private void InitDefaultPhysics(Vector3 origin, Matrix axis)
 		{
@@ -482,7 +498,7 @@ namespace idTech4.Game
 			// check if a clipmodel key/value pair is set
 			if(temp != string.Empty)
 			{
-				if(idClipModel.CheckModel(temp) >= 0)
+				if(idClipModel.CheckModel(temp) != null)
 				{
 					clipModel = new idClipModel(temp);
 				}
@@ -493,40 +509,61 @@ namespace idTech4.Game
 				// check if mins/maxs or size key/value pairs are set
 				if(clipModel == null)
 				{
-					throw new NotImplementedException();
+					idBounds bounds = idBounds.Zero;
+					bool setClipModel = false;
 
-					/*idVec3 size;
-					idBounds bounds;
-					bool setClipModel = false;*/
-
-					/*if ( spawnArgs.GetVector( "mins", NULL, bounds[0] ) &&
-						spawnArgs.GetVector( "maxs", NULL, bounds[1] ) ) {
+					if((_spawnArgs.ContainsKey("mins") == true)
+						&& (_spawnArgs.ContainsKey("maxs") == true))
+					{
+						bounds = new idBounds(_spawnArgs.GetVector3("mins"), _spawnArgs.GetVector3("maxs"));
 						setClipModel = true;
-						if ( bounds[0][0] > bounds[1][0] || bounds[0][1] > bounds[1][1] || bounds[0][2] > bounds[1][2] ) {
-							gameLocal.Error( "Invalid bounds '%s'-'%s' on entity '%s'", bounds[0].ToString(), bounds[1].ToString(), name.c_str() );
+
+						if((bounds.Min.X > bounds.Max.X)
+							|| (bounds.Min.Y > bounds.Max.Y)
+							|| (bounds.Min.Z > bounds.Max.Z))
+						{
+							idConsole.Error("Invalid bounds '{0}'-'{1}' on entity '{2}'", bounds.Min, bounds.Max, this.Name);
 						}
-					} else if ( spawnArgs.GetVector( "size", NULL, size ) ) {
-						if ( ( size.x < 0.0f ) || ( size.y < 0.0f ) || ( size.z < 0.0f ) ) {
-							gameLocal.Error( "Invalid size '%s' on entity '%s'", size.ToString(), name.c_str() );
+					}
+					else if(_spawnArgs.ContainsKey("size") == true)
+					{
+						Vector3 size = _spawnArgs.GetVector3("size");
+
+						if((size.X < 0.0f)
+							|| (size.Y < 0.0f)
+							|| (size.Z < 0.0f))
+						{
+							idConsole.Error("Invalid size '{0}' on entity '{1}'", size, this.Name);
 						}
-						bounds[0].Set( size.x * -0.5f, size.y * -0.5f, 0.0f );
-						bounds[1].Set( size.x * 0.5f, size.y * 0.5f, size.z );
+
 						setClipModel = true;
-					}*/
+						bounds = new idBounds(
+									new Vector3(size.X * -0.5f, size.Y * -0.5f, 0.0f),
+									new Vector3(size.X * 0.5f, size.Y * 0.5f, size.Z)
+								);
+					}
 
-					/*if ( setClipModel ) {
-						int numSides;
-						idTraceModel trm;
+					if(setClipModel == true)
+					{
+						int sideCount = _spawnArgs.GetInteger("cyclinder", 0);
 
-						if ( spawnArgs.GetInt( "cylinder", "0", numSides ) && numSides > 0 ) {
-							trm.SetupCylinder( bounds, numSides < 3 ? 3 : numSides );
-						} else if ( spawnArgs.GetInt( "cone", "0", numSides ) && numSides > 0 ) {
-							trm.SetupCone( bounds, numSides < 3 ? 3 : numSides );
-						} else {
-							trm.SetupBox( bounds );
+						idTraceModel traceModel = new idTraceModel();
+
+						if(sideCount > 0)
+						{
+							idConsole.Warning("TODO: traceModel.SetupCyclinder(bounds, (sideCount < 3) ? 3 : sideCount);");
 						}
-						clipModel = new idClipModel( trm );
-					}*/
+						else if((sideCount = _spawnArgs.GetInteger("cone", 0)) > 0)
+						{
+							idConsole.Warning("TODO: traceModel.SetupCone(bounds, (sideCount < 3) ? 3 : sideCount);");
+						}
+						else
+						{
+							traceModel.SetupBox(bounds);
+						}
+
+						clipModel = new idClipModel(traceModel);
+					}
 				}
 
 				// check if the visual model can be used as collision model
@@ -536,7 +573,7 @@ namespace idTech4.Game
 
 					if(temp != string.Empty)
 					{
-						if(idClipModel.CheckModel(temp) >= 0)
+						if(idClipModel.CheckModel(temp) != null)
 						{
 							clipModel = new idClipModel(temp);
 						}
@@ -550,6 +587,58 @@ namespace idTech4.Game
 			_defaultPhysicsObject.SetAxis(axis);
 
 			_physics = _defaultPhysicsObject;
+		}
+
+		protected virtual void SetModel(string modelName)
+		{
+			idConsole.Warning("TODO: FreeModelDef();");
+
+			_renderEntity.Model = idE.RenderModelManager.FindModel(modelName);
+
+			if(_renderEntity.Model != null)
+			{
+				_renderEntity.Model.Reset();
+			}
+
+			_renderEntity.Callback = null;
+			_renderEntity.Joints = null;
+
+			if(_renderEntity.Model != null)
+			{
+				_renderEntity.Bounds = _renderEntity.Model.GetBounds(_renderEntity);
+			}
+			else
+			{
+				_renderEntity.Bounds = idBounds.Zero;
+			}
+
+			UpdateVisuals();
+		}
+
+		protected virtual void SetPhysics(idPhysics phys)
+		{
+			// clear any contacts the current physics object has
+			if(_physics != null)
+			{
+				_physics.ClearContacts();
+			}
+
+			// set new physics object or set the default physics if NULL
+			if(phys != null)
+			{
+				_defaultPhysicsObject.SetClipModel(null, 1.0f);
+
+				_physics = phys;
+				_physics.Activate();
+			}
+			else
+			{
+				_physics = _defaultPhysicsObject;
+			}
+
+			_physics.UpdateTime(idR.Game.Time);
+
+			idConsole.Warning("TODO: _physics.SetMaster(bindMaster, fl.bindOrientated);");
 		}
 
 		private void UpdateVisuals()
@@ -959,11 +1048,14 @@ namespace idTech4.Game
 			this.Origin = origin;
 			this.Axis = axis;
 
-			// TODO
-			/*temp = spawnArgs.GetString( "model" );
-			if ( temp && *temp ) {
-				SetModel( temp );
+			string temp = _spawnArgs.GetString("model");
+
+			if(temp != string.Empty)
+			{
+				this.SetModel(temp);
 			}
+			// TODO
+			/*
 
 			if ( spawnArgs.GetString( "bind", "", &temp ) ) {
 				PostEventMS( &EV_SpawnBind, 0 );

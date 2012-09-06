@@ -98,7 +98,9 @@ namespace idTech4.Text.Decl
 				return shader;
 			}
 
-			for(int i = 0; i < _mappings.Length; i++)
+			int count = _mappings.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				SkinMapping map = _mappings[i];
 

@@ -329,7 +329,7 @@ namespace idTech4.Text
 			}
 
 			// if the type matches
-			if((token.Type == type) && ((token.SubType & subType) != 0))
+			if((token.Type == type) && ((token.SubType & subType) == subType))
 			{
 				return token;
 			}
@@ -934,7 +934,9 @@ namespace idTech4.Text
 		#region Private
 		private bool CheckString(string str)
 		{
-			for(int i = 0; i < str.Length; i++)
+			int length = str.Length;
+
+			for(int i = 0; i < length; i++)
 			{
 				if(GetBufferCharacter(_scriptPosition + i) != str[i])
 				{
@@ -1390,6 +1392,9 @@ namespace idTech4.Text
 			int i, l;
 			string p;
 			LexerPunctuation punc;
+			int puncCount = _punctuation.Length;
+			int bufferLength = _buffer.Length;
+			int puncMarkLength;
 
 			// TODO
 			/*#ifdef PUNCTABLE
@@ -1398,16 +1403,17 @@ namespace idTech4.Text
 				punc = &(idLexer::punctuations[n]);
 			#else*/
 
-			for(i = 0; i < _punctuation.Length; i++)
+			for(i = 0; i < puncCount; i++)
 			{
 				punc = _punctuation[i];
 
 				/*#endif*/
 
 				p = punc.P;
+				puncMarkLength = p.Length;
 
 				// check for this punctuation in the script
-				for(l = 0; ((l < p.Length) && ((_scriptPosition + l) < _buffer.Length)); l++)
+				for(l = 0; ((l < puncMarkLength) && ((_scriptPosition + l) < bufferLength)); l++)
 				{
 					if(GetBufferCharacter(_scriptPosition + l) != p[l])
 					{
@@ -1415,7 +1421,7 @@ namespace idTech4.Text
 					}
 				}
 
-				if(l >= p.Length)
+				if(l >= puncMarkLength)
 				{
 					for(i = 0; i < l; i++)
 					{

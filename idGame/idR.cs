@@ -15,6 +15,8 @@ namespace idTech4.Game
 {
 	public class idR
 	{
+		public static readonly float DefaultGravity = 1066.0f;
+
 		public static readonly int UserCommandHertz = 60; // 60 frames per second
 		public static readonly int UserCommandRate = 1000 / UserCommandHertz;
 

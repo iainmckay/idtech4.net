@@ -110,6 +110,7 @@ namespace idTech4
 			}
 
 			StringBuilder b = new StringBuilder();
+			int argCount = _args.Length;
 
 			if(escapeArgs == true)
 			{
@@ -132,7 +133,7 @@ namespace idTech4
 
 				if((escapeArgs == true) && (_args[i].IndexOf('\\') != -1))
 				{
-					for(int j = 0; j < _args[i].Length; j++)
+					for(int j = 0; j < argCount; j++)
 					{
 						if(_args[i][j] == '\\')
 						{

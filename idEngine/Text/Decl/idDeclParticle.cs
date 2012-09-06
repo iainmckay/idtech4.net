@@ -75,7 +75,6 @@ namespace idTech4.Text.Decl
 		private idParticleStage ParseParticleStage(idLexer lexer)
 		{
 			idToken token;
-			idParticleParameter parm;
 			string tokenLower;
 			
 			idParticleStage stage = new idParticleStage();
@@ -500,7 +499,9 @@ namespace idTech4.Text.Decl
 			//
 			_bounds.Clear();
 
-			for(int i = 0; i < _stages.Length; i++)
+			int count = _stages.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				idConsole.Warning("TODO: GetStageBounds");
 				// TODO: GetStageBounds(stages[i]);

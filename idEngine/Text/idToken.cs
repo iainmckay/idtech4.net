@@ -326,7 +326,6 @@ namespace idTech4.Text
 		#endregion
 	}
 
-	[Flags]
 	public enum TokenType
 	{
 		Unknown = 0,

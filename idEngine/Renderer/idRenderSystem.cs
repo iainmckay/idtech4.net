@@ -38,6 +38,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using Tao.OpenGl;
 
+using idTech4.Geometry;
 using idTech4.Math;
 using idTech4.Text.Decl;
 using idTech4.UI;
@@ -573,10 +574,11 @@ namespace idTech4.Renderer
 		{
 			Vector4 tmpColor;
 			int xx = x;
+			int length = str.Length;
 
 			this.Color = color;
 
-			for(int i = 0; i < str.Length; i++)
+			for(int i = 0; i < length; i++)
 			{
 				if(idHelper.IsColor(str, i) == true)
 				{
@@ -655,10 +657,11 @@ namespace idTech4.Renderer
 			Vector4 color;
 			char c;
 			int xx = x;
+			int length = str.Length;
 
 			this.Color = setColor;
 
-			for(int i = 0; i < str.Length; i++)
+			for(int i = 0; i < length; i++)
 			{
 				c = str[i];
 
@@ -1419,12 +1422,13 @@ namespace idTech4.Renderer
 			// surfaces won't draw any ambient passes
 			// TODO: backEnd.currentSpace = NULL;
 			int i;
+			int surfaceCount = surfaces.Length;
 
-			for(i = 0; i < surfaces.Length; i++)
+			for(i = 0; i < surfaceCount; i++)
 			{
 				DrawSurface surface = surfaces[i];
 
-				// TODO:
+				// TODO: suppressInSubview
 				/*if ( drawSurfs[i]->material->SuppressInSubview() ) {
 					continue;
 				}*/
@@ -1447,7 +1451,7 @@ namespace idTech4.Renderer
 			}
 
 			GL_Cull(CullType.TwoSided);
-			//Gl.glColor3f(1, 1, 1);
+			// TODO: Gl.glColor3f(1, 1, 1);
 
 			return i;
 		}
@@ -2674,7 +2678,8 @@ namespace idTech4.Renderer
 		{
 			Surface tri = surface.Geometry;
 			idMaterial material = surface.Material;
-
+			int count;
+			
 			if(material.HasAmbient == false)
 			{
 				return;
@@ -2731,14 +2736,15 @@ namespace idTech4.Renderer
 				//Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * material.PolygonOffset);
 			}
 
-			// TODO: weapon depth hack
-			/*if ( surf->space->weaponDepthHack ) {
-				RB_EnterWeaponDepthHack();
+			if(surface.Space.WeaponDepthHack == true)
+			{
+				idConsole.Warning("TODO: RB_EnterWeaponDepthHack();");
 			}
 
-			if ( surf->space->modelDepthHack != 0.0f ) {
-				RB_EnterModelDepthHack( surf->space->modelDepthHack );
-			}*/
+			if(surface.Space.ModelDepthHack != 0.0f)
+			{
+				idConsole.Warning("TODO: RB_EnterModelDepthHack( surf->space->modelDepthHack );");
+			}
 
 			foreach(MaterialStage stage in material.Stages)
 			{
@@ -2804,7 +2810,9 @@ namespace idTech4.Renderer
 						newStage->megaTexture->BindForViewOrigin( localViewer );
 					}*/
 
-					for(int i = 0; i < newStage.VertexParameters.Length; i++)
+					count = newStage.VertexParameters.Length;
+
+					for(int i = 0; i < count; i++)
 					{
 						float[] parm = new float[4];
 						parm[0] = registers[newStage.VertexParameters[i, 0]];
@@ -2815,7 +2823,9 @@ namespace idTech4.Renderer
 						//Gl.glProgramLocalParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, i, parm);
 					}
 
-					for(int i = 0; i < newStage.FragmentProgramImages.Length; i++)
+					count = newStage.FragmentProgramImages.Length;
+
+					for(int i = 0; i < count; i++)
 					{
 						if(newStage.FragmentProgramImages[i] != null)
 						{
@@ -2830,7 +2840,9 @@ namespace idTech4.Renderer
 					// draw it
 					DrawElementsWithCounters(tri);
 
-					for(int i = 1; i < newStage.FragmentProgramImages.Length; i++)
+					count = newStage.FragmentProgramImages.Length;
+
+					for(int i = 1; i < count; i++)
 					{
 						if(newStage.FragmentProgramImages[i] != null)
 						{
@@ -2970,10 +2982,10 @@ namespace idTech4.Renderer
 					// TODO: Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
 				}
 
-				// TODO: weapon depth hack
-				/*if ( surf->space->weaponDepthHack || surf->space->modelDepthHack != 0.0f ) {
-					RB_LeaveDepthHack();
-				}*/
+				if((surface.Space.WeaponDepthHack == true) || (surface.Space.ModelDepthHack != 0.0f))
+				{
+					idConsole.Warning("TODO: RB_LeaveDepthHack();");
+				}
 			}
 		}
 
@@ -3811,7 +3823,9 @@ namespace idTech4.Renderer
 		{
 			idConsole.WriteLine("----- R_ReloadARBPrograms -----");
 
-			for(int i = 0; i < _programs.Length; i++)
+			int count = _programs.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				LoadArbProgram(i);
 			}
@@ -3878,7 +3892,9 @@ namespace idTech4.Renderer
 
 		public GLState()
 		{
-			for(int i = 0; i < TextureUnits.Length; i++)
+			int count = TextureUnits.Length;
+
+			for(int i = 0; i < count; i++)
 			{
 				TextureUnits[i] = new TextureUnit();
 			}
@@ -4072,8 +4088,8 @@ namespace idTech4.Renderer
 		/// </remarks>
 		public idBounds	Bounds;
 		
-		/*deferredEntityCallback_t	callback;
-		void *					callbackData;	*/		// used for whatever the callback wants
+		public object /*deferredEntityCallback_t*/	Callback;
+		/*void *					callbackData;	*/		// used for whatever the callback wants
 		
 		/// <summary>
 		/// Suppress the model in the given view.
@@ -4153,9 +4169,10 @@ namespace idTech4.Renderer
 
 		/*struct renderView_s	*	remoteRenderView;		// any remote camera surfaces will use this
 
-		int						numJoints;
-		idJointMat *			joints;					// array of joints that will modify vertices.
-														// NULL if non-deformable model.  NOT freed by renderer*/
+		int						numJoints;*/
+
+		public idJointMatrix[] Joints;						// array of joints that will modify vertices.
+															// NULL if non-deformable model.  NOT freed by renderer
 
 		/// <summary>
 		/// Squash depth range so particle effects don't clip into walls.
