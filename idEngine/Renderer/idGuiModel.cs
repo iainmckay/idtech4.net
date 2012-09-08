@@ -329,12 +329,11 @@ namespace idTech4.Renderer
 				viewDef.Scissor.Y2 = idE.RenderSystem.ViewDefinition.Scissor.Y2;
 			}
 
+			Vector2 center = new Vector2(idE.VirtualScreenWidth * 0.5f, idE.VirtualScreenHeight * 0.5f);
+
 			viewDef.FloatTime = idE.RenderSystem.FrameShaderTime;
-
-			Vector2 center = new Vector2(idE.RenderSystem.ScreenWidth * 0.5f, idE.RenderSystem.ScreenHeight * 0.5f);
-
-			viewDef.ProjectionMatrix = Matrix.CreateOrthographic(idE.RenderSystem.ScreenWidth, idE.RenderSystem.ScreenHeight, -0.5f, 1);
-			viewDef.WorldSpace.ModelViewMatrix = Matrix.CreateLookAt(new Vector3(center, 0), new Vector3(center, 1), new Vector3(0, -1, 0));
+			viewDef.ProjectionMatrix = Matrix.CreateOrthographic(idE.VirtualScreenWidth, idE.VirtualScreenHeight, -0.5f, 1);
+			viewDef.WorldSpace.ModelViewMatrix =  Matrix.CreateLookAt(new Vector3(center, 0), new Vector3(center, 1), new Vector3(0, -1, 0));
 
 			View oldView = idE.RenderSystem.ViewDefinition;
 			idE.RenderSystem.ViewDefinition = viewDef;
