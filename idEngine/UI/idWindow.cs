@@ -437,6 +437,28 @@ namespace idTech4.UI
 			}
 		}
 
+		public Vector4 HoverColor
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return _hoverColor;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				_hoverColor.Set(value);
+			}
+		}
+
 		public bool IsInteractive
 		{
 			get
@@ -720,6 +742,15 @@ namespace idTech4.UI
 				}
 
 				return _textAlign;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				_textAlign = value;
 			}
 		}
 
@@ -1093,6 +1124,15 @@ namespace idTech4.UI
 			rect.Y += _actualY - _drawRect.Y;
 
 			return rect.Contains(x, y);
+		}
+
+		public bool Contains(float x, float y)
+		{
+			idRectangle r = this.DrawRectangle;
+			r.X = _actualX;
+			r.Y = _actualY;
+
+			return r.Contains(x, y);
 		}
 
 		public virtual void Draw(float x, float y)
@@ -3060,9 +3100,7 @@ namespace idTech4.UI
 			int i = _expressionRegisters.Count;
 			_registerIsTemporary[i] = true;
 			_expressionRegisters.Add(0);
-
-			i = _expressionRegisters.Count;
-
+			
 			op = new WindowExpressionOperation();
 			op.Type = opType;
 			op.A = a;
@@ -3707,12 +3745,7 @@ namespace idTech4.UI
 			return true;
 		}
 
-		private bool ParseScript(idScriptParser parser, idGuiScriptList list)
-		{
-			return ParseScript(parser, list, false);
-		}
-
-		private bool ParseScript(idScriptParser parser, idGuiScriptList list, bool elseBlock)
+		private bool ParseScript(idScriptParser parser, idGuiScriptList list, bool elseBlock = false)
 		{
 			bool ifElseBlock = false;
 
@@ -4237,7 +4270,7 @@ namespace idTech4.UI
 
 	public enum WindowExpressionOperationType
 	{
-		Add,
+		Add = 0,
 		Subtract,
 		Multiply,
 		Divide,
