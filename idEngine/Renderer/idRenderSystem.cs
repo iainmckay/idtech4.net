@@ -98,6 +98,14 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public int FrameCount
+		{
+			get
+			{
+				return _frameCount;
+			}
+		}
+
 		/// <summary>
 		/// Shader time for all non-world 2D rendering.
 		/// </summary>
@@ -3841,6 +3849,7 @@ namespace idTech4.Renderer
 			float dLeft = dFar * idMath.Tan(MathHelper.ToRadians(_viewDefinition.RenderView.FovX * 0.5f));
 			float dUp = dFar * idMath.Tan(MathHelper.ToRadians(_viewDefinition.RenderView.FovY * 0.5f));
 
+			_viewDefinition.ViewFrustum = new idFrustum();
 			_viewDefinition.ViewFrustum.Origin = _viewDefinition.RenderView.ViewOrigin;
 			_viewDefinition.ViewFrustum.Axis = _viewDefinition.RenderView.ViewAxis;
 			_viewDefinition.ViewFrustum.SetSize(dNear, dFar, dLeft, dUp);

@@ -60,7 +60,10 @@ namespace idTech4.Renderer
 				_dynamicModel = value;
 			}
 		}
-		
+
+		/// <summary>
+		/// Index in to render world entityDefinitions.
+		/// </summary>
 		public int EntityIndex
 		{
 			get
@@ -85,6 +88,25 @@ namespace idTech4.Renderer
 			}
 		}
 
+		/// <summary>
+		/// To determine if it is constantly changing, and should go in the dynamic frame 
+		/// memory, or kept in the cached memory.
+		/// </summary>
+		public int LastModifiedFrameNumber
+		{
+			get
+			{
+				return _lastModifiedFrameNum;
+			}
+			set
+			{
+				_lastModifiedFrameNum = value;
+			}
+		}
+
+		/// <summary>
+		/// This is just a rearrangement of parms.axis and parms.origin.
+		/// </summary>
 		public Matrix ModelMatrix
 		{
 			get
@@ -115,8 +137,15 @@ namespace idTech4.Renderer
 			{
 				return _parameters;
 			}
+			set
+			{
+				_parameters = value;
+			}
 		}
 
+		/// <summary>
+		/// The local bounds used to place entityRefs, either from parms or a model.
+		/// </summary>
 		public idBounds ReferenceBounds
 		{
 			get
@@ -168,14 +197,12 @@ namespace idTech4.Renderer
 
 		#region Members
 		private RenderEntityComponent _parameters;
-		private Matrix _modelMatrix; // this is just a rearrangement of parms.axis and parms.origin
+		private Matrix _modelMatrix;
 		private idRenderWorld _world;
 
-		private int _entityIndex; // in world entityDefs
+		private int _entityIndex;
 
-		private int _lastModifiedFrameNum;	// to determine if it is constantly changing,
-											// and should go in the dynamic frame memory, or kept
-											// in the cached memory
+		private int _lastModifiedFrameNum;	
 
 		private bool _archived; // for demo writing
 
@@ -184,7 +211,7 @@ namespace idTech4.Renderer
 											 // dynamicModel if this doesn't == tr.viewCount
 		private idRenderModel _cachedDynamicModel;
 
-		private idBounds _referenceBounds; // the local bounds used to place entityRefs, either from parms or a model
+		private idBounds _referenceBounds;
 
 		// a viewEntity_t is created whenever a idRenderEntityLocal is considered for inclusion
 		// in a given view, even if it turns out to not be visible

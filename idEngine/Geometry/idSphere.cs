@@ -34,76 +34,92 @@ using Microsoft.Xna.Framework;
 
 using idTech4.Math;
 
-namespace idTech4
+namespace idTech4.Geometry
 {
-	public static class Extensions
+	public class idSphere
 	{
-		#region Plane
-		public static float Distance(this Plane plane, Vector3 point)
+		#region Properties
+		public Vector3 Origin
 		{
-			return Vector3.Dot(Vector3.Normalize(plane.Normal), point) - plane.D;
+			get
+			{
+				return _origin;
+			}
 		}
 
-		public static void FitThroughPoint(this Plane plane, Vector3 point)
+		public float Radius
 		{
-			plane.D =  -Vector3.Multiply(plane.Normal, point).Length();
+			get
+			{
+				return _radius;
+			}
 		}
 		#endregion
 
-		#region Vector3
-		public static bool Compare(this Vector3 v2, Vector3 v, float epsilon)
+		#region Members
+		private Vector3 _origin;
+		private float _radius;
+		#endregion
+
+		#region Constructor
+		public idSphere()
 		{
-			if(idMath.Abs(v2.X - v.X) > epsilon)
-			{
-				return false;
-			}
 
-			if(idMath.Abs(v2.Y - v.Y) > epsilon)
-			{
-				return false;
-			}
-
-			if(idMath.Abs(v2.Z - v.Z) > epsilon)
-			{
-				return false;
-			}
-
-			return true;
 		}
 
-		public static Matrix ToMatrix(this Vector3 v)
+		public idSphere(Vector3 point)
 		{
-			Matrix m = new Matrix();
-			m.M11 = v.X;
-			m.M12 = v.Y;
-			m.M13 = v.Z;
+			_origin = point;
+			_radius = 0.0f;
+		}
 
-			float d = v.X * v.X + v.Y * v.Y;
+		public idSphere(Vector3 point, float r)
+		{
+			_origin = point;
+			_radius = r;
+		}
+		#endregion
 
-			if(d == 0)
+		#region Overloads
+		public override bool Equals(object obj)
+		{
+			if(obj is idSphere)
 			{
-				m.M21 = 1.0f;
-				m.M22 = 0.0f;
-				m.M23 = 0.0f;
-			}
-			else
-			{
-				d = idMath.InvSqrt(d);
-
-				m.M21 = -v.Y * d;
-				m.M22 = v.X * d;
-				m.M23 = 0.0f;
+				return Equals((idSphere) obj);
 			}
 
-			Vector3 tmp = Vector3.Cross(v, new Vector3(m.M21, m.M22, m.M23));
+ 			return base.Equals(obj);
+		}
 
-			m.M31 = tmp.X;
-			m.M32 = tmp.Y;
-			m.M33 = tmp.Z;
+		/// <summary>
+		/// Exact compare, no epsilon.
+		/// </summary>
+		/// <param name="sphere"></param>
+		/// <returns></returns>
+		public bool Equals(idSphere sphere)
+		{
+			return ((_origin == sphere.Origin) && (_radius == sphere.Radius));
+		}
 
-			m.M44 = 1;
+		/// <summary>
+		/// Compare with epsilon.
+		/// </summary>
+		/// <param name="sphere"></param>
+		/// <param name="epsilon"></param>
+		/// <returns></returns>
+		public bool Equals(idSphere sphere, float epsilon)
+		{
+			return ((_origin.Compare(sphere.Origin, epsilon) == true) && (idMath.Abs(_radius - sphere.Radius) <= epsilon));
+		}
 
-			return m;
+		public static bool operator ==(idSphere s1, idSphere s2)
+		{
+			return s1.Equals(s2);
+		}
+
+		public static bool operator !=(idSphere s1, idSphere s2)
+		{
+			return !s1.Equals(s2);
 		}
 		#endregion
 	}

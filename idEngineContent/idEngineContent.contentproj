@@ -18079,6 +18079,26 @@
       <ProcessorParameters_GenerateMipmaps>True</ProcessorParameters_GenerateMipmaps>
       <ProcessorParameters_ResizeToPowerOfTwo>True</ProcessorParameters_ResizeToPowerOfTwo>
     </Compile>
+    <Compile Include="models\wipes\dust.tga">
+      <Name>dust</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\wipes\hst_mars.tga">
+      <Name>hst_mars</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\wipes\hst_mars_h.tga">
+      <Name>hst_mars_h</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Content Include="models\wipes\planet2.lwo">
+      <Name>planet2</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+      <Processor>ModelProcessor</Processor>
+    </Content>
     <None Include="strings\english.lang">
       <Name>english</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>

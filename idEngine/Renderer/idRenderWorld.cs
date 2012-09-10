@@ -35,6 +35,7 @@ using Microsoft.Xna.Framework;
 
 using idTech4;
 using idTech4.Geometry;
+using idTech4.Math;
 using idTech4.Text;
 
 namespace idTech4.Renderer
@@ -286,6 +287,28 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Entity and Light Defs
+		public idRenderEntity AddEntityDefinition(RenderEntityComponent renderComponent)
+		{
+			// try and reuse a free spot
+			int index = _entityDefinitions.FindIndex(x => x == null);
+
+			if(index == -1)
+			{
+				index = _entityDefinitions.Count;
+				_entityDefinitions.Add(null);
+
+				idConsole.Warning("TODO: ResizeInteractionTable");
+				/*if ( interactionTable && entityDefs.Num() > interactionTableWidth ) {
+					ResizeInteractionTable();
+				}*/
+			}
+
+			UpdateEntityDefinition(index, renderComponent);
+
+			return _entityDefinitions[index];
+		}
+
+
 		/// <summary>
 		/// All the modelrefs and lightrefs that are in visible areas
 		/// will have viewEntitys and viewLights created for them.
@@ -435,6 +458,112 @@ namespace idTech4.Renderer
 
 			// entities flagged as noDynamicInteractions will no longer make any*/
 			_generateInteractionsCalled = true;
+		}
+
+		/// <summary>
+		/// Does not write to the demo file, which will only be updated for visible entities.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <param name="renderComponent"></param>
+		private void UpdateEntityDefinition(int index, RenderEntityComponent renderComponent)
+		{
+			if(idE.CvarSystem.GetBool("r_skipUpdates") == true)
+			{
+				return;
+			}
+
+			// TODO: tr.pc.c_entityUpdates++;
+
+			if((renderComponent.Model == null) && (renderComponent.Callback == null))
+			{
+				idConsole.Error("idRenderWorld::UpdateEntityDefinition: NULL model");
+			}
+
+			// create new slots if needed
+			if((index < 0) || (index > idE.LudicrousEntityIndex))
+			{
+				idConsole.Error("idRenderWorld::UpdateEntityDefinitionL index = {0}", index);
+			}
+
+			while(index >= _entityDefinitions.Count)
+			{
+				_entityDefinitions.Add(null);
+			}
+
+			idRenderEntity def = _entityDefinitions[index];
+
+			if(def != null)
+			{
+				if(renderComponent.ForceUpdate == false)
+				{
+					idConsole.Warning("TODO: force update - quite important!");
+
+					/*// check for exact match (OPTIMIZE: check through pointers more)
+					if ( !re->joints && !re->callbackData && !def->dynamicModel && !memcmp( re, &def->parms, sizeof( *re ) ) ) {
+						return;
+					}
+
+					// if the only thing that changed was shaderparms, we can just leave things as they are
+					// after updating parms
+
+					// if we have a callback function and the bounds, origin, axis and model match,
+					// then we can leave the references as they are
+					if ( re->callback ) {
+
+						bool axisMatch = ( re->axis == def->parms.axis );
+						bool originMatch = ( re->origin == def->parms.origin );
+						bool boundsMatch = ( re->bounds == def->referenceBounds );
+						bool modelMatch = ( re->hModel == def->parms.hModel );
+
+						if ( boundsMatch && originMatch && axisMatch && modelMatch ) {
+							// only clear the dynamic model and interaction surfaces if they exist
+							c_callbackUpdate++;
+							R_ClearEntityDefDynamicModel( def );
+							def->parms = *re;
+							return;
+						}
+					}*/
+				}
+
+				// save any decals if the model is the same, allowing marks to move with entities
+				if(def.Parameters.Model == renderComponent.Model)
+				{
+					FreeEntityDefDerivedData(def, true, true);
+				}
+				else
+				{
+					FreeEntityDefDerivedData(def, false, false);
+				}
+			} 
+			else 
+			{
+				// creating a new one
+				def = new idRenderEntity();
+				_entityDefinitions[index] = def;
+
+				def.World = this;
+				def.EntityIndex = index;
+			}
+
+			def.Parameters = renderComponent;
+			def.ModelMatrix = idHelper.AxisToModelMatrix(def.Parameters.Axis, def.Parameters.Origin);
+			def.LastModifiedFrameNumber = idE.RenderSystem.FrameCount;
+
+			// TODO: demo
+			/*if ( session->writeDemo && def->archived ) {
+				WriteFreeEntity( entityHandle );
+				def->archived = false;
+			}*/
+
+			// optionally immediately issue any callbacks
+			if((idE.CvarSystem.GetBool("r_useEntityCallbacks") == false) && (def.Parameters.Callback != null))
+			{
+				idConsole.Warning("TODO: R_IssueEntityDefCallback( def );");
+			}
+
+			// based on the model bounds, add references in each area
+			// that may contain the updated surface
+			CreateEntityReferences(def);
 		}
 		#endregion
 
@@ -887,6 +1016,63 @@ namespace idTech4.Renderer
 			return idHelper.CullLocalBox(entity.ReferenceBounds, entity.ModelMatrix, portalStack.PortalPlaneCount, portalStack.PortalPlanes);
 		}
 
+		/// <summary>
+		/// Creates all needed model references in portal areas, chaining them to both the area and the entityDef.		
+		/// </summary>
+		/// <remarks>
+		/// Bumps tr.viewCount..
+		/// </remarks>
+		private void CreateEntityReferences(idRenderEntity def)
+		{
+			if(def.Parameters.Model == null)
+			{
+				def.Parameters.Model = idE.RenderModelManager.DefaultModel;
+			}
+			
+			// if the entity hasn't been fully specified due to expensive animation calcs
+			// for md5 and particles, use the provided conservative bounds.
+			if(def.Parameters.Callback != null)
+			{
+				def.ReferenceBounds = def.Parameters.Bounds;
+			}
+			else
+			{
+				def.ReferenceBounds = def.Parameters.Model.GetBounds(def.Parameters);
+			}
+
+			// some models, like empty particles, may not need to be added at all
+			if(def.ReferenceBounds.IsCleared == true)
+			{
+				return;
+			}
+
+			if((idE.CvarSystem.GetBool("r_showUpdates") == true)
+				&& (((def.ReferenceBounds.Max.X - def.ReferenceBounds.Min.X) > 1024)
+						|| ((def.ReferenceBounds.Max.Y - def.ReferenceBounds.Min.Y) > 1024)))
+			{
+				idConsole.WriteLine("big entityRef: {0}, {1}", def.ReferenceBounds.Max.X - def.ReferenceBounds.Min.X, def.ReferenceBounds.Max.Y - def.ReferenceBounds.Min.Y);
+			}
+
+			Vector3[] transformed = new Vector3[8];
+			Vector3 v;
+
+			for(int i = 0; i < 8; i++)
+			{
+				v.X = ((i & 1) == 0) ? def.ReferenceBounds.Min.X : def.ReferenceBounds.Max.X;
+				v.Y = (((i >> 1) & 1) == 0) ? def.ReferenceBounds.Min.Y : def.ReferenceBounds.Max.Y;
+				v.Z = (((i >> 2) & 1) == 0) ? def.ReferenceBounds.Min.Z : def.ReferenceBounds.Max.Z;
+
+				idHelper.LocalPointToGlobal(def.ModelMatrix, v, out transformed[i]);
+			}
+
+			// bump the view count so we can tell if an
+			// area already has a reference
+			idE.RenderSystem.ViewCount++;
+
+			// push these points down the BSP tree into areas
+			def.World.PushVolumeIntoTree(def, null, 8, transformed);
+		}
+
 		private void FloodConnectedAreas(PortalArea area, int portalAttributeIndex)
 		{
 			if(area.ConnectedAreaNumber[portalAttributeIndex] == _connectedAreaNumber)
@@ -1160,7 +1346,7 @@ namespace idTech4.Renderer
 
 			FreeEntityDefDerivedData(def, false, false);
 
-			// TODO
+			// TODO: demo
 			/*if ( session->writeDemo && def->archived ) {
 				WriteFreeEntity( entityHandle );
 			}*/
@@ -1178,7 +1364,7 @@ namespace idTech4.Renderer
 
 		private void FreeEntityDefDerivedData(idRenderEntity def, bool keepDecals, bool keepCachedDynamicModel) 
 		{
-			// TODO:
+			// TODO: demo
 
 			// demo playback needs to free the joints, while normal play
 			// leaves them in the control of the game			
@@ -1199,6 +1385,7 @@ namespace idTech4.Renderer
 				}
 			}*/
 
+			// TODO: interactions
 			// free all the interactions
 			/*while ( def->firstInteraction != NULL ) {
 				def->firstInteraction->UnlinkAndFree();
@@ -1502,7 +1689,7 @@ namespace idTech4.Renderer
 		/// </summary>
 		/// <param name="point"></param>
 		/// <returns></returns>
-		public int PointInArea(Vector3 point)
+		private int PointInArea(Vector3 point)
 		{
 			AreaNode node = _areaNodes[0];
 			int nodeNumber = -1;
@@ -1543,9 +1730,7 @@ namespace idTech4.Renderer
 				}
 
 				node = _areaNodes[nodeNumber];
-			}	
-	
-			return -1;
+			}
 		}
 
 		private bool PortalIsFoggedOut(Portal portal)
@@ -1553,6 +1738,172 @@ namespace idTech4.Renderer
 			// TODO: need lighting
 
 			return false;
+		}
+
+		private void PushVolumeIntoTree(idRenderEntity def, /* idRenderLight */ object light, int pointCount, Vector3[] points)
+		{
+			if(_areaNodes == null)
+			{
+				return;
+			}
+
+			// calculate a bounding sphere for the points
+			Vector3 mid = Vector3.Zero;
+			Vector3 dir;
+			float radSquared = 0;
+			float lr = 0;
+
+			for(int i = 0; i < pointCount; i++)
+			{
+				mid += points[i];
+			}
+
+			mid *= (1.0f / pointCount);
+
+			for(int i = 0; i < pointCount; i++)
+			{
+				dir = points[i] - mid;
+				lr = (dir * dir).Length();
+
+				if(lr > radSquared)
+				{
+					radSquared = lr;
+				}
+			}
+
+			idSphere sphere = new idSphere(mid, idMath.Sqrt(radSquared));
+
+			PushVolumeIntoTree_r(def, light, sphere, pointCount, points, 0);
+		}
+
+		/// <remarks>
+		/// Used for both light volumes and model volumes.
+		/// <para/>
+		/// This does not clip the points by the planes, so some slop occurs.
+		/// <para/>
+		/// tr.viewCount should be bumped before calling, allowing it
+		/// to prevent double checking areas.
+		/// <para/>
+		/// We might alternatively choose to do this with an area flow.
+		/// </remarks>
+		/// <param name="def"></param>
+		/// <param name="?"></param>
+		/// <param name="sphere"></param>
+		/// <param name="pointCount"></param>
+		/// <param name="points"></param>
+		private void PushVolumeIntoTree_r(idRenderEntity def, /* idRenderLight */ object light, idSphere sphere, int pointCount, Vector3[] points, int nodeNumber)
+		{
+			if(nodeNumber < 0)
+			{
+				int areaNumber = -1 - nodeNumber;
+				PortalArea area = _portalAreas[areaNumber];
+
+				if(area.ViewCount == idE.RenderSystem.ViewCount)
+				{
+					return;	// already added a reference here
+				}
+
+				area.ViewCount = idE.RenderSystem.ViewCount;
+
+				if(def != null)
+				{
+					AddEntityRefToArea(def, area);
+				}
+
+				if(light != null)
+				{
+					idConsole.Warning("TODO: AddLightRefToArea( light, area );");
+				}
+
+				return;
+			}
+
+			AreaNode node = _areaNodes[nodeNumber];
+
+			// if we know that all possible children nodes only touch an area
+			// we have already marked, we can early out
+			if((idE.CvarSystem.GetBool("r_useNodeCommonChildren") == true) && (node.CommonChildrenArea != idRenderWorld.ChildrenHaveMultipleAreas))
+			{
+				// note that we do NOT try to set a reference in this area
+				// yet, because the test volume may yet wind up being in the
+				// solid part, which would cause bounds slightly poked into
+				// a wall to show up in the next room
+				if(_portalAreas[node.CommonChildrenArea].ViewCount == idE.RenderSystem.ViewCount)
+				{
+					return;
+				}
+			}
+
+			// if the bounding sphere is completely on one side, don't
+			// bother checking the individual points
+			float distance = node.Plane.Distance(sphere.Origin);
+
+			if(distance >= sphere.Radius)
+			{
+				nodeNumber = node.Children[0];
+
+				if(nodeNumber != 0) // 0 = solid
+				{
+					PushVolumeIntoTree_r(def, light, sphere, pointCount, points, nodeNumber);
+				}
+
+				return;
+			}
+
+			if(distance <= -sphere.Radius)
+			{
+				nodeNumber = node.Children[1];
+
+				if(nodeNumber != 0) // 0 = solid
+				{
+					PushVolumeIntoTree_r(def, light, sphere, pointCount, points, nodeNumber);
+				}
+
+				return;
+			}
+
+			// exact check all the points against the node plane
+			bool front = false;
+			bool back = false;
+
+			for(int i = 0; i < pointCount; i++)
+			{
+				float d = ((points[i] * node.Plane.Normal) + new Vector3(node.Plane.Normal.Z, node.Plane.Normal.Z, node.Plane.Normal.Z)).Length();
+
+				if(d >= 0.0f)
+				{
+					front = true;
+				}
+				else if(d <= 0.0f)
+				{
+					back = true;
+				}
+
+				if((back == true) && (front == true))
+				{
+					break;
+				}
+			}
+
+			if(front == true)
+			{
+				nodeNumber = node.Children[0];
+
+				if(nodeNumber != 0) // 0 = solid
+				{
+					PushVolumeIntoTree_r(def, light, sphere, pointCount, points, nodeNumber);
+				}
+			}
+
+			if(back == true)
+			{
+				nodeNumber = node.Children[1];
+
+				if(nodeNumber != 0) // 0 = solid
+				{
+					PushVolumeIntoTree_r(def, light, sphere, pointCount, points, nodeNumber);
+				}
+			}
 		}
 
 		private idScreenRect ScreenRectangleFromWinding(idWinding winding, ViewEntity space)

@@ -34,6 +34,7 @@ namespace idTech4.Game
 		
 		public static readonly idDeclManager DeclManager = idE.DeclManager;
 		public static readonly idCvarSystem CvarSystem = idE.CvarSystem;
+		public static readonly idCmdSystem CmdSystem = idE.CmdSystem;
 		public static readonly idAsyncNetwork NetworkSystem = idE.AsyncNetwork;
 		public static readonly idCollisionModelManager CollisionModelManager = idE.CollisionModelManager;
 		public static readonly idRenderModelManager RenderModelManager = idE.RenderModelManager;

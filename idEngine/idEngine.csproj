@@ -110,6 +110,7 @@
     <Compile Include="Geometry\idFixedWinding.cs" />
     <Compile Include="Geometry\idFrustum.cs" />
     <Compile Include="Geometry\idJoint.cs" />
+    <Compile Include="Geometry\idSphere.cs" />
     <Compile Include="Geometry\idWinding.cs" />
     <Compile Include="idBounds.cs" />
     <Compile Include="idCmdArgs.cs" />

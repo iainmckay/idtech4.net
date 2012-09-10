@@ -54,6 +54,7 @@
     <Compile Include="Entities\idPlayerStart.cs" />
     <Compile Include="Entities\idWorldSpawn.cs" />
     <Compile Include="idEntity.cs" />
+    <Compile Include="idGameCommands.cs" />
     <Compile Include="idGameEdit.cs" />
     <Compile Include="idGameRules.cs" />
     <Compile Include="idR.cs" />

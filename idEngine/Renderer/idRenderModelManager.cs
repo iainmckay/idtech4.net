@@ -35,6 +35,16 @@ namespace idTech4.Renderer
 {
 	public sealed class idRenderModelManager
 	{
+		#region Properties
+		public idRenderModel DefaultModel
+		{
+			get
+			{
+				return _defaultModel;
+			}
+		}
+		#endregion
+
 		#region Members
 		private bool _insideLevelLoad;
 		private Dictionary<string, idRenderModel> _models = new Dictionary<string, idRenderModel>(StringComparer.OrdinalIgnoreCase);

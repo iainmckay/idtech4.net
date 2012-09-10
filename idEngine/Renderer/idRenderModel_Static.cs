@@ -524,34 +524,40 @@ namespace idTech4.Renderer
 
 			// FIXME: load new .proc map format
 
-			string extension = Path.GetExtension(fileName);
+			string extension = Path.GetExtension(fileName).ToLower();
 			bool loaded = false;
 
-			/*if(extension.Icmp("ase") == 0)
+			if(extension == "ase")
 			{
-				loaded = LoadASE(name);
-				reloadable = true;
+				idConsole.Warning("TODO: ase");
+
+				/*loaded = LoadASE(name);
+				reloadable = true;*/
 			}
-			else if(extension.Icmp("lwo") == 0)
+			else if(extension == "lwo")
 			{
-				loaded = LoadLWO(name);
-				reloadable = true;
+				idConsole.Warning("TODO: lwo");
+
+				/*loaded = LoadLWO(fileName);
+				_reloadable = true;*/
 			}
-			else if(extension.Icmp("flt") == 0)
+			else if(extension == "flt")
 			{
-				loaded = LoadFLT(name);
-				reloadable = true;
+				idConsole.Warning("TODO: flt");
+				/*loaded = LoadFLT(name);
+				reloadable = true;*/
 			}
-			else if(extension.Icmp("ma") == 0)
+			else if(extension == "ma")
 			{
-				loaded = LoadMA(name);
-				reloadable = true;
+				idConsole.Warning("TODO: ma");
+				/*loaded = LoadMA(name);
+				reloadable = true;*/
 			}
 			else
 			{
-				common->Warning("idRenderModelStatic::InitFromFile: unknown type for model: \'%s\'", name.c_str());
+				idConsole.Warning("idRenderModel_Static::InitFromFile: unknown type for  model: '{0}'", fileName);
 				loaded = false;
-			}*/
+			}
 
 			if(loaded == false)
 			{

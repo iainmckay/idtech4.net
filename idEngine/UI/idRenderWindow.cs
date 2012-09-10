@@ -41,7 +41,9 @@ namespace idTech4.UI
 	{
 		#region Members
 		private idRenderWorld _world;
+		private idRenderEntity _renderEntity;
 		private idRenderView _renderView = new idRenderView();
+		private RenderEntityComponent _worldEntity;
 
 		private string _animationClass;
 		private int _animationLength;
@@ -93,6 +95,80 @@ namespace idTech4.UI
 			//modelDef = -1;
 			_updateAnimation = true;
 		}
+
+		private void PreRender()
+		{
+			if(_needsRender == true)
+			{
+				_world.InitFromMap(null);
+
+				idDict spawnArgs = new idDict();
+				spawnArgs.Set("classname", "light");
+				spawnArgs.Set("name", "light_1");
+				spawnArgs.Set("origin", _lightOrigin);
+				spawnArgs.Set("_color", _lightColor);
+
+				idConsole.Warning("TODO: lighting");
+			
+				/*gameEdit->ParseSpawnArgsToRenderLight(&spawnArgs, &rLight);
+				lightDef = world->AddLightDef(&rLight);
+				if(!modelName[0])
+				{
+					common->Warning("Window '%s' in gui '%s': no model set", GetName(), GetGui()->GetSourceFile());
+				}*/
+
+				spawnArgs.Clear();
+				spawnArgs.Set("classname", "func_static");
+				spawnArgs.Set("model", _modelName);
+				spawnArgs.Set("origin", _modelOrigin);
+
+				_worldEntity = idE.GameEdit.ParseSpawnArgsToRenderEntity(spawnArgs);
+
+				if(_worldEntity.Model != null)
+				{
+					Vector3 v = _modelRotate.ToVector3();
+
+					_worldEntity.Axis = v.ToMatrix();
+					_worldEntity.MaterialParameters[0] = 1;
+					_worldEntity.MaterialParameters[0] = 1;
+					_worldEntity.MaterialParameters[0] = 1;
+					_worldEntity.MaterialParameters[0] = 1;
+
+					_renderEntity = _world.AddEntityDefinition(_worldEntity);
+				}
+
+				_needsRender.Set(false);
+			}
+		}
+
+		private void Render(int time)
+		{
+			// TODO: 
+			/*rLight.origin = lightOrigin.ToVec3();
+			rLight.shaderParms[SHADERPARM_RED] = lightColor.x();
+			rLight.shaderParms[SHADERPARM_GREEN] = lightColor.y();
+			rLight.shaderParms[SHADERPARM_BLUE] = lightColor.z();*/
+
+			/*world->UpdateLightDef(lightDef, &rLight);*/
+
+			/*if(worldEntity.hModel)
+			{
+				if(updateAnimation)
+				{
+					BuildAnimation(time);
+				}
+				if(modelAnim)
+				{
+					if(time > animEndTime)
+					{
+						animEndTime = time + animLength;
+					}
+					gameEdit->ANIM_CreateAnimFrame(worldEntity.hModel, modelAnim, worldEntity.numJoints, worldEntity.joints, animLength - (animEndTime - time), vec3_origin, false);
+				}
+				worldEntity.axis = idAngles(modelRotate.x(), modelRotate.y(), modelRotate.z()).ToMat3();
+				world->UpdateEntityDef(modelDef, &worldEntity);
+			}*/
+		}
 		#endregion
 		#endregion
 
@@ -100,13 +176,9 @@ namespace idTech4.UI
 		#region Public
 		public override void Draw(float x, float y)
 		{
-			//idConsole.Warning("TODO: RenderWindow Draw");
-
-			/*PreRender();
-			Render(time);
-
-			 */
-
+			PreRender();
+			Render(this.UserInterface.Time);
+			
 			_renderView.Clear();
 			_renderView.ViewOrigin = _viewOffset.ToVector3();
 			//refdef.vieworg.Set(-128, 0, 0);

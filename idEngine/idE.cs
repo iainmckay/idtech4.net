@@ -99,6 +99,8 @@ namespace idTech4
 
 		public const float OnPlaneEpsilon = 0.1f;
 
+		public const int LudicrousEntityIndex = 10000;
+
 		// maximum world size
 		public const int MaxWorldCoordinate = 128 * 1024;
 		public const int MinWorldCoordinate = -128 * 1024;
