@@ -94,8 +94,7 @@ namespace idTech4
 		private idRenderWorld _renderWorld;
 
 		private idUserInterface _guiActive;
-
-		//HandleGuiCommand_t guiHandle;
+		private /*HandleGuiCommand_t*/ object _guiHandle;
 
 		private idUserInterface _guiInGame;
 		private idUserInterface _guiMainMenu;
@@ -459,7 +458,7 @@ namespace idTech4
 			// will be freed
 			_renderWorld = idE.RenderSystem.CreateRenderWorld();
 
-			// TODO: sound
+			idConsole.Warning("TODO: init sound");
 			/*sw = soundSystem->AllocSoundWorld( rw );
 
 			menuSoundWorld = soundSystem->AllocSoundWorld( rw );*/
@@ -467,7 +466,7 @@ namespace idTech4
 			// we have a single instance of the main menu
 			_guiMainMenu = idE.UIManager.FindInterface("guis/mainmenu.gui", true, false, true);
 
-			// TODO: map list
+			idConsole.Warning("TODO: map list");
 			/*guiMainMenu_MapList = uiManager->AllocListGUI();
 			guiMainMenu_MapList->Config(guiMainMenu, "mapList");
 			idAsyncNetwork::client.serverList.GUIConfig(guiMainMenu, "serverList");*/
@@ -512,20 +511,24 @@ namespace idTech4
 			}
 
 			// if we are testing a GUI, send all events to it
-			/*if ( guiTest ) {
+			if(_guiTest != null)
+			{
 				// hitting escape exits the testgui
-				if ( event->evType == SE_KEY && event->evValue2 == 1 && event->evValue == K_ESCAPE ) {
-					guiTest = NULL;
+				if((ev.Type == SystemEventType.Key) && (ev.Value2 == 1) && (ev.Value == (int) Keys.Escape))
+				{
+					_guiTest = null;
 					return true;
 				}
 		
-				static const char *cmd;
-				cmd = guiTest->HandleEvent( event, com_frameTime );
-				if ( cmd && cmd[0] ) {
-					common->Printf( "testGui event returned: '%s'\n", cmd );
+				string cmd = _guiTest.HandleEvent(ev, idE.System.FrameTime);
+
+				if(cmd != string.Empty)
+				{
+					idConsole.WriteLine("testGui event returned: '{0}'", cmd);
 				}
+
 				return true;
-			}*/
+			}
 
 			// menus / etc
 			if(_guiActive != null)
@@ -543,12 +546,11 @@ namespace idTech4
 			}
 
 			// in game, exec bindings for all key downs
-			/*if ( event->evType == SE_KEY && event->evValue2 == 1 ) {
-				idKeyInput::ExecKeyBinding( event->evValue );
+			if((ev.Type == SystemEventType.Key) && (ev.Value2 == 1))
+			{
+				idConsole.Warning("TODO: idKeyInput::ExecKeyBinding( event->evValue );");
 				return true;
 			}
-
-			return false;*/
 
 			return false;
 		}
@@ -556,28 +558,28 @@ namespace idTech4
 		public void SetUserInterface(idUserInterface ui, /* TODO: HandleGuiCommand_t*/ object handle)
 		{
 			_guiActive = ui;
-			// TODO: guiHandle = handle;
+			_guiHandle = handle;
 
-			/*TODO: if ( guiMsgRestore ) {
-				common->DPrintf( "idSessionLocal::SetGUI: cleared an active message box\n" );
-				guiMsgRestore = NULL;
-			}*/
+			if(_guiMsgRestore != null)
+			{
+				idConsole.DeveloperWriteLine("idSession::SetUserInterface: cleared an active message box");
+				_guiMsgRestore = null;
+			}
 
 			if(_guiActive == null)
 			{
 				return;
 			}
 
-			// TODO
 			if(_guiActive == _guiMainMenu)
 			{
-				//SetSaveGameGuiVars();
+				idConsole.Warning("TODO: SetSaveGameGuiVars();");
 				SetMainMenuVariables();
 			}
-			/* TODO: else if(guiActive == guiRestartMenu)
+			else if(_guiActive == _guiRestartMenu)
 			{
-				SetSaveGameGuiVars();
-			}*/
+				idConsole.Warning("TODO: SetSaveGameGuiVars();");
+			}
 
 			_guiActive.HandleEvent(new SystemEvent(SystemEventType.None), idE.System.FrameTime);
 			_guiActive.Activate(true, idE.System.FrameTime);
@@ -594,7 +596,7 @@ namespace idTech4
 				return;
 			}
 
-			// TODO: demo
+			idConsole.Warning("TODO: demo");
 			/*if(readDemo)
 			{
 				// if we're playing a demo, esc kills it
@@ -602,7 +604,7 @@ namespace idTech4
 			}*/
 
 			// pause the game sound world
-			// TODO: sound
+			idConsole.Warning("TODO: sound");
 			/*if(sw != NULL && !sw->IsPaused())
 			{
 				sw->Pause();
@@ -616,6 +618,7 @@ namespace idTech4
 			_guiMainMenu.HandleNamedEvent((playIntro == true) ? "playIntro" : "noIntro");
 
 
+			idConsole.Warning("TODO: d3xp check");
 			/*// TODO: if(fileSystem->HasD3XP())
 			{
 				guiMainMenu->SetStateString("game_list", common->GetLanguageDict()->GetString("#str_07202"));
@@ -719,31 +722,48 @@ namespace idTech4
 				idConsole.Warning("TODO: HandleMainMenuCommands");
 				// TODO: HandleMainMenuCommands(menuCommand);
 			}
+			else if(gui == _guiIntro) 
+			{
+				idConsole.Warning("TODO: HandleIntroMenuCommands( menuCommand );");
+			}
+			else if(gui == _guiMsg) 
+			{
+				idConsole.Warning("TODO: HandleMsgCommands( menuCommand );");
+			} 
+			else if(gui == _guiTakeNotes) 
+			{
+				idConsole.Warning("TODO: HandleNoteCommands( menuCommand );");
+			} 
+			else if(gui == _guiRestartMenu) 
+			{
+				idConsole.Warning("TODO: HandleRestartMenuCommands( menuCommand );");
+			} 
+			else if((idE.Game != null) && (_guiActive != null) && (_guiActive.State.GetBool("gameDraw") == true))
+			{
+				string cmd = idE.Game.HandleGuiCommands(menuCommand);
 
-			// TODO: other menus
-			/*else if ( gui == guiIntro) {
-				HandleIntroMenuCommands( menuCommand );
-			} else if ( gui == guiMsg ) {
-				HandleMsgCommands( menuCommand );
-			} else if ( gui == guiTakeNotes ) {
-				HandleNoteCommands( menuCommand );
-			} else if ( gui == guiRestartMenu ) {
-				HandleRestartMenuCommands( menuCommand );
-			} else if ( game && guiActive && guiActive->State().GetBool( "gameDraw" ) ) {
-				const char *cmd = game->HandleGuiCommands( menuCommand );
-				if ( !cmd ) {
-					guiActive = NULL;
-				} else if ( idStr::Icmp( cmd, "main" ) == 0 ) {
+				if(cmd == null)
+				{
+					_guiActive = null;
+				}
+				else if(cmd.Equals("main", StringComparison.OrdinalIgnoreCase) == true)
+				{
 					StartMenu();
-				} else if ( strstr( cmd, "sound " ) == cmd ) {
+				}
+				else if(cmd.Contains("sound ") == true)
+				{
 					// pipe the GUI sound commands not handled by the game to the main menu code
-					HandleMainMenuCommands( cmd );
+					idConsole.Warning("TODO: HandleMainMenuCommands( cmd );");
 				}
-			} else if ( guiHandle ) {
-				if ( (*guiHandle)( menuCommand ) ) {
+			} 
+			else if(_guiHandle != null) 
+			{
+				idConsole.Warning("TODO: if ( (*guiHandle)( menuCommand ) ) {");
+
+				/*if ( (*guiHandle)( menuCommand ) ) {
 					return;
-				}
-			}*/
+				}*/
+			}
 
 			else if(doIngame == false)
 			{
@@ -751,7 +771,7 @@ namespace idTech4
 			}
 			else
 			{
-				// TODO: HandleInGameCommands( menuCommand );
+				idConsole.Warning("TODO: HandleInGameCommands( menuCommand );");
 			}
 		}
 
@@ -1345,25 +1365,27 @@ namespace idTech4
 			_guiMainMenu.State.Set("inetGame", "");
 
 			// key bind names
-			// TODO: guiMainMenu->SetKeyBindingNames();
+			idConsole.Warning("TODO: guiMainMenu->SetKeyBindingNames();");
 
 			// flag for in-game menu
-			/*if ( mapSpawned ) {
-				guiMainMenu->SetStateString( "inGame", IsMultiplayer() ? "2" : "1" );
-			} else*/ 
+			if(_mapSpawned == true)
+			{
+				_guiMainMenu.State.Set("inGame", (this.IsMultiplayer == true) ? 2 : 1);
+			}
+			else
 			{
 				_guiMainMenu.State.Set("inGame", "0");
 			}
 
-			// TODO: SetCDKeyGuiVars( );
+			idConsole.Warning("TODO: SetCDKeyGuiVars( );");
 
 			_guiMainMenu.State.Set("nightmare", (idE.CvarSystem.GetBool("g_nightmare") == true) ? "1" : "0");
 			_guiMainMenu.State.Set("browser_levelshot", "guis/assets/splash/pdtempa");
 
-			// TODO: SetMainMenuSkin();
-			// TODO: SetModsMenuGuiVars();
+			idConsole.Warning("TODO: SetMainMenuSkin();");
+			idConsole.Warning("TODO: SetModsMenuGuiVars();");
 
-			// TODO: guiMsg->SetStateString( "visible_hasxp", fileSystem->HasD3XP() ? "1" : "0" );
+			idConsole.Warning("TODO: guiMsg->SetStateString( visible_hasxp, fileSystem->HasD3XP() ? 1 : 0 );");
 			
 			_guiMainMenu.State.Set("driver_prompt", "0");
 		}
@@ -1377,8 +1399,8 @@ namespace idTech4
 
 			idE.Console.Close();
 
-	// introduced in D3XP code. don't think it actually fixes anything, but doesn't hurt either
-	// Try and prevent the while loop from being skipped over (long hitch on the main thread?)
+			// introduced in D3XP code. don't think it actually fixes anything, but doesn't hurt either
+			// try and prevent the while loop from being skipped over (long hitch on the main thread?)
 			int stop = idE.System.Milliseconds + 1000;
 			int force = 10;
 

@@ -32,12 +32,43 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Input;
 using idTech4.Renderer;
 
 namespace idTech4.UI
 {
 	public sealed class idSliderWindow : idWindow
 	{
+		#region Properties
+		public float High
+		{
+			get
+			{
+				return _high;
+			}
+		}
+
+		public float Low
+		{
+			get
+			{
+				return _low;
+			}
+		}
+
+		public float Value
+		{
+			get
+			{
+				return _value;
+			}
+			set
+			{
+				_value.Set(value);
+			}
+		}
+		#endregion
+
 		#region Members
 		private float _low;
 		private float _high;
@@ -80,6 +111,38 @@ namespace idTech4.UI
 		#endregion
 
 		#region Methods
+		#region Public
+		public void InitWithDefaults(string name, idRectangle rect, Vector4 foreColor, Vector4 materialColor, string background, string thumbMaterial, bool vertical, bool scrollbar)
+		{
+			SetInitialState(name);
+
+			_rect.Set(rect);
+			_foreColor.Set(foreColor);
+			_materialColor.Set(materialColor);
+
+			_thumbMaterial = idE.DeclManager.FindMaterial(thumbMaterial);
+			_thumbMaterial.Sort = (float) MaterialSort.Gui;
+
+			_thumbWidth = _thumbMaterial.ImageWidth;
+			_thumbHeight = _thumbMaterial.ImageHeight;
+
+			_background = idE.DeclManager.FindMaterial(_backgroundName);
+			_background.Sort = (float) MaterialSort.Gui;
+
+			_vertical = vertical;
+			_scrollBar = scrollbar;
+
+			this.Flags |= WindowFlags.HoldCapture;
+		}
+
+		public void SetRange(float low, float high, float step)
+		{
+			_low = low;
+			_high = high;
+			_stepSize = step;
+		}
+		#endregion
+
 		#region Private
 		private void Init()
 		{
@@ -123,7 +186,7 @@ namespace idTech4.UI
 			}
 		}
 
-		private void UpdateCvar(bool read, bool force = false)
+		private void UpdateConsoleVariables(bool read, bool force = false)
 		{
 			if((this.Buddy != null) || (_cvar == null))
 			{
@@ -173,84 +236,91 @@ namespace idTech4.UI
 			
 			if(activate == true)
 			{
-				UpdateCvar(true, true);
+				UpdateConsoleVariables(true, true);
 			}
 		}
 
 		public override void Draw(float x, float y)
 		{
-			//idConsole.Warning("TODO: SliderWindow Draw");
-			/*idVec4 color = foreColor;
+			Vector4 color = this.ForeColor;
 
-			if(!cvar && !buddyWin)
+			if((_cvar == null) && (_buddyWindow == null))
 			{
 				return;
 			}
 
-			if(!thumbWidth || !thumbHeight)
+			if((_thumbWidth == 0) || (_thumbHeight == 0))
 			{
-				thumbWidth = thumbMat->GetImageWidth();
-				thumbHeight = thumbMat->GetImageHeight();
+				_thumbWidth = _thumbMaterial.ImageWidth;
+				_thumbHeight = _thumbMaterial.ImageHeight;
+			}
+			
+			UpdateConsoleVariables(true);
+
+			if(_value > _high)
+			{
+				_value.Set(_high);
+			}
+			else if(_value < _low)
+			{
+				_value.Set(_low);
 			}
 
-			UpdateCvar(true);
-			if(value > high)
-			{
-				value = high;
-			}
-			else if(value < low)
-			{
-				value = low;
-			}
-
-			float range = high - low;
+			float range = _high - _low;
 
 			if(range <= 0.0f)
 			{
 				return;
 			}
+			
+			float thumbPosition = (range > 0) ? ((_value - _low) / range) : 0;
 
-			float thumbPos = (range) ? (value - low) / range : 0.0;
-			if(vertical)
+			if(_vertical == true)
 			{
-				if(verticalFlip)
+				if(_verticalFlip == true)
 				{
-					thumbPos = 1.f - thumbPos;
+					thumbPosition = 1.0f - thumbPosition;
 				}
-				thumbPos *= drawRect.h - thumbHeight;
-				thumbPos += drawRect.y;
-				thumbRect.y = thumbPos;
-				thumbRect.x = drawRect.x;
+
+				thumbPosition *= this.DrawRectangle.Height - _thumbHeight;
+				thumbPosition += this.DrawRectangle.Y;
+
+				_thumbRect.Y = thumbPosition;
+				_thumbRect.X = this.DrawRectangle.X;
 			}
 			else
 			{
-				thumbPos *= drawRect.w - thumbWidth;
-				thumbPos += drawRect.x;
-				thumbRect.x = thumbPos;
-				thumbRect.y = drawRect.y;
-			}
-			thumbRect.w = thumbWidth;
-			thumbRect.h = thumbHeight;
+				thumbPosition *= this.DrawRectangle.Width - _thumbWidth;
+				thumbPosition += this.DrawRectangle.X;
 
-			if(hover && !noEvents && Contains(gui->CursorX(), gui->CursorY()))
+				_thumbRect.X = thumbPosition;
+				_thumbRect.Y = this.DrawRectangle.Y;
+			}
+
+			_thumbRect.Width = _thumbWidth;
+			_thumbRect.Height = _thumbHeight;
+
+			if((this.Hover != null) && (this.NoEvents == false) && (this.Contains(this.UserInterface.CursorX, this.UserInterface.CursorY) == true))
 			{
-				color = hoverColor;
+				color = this.HoverColor;
 			}
 			else
 			{
-				hover = false;
-			}
-			if(flags & WIN_CAPTURE)
-			{
-				color = hoverColor;
-				hover = true;
+				this.Hover = false;
 			}
 
-			dc->DrawMaterial(thumbRect.x, thumbRect.y, thumbRect.w, thumbRect.h, thumbMat, color);
-			if(flags & WIN_FOCUS)
+			if((this.Flags & WindowFlags.Capture) == WindowFlags.Capture)
 			{
-				dc->DrawRect(thumbRect.x + 1.0f, thumbRect.y + 1.0f, thumbRect.w - 2.0f, thumbRect.h - 2.0f, 1.0f, color);
-			}*/
+				color = this.HoverColor;
+				this.Hover = true;
+			}
+
+			this.DeviceContext.DrawMaterial(_thumbRect.X, _thumbRect.Y, _thumbRect.Width, _thumbRect.Height, _thumbMaterial, color);
+
+			if((this.Flags & WindowFlags.Focus) == WindowFlags.Focus)
+			{
+				this.DeviceContext.DrawRectangle(_thumbRect.X + 1.0f, _thumbRect.Y + 1.0f, _thumbRect.Width - 2.0f, _thumbRect.Height - 2.0f, 1.0f, color);
+			}
 		}
 
 		public override idWindowVariable GetVariableByName(string name, bool fixup, ref DrawWindow owner)
@@ -279,26 +349,30 @@ namespace idTech4.UI
 
 		public override string HandleEvent(SystemEvent e, ref bool updateVisuals)
 		{
-			idConsole.Warning("TODO: SliderWindow HandleEvent");
-			/* TODO: if (!(event->evType == SE_KEY && event->evValue2)) {
-				return "";
+			if(((e.Type == SystemEventType.Key) && (e.Value2 > 0)) == false)
+			{
+				return string.Empty;
 			}
 
-			int key = event->evValue;
+			Keys key = (Keys) e.Value;
 
-			if ( event->evValue2 && key == K_MOUSE1 ) {
-				SetCapture(this);
-				RouteMouseCoords(0.0f, 0.0f);
-				return "";
-			} 
+			if((e.Value2 > 0) && (key == Keys.Mouse1))
+			{
+				this.CaptureChild = this;
+				RouteMouseCoordinates(0, 0);
 
-			if ( key == K_RIGHTARROW || key == K_KP_RIGHTARROW || ( key == K_MOUSE2 && gui->CursorY() > thumbRect.y ) )  {
-				value = value + stepSize;
+				return string.Empty;
+			}
+ 
+			if((key == Keys.Right) || ((key == Keys.Mouse2) && ((this.UserInterface.CursorY > _thumbRect.Y) == true)))
+			{
+				_value.Set(_value + _stepSize);
 			}
 
-			if ( key == K_LEFTARROW || key == K_KP_LEFTARROW || ( key == K_MOUSE2 && gui->CursorY() < thumbRect.y ) ) {
-				value = value - stepSize;
-			}*/
+			if((key == Keys.Left) || ((key == Keys.Mouse2) && ((this.UserInterface.CursorY < _thumbRect.Y) == true)))
+			{
+				_value.Set(_value - _stepSize);
+			}
 
 			if(this.Buddy != null)
 			{
@@ -309,29 +383,27 @@ namespace idTech4.UI
 				this.UserInterface.State.Set(_cvarStr.ToString(), _value);
 			}
 
-			UpdateCvar(false);
+			UpdateConsoleVariables(false);
 			
 			return string.Empty;
 		}
 
 		public override void RunNamedEvent(string name)
-		{
-			idConsole.Warning("TODO: SliderWindow RunNamedEvent");
-			/*idStr event, group;
-	
-			if ( !idStr::Cmpn( eventName, "cvar read ", 10 ) ) {
-				event = eventName;
-				group = event.Mid( 10, event.Length() - 10 );
-				if ( !group.Cmp( cvarGroup ) ) {
-					UpdateCvar( true, true );
+		{			
+			if(name.StartsWith("cvar read") == true)
+			{
+				if(name.Substring(10) == _cvarGroup.ToString())
+				{
+					UpdateConsoleVariables(true, true);
 				}
-			} else if ( !idStr::Cmpn( eventName, "cvar write ", 11 ) ) {
-				event = eventName;
-				group = event.Mid( 11, event.Length() - 11 );
-				if ( !group.Cmp( cvarGroup ) ) {
-					UpdateCvar( false, true );
+			}
+			else if(name.StartsWith("cvar write") == true)
+			{
+				if(name.Substring(11) == _cvarGroup.ToString())
+				{
+					UpdateConsoleVariables(false, true);
 				}
-			}*/
+			}
 		}
 		#endregion
 
@@ -427,73 +499,78 @@ namespace idTech4.UI
 
 		protected override string RouteMouseCoordinates(float x, float y)
 		{
-			idConsole.Warning("TODO: SliderWindow RouteMouseCoordinates");
-			/*float pct;
-
-			if(!(flags & WIN_CAPTURE))
+			if((this.Flags & WindowFlags.Capture) == 0)
 			{
-				return "";
+				return string.Empty;
 			}
 
-			idRectangle r = drawRect;
-			r.x = actualX;
-			r.y = actualY;
-			r.x += thumbWidth / 2.0;
-			r.w -= thumbWidth;
-			if(vertical)
+			idRectangle rect = this.DrawRectangle;
+			rect.X = this.ActualX;
+			rect.Y = this.ActualY;
+			rect.X += _thumbWidth / 2.0f;
+			rect.Width -= _thumbWidth;
+
+			float percent = 0;
+
+			if(_vertical == true)
 			{
-				r.y += thumbHeight / 2;
-				r.h -= thumbHeight;
-				if(gui->CursorY() >= r.y && gui->CursorY() <= r.Bottom())
+				rect.Y += _thumbHeight / 2.0f;
+				rect.Height -= _thumbHeight;
+
+				if((this.UserInterface.CursorY >= rect.Y) && (this.UserInterface.CursorY <= rect.Bottom))
 				{
-					pct = (gui->CursorY() - r.y) / r.h;
-					if(verticalFlip)
+					percent = (this.UserInterface.CursorY - rect.Y) / rect.Height;
+
+					if(_verticalFlip == true)
 					{
-						pct = 1.f - pct;
+						percent = 1.0f - percent;
 					}
-					value = low + (high - low) * pct;
+
+					_value.Set(_low + (_high - _low) * percent);
 				}
-				else if(gui->CursorY() < r.y)
+				else if(this.UserInterface.CursorY < rect.Y)
 				{
-					if(verticalFlip)
+					if(_verticalFlip == true)
 					{
-						value = high;
+						_value.Set(_high);
 					}
 					else
 					{
-						value = low;
+						_value.Set(_low);
 					}
 				}
 				else
 				{
-					if(verticalFlip)
+					if(_verticalFlip == true)
 					{
-						value = low;
+						_value.Set(_low);
 					}
 					else
 					{
-						value = high;
+						_value.Set(_high);
 					}
 				}
 			}
 			else
 			{
-				r.x += thumbWidth / 2;
-				r.w -= thumbWidth;
-				if(gui->CursorX() >= r.x && gui->CursorX() <= r.Right())
+				rect.X += _thumbWidth / 2.0f;
+				rect.Width -= _thumbWidth;
+
+				if((this.UserInterface.CursorX >= rect.X) && (this.UserInterface.CursorX <= rect.Right))
 				{
-					pct = (gui->CursorX() - r.x) / r.w;
-					value = low + (high - low) * pct;
+					percent = (this.UserInterface.CursorX - rect.X) / rect.Width;
+					_value.Set(_low + (_high - _low) * percent);
 				}
-				else if(gui->CursorX() < r.x)
+				else if(this.UserInterface.CursorX < rect.X)
 				{
-					value = low;
+					_value.Set(_low);
 				}
 				else
+
 				{
-					value = high;
+					_value.Set(_high);
 				}
-			}*/
+			}
 
 			if(this.Buddy != null)
 			{
@@ -504,7 +581,7 @@ namespace idTech4.UI
 				this.UserInterface.State.Set(_cvarStr.ToString(), _value);
 			}
 
-			UpdateCvar(false);
+			UpdateConsoleVariables(false);
 
 			return string.Empty;
 		}

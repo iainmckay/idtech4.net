@@ -129,6 +129,30 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public int ViewCount
+		{
+			get
+			{
+				return _viewCount;
+			}
+			set
+			{
+				_viewCount = value;
+			}
+		}
+
+		public ViewEntity ViewEntity
+		{
+			get
+			{
+				return _viewEntity;
+			}
+			set
+			{
+				_viewEntity = value;
+			}
+		}
+
 		public idRenderWorld World
 		{
 			get

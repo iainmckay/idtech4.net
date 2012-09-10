@@ -126,7 +126,23 @@ namespace idTech4
 
 			this.TargetElapsedTime = TimeSpan.FromMilliseconds(idE.UserCommandMillseconds);
 			this.Content.RootDirectory = "base";
+
+			_graphics.PreparingDeviceSettings += this.graphics_PreparingDeviceSettings;
 		}
+
+		void graphics_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
+		{
+			foreach(Microsoft.Xna.Framework.Graphics.GraphicsAdapter curAdapter in Microsoft.Xna.Framework.Graphics.GraphicsAdapter.Adapters)
+			{
+				if(curAdapter.Description.Contains("PerfHUD"))
+				{
+					e.GraphicsDeviceInformation.Adapter = curAdapter;
+					Microsoft.Xna.Framework.Graphics.GraphicsAdapter.UseReferenceDevice = true;
+					break;
+				}
+			}
+		}
+
 		#endregion
 
 		#region Methods
@@ -1170,22 +1186,6 @@ namespace idTech4
 					Cmd_ExecMachineSpec(this, new CommandEventArgs(new idCmdArgs()));
 				}
 
-				// initialize the renderSystem data structures, but don't start OpenGL yet
-				idE.RenderSystem.Init(_graphics);
-
-				// initialize string database right off so we can use it for loading messages
-				InitLanguageDict();
-
-				PrintLoadingMessage(idE.Language.Get("#str_04344"));
-
-				// load the font, etc
-				idE.Console.LoadGraphics();
-
-				// init journalling, etc
-				idE.EventLoop.Init();
-
-				PrintLoadingMessage(idE.Language.Get("#str_04345"));
-
 				// exec the startup scripts
 				idE.CmdSystem.BufferCommandText(Execute.Append, "exec editor.cfg");
 				idE.CmdSystem.BufferCommandText(Execute.Append, "exec default.cfg");
@@ -1205,6 +1205,22 @@ namespace idTech4
 
 				// re-override anything from the config files with command line args
 				StartupVariable(null, false);
+
+				// initialize the renderSystem data structures, but don't start OpenGL yet
+				idE.RenderSystem.Init(_graphics);
+				
+				// initialize string database right off so we can use it for loading messages
+				InitLanguageDict();
+
+				PrintLoadingMessage(idE.Language.Get("#str_04344"));
+
+				// load the font, etc
+				idE.Console.LoadGraphics();
+
+				// init journalling, etc
+				idE.EventLoop.Init();
+
+				PrintLoadingMessage(idE.Language.Get("#str_04345"));
 
 				// if any archived cvars are modified after this, we will trigger a writing of the config file
 				idE.CvarSystem.ModifiedFlags |= CvarFlags.Archive;

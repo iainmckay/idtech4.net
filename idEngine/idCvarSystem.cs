@@ -284,43 +284,23 @@ namespace idTech4
 
 			StaticList.Clear();
 		}
-
-		public void SetString(string name, string value)
-		{
-			SetString(name, value, 0);
-		}
-
-		public void SetString(string name, string value, CvarFlags flags)
+		
+		public void SetString(string name, string value, CvarFlags flags = 0)
 		{
 			SetInternal(name, value, flags);
 		}
 
-		public void SetBool(string name, bool value)
-		{
-			SetBool(name, value, 0);
-		}
-
-		public void SetBool(string name, bool value, CvarFlags flags)
+		public void SetBool(string name, bool value, CvarFlags flags = 0)
 		{
 			SetInternal(name, ((value == true) ? 1 : 0).ToString(), flags);
 		}
-
-		public void SetInteger(string name, int value)
-		{
-			SetInteger(name, value, 0);
-		}
-
-		public void SetInteger(string name, int value, CvarFlags flags)
+		
+		public void SetInteger(string name, int value, CvarFlags flags = 0)
 		{
 			SetInternal(name, value.ToString(), flags);
 		}
-
-		public void SetFloat(string name, float value)
-		{
-			SetFloat(name, value, 0);
-		}
-
-		public void SetFloat(string name, float value, CvarFlags flags)
+		
+		public void SetFloat(string name, float value, CvarFlags flags = 0)
 		{
 			SetInternal(name, value.ToString(), flags);
 		}
@@ -843,6 +823,6 @@ namespace idTech4
 		/// <summary>Set when the variable is modified.</summary>
 		Modified = 1 << 18,
 		/// <summary>All flags.</summary>
-		All = 1 << 19
+		All = -1
 	}
 }

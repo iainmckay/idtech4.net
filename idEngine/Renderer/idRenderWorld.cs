@@ -33,6 +33,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4;
 using idTech4.Geometry;
 using idTech4.Text;
 
@@ -286,6 +287,75 @@ namespace idTech4.Renderer
 
 		#region Entity and Light Defs
 		/// <summary>
+		/// All the modelrefs and lightrefs that are in visible areas
+		/// will have viewEntitys and viewLights created for them.
+		/// </summary>
+		/// <remarks>
+		/// The scissorRects on the viewEntitys and viewLights may be empty if
+		/// they were considered, but not actually visible.
+		/// </remarks>
+		public void FindViewLightsAndEntities()
+		{
+			View viewDef = idE.RenderSystem.ViewDefinition;
+
+			// clear the visible lightDef and entityDef lists
+			// TODO: viewDef.ViewLights.Clear();
+			viewDef.ViewEntities.Clear();
+
+			// find the area to start the portal flooding in
+			if(idE.CvarSystem.GetBool("r_usePortals") == false)
+			{
+				// debug tool to force no portal culling
+				viewDef.AreaNumber = -1;
+			}
+			else
+			{
+				viewDef.AreaNumber = PointInArea(viewDef.InitialViewAreaOrigin);
+			}
+
+			// determine all possible connected areas for light-behind-door culling
+			BuildConnectedAreas();
+
+			// bump the view count, invalidating all visible areas
+			idE.RenderSystem.ViewCount++;
+
+			// flow through all the portals and add models / lights
+			if(idE.CvarSystem.GetBool("r_singleArea") == true)
+			{
+				// if debugging, only mark this area
+				// if we are outside the world, don't draw anything
+				if(viewDef.AreaNumber >= 0)
+				{
+					idConsole.Warning("TODO: r_singleArea  important!!!!");
+					/*portalStack_t	ps;
+					int				i;
+					static int lastPrintedAreaNum;
+
+					if ( tr.viewDef->areaNum != lastPrintedAreaNum ) {
+						lastPrintedAreaNum = tr.viewDef->areaNum;
+						common->Printf( "entering portal area %i\n", tr.viewDef->areaNum );
+					}
+
+					for ( i = 0 ; i < 5 ; i++ ) {
+						ps.portalPlanes[i] = tr.viewDef->frustum[i];
+					}
+					ps.numPortalPlanes = 5;
+					ps.rect = tr.viewDef->scissor;
+
+					AddAreaRefs( tr.viewDef->areaNum, &ps );*/
+				}
+			} 
+			else 
+			{
+				// note that the center of projection for flowing through portals may
+				// be a different point than initialViewAreaOrigin for subviews that
+				// may have the viewOrigin in a solid/invalid area
+				FlowViewThroughPortals(viewDef.RenderView.ViewOrigin, 5, viewDef.Frustum);
+			}
+		}
+
+
+		/// <summary>
 		/// Force the generation of all light / surface interactions at the start of a level.
 		/// If this isn't called, they will all be dynamically generated
 		/// </summary>
@@ -369,7 +439,121 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Scene Rendering
+		/// <summary>
+		/// Rendering a scene may actually render multiple subviews for mirrors and portals, and
+		/// may render composite textures for gui console screens and light projections.
+		/// It would also be acceptable to render a scene multiple times, for "rear view mirrors", etc.
+		/// </summary>
+		/// <param name="renderView"></param>
+		public void RenderScene(idRenderView renderView)
+		{
+#if ID_DEDICATED
 
+#else
+			if(idE.RenderSystem.IsRunning == false)
+			{
+				return;
+			}
+
+			// skip front end rendering work, which will result
+			// in only gui drawing
+			if(idE.CvarSystem.GetBool("r_skipFrontEnd") == true)
+			{
+				return;
+			}
+
+			if((renderView.FovX <= 0) || (renderView.FovY <= 0))
+			{
+				idConsole.Error("idRenderWorld::RenderScene: bad FOVS: {0}, {1}", renderView.FovX, renderView.FovY);
+			}
+
+			idRenderView copy = renderView.Copy();
+
+			// close any gui drawing
+			idE.RenderSystem.GuiModel.EmitFullScreen();
+			idE.RenderSystem.GuiModel.Clear();
+
+			int startTime = idE.System.Milliseconds;
+
+			// setup view parms for the initial view
+			//
+			View parms = new View();
+			parms.RenderView = copy;
+
+			// TODO: screenshot
+			/*if ( tr.takingScreenshot ) {
+				parms->renderView.forceUpdate = true;
+			}*/
+
+			// set up viewport, adjusted for resolution and OpenGL style 0 at the bottom
+			parms.ViewPort = idE.RenderSystem.RenderViewToViewPort(parms.RenderView);
+
+			// the scissor bounds may be shrunk in subviews even if
+			// the viewport stays the same
+			// this scissor range is local inside the viewport
+			parms.Scissor.X1 = 0;
+			parms.Scissor.Y1 = 0;
+			parms.Scissor.X2 = (short) (parms.ViewPort.X2 - parms.ViewPort.X1);
+			parms.Scissor.Y2 = (short) (parms.ViewPort.Y2 - parms.ViewPort.Y1);
+
+			parms.IsSubview = false;
+			parms.InitialViewAreaOrigin = renderView.ViewOrigin;
+			parms.FloatTime = parms.RenderView.Time * 0.001f;
+			parms.RenderWorld = this;
+
+			// use this time for any subsequent 2D rendering, so damage blobs/etc 
+			// can use level time
+			idE.RenderSystem.FrameShaderTime = parms.FloatTime;
+
+			// see if the view needs to reverse the culling sense in mirrors
+			// or environment cube sides
+			Vector3 tmp = new Vector3(parms.RenderView.ViewAxis.M21, parms.RenderView.ViewAxis.M22, parms.RenderView.ViewAxis.M23);
+			Vector3 tmp2 = new Vector3(parms.RenderView.ViewAxis.M31, parms.RenderView.ViewAxis.M32, parms.RenderView.ViewAxis.M33);
+			Vector3 tmp3 = new Vector3(parms.RenderView.ViewAxis.M11, parms.RenderView.ViewAxis.M12, parms.RenderView.ViewAxis.M13);
+			Vector3 cross = Vector3.Cross(tmp, tmp2);
+
+			if((cross * tmp3).Length() > 0)
+			{
+				parms.IsMirror = false;
+			}
+			else
+			{
+				parms.IsMirror = true;
+			}
+
+			if(idE.CvarSystem.GetBool("r_lockSurfaces") == true)
+			{
+				idConsole.Warning("TODO: R_LockSurfaceScene( parms );");
+				return;
+			}
+
+			// save this world for use by some console commands
+			idE.RenderSystem.PrimaryRenderWorld = this;
+			idE.RenderSystem.PrimaryRenderView = copy;
+			idE.RenderSystem.PrimaryView = parms;
+			
+			// rendering this view may cause other views to be rendered
+			// for mirrors / portals / shadows / environment maps
+			// this will also cause any necessary entities and lights to be
+			// updated to the demo file
+			idE.RenderSystem.RenderView(parms);
+
+			// now write delete commands for any modified-but-not-visible entities, and
+			// add the renderView command to the demo
+			
+			// TODO: demo
+			/*if ( session->writeDemo ) {
+				WriteRenderView( renderView );
+			}*/
+
+			int endTime = idE.System.Milliseconds;
+
+			// TODO: tr.pc.frontEndMsec += endTime - startTime;
+
+			// prepare for any 2D drawing after this
+			idE.RenderSystem.GuiModel.Clear();
+#endif
+		}
 		#endregion
 
 		#region Debug Visualization
@@ -395,6 +579,73 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Private
+		/// <summary>
+		/// Any models that are visible through the current portalStack will have their scissor.
+		/// </summary>
+		/// <param name="areaNumber"></param>
+		/// <param name="portalStack"></param>
+		private void AddAreaEntityReferences(int areaNumber, PortalStack portalStack)
+		{
+			PortalArea area = _portalAreas[areaNumber];
+
+			for(AreaReference areaRef = area.EntityReference.NextArea; areaRef != area.EntityReference; areaRef = areaRef.NextArea)
+			{
+				idRenderEntity entity = areaRef.Entity;
+				
+				// debug tool to allow viewing of only one entity at a time
+				if((idE.CvarSystem.GetInteger("r_singleEntity") > 0) && (idE.CvarSystem.GetInteger("r_singleEntity") != entity.EntityIndex))
+				{
+					continue;
+				}
+
+				// remove decals that are completely faded away
+				// TODO: R_FreeEntityDefFadedDecals( entity, tr.viewDef->renderView.time );
+
+				// check for completely suppressing the model
+				if(idE.CvarSystem.GetBool("r_skipSuppress") == false)
+				{
+					if(entity.Parameters.SuppressSurfaceInViewID == idE.RenderSystem.ViewDefinition.RenderView.ViewID)
+					{
+						continue;
+					}
+					else if(entity.Parameters.AllowSurfaceInViewID != idE.RenderSystem.ViewDefinition.RenderView.ViewID)
+					{
+						continue;
+					}
+				}
+
+				// cull reference bounds
+				if(CullEntityByPortals(entity, portalStack) == true)
+				{
+					// we are culled out through this portal chain, but it might
+					// still be visible through others
+					continue;
+				}
+
+				ViewEntity viewEntity = SetEntityDefViewEntity(entity);
+
+				// possibly expand the scissor rect
+				viewEntity.ScissorRectangle.Union(portalStack.Rectangle);
+			}
+		}
+
+		/// <summary>
+		/// This may be entered multiple times with different planes if more than
+		/// one portal sees into the area.
+		/// </summary>
+		/// <param name="areaNumber"></param>
+		/// <param name="portalStack"></param>
+		private void AddAreaReferences(int areaNumber, PortalStack portalStack)
+		{
+			// mark the viewCount, so r_showPortals can display the
+			// considered portals
+			_portalAreas[areaNumber].ViewCount = idE.RenderSystem.ViewCount;
+			
+			// add the models and lights, using more precise culling to the planes
+			AddAreaEntityReferences(areaNumber, portalStack);
+			// TODO: AddAreaLightRefs( areaNum, ps );
+		}
+
 		/// <summary>
 		/// This is called by R_PushVolumeIntoTree and also directly
 		/// for the world model references that are precalculated.
@@ -487,6 +738,50 @@ namespace idTech4.Renderer
 			}
 		}
 
+		/// <summary>
+		/// This is only valid for a given view, not all views in a frame.
+		/// </summary>
+		private void BuildConnectedAreas()
+		{
+			View viewDef = idE.RenderSystem.ViewDefinition;
+			viewDef.ConnectedAreas = new bool[_portalAreaCount];
+
+			// if we are outside the world, we can see all areas
+			if(viewDef.AreaNumber == -1)
+			{
+				for(int i = 0; i < _portalAreaCount; i++)
+				{
+					viewDef.ConnectedAreas[i] = true;
+				}
+
+				return;
+			}
+
+			// start with none visible, and flood fill from the current area
+			BuildConnectedAreas_r(viewDef.AreaNumber);
+		}
+
+		private void BuildConnectedAreas_r(int areaNumber)
+		{
+			if(idE.RenderSystem.ViewDefinition.ConnectedAreas[areaNumber] == true)
+			{
+				return;
+			}
+
+			idE.RenderSystem.ViewDefinition.ConnectedAreas[areaNumber] = true;
+
+			// flood through all non-blocked portals
+			PortalArea area = _portalAreas[areaNumber];
+
+			for(Portal portal = area.Portals; portal != null; portal = portal.Next)
+			{
+				if((portal.DoublePortal.BlockingBits & PortalConnection.BlockView) != PortalConnection.BlockView)
+				{
+					BuildConnectedAreas_r(portal.IntoArea);
+				}
+			}
+		}
+
 		private void ClearPortalStates()
 		{
 			// all portals start off open
@@ -571,6 +866,27 @@ namespace idTech4.Renderer
 			return (node.CommonChildrenArea = common);
 		}
 
+		/// <summary>
+		/// Return true if the entity reference bounds do not intersect the current portal chain.
+		/// </summary>
+		/// <param name="entity"></param>
+		/// <param name="portalStack"></param>
+		/// <returns></returns>
+		private bool CullEntityByPortals(idRenderEntity entity, PortalStack portalStack)
+		{
+			if(idE.CvarSystem.GetBool("r_useEntityCulling") == false)
+			{
+				return false;
+			}
+
+			// try to cull the entire thing using the reference bounds.
+			// we do not yet do callbacks or dynamic model creation,
+			// because we want to do all touching of the model after
+			// we have determined all the lights that may effect it,
+			// which optimizes cache usage
+			return idHelper.CullLocalBox(entity.ReferenceBounds, entity.ModelMatrix, portalStack.PortalPlaneCount, portalStack.PortalPlanes);
+		}
+
 		private void FloodConnectedAreas(PortalArea area, int portalAttributeIndex)
 		{
 			if(area.ConnectedAreaNumber[portalAttributeIndex] == _connectedAreaNumber)
@@ -588,6 +904,203 @@ namespace idTech4.Renderer
 				}
 			}
 		}
+
+		private void FloodViewThroughArea(Vector3 origin, int areaNumber, PortalStack portalStack)
+		{
+			int i, j;
+			idWinding	winding; // we won't overflow because MAX_PORTAL_PLANES = 20
+	
+			PortalStack check;
+			PortalStack newStack;
+			PortalArea area = _portalAreas[areaNumber];			
+
+			// cull models and lights to the current collection of planes
+			AddAreaReferences(areaNumber, portalStack);
+
+			if(_areaScreenRect[areaNumber].IsEmpty == true)
+			{
+				_areaScreenRect[areaNumber] = portalStack.Rectangle;
+			}
+			else
+			{
+				_areaScreenRect[areaNumber].Union(portalStack.Rectangle);
+			}
+	
+
+			// go through all the portals
+			Portal portal;
+
+			for(portal = area.Portals; portal != null; portal = portal.Next)
+			{
+				// an enclosing door may have sealed the portal off
+				if((portal.DoublePortal.BlockingBits  & PortalConnection.BlockView) == PortalConnection.BlockView)
+				{
+					continue;
+				}
+
+				// make sure this portal is facing away from the view
+				float d = portal.Plane.Distance(origin);
+					
+				if(d < -0.1f)
+				{
+					continue;
+				}
+
+				// make sure the portal isn't in our stack trace,
+				// which would cause an infinite loop
+				for(check = portalStack; check != null; check = check.Next)
+				{
+					if(check.Portal == portal)
+					{
+						break; // don't recursively enter a stack
+					}
+				}
+		
+				if(check != null)
+				{
+					continue; // already in stack
+				}
+
+				// if we are very close to the portal surface, don't bother clipping
+				// it, which tends to give epsilon problems that make the area vanish
+				if(d < 1.0f)
+				{
+					// go through this portal
+					newStack = portalStack;
+					newStack.Portal = portal;
+					newStack.Next = portalStack;
+
+					FloodViewThroughArea(origin, portal.IntoArea, newStack);
+
+					continue;
+				}
+
+				// clip the portal winding to all of the planes
+				winding = portal.Winding;
+
+				for(j = 0; j < portalStack.PortalPlaneCount; j++)
+				{
+					Plane neg = new Plane(-portalStack.PortalPlanes[j].Normal, -portalStack.PortalPlanes[j].D);
+
+					if(winding.ClipInPlace(neg, 0) == false)
+					{
+						break;
+					}
+				}
+
+				if(winding.PointCount == 0)
+				{
+					continue;	// portal not visible
+				}
+
+				// see if it is fogged out
+				if(PortalIsFoggedOut(portal) == true)
+				{
+					continue;
+				}
+
+				// go through this portal
+				newStack = new PortalStack();
+				newStack.Portal = portal;
+				newStack.Next = portalStack;
+
+				// find the screen pixel bounding box of the remaining portal
+				// so we can scissor things outside it
+				newStack.Rectangle = ScreenRectangleFromWinding(winding, idE.RenderSystem.IdentitySpace);
+		
+				// slop might have spread it a pixel outside, so trim it back
+				newStack.Rectangle.Intersect(portalStack.Rectangle);
+
+				// generate a set of clipping planes that will further restrict
+				// the visible view beyond just the scissor rect
+				int addPlanes = winding.PointCount;
+
+				if(addPlanes > idE.MaxPortalPlanes)
+				{
+					addPlanes = idE.MaxPortalPlanes;
+				}
+
+				newStack.PortalPlaneCount = 0;
+
+				for(i = 0; i < addPlanes; i++)
+				{
+					j = i + 1;
+
+					if(j == winding.PointCount)
+					{
+						j = 0;
+					}
+
+					Vector3 v1 = origin - winding[i];
+					Vector3 v2 = origin - winding[j];
+
+					newStack.PortalPlanes[newStack.PortalPlaneCount].Normal = Vector3.Cross( v2, v1 );
+					
+					// if it is degenerate, skip the plane
+					newStack.PortalPlanes[newStack.PortalPlaneCount].Normalize();
+					
+					if(newStack.PortalPlanes[newStack.PortalPlaneCount].Normal.Length() < 0.01f)
+					{
+						continue;
+					}
+
+					newStack.PortalPlanes[newStack.PortalPlaneCount].FitThroughPoint(origin);
+					newStack.PortalPlaneCount++;
+				}
+
+				// the last stack plane is the portal plane
+				newStack.PortalPlanes[newStack.PortalPlaneCount] = portal.Plane;
+				newStack.PortalPlaneCount++;
+
+				FloodViewThroughArea(origin, portal.IntoArea, newStack);
+			}
+		}
+
+		/// <summary>
+		/// Finds viewLights and viewEntities by flowing from an origin through the visible portals.
+		/// origin point can see into.  The planes array defines a volume (positive
+		/// sides facing in) that should contain the origin, such as a view frustum or a point light box.
+		/// Zero planes assumes an unbounded volume.
+		/// </summary>
+		/// <param name="origin"></param>
+		/// <param name="planes"></param>
+		private void FlowViewThroughPortals(Vector3 origin, int planeCount, Plane[] planes)
+		{
+			View viewDef = idE.RenderSystem.ViewDefinition;
+
+			PortalStack portalStack = new PortalStack();
+			portalStack.Rectangle = viewDef.Scissor;
+			portalStack.PortalPlaneCount = planeCount;
+
+			for(int i = 0; i < planeCount; i++)
+			{
+				portalStack.PortalPlanes[i] = planes[i];
+			}
+
+			if(viewDef.AreaNumber < 0)
+			{
+				for(int i = 0; i < _portalAreaCount; i++)
+				{
+					_areaScreenRect[i] = viewDef.Scissor;
+				}
+
+				// if outside the world, mark everything
+				for(int i = 0; i < _portalAreaCount; i++)
+				{
+					AddAreaReferences(i, portalStack);
+				}
+			}
+			else
+			{
+				for(int i = 0; i < _portalAreaCount; i++)
+				{
+					_areaScreenRect[i] = new idScreenRect();
+				}
+
+				// flood out through portals, setting area viewCount
+				FloodViewThroughArea(origin, viewDef.AreaNumber, portalStack);
+			}		
+		}	
 
 		private void FreeDefs()
 		{
@@ -983,12 +1496,136 @@ namespace idTech4.Renderer
 			return model;
 		}
 
+		/// <summary>
+		/// Will return -1 if the point is not in an area, otherwise
+		/// it will return 0 <= value < tr.world->numPortalAreas.
+		/// </summary>
+		/// <param name="point"></param>
+		/// <returns></returns>
+		public int PointInArea(Vector3 point)
+		{
+			AreaNode node = _areaNodes[0];
+			int nodeNumber = -1;
+
+			if(node == null)
+			{
+				return -1;
+			}
+
+			while(true)
+			{
+				float d = (point * node.Plane.Normal + new Vector3(node.Plane.Normal.Z, node.Plane.Normal.Z, node.Plane.Normal.Z)).Length();
+				
+				if(d > 0)
+				{
+					nodeNumber = node.Children[0];
+				}
+				else
+				{
+					nodeNumber = node.Children[1];
+				}
+
+				if(nodeNumber == 0)
+				{
+					return -1; // in solid
+				}
+
+				if(nodeNumber < 0)
+				{
+					nodeNumber = -1 - nodeNumber;
+
+					if(nodeNumber > _portalAreaCount)
+					{
+						idConsole.Error("idRenderWorld::PointInArea: area out of range");
+					}
+
+					return nodeNumber;
+				}
+
+				node = _areaNodes[nodeNumber];
+			}	
+	
+			return -1;
+		}
+
+		private bool PortalIsFoggedOut(Portal portal)
+		{
+			// TODO: need lighting
+
+			return false;
+		}
+
+		private idScreenRect ScreenRectangleFromWinding(idWinding winding, ViewEntity space)
+		{
+			idScreenRect rect = new idScreenRect();
+			Vector3 v, ndc;
+
+			View viewDef = idE.RenderSystem.ViewDefinition;
+
+			for(int i = 0; i < winding.PointCount; i++)
+			{
+				idHelper.LocalPointToGlobal(space.ModelMatrix, winding[i], out v);
+				idHelper.GlobalToNormalizedDeviceCoordinates(v, out ndc);
+
+				float windowX = 0.5f * (1.0f + ndc.X) * (viewDef.ViewPort.X2 - viewDef.ViewPort.X1);
+				float windowY = 0.5f * (1.0f + ndc.Y) * (viewDef.ViewPort.Y2 - viewDef.ViewPort.Y1);
+
+				rect.AddPoint(windowX, windowY);
+			}
+
+			rect.Expand();
+		
+			return rect;
+		}
+
+		/// <summary>
+		/// If the entityDef isn't already on the viewEntity list, create
+		/// a viewEntity and add it to the list with an empty scissor rect.
+		/// </summary>
+		/// <remarks>
+		/// This does not instantiate dynamic models for the entity yet.
+		/// </remarks>
+		/// <param name="def"></param>
+		/// <returns></returns>
+		private ViewEntity SetEntityDefViewEntity(idRenderEntity def)
+		{
+			if(def.ViewCount == idE.RenderSystem.ViewCount)
+			{
+				return def.ViewEntity;
+			}
+
+			def.ViewCount = idE.RenderSystem.ViewCount;
+
+			// set the model and modelview matricies
+			ViewEntity viewModel = new ViewEntity();
+			viewModel.EntityDef = def;
+
+			// the scissorRect will be expanded as the model bounds is accepted into visible portal chains
+
+			// copy the model and weapon depth hack for back-end use
+			viewModel.ModelDepthHack = def.Parameters.ModelDepthHack;
+			viewModel.WeaponDepthHack = def.Parameters.WeaponDepthHack;
+
+			viewModel.ModelMatrix = idHelper.AxisToModelMatrix(def.Parameters.Axis, def.Parameters.Origin);
+
+			// we may not have a viewDef if we are just creating shadows at entity creation time
+			if(idE.RenderSystem.ViewDefinition != null)
+			{
+				idHelper.ConvertMatrix(viewModel.ModelMatrix, idE.RenderSystem.ViewDefinition.WorldSpace.ModelViewMatrix, out viewModel.ModelViewMatrix);
+				idE.RenderSystem.ViewDefinition.ViewEntities.Add(viewModel);
+			}
+
+			def.ViewEntity = viewModel;
+
+			return viewModel;
+		}
+
 		private void SetupAreaReferences()
 		{
 			_connectedAreaNumber = 0;
 
 			idConsole.Warning("TODO: light refs");
-
+	
 			for(int i = 0; i < _portalAreaCount; i++)
 			{
 				_portalAreas[i].AreaNumber = i;
@@ -1163,5 +1800,16 @@ namespace idTech4.Renderer
 		public idRenderEntity Entity;
 		// idRenderLightLocal *	light;					// only one of entity / light will be non-NULL
 		public PortalArea Area;
+	}
+	
+	public class PortalStack
+	{
+		public Portal Portal;
+		public PortalStack Next;
+
+		public idScreenRect Rectangle;
+
+		public int PortalPlaneCount;
+		public Plane[] PortalPlanes = new Plane[idE.MaxPortalPlanes + 1];
 	}
 }

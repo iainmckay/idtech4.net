@@ -165,7 +165,7 @@ namespace idTech4.UI
 			DrawStretchPicture(x, y, width, height, 0, 0, 0, 0, _whiteImage);
 		}
 
-		public void DrawMaterial(float x, float y, float width, float height, idMaterial material, Vector4 color, float scaleX, float scaleY)
+		public void DrawMaterial(float x, float y, float width, float height, idMaterial material, Vector4 color, float scaleX = 1.0f, float scaleY = 1.0f)
 		{
 			idE.RenderSystem.Color = color;
 

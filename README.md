@@ -20,7 +20,7 @@ Done so far:
 * resource loading (decl, materials, user interfaces, scripts).
 * user interface rendering and interaction code.
 * partial game code.
-* content management through XNA pipeline
+* content management through XNA pipeline.
 
 
 idGame

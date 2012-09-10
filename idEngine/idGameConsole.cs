@@ -590,18 +590,25 @@ namespace idTech4
 			}
 
 			// console scrolling
+			if(idE.Input.IsKeyDown(Keys.PageUp) == true)
+			{
+				idConsole.Warning("TODO: console scrolling");
 			// TODO: console scrolling
 			/*if ( idKeyInput::IsDown( K_PGUP ) ) {
 				PageUp();
 				nextKeyEvent = CONSOLE_REPEAT;
-				return;
+				return;*/
 			}
 
-			if ( idKeyInput::IsDown( K_PGDN ) ) {
-				PageDown();
-				nextKeyEvent = CONSOLE_REPEAT;
-				return;
-			}*/
+			if(idE.Input.IsKeyDown(Keys.PageDown) == true)
+			{
+				idConsole.Warning("TODO: console scrolling");
+				/*if ( idKeyInput::IsDown( K_PGDN ) ) {
+					PageDown();
+					nextKeyEvent = CONSOLE_REPEAT;
+					return;
+				}*/
+			}
 		}
 
 		/// <summary>

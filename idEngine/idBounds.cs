@@ -88,6 +88,20 @@ namespace idTech4
 		#endregion
 
 		#region Methods
+		public void AxisProjection(Vector3 direction, out float min, out float max)
+		{
+			Vector3 center = (this.Min + this.Max) * 0.5f;
+			Vector3 extents = this.Max - center;
+
+			float d1 = (direction * center).Length();
+			float d2 = idMath.Abs(extents.X * direction.X) 
+						+ idMath.Abs(extents.Y * direction.Y)
+						+ idMath.Abs(extents.Z * direction.Z);
+
+			min = d1 - d2;
+			max = d1 + d2;
+		}
+
 		public float GetRadius()
 		{
 			float total = 0.0f;

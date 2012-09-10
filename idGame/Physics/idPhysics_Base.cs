@@ -300,7 +300,7 @@ namespace idTech4.Game.Physics
 
 				for(int i = 0; i < count; i++)
 				{
-					if((_contacts[i].Normal * -_gravityNormal).X > 0.0f)
+					if((_contacts[i].Normal * -_gravityNormal).Length() > 0.0f)
 					{
 						return true;
 					}

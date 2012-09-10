@@ -34,6 +34,17 @@ namespace idTech4.Renderer
 {
 	public struct idScreenRect
 	{
+		#region Properties
+		public bool IsEmpty
+		{
+			get
+			{
+				return ((X1 > X2) || (Y1 > Y2));
+			}
+		}
+		#endregion
+
+		#region Fields
 		// inclusive pixel bounds inside viewport
 		public short X1;
 		public short X2;
@@ -43,7 +54,91 @@ namespace idTech4.Renderer
 		// for depth bounds test
 		public float MinZ;
 		public float MaxZ;
+		#endregion
 
+		#region Methods
+		public void AddPoint(float x, float y)
+		{
+			short ix = (short) x;
+			short iy = (short) y;
+
+			if(ix < this.X1)
+			{
+				this.X1 = ix;
+			}
+
+			if(ix > this.X2)
+			{
+				this.X2 = ix;
+			}
+
+			if(iy < this.Y1)
+			{
+				this.Y1 = iy;
+			}
+
+			if(iy > this.Y2)
+			{
+				this.Y2 = iy;
+			}
+		}
+
+		public void Expand()
+		{
+			this.X1--;
+			this.Y1--;
+			this.X2++;
+			this.Y2++;
+		}
+
+		public void Intersect(idScreenRect rect)
+		{
+			if(rect.X1 > this.X1)
+			{
+				this.X1 = rect.X1;
+			}
+
+			if(rect.X2 < this.X2)
+			{
+				this.X2 = rect.X2;
+			}
+
+			if(rect.Y1 > this.Y1)
+			{
+				this.Y1 = rect.Y1;
+			}
+
+			if(rect.Y2 < this.Y2)
+			{
+				this.Y2 = rect.Y2;
+			}
+		}
+
+		public void Union(idScreenRect rect)
+		{
+			if(rect.X1 < this.X1)
+			{
+				this.X1 = rect.X1;
+			}
+
+			if(rect.X2 > this.X2)
+			{
+				this.X2 = rect.X2;
+			}
+
+			if(rect.Y1 < this.Y1)
+			{
+				this.Y1 = rect.Y1;
+			}
+
+			if(rect.Y2 > this.Y2)
+			{
+				this.Y2 = rect.Y2;
+			}
+		}
+		#endregion
+
+		#region Overloads
 		public override bool Equals(object obj)
 		{
 			if(obj is idScreenRect)
@@ -64,5 +159,6 @@ namespace idTech4.Renderer
 		{
 			return !(r1 == r2);
 		}
+		#endregion
 	}
 }

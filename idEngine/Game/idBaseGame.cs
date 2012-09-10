@@ -41,6 +41,14 @@ namespace idTech4.Game
 		public abstract bool Draw(int clientIndex);
 
 		/// <summary>
+		/// When the game is running it's own UI fullscreen, GUI commands are passed through here
+		/// return NULL once the fullscreen UI mode should stop, or "main" to go to main menu.
+		/// </summary>
+		/// <param name="menuCommand"></param>
+		/// <returns></returns>
+		public abstract string HandleGuiCommands(string menuCommand);
+
+		/// <summary>
 		/// Initialize the game for the first time.
 		/// </summary>
 		public abstract void Init();
@@ -104,6 +112,18 @@ namespace idTech4.Game
 		/// </summary>
 		/// <param name="clientIndex"></param>
 		public abstract void SpawnPlayer(int clientIndex);
+
+		/// <summary>
+		/// Used to manage divergent time-lines.
+		/// </summary>
+		/// <param name="timeGroup"></param>
+		public abstract void SelectTimeGroup(int timeGroup);
+
+		/// <summary>
+		/// Used to manage divergent time-lines.
+		/// </summary>
+		/// <param name="timeGroup"></param>
+		public abstract int GetTimeGroupTime(int timeGroup);
 	}
 
 	public struct GameReturn

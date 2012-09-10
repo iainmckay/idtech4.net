@@ -52,6 +52,14 @@ namespace idTech4.Geometry
 			}
 		}
 
+		public Vector3 this[int x]
+		{
+			get
+			{
+				return new Vector3(_points[x, 0], _points[x, 1], _points[x, 2]);
+			}
+		}
+
 		public Vector3 Center
 		{
 			get
@@ -68,11 +76,19 @@ namespace idTech4.Geometry
 				return center;
 			}
 		}
+
+		public int PointCount
+		{
+			get
+			{
+				return _points.GetUpperBound(0);
+			}
+		}
 		#endregion
 
 		#region Members
-		private int _pointCount;
-		private float[,] _points;
+		protected int _pointCount;
+		protected float[,] _points;
 		#endregion
 
 		#region Constructor
@@ -84,12 +100,135 @@ namespace idTech4.Geometry
 		public idWinding(int pointCount)
 		{
 			_pointCount = pointCount;
-			_points = new float[pointCount,5];
+			_points = new float[pointCount, 5];
 		}
 		#endregion
 
 		#region Methods
 		#region Public
+		/// <summary>
+		/// Cuts off the part at the back side of the plane, returns true if some part was at the front.
+		/// If there is nothing at the front the number of points is set to zero.
+		/// </summary>
+		/// <param name="plane"></param>
+		/// <param name="epsilon"></param>
+		/// <param name="keepOn"></param>
+		/// <returns></returns>
+		public bool ClipInPlace(Plane plane, float epsilon = idE.OnPlaneEpsilon, bool keepOn = false)
+		{
+			// TODO: clip in place  important!!!!
+
+			/*float*		dists;
+			byte *		sides;
+			idVec5 *	newPoints;
+			int			newNumPoints;
+			int			counts[3];
+			float		dot;
+			int			i, j;
+			idVec5 *	p1, *p2;
+			idVec5		mid;
+			int			maxpts;
+
+			assert( this );
+
+			dists = (float *) _alloca( (numPoints+4) * sizeof( float ) );
+			sides = (byte *) _alloca( (numPoints+4) * sizeof( byte ) );
+
+			counts[SIDE_FRONT] = counts[SIDE_BACK] = counts[SIDE_ON] = 0;
+
+			// determine sides for each point
+			for ( i = 0; i < numPoints; i++ ) {
+				dists[i] = dot = plane.Distance( p[i].ToVec3() );
+				if ( dot > epsilon ) {
+					sides[i] = SIDE_FRONT;
+				} else if ( dot < -epsilon ) {
+					sides[i] = SIDE_BACK;
+				} else {
+					sides[i] = SIDE_ON;
+				}
+				counts[sides[i]]++;
+			}
+			sides[i] = sides[0];
+			dists[i] = dists[0];
+	
+			// if the winding is on the plane and we should keep it
+			if ( keepOn && !counts[SIDE_FRONT] && !counts[SIDE_BACK] ) {
+				return true;
+			}
+			// if nothing at the front of the clipping plane
+			if ( !counts[SIDE_FRONT] ) {
+				numPoints = 0;
+				return false;
+			}
+			// if nothing at the back of the clipping plane
+			if ( !counts[SIDE_BACK] ) {
+				return true;
+			}
+
+			maxpts = numPoints + 4;		// cant use counts[0]+2 because of fp grouping errors
+
+			newPoints = (idVec5 *) _alloca16( maxpts * sizeof( idVec5 ) );
+			newNumPoints = 0;
+
+			for ( i = 0; i < numPoints; i++ ) {
+				p1 = &p[i];
+
+				if ( newNumPoints+1 > maxpts ) {
+					return true;		// can't split -- fall back to original
+				}
+		
+				if ( sides[i] == SIDE_ON ) {
+					newPoints[newNumPoints] = *p1;
+					newNumPoints++;
+					continue;
+				}
+	
+				if ( sides[i] == SIDE_FRONT ) {
+					newPoints[newNumPoints] = *p1;
+					newNumPoints++;
+				}
+
+				if ( sides[i+1] == SIDE_ON || sides[i+1] == sides[i] ) {
+					continue;
+				}
+			
+				if ( newNumPoints+1 > maxpts ) {
+					return true;		// can't split -- fall back to original
+				}
+
+				// generate a split point
+				p2 = &p[(i+1)%numPoints];
+		
+				dot = dists[i] / (dists[i] - dists[i+1]);
+				for ( j = 0; j < 3; j++ ) {
+					// avoid round off error when possible
+					if ( plane.Normal()[j] == 1.0f ) {
+						mid[j] = plane.Dist();
+					} else if ( plane.Normal()[j] == -1.0f ) {
+						mid[j] = -plane.Dist();
+					} else {
+						mid[j] = (*p1)[j] + dot * ( (*p2)[j] - (*p1)[j] );
+					}
+				}
+				mid.s = p1->s + dot * ( p2->s - p1->s );
+				mid.t = p1->t + dot * ( p2->t - p1->t );
+			
+				newPoints[newNumPoints] = mid;
+				newNumPoints++;
+			}
+
+			if ( !EnsureAlloced( newNumPoints, false ) ) {
+				return true;
+			}
+
+			numPoints = newNumPoints;
+			memcpy( p, newPoints, newNumPoints * sizeof(idVec5) );
+
+			return true;*/
+
+			return false;
+		}
+
 		public Plane GetPlane()
 		{
 			if(_pointCount < 3)

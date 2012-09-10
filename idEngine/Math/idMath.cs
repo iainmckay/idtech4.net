@@ -45,6 +45,7 @@ namespace idTech4.Math
 		public const float Infinity = 1e30f;
 		public const float Epsilon = 1.192092896e-07f;
 		public const float Sqrt1Over2 = 0.70710678118654752440f;
+		public const float Rad2Deg = 180.0f / Pi;
 
 		public static float Abs(float a)
 		{			
@@ -84,6 +85,17 @@ namespace idTech4.Math
 		public static float Sqrt(float v)
 		{
 			return (float) XMath.Sqrt(v);
+		}
+
+		public static void SinCos(float a, out float s, out float c)
+		{
+			s = Sin(a);
+			c = Cos(a);
+		}
+
+		public static float Tan(float x)
+		{
+			return (float) XMath.Tan((float) x);
 		}
 
 		public static float InvSqrt(float x)

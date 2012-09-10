@@ -225,7 +225,7 @@ namespace idTech4.Collision
 				WriteCollisionModelsToFile( mapFile->GetName(), 0, numModels, mapFile->GetGeometryCRC() );*/
 			}
 
-			// TODO: timer.Stop();
+			idConsole.Warning("TODO: timer.Stop();");
 
 			// print statistics on collision data
 			/*cm_model_t model;

@@ -951,6 +951,13 @@ namespace idTech4.UI
 		}
 		#endregion
 
+		#region Methods
+		public Vector3 ToVector3()
+		{
+			return new Vector3(this.X, this.Y, this.Z);
+		}
+		#endregion
+
 		#region idWindowVariable implementation
 		#region Properties
 		public override float X
@@ -1158,6 +1165,69 @@ namespace idTech4.UI
 		public static implicit operator string(idWinBackground v)
 		{
 			return v._data;
+		}
+		#endregion
+	}
+
+	public sealed class idWinMultiVar
+	{
+		#region Properties
+		public idWindowVariable this[int index]
+		{
+			get
+			{
+				return _vars[index];
+			}
+		}
+
+		public int Count
+		{
+			get
+			{
+				return _vars.Count;
+			}
+		}
+		#endregion
+
+		#region Members
+		private List<idWindowVariable> _vars = new List<idWindowVariable>();
+		#endregion
+
+		#region Constructor
+		public idWinMultiVar()
+		{
+
+		}
+		#endregion
+
+		#region Methods
+		public void Add(idWindowVariable var)
+		{
+			_vars.Add(var);
+		}
+
+		public void Set(string val)
+		{
+			foreach(idWindowVariable var in _vars)
+			{
+				var.Set(val);
+			}
+		}
+
+		public void SetGuiInfo(idDict dict)
+		{
+			foreach(idWindowVariable var in _vars)
+			{
+				var.SetGuiInfo(dict, var.ToString());
+			}
+		}
+
+		public void Update()
+		{
+			foreach(idWindowVariable var in _vars)
+			{
+				var.Update();
+			}
 		}
 		#endregion
 	}

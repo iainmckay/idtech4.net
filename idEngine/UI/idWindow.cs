@@ -58,6 +58,22 @@ namespace idTech4.UI
 		#endregion
 
 		#region Properties
+		public float ActualX
+		{
+			get
+			{
+				return _actualX;
+			}
+		}
+
+		public float ActualY
+		{
+			get
+			{
+				return _actualY;
+			}
+		}
+
 		public Vector4 BackColor
 		{
 			get
@@ -546,6 +562,24 @@ namespace idTech4.UI
 			}
 		}
 
+		public float MaximumCharacterHeight
+		{
+			get
+			{
+				SetFont();
+				return this.DeviceContext.MaxCharacterHeight(this.TextScale);
+			}
+		}
+
+		public float MaximumCharacterWidth
+		{
+			get
+			{
+				SetFont();
+				return this.DeviceContext.MaxCharacterWidth(this.TextScale);
+			}
+		}
+
 		public Vector4 MaterialColor
 		{
 			get
@@ -878,11 +912,11 @@ namespace idTech4.UI
 
 		private idFontFamily _fontFamily;
 
-		private idMaterial _background;
-
 		private idWindow _focusedChild;				// if a child window has the focus
 		private idWindow _captureChild;				// if a child window has mouse capture
 		private idWindow _overChild;				// if a child window has mouse capture
+
+		protected idMaterial _background;
 
 		protected idWinBool _noTime = new idWinBool("noTime");
 		protected idWinBool _visible = new idWinBool("visible");
@@ -1828,27 +1862,71 @@ namespace idTech4.UI
 						return mouseReturn;
 					}
 				}
-				/*} else if (event->evType == SE_NONE) {
-				} else if (event->evType == SE_CHAR) {
-					if (GetFocusedChild()) {
-						const char *childRet = GetFocusedChild()->HandleEvent(event, updateVisuals);
-						if (childRet && *childRet) {
+				else if(e.Type == SystemEventType.None)
+				{
+
+				}
+				else if(e.Type == SystemEventType.Char)
+				{
+					if(this.FocusedChild != null)
+					{
+						string childRet = this.FocusedChild.HandleEvent(e, ref updateVisuals);
+
+						if((childRet != null) && (childRet != string.Empty))
+						{
 							return childRet;
 						}
 					}
-				}*/
+				}
 			}
-		
-			/*gui->GetReturnCmd() = cmd;
-			if ( gui->GetPendingCmd().Length() ) {
-				gui->GetReturnCmd() += " ; ";
-				gui->GetReturnCmd() += gui->GetPendingCmd();
-				gui->GetPendingCmd().Clear();
-			}
-			cmd = "";
-			return gui->GetReturnCmd();*/
 
-			return string.Empty;
+			this.UserInterface.ReturnCommand = string.Empty;
+
+			if(this.UserInterface.PendingCommand.Length > 0)
+			{
+				this.UserInterface.ReturnCommand += " ; ";
+				this.UserInterface.ReturnCommand += this.UserInterface.PendingCommand;
+
+				this.UserInterface.PendingCommand = string.Empty;
+			}
+
+			return this.UserInterface.ReturnCommand;
+		}
+
+		/// <summary>
+		/// Inserts the given window as a child into the given location in the zorder.
+		/// </summary>
+		/// <param name="window"></param>
+		/// <param name="before"></param>
+		/// <returns></returns>
+		public bool InsertChild(idWindow window, idWindow before)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			AddChild(window);
+
+			window.Parent = this;
+
+			DrawWindow drawWindow = new DrawWindow(window);
+
+			// if not inserting before anything then just add it at the end
+			if(before != null)
+			{
+				int index = GetChildIndex(before);
+
+				if(index != -1)
+				{
+					_drawWindows.Insert(index, drawWindow);
+					return true;
+				}
+			}
+
+			_drawWindows.Add(drawWindow);
+
+			return true;
 		}
 
 		public bool Parse(idScriptParser parser, bool rebuild)
@@ -2898,6 +2976,27 @@ namespace idTech4.UI
 			}
 
 			return true;
+		}
+
+
+		protected void SetFont()
+		{
+			_context.FontFamily = _fontFamily;
+		}
+
+		protected void SetInitialState(string name)
+		{
+			_name = name;
+
+			_materialScaleX = 1.0f;
+			_materialScaleY = 1.0f;
+
+			_forceAspectWidth = 640.0f;
+			_forceAspectHeight = 480.0f;
+
+			_noTime.Set(false);
+			_visible.Set(true);
+			_flags = 0;
 		}
 		#endregion
 
@@ -4042,27 +4141,7 @@ namespace idTech4.UI
 				_context.SetTransformInformation(origin, transform);
 			}
 		}
-
-		private void SetFont()
-		{
-			_context.FontFamily = _fontFamily;
-		}
-
-		private void SetInitialState(string name)
-		{
-			_name = name;
-
-			_materialScaleX = 1.0f;
-			_materialScaleY = 1.0f;
-
-			_forceAspectWidth = 640.0f;
-			_forceAspectHeight = 480.0f;
-
-			_noTime.Set(false);
-			_visible.Set(true);
-			_flags = 0;
-		}
-
+		
 		private void Time()
 		{
 			if(_noTime == true)

@@ -90,11 +90,19 @@ namespace idTech4
 		public const int MaxGameEntities = 4096;
 		public const int MaxGlobalMaterialParameters = 12;
 		public const int MaxNetworkClients = 32;
+		public const int MaxPortalPlanes = 20;
 		public const int MaxPrintMessageSize = 4096;
 		public const int MaxRenderCrops = 8;
 		public const int MaxRenderEntityGui = 3;
 		public const int MaxUserCommandRelay = 10;
 		public const int MaxWarningList = 256;
+
+		public const float OnPlaneEpsilon = 0.1f;
+
+		// maximum world size
+		public const int MaxWorldCoordinate = 128 * 1024;
+		public const int MinWorldCoordinate = -128 * 1024;
+		public const int MaxWorldSize = MaxWorldCoordinate - MinWorldCoordinate;
 
 		// all drawing is done to a 640 x 480 virtual screen size
 		// and will be automatically scaled to the real resolution

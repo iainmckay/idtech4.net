@@ -143,6 +143,7 @@ namespace idTech4
 		#region Private
 		private SystemEvent GetEvent()
 		{
+			//idConsole.Warning("TODO: pushed events");
 			// TODO: pushed events
 			/*if(com_pushedEventsHead > com_pushedEventsTail)
 			{
@@ -157,6 +158,7 @@ namespace idTech4
 		{
 			SystemEvent ev;
 
+			//idConsole.Warning("TODO: journalling");
 			// either get an event from the system or the journal file
 			// TODO: journalling
 			/*if(com_journal.GetInteger() == 2)
@@ -216,6 +218,8 @@ namespace idTech4
 		{
 			if(ev.Type == SystemEventType.Console)
 			{
+				idConsole.Warning("TODO: external console");
+
 				// from a text console outside the game window
 				// TODO: console
 				//cmdSystem->BufferCommandText( CMD_EXEC_APPEND, (char *)ev.evPtr );

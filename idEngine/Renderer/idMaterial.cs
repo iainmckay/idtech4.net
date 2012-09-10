@@ -235,7 +235,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return ((_stageCount > 0)/* TODO: || (_entityGui != 0)*/ || (_userInterface != null));
+				return ((_stageCount > 0) || (_entityGui != null) || (_userInterface != null));
 			}
 		}
 

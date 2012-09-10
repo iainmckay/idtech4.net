@@ -1248,8 +1248,8 @@ namespace idTech4.Renderer
 		{
 			ImageFilters.Add("GL_LINEAR_MIPMAP_NEAREST", new ImageFilter("GL_LINEAR_MIPMAP_NEAREST", XTextureFilter.MinLinearMagPointMipPoint));
 			ImageFilters.Add("GL_LINEAR_MIPMAP_LINEAR", new ImageFilter("GL_LINEAR_MIPMAP_LINEAR", XTextureFilter.MinLinearMagPointMipLinear));
-			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", XTextureFilter.PointMipLinear));
-			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", XTextureFilter.LinearMipPoint));
+			ImageFilters.Add("GL_NEAREST", new ImageFilter("GL_NEAREST", XTextureFilter.Point));
+			ImageFilters.Add("GL_LINEAR", new ImageFilter("GL_LINEAR", XTextureFilter.Linear));
 			ImageFilters.Add("GL_NEAREST_MIPMAP_NEAREST", new ImageFilter("GL_NEAREST_MIPMAP_NEAREST", XTextureFilter.MinPointMagLinearMipPoint));
 			ImageFilters.Add("GL_NEAREST_MIPMAP_LINEAR", new ImageFilter("GL_NEAREST_MIPMAP_LINEAR", XTextureFilter.MinPointMagLinearMipLinear));
 		}
@@ -1392,13 +1392,13 @@ namespace idTech4.Renderer
 			_nearestClampTextureSampler.AddressU = TextureAddressMode.Clamp;
 			_nearestClampTextureSampler.AddressV = TextureAddressMode.Clamp;
 			_nearestClampTextureSampler.AddressW = TextureAddressMode.Clamp;
-
+			
 			_nearestRepeatTextureSampler = new SamplerState();
 			_nearestRepeatTextureSampler.Filter = XTextureFilter.Point;
 			_nearestRepeatTextureSampler.AddressU = TextureAddressMode.Wrap;
 			_nearestRepeatTextureSampler.AddressV = TextureAddressMode.Wrap;
 			_nearestRepeatTextureSampler.AddressW = TextureAddressMode.Wrap;
-			
+
 			if(idE.GLConfig.AnisotropicAvailable == true)
 			{
 				int anisotropy = idE.CvarSystem.GetInteger("image_anisotropy");
@@ -1425,13 +1425,13 @@ namespace idTech4.Renderer
 			{
 				float lodBias = idE.CvarSystem.GetFloat("image_lodbias");
 
-				_defaultClampTextureSampler.MipMapLevelOfDetailBias = lodBias;
+				/*_defaultClampTextureSampler.MipMapLevelOfDetailBias = lodBias;
 				_linearClampTextureSampler.MipMapLevelOfDetailBias = lodBias;
 				_nearestClampTextureSampler.MipMapLevelOfDetailBias = lodBias;
 
 				_defaultRepeatTextureSampler.MipMapLevelOfDetailBias = lodBias;
 				_linearRepeatTextureSampler.MipMapLevelOfDetailBias = lodBias;
-				_nearestRepeatTextureSampler.MipMapLevelOfDetailBias = lodBias;
+				_nearestRepeatTextureSampler.MipMapLevelOfDetailBias = lodBias;*/
 			}
 		}
 		#endregion

@@ -74,7 +74,7 @@ namespace idTech4.UI
 
 		public override void Draw(float x, float y)
 		{
-			//idConsole.Warning("TODO: BindWindow Draw");
+			idConsole.Warning("TODO: BindWindow Draw");
 
 			/*idVec4 color = foreColor;
 
@@ -147,7 +147,7 @@ namespace idTech4.UI
 			_bindName.SetGuiInfo(this.UserInterface.State, _bindName.ToString());
 			_bindName.Update();
 
-			// TODO: bindName = state.GetString("bind");
+			// bindName = state.GetString("bind");
 
 			this.Flags |= WindowFlags.HoldCapture | WindowFlags.CanFocus;
 		}

@@ -62,6 +62,15 @@ namespace idTech4.Renderer
 			new VideoMode("Mode  7: 1280x1024",		1280,	1024),
 			new VideoMode("Mode  8: 1600x1200",		1600,	1200),
 		};
+
+		private static readonly float[] FlipMatrix = new float[] {
+			// convert from our coordinate system (looking down X)
+			// to OpenGL's coordinate system (looking down -Z)
+			0, 0, -1, 0,
+			-1, 0, 0, 0,
+			0, 1, 0, 0,
+			0, 0, 0, 1
+		};
 		#endregion
 
 		#region Properties
@@ -98,6 +107,10 @@ namespace idTech4.Renderer
 			{
 				return _frameShaderTime;
 			}
+			set
+			{
+				_frameShaderTime = value;
+			}
 		}
 
 		public GraphicsDevice GraphicsDevice
@@ -105,6 +118,22 @@ namespace idTech4.Renderer
 			get
 			{
 				return _graphicsDevice;
+			}
+		}
+
+		public idGuiModel GuiModel
+		{
+			get
+			{
+				return _guiModel;
+			}
+		}
+
+		public ViewEntity IdentitySpace
+		{
+			get
+			{
+				return _identitySpace;
 			}
 		}
 
@@ -143,6 +172,18 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public View PrimaryView
+		{
+			get
+			{
+				return _primaryView;
+			}
+			set
+			{
+				_primaryView = value;
+			}
+		}
+
 		public int ScreenWidth
 		{
 			get
@@ -156,6 +197,18 @@ namespace idTech4.Renderer
 			get
 			{
 				return _graphicsDevice.Viewport.Height;
+			}
+		}
+
+		public int ViewCount
+		{
+			get
+			{
+				return _viewCount;
+			}
+			internal set
+			{
+				_viewCount = value;
 			}
 		}
 
@@ -951,6 +1004,83 @@ namespace idTech4.Renderer
 		}
 
 		/// <summary>
+		/// A view may be either the actual camera view,
+		/// a mirror / remote location, or a 3D view on a gui surface.
+		/// </summary>
+		/// <param name="parms"></param>
+		public void RenderView(View parms)
+		{
+			if((parms.RenderView.Width <= 0) || (parms.RenderView.Height <= 0))
+			{
+				return;
+			}
+		
+			// save view in case we are a subview
+			View oldView = _viewDefinition;
+
+			_viewCount++;
+			_viewDefinition = parms;
+			_sortOffset = 0;
+
+			// set the matrix for world space to eye space
+			SetViewMatrix(_viewDefinition);
+
+			// the four sides of the view frustum are needed
+			// for culling and portal visibility
+			SetupViewFrustum();
+
+			// we need to set the projection matrix before doing
+			// portal-to-screen scissor box calculations
+			SetupProjection();
+
+			// identify all the visible portalAreas, and the entityDefs and
+			// lightDefs that are in them and pass culling.
+			parms.RenderWorld.FindViewLightsAndEntities();
+
+			// constrain the view frustum to the view lights and entities
+			ConstrainViewFrustum();
+
+			// make sure that interactions exist for all light / entity combinations
+			// that are visible
+			// add any pre-generated light shadows, and calculate the light shader values
+			// TODO: R_AddLightSurfaces();
+
+			// adds ambient surfaces and create any necessary interaction surfaces to add to the light
+			// lists
+			AddModelSurfaces();
+
+			// any viewLight that didn't have visible surfaces can have it's shadows removed
+			// TODO: R_RemoveUnecessaryViewLights();
+
+			// sort all the ambient surfaces for translucency ordering
+			// TODO: R_SortDrawSurfs();
+
+			// generate any subviews (mirrors, cameras, etc) before adding this view
+			// TODO: R_GenerateSubViews
+			/*if(R_GenerateSubViews())
+			{
+				// if we are debugging subviews, allow the skipping of the
+				// main view draw
+				if(idE.CvarSystem.GetBool("r_subviewOnly") == true)
+				{
+					return;
+				}
+			}*/
+
+			// write everything needed to the demo file
+			// TODO: demo
+			/*if ( session->writeDemo ) {
+				static_cast<idRenderWorldLocal *>(parms->renderWorld)->WriteVisibleDefs( tr.viewDef );
+			}*/
+
+			// add the rendering commands for this viewDef
+			AddDrawViewCommand(parms);
+
+			// restore view in case we are a subview
+			_viewDefinition = oldView;
+		}
+
+		/// <summary>
 		/// Converts from SCREEN_WIDTH / SCREEN_HEIGHT coordinates to current cropped pixel coordinates
 		/// </summary>
 		/// <param name="renderView"></param>
@@ -1012,6 +1142,137 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Private
+		/// <remarks>
+		/// Here is where dynamic models actually get instantiated, and necessary
+		/// interactions get created.  This is all done on a sort-by-model basis
+		/// to keep source data in cache (most likely L2) as any interactions and
+		/// shadows are generated, since dynamic models will typically be lit by
+		/// two or more lights.
+		/// </remarks>
+		private void AddModelSurfaces()
+		{	
+			// go through each entity that is either visible to the view, or to
+			// any light that intersects the view (for shadows)
+			foreach(ViewEntity viewEntity in _viewDefinition.ViewEntities)
+			{
+				if(idE.CvarSystem.GetBool("r_useEntityScissors") == true)
+				{
+					idConsole.Warning("TODO: entity scissor rect");
+					
+					/*// calculate the screen area covered by the entity
+					idScreenRect scissorRect = R_CalcEntityScissorRectangle( vEntity );
+					// intersect with the portal crossing scissor rectangle
+					vEntity->scissorRect.Intersect( scissorRect );
+
+					if ( r_showEntityScissors.GetBool() ) {
+						R_ShowColoredScreenRect( vEntity->scissorRect, vEntity->entityDef->index );
+					}*/
+				}
+
+				float oldFloatTime = 0;
+				int oldTime = 0;
+
+				idE.Game.SelectTimeGroup(viewEntity.EntityDef.Parameters.TimeGroup);
+
+				if(viewEntity.EntityDef.Parameters.TimeGroup > 0)
+				{
+					oldFloatTime = _viewDefinition.FloatTime;
+					oldTime = _viewDefinition.RenderView.Time;
+
+					_viewDefinition.FloatTime = idE.Game.GetTimeGroupTime(viewEntity.EntityDef.Parameters.TimeGroup) * 0.001f;
+					_viewDefinition.RenderView.Time = idE.Game.GetTimeGroupTime(viewEntity.EntityDef.Parameters.TimeGroup);
+				}
+
+				if((_viewDefinition.IsXraySubview == true) && (viewEntity.EntityDef.Parameters.XrayIndex == 1))
+				{
+					if(viewEntity.EntityDef.Parameters.TimeGroup > 0)
+					{
+						_viewDefinition.FloatTime = oldFloatTime;
+						_viewDefinition.RenderView.Time = oldTime;
+					}
+
+					continue;
+				} 
+				else if((_viewDefinition.IsXraySubview == false) && (viewEntity.EntityDef.Parameters.XrayIndex == 2))
+				{
+					if(viewEntity.EntityDef.Parameters.TimeGroup > 0)
+					{
+						_viewDefinition.FloatTime = oldFloatTime;
+						_viewDefinition.RenderView.Time = oldTime;
+					}
+				
+					continue;
+				}
+
+				// add the ambient surface if it has a visible rectangle
+				if(viewEntity.ScissorRectangle.IsEmpty == false)
+				{
+					idConsole.Warning("TODO: entity dynamic model");
+
+					/*model = R_EntityDefDynamicModel( vEntity->entityDef );
+					if ( model == NULL || model->NumSurfaces() <= 0 ) {
+						if ( vEntity->entityDef->parms.timeGroup ) {
+							tr.viewDef->floatTime = oldFloatTime;
+							tr.viewDef->renderView.time = oldTime;
+						}
+						continue;
+					}*/
+
+					// R_AddAmbientDrawsurfs( vEntity );
+					
+					// TODO: tr.pc.c_visibleViewEntities++;
+				} 
+				else 
+				{
+					// TODO: tr.pc.c_shadowViewEntities++;
+				}
+
+				//
+				// for all the entity / light interactions on this entity, add them to the view
+				//
+				if(_viewDefinition.IsXraySubview == true)
+				{
+					if(viewEntity.EntityDef.Parameters.XrayIndex == 2)
+					{
+						idConsole.Warning("TODO: xrayindex == 2");
+
+						/*for ( inter = vEntity->entityDef->firstInteraction; inter != NULL && !inter->IsEmpty(); inter = next ) {
+							next = inter->entityNext;
+							if ( inter->lightDef->viewCount != tr.viewCount ) {
+								continue;
+							}
+							inter->AddActiveInteraction();
+						}*/
+					}
+				} 
+				else
+				{
+					idConsole.Warning("TODO: interactions");
+
+					// all empty interactions are at the end of the list so once the
+					// first is encountered all the remaining interactions are empty
+					/*for ( inter = vEntity->entityDef->firstInteraction; inter != NULL && !inter->IsEmpty(); inter = next ) {
+						next = inter->entityNext;
+
+						// skip any lights that aren't currently visible
+						// this is run after any lights that are turned off have already
+						// been removed from the viewLights list, and had their viewCount cleared
+						if ( inter->lightDef->viewCount != tr.viewCount ) {
+							continue;
+						}
+						inter->AddActiveInteraction();
+					}*/
+				}
+
+				if(viewEntity.EntityDef.Parameters.TimeGroup > 0)
+				{
+					_viewDefinition.FloatTime = oldFloatTime;
+					_viewDefinition.RenderView.Time = oldTime;
+				}
+			}
+		}
+
+
 		/// <summary>
 		/// Any mirrored or portaled views have already been drawn, so prepare
 		/// to actually render the visible surfaces for this view.
@@ -1270,6 +1531,33 @@ namespace idTech4.Renderer
 			// clear the command chain
 			_frameData.Commands.Clear();
 			_frameData.Commands.Enqueue(new NoOperationRenderCommand());
+		}
+
+		private void ConstrainViewFrustum()
+		{
+			idBounds bounds = new idBounds();
+
+			// constrain the view frustum to the total bounds of all visible lights and visible entities
+			
+			// TODO: lights
+			/*for(viewLight_t* vLight = tr.viewDef->viewLights; vLight; vLight = vLight->next)
+			{
+				bounds.AddBounds(vLight->lightDef->frustumTris->bounds);
+			}*/
+
+			foreach(ViewEntity viewEntity in _viewDefinition.ViewEntities)
+			{
+				bounds.AddBounds(viewEntity.EntityDef.ReferenceBounds);
+			}
+
+			_viewDefinition.ViewFrustum.ConstrainToBounds(bounds);
+
+			float farDistance = idE.CvarSystem.GetFloat("r_useFrustumFarDistance");
+
+			if(farDistance > 0.0f)
+			{
+				_viewDefinition.ViewFrustum.MoveFarDistance(farDistance);
+			}
 		}
 
 		private void DrawElementsWithCounters(Surface tri)
@@ -3424,6 +3712,178 @@ namespace idTech4.Renderer
 
 			//Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 1, parameters);
 		}
+
+		private void SetupProjection()
+		{
+			float jitterX = 0;
+			float jitterY = 0;
+
+			// random jittering is usefull when multiple
+			// frames are going to be blended together
+			// for motion blurred anti-aliasing
+			if(idE.CvarSystem.GetBool("r_jitter") == true)
+			{
+				Random r = new Random();
+
+				jitterX = (float) r.NextDouble();
+				jitterY = (float) r.NextDouble();
+			}
+
+			//
+			// set up projection matrix
+			//
+			float zNear = idE.CvarSystem.GetFloat("r_znear");
+
+			if(_viewDefinition.RenderView.CramZNear == true)
+			{
+				zNear *= 0.25f;
+			}
+
+			float yMax = zNear * idMath.Tan(_viewDefinition.RenderView.FovY * idMath.Pi / 360.0f);
+			float yMin = -yMax;
+
+			float xMax = zNear * idMath.Tan(_viewDefinition.RenderView.FovX * idMath.Pi / 360.0f);
+			float xMin = -xMax;
+
+			float width = xMax = xMin;
+			float height = yMax - yMin;
+
+			jitterX = jitterX * width / (_viewDefinition.ViewPort.X2 - _viewDefinition.ViewPort.X1 + 1);
+
+			xMin += jitterX;
+			xMax += jitterX;
+
+			jitterY = jitterY * height / (_viewDefinition.ViewPort.Y2 - _viewDefinition.ViewPort.Y1 + 1);
+
+			yMin += jitterY;
+			yMax += jitterY;
+
+			Matrix m = new Matrix();
+			m.M11 = 2 * zNear / width;
+			m.M21 = 0;
+			m.M31 = (xMax + xMin) / width; // normally 0
+			m.M41 = 0;
+
+			m.M12 = 0;
+			m.M22 = 2 * zNear / height;
+			m.M32 = (yMax + yMin) / height; // normally 0
+			m.M42 = 0;
+
+			// this is the far-plane-at-infinity formulation, and
+			// crunches the Z range slightly so w=0 vertexes do not
+			// rasterize right at the wraparound point
+			m.M13 = 0;
+			m.M23 = 0;
+			m.M33 = -0.999f;
+			m.M43 = -2.0f * zNear;
+
+			m.M14 = 0;
+			m.M24 = 0;
+			m.M34 = -1;
+			m.M44 = 0;
+
+			_viewDefinition.ProjectionMatrix = m;
+		}
+
+		private void SetupViewFrustum()
+		{
+			float xs, xc;
+			float ang = MathHelper.ToRadians(_viewDefinition.RenderView.FovX) * 0.5f;
+
+			idMath.SinCos(ang, out xs, out xc);
+
+			Vector3 tmp = xs * new Vector3(_viewDefinition.RenderView.ViewAxis.M11, _viewDefinition.RenderView.ViewAxis.M12, _viewDefinition.RenderView.ViewAxis.M13)
+							+ xc * new Vector3(_viewDefinition.RenderView.ViewAxis.M21, _viewDefinition.RenderView.ViewAxis.M22, _viewDefinition.RenderView.ViewAxis.M23);
+
+			Vector3 tmp2 = xs * new Vector3(_viewDefinition.RenderView.ViewAxis.M11, _viewDefinition.RenderView.ViewAxis.M12, _viewDefinition.RenderView.ViewAxis.M13)
+							- xc * new Vector3(_viewDefinition.RenderView.ViewAxis.M21, _viewDefinition.RenderView.ViewAxis.M22, _viewDefinition.RenderView.ViewAxis.M23);
+
+			_viewDefinition.Frustum[0] = new Plane(tmp.X, tmp.Y, tmp.Z, 0);
+			_viewDefinition.Frustum[1] = new Plane(tmp2.X, tmp2.Y, tmp2.Z, 0);
+
+			ang = MathHelper.ToRadians(_viewDefinition.RenderView.FovY) * 0.5f;
+
+			idMath.SinCos(ang, out xs, out xc);
+
+			tmp = xs * new Vector3(_viewDefinition.RenderView.ViewAxis.M11, _viewDefinition.RenderView.ViewAxis.M12, _viewDefinition.RenderView.ViewAxis.M13)
+							+ xc * new Vector3(_viewDefinition.RenderView.ViewAxis.M21, _viewDefinition.RenderView.ViewAxis.M22, _viewDefinition.RenderView.ViewAxis.M23);
+
+			tmp2 = xs * new Vector3(_viewDefinition.RenderView.ViewAxis.M11, _viewDefinition.RenderView.ViewAxis.M12, _viewDefinition.RenderView.ViewAxis.M13)
+							- xc * new Vector3(_viewDefinition.RenderView.ViewAxis.M21, _viewDefinition.RenderView.ViewAxis.M22, _viewDefinition.RenderView.ViewAxis.M23);
+
+			_viewDefinition.Frustum[2] = new Plane(tmp.X, tmp.Y, tmp.Z, 0);
+			_viewDefinition.Frustum[3] = new Plane(tmp2.X, tmp2.Y, tmp2.Z, 0);
+
+			// plane four is the front clipping plane
+			tmp = new Vector3(_viewDefinition.RenderView.ViewAxis.M11, _viewDefinition.RenderView.ViewAxis.M12, _viewDefinition.RenderView.ViewAxis.M13);
+
+			_viewDefinition.Frustum[4] = new Plane(tmp.X, tmp.Y, tmp.Z, 0);
+
+			for(int i = 0; i < 5; i++)
+			{
+				tmp = -_viewDefinition.Frustum[i].Normal;
+				tmp.Z = -(_viewDefinition.RenderView.ViewOrigin * _viewDefinition.Frustum[i].Normal).Length();
+
+				// flip direction so positive side faces out (FIXME: globally unify this)
+				_viewDefinition.Frustum[i] = new Plane(tmp.X, tmp.Y, tmp.Z, 0);
+			}
+
+			// eventually, plane five will be the rear clipping plane for fog
+
+			float dNear = idE.CvarSystem.GetFloat("r_znear");
+
+			if(_viewDefinition.RenderView.CramZNear == true)
+			{
+				dNear *= 0.25f;
+			}
+
+			float dFar = idE.MaxWorldSize;
+			float dLeft = dFar * idMath.Tan(MathHelper.ToRadians(_viewDefinition.RenderView.FovX * 0.5f));
+			float dUp = dFar * idMath.Tan(MathHelper.ToRadians(_viewDefinition.RenderView.FovY * 0.5f));
+
+			_viewDefinition.ViewFrustum.Origin = _viewDefinition.RenderView.ViewOrigin;
+			_viewDefinition.ViewFrustum.Axis = _viewDefinition.RenderView.ViewAxis;
+			_viewDefinition.ViewFrustum.SetSize(dNear, dFar, dLeft, dUp);
+		}
+
+		private void SetViewMatrix(View view)
+		{
+			float[]	viewerMatrix = new float[16];
+
+			ViewEntity world = new ViewEntity();
+
+			// the model matrix is an identity
+			world.ModelViewMatrix = Matrix.Identity;
+
+			// transform by the camera placement
+			Vector3 origin = view.RenderView.ViewOrigin;
+
+			viewerMatrix[0] = _viewDefinition.RenderView.ViewAxis.M11;
+			viewerMatrix[4] = _viewDefinition.RenderView.ViewAxis.M12;
+			viewerMatrix[8] = _viewDefinition.RenderView.ViewAxis.M13;
+			viewerMatrix[12] = -origin.X * viewerMatrix[0] + -origin.Y * viewerMatrix[4] + -origin.Z * viewerMatrix[8];
+
+			viewerMatrix[1] = _viewDefinition.RenderView.ViewAxis.M21;
+			viewerMatrix[5] = _viewDefinition.RenderView.ViewAxis.M22;
+			viewerMatrix[9] = _viewDefinition.RenderView.ViewAxis.M23;
+			viewerMatrix[13] = -origin.X * viewerMatrix[1] + -origin.Y * viewerMatrix[5] + -origin.Z * viewerMatrix[9];
+
+			viewerMatrix[2] = _viewDefinition.RenderView.ViewAxis.M31;
+			viewerMatrix[6] = _viewDefinition.RenderView.ViewAxis.M32;
+			viewerMatrix[10] = _viewDefinition.RenderView.ViewAxis.M33;
+			viewerMatrix[14] = -origin.X * viewerMatrix[2] + -origin.Y * viewerMatrix[6] + -origin.Z * viewerMatrix[10];
+
+			viewerMatrix[3] = 0;
+			viewerMatrix[7] = 0;
+			viewerMatrix[11] = 0;
+			viewerMatrix[15] = 1;
+
+			view.WorldSpace = world;
+			
+			// convert from our coordinate system (looking down X)
+			// to OpenGL's coordinate system (looking down -Z)
+			idHelper.ConvertMatrix(viewerMatrix, FlipMatrix, out view.WorldSpace.ModelViewMatrix);
+		}
 		#endregion
 
 		#region NV10
@@ -4037,22 +4497,23 @@ namespace idTech4.Renderer
 		/// </summary>
 		public List<DrawSurface> DrawSurfaces = new List<DrawSurface>();
 
-		/*struct viewLight_s	*viewLights;			// chain of all viewLights effecting view
-		struct viewEntity_s	*viewEntitys;			// chain of all viewEntities effecting view, including off screen ones casting shadows
-		// we use viewEntities as a check to see if a given view consists solely
-		// of 2D rendering, which we can optimize in certain ways.  A 2D view will
-		// not have any viewEntities
+		/*struct viewLight_s	*viewLights;		// chain of all viewLights effecting view*/
+		public List<ViewEntity> ViewEntities = new List<ViewEntity>();
+													// chain of all viewEntities effecting view, including off screen ones casting shadows
+													// we use viewEntities as a check to see if a given view consists solely
+													// of 2D rendering, which we can optimize in certain ways.  A 2D view will
+													// not have any viewEntities
+		
 
-		idPlane				frustum[5];				// positive sides face outward, [4] is the front clip plane
-		idFrustum			viewFrustum;
+		public Plane[] Frustum = new Plane[5];		// positive sides face outward, [4] is the front clip plane
+		public idFrustum ViewFrustum;
 
-		int					areaNum;				// -1 = not in a valid area
+		public int AreaNumber = -1; // -1 = not in a valid area
 
-		bool *				connectedAreas;
+		public bool[] ConnectedAreas;
 		// An array in frame temporary memory that lists if an area can be reached without
 		// crossing a closed door.  This is used to avoid drawing interactions
 		// when the light is behind a closed door.
-*/
 	}
 	
 	/// <summary>
@@ -4211,10 +4672,10 @@ namespace idTech4.Renderer
 		/// This automatically implies noShadow.
 		/// </remarks>
 		public bool WeaponDepthHack;
-					// 
-		/*int						forceUpdate;			// force an update (NOTE: not a bool to keep this struct a multiple of 4 bytes)
-		int						timeGroup;
-		int						xrayIndex;*/
+
+		public bool ForceUpdate; // force an update
+		public int TimeGroup;
+		public int XrayIndex;
 	}
 
 	public class idRenderView
@@ -4277,20 +4738,72 @@ namespace idTech4.Renderer
 		/// <summary>
 		/// Can be used in any way by the material.
 		/// </summary>
-		public float[] MaterialParameters = new float[idE.MaxGlobalMaterialParameters];
+		public float[] MaterialParameters;
 
 		/// <summary>
 		/// Override everything when drawing.
 		/// </summary>
+		/// 
 		public idMaterial GlobalMaterial;
+
+		public idRenderView()
+		{
+			Clear();
+		}
+
+		public void Clear()
+		{
+			this.ViewID = 0;
+			this.X = 0;
+			this.Y = 0;
+			this.Width = 0;
+			this.Height = 0;
+			this.FovX = 0;
+			this.FovY = 0;
+
+			this.ViewOrigin = Vector3.Zero;
+			this.ViewAxis = Matrix.Identity;
+
+			this.CramZNear = false;
+			this.ForceUpdate = false;
+			this.Time = 0;
+
+			this.MaterialParameters = new float[idE.MaxGlobalMaterialParameters];
+			this.GlobalMaterial = null;
+		}
+
+		/// <summary>
+		/// Creates a shallow copy of this instance.
+		/// </summary>
+		public idRenderView Copy()
+		{
+			idRenderView view = new idRenderView();
+			view.ViewID = this.ViewID;
+			view.X = this.X;
+			view.Y = this.Y;
+			view.Width = this.Width;
+			view.Height = this.Height;
+			view.FovX = this.FovX;
+			view.FovY = this.FovY;
+
+			view.ViewOrigin = this.ViewOrigin;
+			view.ViewAxis = this.ViewAxis;
+
+			view.CramZNear = this.CramZNear;
+			view.ForceUpdate = this.ForceUpdate;
+			view.Time = this.Time;
+
+			view.MaterialParameters = this.MaterialParameters;
+			view.GlobalMaterial = this.GlobalMaterial;
+
+			return view;
+		}
 	}
 
 	public struct ViewEntity
 	{
-		/*struct viewEntity_s	*next;
-
-	// back end should NOT reference the entityDef, because it can change when running SMP
-	idRenderEntityLocal	*entityDef;*/
+		// back end should NOT reference the entityDef, because it can change when running SMP
+		public idRenderEntity EntityDef;
 
 		// for scissor clipping, local inside renderView viewport
 		// scissorRect.Empty() is true if the viewEntity_t was never actually

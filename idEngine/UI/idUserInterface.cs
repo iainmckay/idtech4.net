@@ -161,6 +161,28 @@ namespace idTech4.UI
 			}
 		}
 
+		public string ReturnCommand
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return _returnCommand;
+			}
+			set
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				_returnCommand = value;
+			}
+		}
+
 		public string SourceFile
 		{
 			get
@@ -211,10 +233,10 @@ namespace idTech4.UI
 		private idWindow _desktop;
 		private idWindow _bindHandler;
 
-		private string _sourceFile;
-		private string _activateStr;
-		private string _pendingCommand;
-		private string _returnCommand;
+		private string _sourceFile = string.Empty;
+		private string _activateStr = string.Empty;
+		private string _pendingCommand = string.Empty;
+		private string _returnCommand = string.Empty;
 		private DateTime _timeStamp;
 
 		private float _cursorX;

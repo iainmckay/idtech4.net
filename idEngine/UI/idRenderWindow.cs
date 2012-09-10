@@ -32,6 +32,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Math;
 using idTech4.Renderer;
 
 namespace idTech4.UI
@@ -40,12 +41,13 @@ namespace idTech4.UI
 	{
 		#region Members
 		private idRenderWorld _world;
+		private idRenderView _renderView = new idRenderView();
 
 		private string _animationClass;
 		private int _animationLength;
 		private int _animationEndTime;
 		private bool _updateAnimation;
-
+		
 		private idWinBool _needsRender = new idWinBool("needsRender");
 
 		private idWinString _animationName = new idWinString("anim");
@@ -103,25 +105,31 @@ namespace idTech4.UI
 			/*PreRender();
 			Render(time);
 
-			memset( &refdef, 0, sizeof( refdef ) );
-			refdef.vieworg = viewOffset.ToVec3();;
+			 */
+
+			_renderView.Clear();
+			_renderView.ViewOrigin = _viewOffset.ToVector3();
 			//refdef.vieworg.Set(-128, 0, 0);
 
-			refdef.viewaxis.Identity();
-			refdef.shaderParms[0] = 1;
-			refdef.shaderParms[1] = 1;
-			refdef.shaderParms[2] = 1;
-			refdef.shaderParms[3] = 1;
+			_renderView.ViewAxis = Matrix.Identity;
+			_renderView.MaterialParameters[0] = 1;
+			_renderView.MaterialParameters[1] = 1;
+			_renderView.MaterialParameters[2] = 1;
+			_renderView.MaterialParameters[3] = 1;
 
-			refdef.x = drawRect.x;
-			refdef.y = drawRect.y;
-			refdef.width = drawRect.w;
-			refdef.height = drawRect.h;
-			refdef.fov_x = 90;
-			refdef.fov_y = 2 * atan((float)drawRect.h / drawRect.w) * idMath::M_RAD2DEG;
+			idRectangle drawRect = this.DrawRectangle;
 
-			refdef.time = time;
-			world->RenderScene(&refdef);*/
+			_renderView.X = (int) drawRect.X;
+			_renderView.Y = (int) drawRect.Y;
+			_renderView.Width = (int) drawRect.Width;
+			_renderView.Height = (int) drawRect.Height;
+
+			_renderView.FovX = 90;
+			_renderView.FovY = 2.0f * (float) System.Math.Atan(drawRect.Height / drawRect.Width) * idMath.Rad2Deg;
+
+			_renderView.Time = this.UserInterface.Time;;
+
+			_world.RenderScene(_renderView);
 		}
 
 		public override idWindowVariable GetVariableByName(string name, bool fixup, ref DrawWindow owner)

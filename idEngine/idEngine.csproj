@@ -104,8 +104,11 @@
   <ItemGroup>
     <Compile Include="Collision\idCollisionModelManager.cs" />
     <Compile Include="Collision\idTraceModel.cs" />
+    <Compile Include="Extensions.cs" />
     <Compile Include="Game\idBaseGame.cs" />
     <Compile Include="Game\idBaseGameEdit.cs" />
+    <Compile Include="Geometry\idFixedWinding.cs" />
+    <Compile Include="Geometry\idFrustum.cs" />
     <Compile Include="Geometry\idJoint.cs" />
     <Compile Include="Geometry\idWinding.cs" />
     <Compile Include="idBounds.cs" />

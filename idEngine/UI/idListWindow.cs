@@ -106,7 +106,7 @@ namespace idTech4.UI
 
 		public override void Draw(float x, float y)
 		{
-			//idConsole.Warning("TODO: ListWindow Draw");
+			idConsole.Warning("TODO: ListWindow Draw");
 			/*idVec4 color;
 			idStr work;
 			int count = listItems.Num();
@@ -229,8 +229,7 @@ namespace idTech4.UI
 
 		public override void HandleBuddyUpdate(idWindow buddy)
 		{
-			idConsole.Warning("TODO: ListWindow HandleBuddyUpdate");
-			// TODO: top = scroller->GetValue();
+			_top = (int) _scroller.Value;
 		}
 
 		public override string HandleEvent(SystemEvent e, ref bool updateVisuals)

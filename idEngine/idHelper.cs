@@ -34,8 +34,11 @@ using System.Windows.Forms;
 
 using Microsoft.Xna.Framework;
 
+using idTech4;
 using idTech4.Math;
 using idTech4.Renderer;
+
+using View = idTech4.Renderer.View;
 
 namespace idTech4
 {
@@ -319,6 +322,283 @@ namespace idTech4
 			texT = new Vector3(-idMath.Sin(rotY) * idMath.Cos(rotZ),
 				-idMath.Sin(rotY) * idMath.Sin(rotZ),
 				-idMath.Cos(rotY));
+		}
+
+		public static void ConvertMatrix(float[] a, float[] b, out Matrix m) 
+		{
+			m.M11 = a[0*4+0]*b[0*4+0] + a[0*4+1]*b[1*4+0] + a[0*4+2]*b[2*4+0] + a[0*4+3]*b[3*4+0];
+			m.M12 = a[0*4+0]*b[0*4+1] + a[0*4+1]*b[1*4+1] + a[0*4+2]*b[2*4+1] + a[0*4+3]*b[3*4+1];
+			m.M13 = a[0*4+0]*b[0*4+2] + a[0*4+1]*b[1*4+2] + a[0*4+2]*b[2*4+2] + a[0*4+3]*b[3*4+2];
+			m.M14 = a[0*4+0]*b[0*4+3] + a[0*4+1]*b[1*4+3] + a[0*4+2]*b[2*4+3] + a[0*4+3]*b[3*4+3];
+			
+			m.M21 = a[1*4+0]*b[0*4+0] + a[1*4+1]*b[1*4+0] + a[1*4+2]*b[2*4+0] + a[1*4+3]*b[3*4+0];
+			m.M22 = a[1*4+0]*b[0*4+1] + a[1*4+1]*b[1*4+1] + a[1*4+2]*b[2*4+1] + a[1*4+3]*b[3*4+1];
+			m.M23 = a[1*4+0]*b[0*4+2] + a[1*4+1]*b[1*4+2] + a[1*4+2]*b[2*4+2] + a[1*4+3]*b[3*4+2];
+			m.M24 = a[1*4+0]*b[0*4+3] + a[1*4+1]*b[1*4+3] + a[1*4+2]*b[2*4+3] + a[1*4+3]*b[3*4+3];
+			
+			m.M31 = a[2*4+0]*b[0*4+0] + a[2*4+1]*b[1*4+0] + a[2*4+2]*b[2*4+0] + a[2*4+3]*b[3*4+0];
+			m.M32 = a[2*4+0]*b[0*4+1] + a[2*4+1]*b[1*4+1] + a[2*4+2]*b[2*4+1] + a[2*4+3]*b[3*4+1];
+			m.M33 = a[2*4+0]*b[0*4+2] + a[2*4+1]*b[1*4+2] + a[2*4+2]*b[2*4+2] + a[2*4+3]*b[3*4+2];
+			m.M34 = a[2*4+0]*b[0*4+3] + a[2*4+1]*b[1*4+3] + a[2*4+2]*b[2*4+3] + a[2*4+3]*b[3*4+3];
+			
+			m.M41 = a[3*4+0]*b[0*4+0] + a[3*4+1]*b[1*4+0] + a[3*4+2]*b[2*4+0] + a[3*4+3]*b[3*4+0];
+			m.M42 = a[3*4+0]*b[0*4+1] + a[3*4+1]*b[1*4+1] + a[3*4+2]*b[2*4+1] + a[3*4+3]*b[3*4+1];
+			m.M43 = a[3*4+0]*b[0*4+2] + a[3*4+1]*b[1*4+2] + a[3*4+2]*b[2*4+2] + a[3*4+3]*b[3*4+2];
+			m.M44 = a[3*4+0]*b[0*4+3] + a[3*4+1]*b[1*4+3] + a[3*4+2]*b[2*4+3] + a[3*4+3]*b[3*4+3];
+		}
+
+		public static void ConvertMatrix(Matrix a, Matrix b, out Matrix m)
+		{
+			m.M11 = a.M11 * b.M11 + a.M12 * b.M21 + a.M13 * b.M31 + a.M14 * b.M41;
+			m.M12 = a.M11 * b.M12 + a.M12 * b.M22 + a.M13 * b.M32 + a.M14 * b.M42;
+			m.M13 = a.M11 * b.M13 + a.M12 * b.M23 + a.M13 * b.M33 + a.M14 * b.M43;
+			m.M14 = a.M11 * b.M14 + a.M12 * b.M24 + a.M13 * b.M34 + a.M14 * b.M44;
+
+			m.M21 = a.M21 * b.M11 + a.M22 * b.M21 + a.M23 * b.M31 + a.M24 * b.M41;
+			m.M22 = a.M21 * b.M12 + a.M22 * b.M22 + a.M23 * b.M32 + a.M24 * b.M42;
+			m.M23 = a.M21 * b.M13 + a.M22 * b.M23 + a.M23 * b.M33 + a.M24 * b.M43;
+			m.M24 = a.M21 * b.M14 + a.M22 * b.M24 + a.M23 * b.M34 + a.M24 * b.M44;
+
+			m.M31 = a.M31 * b.M11 + a.M32 * b.M21 + a.M33 * b.M31 + a.M34 * b.M41;
+			m.M32 = a.M31 * b.M12 + a.M32 * b.M22 + a.M33 * b.M32 + a.M34 * b.M42;
+			m.M33 = a.M31 * b.M13 + a.M32 * b.M23 + a.M33 * b.M33 + a.M34 * b.M43;
+			m.M34 = a.M31 * b.M14 + a.M32 * b.M24 + a.M33 * b.M34 + a.M34 * b.M44;
+
+			m.M41 = a.M41 * b.M11 + a.M42 * b.M21 + a.M43 * b.M31 + a.M44 * b.M41;
+			m.M42 = a.M41 * b.M12 + a.M42 * b.M22 + a.M43 * b.M32 + a.M44 * b.M42;
+			m.M43 = a.M41 * b.M13 + a.M42 * b.M23 + a.M43 * b.M33 + a.M44 * b.M43;
+			m.M44 = a.M41 * b.M14 + a.M42 * b.M24 + a.M43 * b.M34 + a.M44 * b.M44;
+		}
+
+		/// <summary>
+		/// Tests all corners against the frustum.
+		/// </summary>
+		/// <remarks>
+		/// Can still generate a few false positives when the box is outside a corner.
+		/// </remarks>
+		/// <param name="bounds"></param>
+		/// <param name="modelMatrix"></param>
+		/// <param name="planeCount"></param>
+		/// <param name="planes"></param>
+		/// <returns>Returns true if the box is outside the given global frustum, (positive sides are out).</returns>
+		public static bool CornerCullLocalBox(idBounds bounds, Matrix modelMatrix, int planeCount, Plane[] planes)
+		{
+
+			// we can disable box culling for experimental timing purposes
+			if(idE.CvarSystem.GetInteger("r_useCulling") < 2)
+			{
+				return false;
+			}
+
+			Vector3 v = Vector3.Zero;
+			Vector3[] transformed = new Vector3[8];
+			float[] distances = new float[8];
+			int i, j;
+			
+			// transform into world space
+			for(i = 0; i < 8; i++)
+			{
+				v.X = ((i & 1) == 0) ? bounds.Min.X : bounds.Max.X;
+				v.Y = (((i >> 1) & 1) == 0) ? bounds.Min.Y : bounds.Max.Y;
+				v.Z = (((i >> 2) & 1) == 0) ? bounds.Min.Z : bounds.Max.Z;
+
+				LocalPointToGlobal(modelMatrix, v, out transformed[i]);
+			}
+			
+			// check against frustum planes
+			for(i = 0; i < planeCount; i++)
+			{
+				Plane frust = planes[i];
+
+				for(j = 0; j < 8; j++)
+				{
+					distances[j] = frust.Distance(transformed[j]);
+
+					if(distances[j] < 0)
+					{
+						break;
+					}
+				}
+
+				if(j == 8)
+				{
+					// all points were behind one of the planes
+					// TODO: tr.pc.c_box_cull_out++;
+					return true;
+				}
+			}
+
+			// TODO: tr.pc.c_box_cull_in++;
+
+			return false;		// not culled
+		}
+
+
+		/// <summary>
+		/// Performs quick test before expensive test.
+		/// </summary>
+		/// <param name="bounds"></param>
+		/// <param name="modelMAtrix"></param>
+		/// <param name="planeCount"></param>
+		/// <param name="planes"></param>
+		/// <returns>Returns true if the box is outside the given global frustum, (positive sides are out).</returns>
+		public static bool CullLocalBox(idBounds bounds, Matrix modelMatrix, int planeCount, Plane[] planes)
+		{
+			if(RadiusCullLocalBox(bounds, modelMatrix, planeCount, planes) == true)
+			{
+				return true;
+			}
+
+			return CornerCullLocalBox(bounds, modelMatrix, planeCount, planes);
+		}
+
+		/// <summary>
+		/// -1 to 1 range in x, y, and z.
+		/// </summary>
+		/// <param name="global"></param>
+		/// <param name="ndc"></param>
+		public static void GlobalToNormalizedDeviceCoordinates(Vector3 global, out Vector3 ndc)
+		{
+			Plane view, clip;
+
+			// _D3XP added work on primaryView when no viewDef
+			if(idE.RenderSystem.ViewDefinition == null)
+			{
+				View primaryView = idE.RenderSystem.PrimaryView;
+				
+				view.Normal.X = global.X * primaryView.WorldSpace.ModelViewMatrix.M11 
+									+ global.Y * primaryView.WorldSpace.ModelViewMatrix.M12
+									+ global.Z * primaryView.WorldSpace.ModelViewMatrix.M13
+									+ primaryView.WorldSpace.ModelViewMatrix.M14;
+				
+				view.Normal.Y = global.X * primaryView.WorldSpace.ModelViewMatrix.M21 
+									+ global.Y * primaryView.WorldSpace.ModelViewMatrix.M22
+									+ global.Z * primaryView.WorldSpace.ModelViewMatrix.M23
+									+ primaryView.WorldSpace.ModelViewMatrix.M24;
+
+				view.Normal.Z = global.X * primaryView.WorldSpace.ModelViewMatrix.M31 
+									+ global.Y * primaryView.WorldSpace.ModelViewMatrix.M32
+									+ global.Z * primaryView.WorldSpace.ModelViewMatrix.M33
+									+ primaryView.WorldSpace.ModelViewMatrix.M34;
+
+				view.D = global.X * primaryView.WorldSpace.ModelViewMatrix.M41 
+									+ global.Y * primaryView.WorldSpace.ModelViewMatrix.M42
+									+ global.Z * primaryView.WorldSpace.ModelViewMatrix.M43
+									+ primaryView.WorldSpace.ModelViewMatrix.M44;
+
+				clip.Normal.X = view.Normal.X * primaryView.WorldSpace.ModelViewMatrix.M11 
+									+ view.Normal.Y * primaryView.WorldSpace.ModelViewMatrix.M12
+									+ view.Normal.Z * primaryView.WorldSpace.ModelViewMatrix.M13
+									+ primaryView.WorldSpace.ModelViewMatrix.M14;
+				
+				clip.Normal.Y = view.Normal.X * primaryView.WorldSpace.ModelViewMatrix.M21 
+									+ view.Normal.Y * primaryView.WorldSpace.ModelViewMatrix.M22
+									+ view.Normal.Z * primaryView.WorldSpace.ModelViewMatrix.M23
+									+ view.D * primaryView.WorldSpace.ModelViewMatrix.M24;
+
+				clip.Normal.Z = view.Normal.X * primaryView.WorldSpace.ModelViewMatrix.M31 
+									+ view.Normal.Y * primaryView.WorldSpace.ModelViewMatrix.M32
+									+ view.Normal.Z * primaryView.WorldSpace.ModelViewMatrix.M33
+									+ view.D * primaryView.WorldSpace.ModelViewMatrix.M34;
+
+				clip.D = view.Normal.X * primaryView.WorldSpace.ModelViewMatrix.M41 
+									+ view.Normal.Y * primaryView.WorldSpace.ModelViewMatrix.M42
+									+ view.Normal.Z * primaryView.WorldSpace.ModelViewMatrix.M43
+									+ view.D * primaryView.WorldSpace.ModelViewMatrix.M44;
+			} 
+			else 
+			{
+				View viewDef = idE.RenderSystem.ViewDefinition;
+				
+				view.Normal.X = global.X * viewDef.WorldSpace.ModelViewMatrix.M11 
+									+ global.Y * viewDef.WorldSpace.ModelViewMatrix.M12
+									+ global.Z * viewDef.WorldSpace.ModelViewMatrix.M13
+									+ viewDef.WorldSpace.ModelViewMatrix.M14;
+				
+				view.Normal.Y = global.X * viewDef.WorldSpace.ModelViewMatrix.M21 
+									+ global.Y * viewDef.WorldSpace.ModelViewMatrix.M22
+									+ global.Z * viewDef.WorldSpace.ModelViewMatrix.M23
+									+ viewDef.WorldSpace.ModelViewMatrix.M24;
+
+				view.Normal.Z = global.X * viewDef.WorldSpace.ModelViewMatrix.M31 
+									+ global.Y * viewDef.WorldSpace.ModelViewMatrix.M32
+									+ global.Z * viewDef.WorldSpace.ModelViewMatrix.M33
+									+ viewDef.WorldSpace.ModelViewMatrix.M34;
+
+				view.D = global.X * viewDef.WorldSpace.ModelViewMatrix.M41 
+									+ global.Y * viewDef.WorldSpace.ModelViewMatrix.M42
+									+ global.Z * viewDef.WorldSpace.ModelViewMatrix.M43
+									+ viewDef.WorldSpace.ModelViewMatrix.M44;
+
+				clip.Normal.X = view.Normal.X * viewDef.WorldSpace.ModelViewMatrix.M11 
+									+ view.Normal.Y * viewDef.WorldSpace.ModelViewMatrix.M12
+									+ view.Normal.Z * viewDef.WorldSpace.ModelViewMatrix.M13
+									+ view.D * viewDef.WorldSpace.ModelViewMatrix.M14;
+				
+				clip.Normal.Y = view.Normal.X * viewDef.WorldSpace.ModelViewMatrix.M21 
+									+ view.Normal.Y * viewDef.WorldSpace.ModelViewMatrix.M22
+									+ view.Normal.Z * viewDef.WorldSpace.ModelViewMatrix.M23
+									+ view.D * viewDef.WorldSpace.ModelViewMatrix.M24;
+
+				clip.Normal.Z = view.Normal.X * viewDef.WorldSpace.ModelViewMatrix.M31 
+									+ view.Normal.Y * viewDef.WorldSpace.ModelViewMatrix.M32
+									+ view.Normal.Z * viewDef.WorldSpace.ModelViewMatrix.M33
+									+ view.D * viewDef.WorldSpace.ModelViewMatrix.M34;
+
+				clip.D = view.Normal.X * viewDef.WorldSpace.ModelViewMatrix.M41 
+									+ view.Normal.Y * viewDef.WorldSpace.ModelViewMatrix.M42
+									+ view.Normal.Z * viewDef.WorldSpace.ModelViewMatrix.M43
+									+ view.D * viewDef.WorldSpace.ModelViewMatrix.M44;
+			}
+
+			ndc.X = clip.Normal.X / clip.D;
+			ndc.Y = clip.Normal.Y / clip.D;
+			ndc.Z = (clip.Normal.Z + clip.D) / (2 * clip.D);
+		}
+
+		public static void LocalPointToGlobal(Matrix m, Vector3 local, out Vector3 world)
+		{
+			world = Vector3.Zero;
+			world.X = local.X * m.M11 + local.Y * m.M21 + local.Z * m.M31 + m.M41;
+			world.Y = local.X * m.M12 + local.Y * m.M22 + local.Z * m.M32 + m.M42;
+			world.Z = local.X * m.M13 + local.Y * m.M23 + local.Z * m.M33 + m.M43;
+		}
+
+		/// <summary>
+		/// A fast, conservative center-to-corner culling test.
+		/// </summary>
+		/// <param name="bounds"></param>
+		/// <param name="modelMatrix"></param>
+		/// <param name="planeCount"></param>
+		/// <param name="planes"></param>
+		/// <returns>Returns true if the box is outside the given global frustum, (positive sides are out).</returns>
+		public static bool RadiusCullLocalBox(idBounds bounds, Matrix modelMatrix, int planeCount, Plane[] planes)
+		{
+			if(idE.CvarSystem.GetInteger("r_useCulling") == 0)
+			{
+				return false;
+			}
+
+			// transform the surface bounds into world space
+			Vector3 localOrigin = (bounds.Min + bounds.Max) * 0.5f;
+			Vector3 worldOrigin;
+
+			LocalPointToGlobal(modelMatrix, localOrigin, out worldOrigin);
+
+			float worldRadius = (bounds.Min - localOrigin).Length(); // FIXME: won't be correct for scaled objects
+			
+			for(int i = 0; i < planeCount; i++)
+			{
+				Plane frust = planes[i];
+				float d = frust.Distance(worldOrigin);
+
+				if(d > worldRadius)
+				{
+					return true; // culled
+				}
+			}
+	
+			return false;		// no culled
 		}
 
 		public static T[] Flatten<T>(T[,] source)

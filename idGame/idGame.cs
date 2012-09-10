@@ -60,7 +60,6 @@ namespace idTech4.Game
 			}
 		}
 
-		// TODO
 		public idClip Clip
 		{
 			get
@@ -1722,6 +1721,18 @@ namespace idTech4.Game
 			return _gameRules.Draw(clientIndex);
 		}
 
+		public override string HandleGuiCommands(string menuCommand)
+		{
+			if(this.IsMultiplayer == false)
+			{
+				return null;
+			}
+
+			idConsole.Warning("TODO: return mpGame.HandleGuiCommands( menuCommand );");
+
+			return null;
+		}
+
 		public /*override*/ void HandleMainMenuCommands(string menuCommand, idUserInterface gui)
 		{
 			idConsole.DeveloperWriteLine("HandleMainMenuCommands");
@@ -1912,6 +1923,16 @@ namespace idTech4.Game
 			_gameState = GameState.Active;
 
 			idConsole.WriteLine("--------------------------------------");
+		}
+
+		public override int GetTimeGroupTime(int timeGroup)
+		{
+			return _time;
+		}
+
+		public override void SelectTimeGroup(int timeGroup)
+		{
+
 		}
 
 		public /*override*/ void SetLocalClient(int clientIndex)

@@ -30,6 +30,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+
+using idTech4.Renderer;
+
 namespace idTech4.UI
 {
 	public sealed class idEditWindow : idWindow
@@ -74,6 +78,134 @@ namespace idTech4.UI
 
 		#region Methods
 		#region Private
+		private void EnsureCursorVisible()
+		{
+			if(_readOnly == true)
+			{
+				_cursorPosition = -1;
+			}
+			else if(_maxChars == 1)
+			{
+				_cursorPosition = 0;
+			}
+
+			if(this.DeviceContext == null)
+			{
+				return;
+			}
+
+			SetFont();
+
+			if(_wrap == false)
+			{
+				int cursorX = 0;
+
+				if(_password == true)
+				{
+					cursorX = _cursorPosition * this.DeviceContext.GetCharacterWidth('*', this.TextScale);
+				}
+				else
+				{
+					int i = 0;
+					int length = this.Text.Length;
+
+					while((i < length) && (i < _cursorPosition))
+					{
+						if(idHelper.IsColor(this.Text, i) == true)
+						{
+							i += 2;
+						}
+						else 
+						{
+							cursorX += this.DeviceContext.GetCharacterWidth(this.Text[i], this.TextScale);
+							i++;
+						}
+					}
+				}
+
+				int maxWidth = (int) this.MaximumCharacterWidth;
+				int left = cursorX - maxWidth;
+				int right = (int) (cursorX - this.TextRectangle.Width) + maxWidth;
+
+				if(_paintOffset > left)
+				{
+					// when we go past the left side, we want the text to jump 6 characters
+					_paintOffset = left - maxWidth * 6;
+				}
+
+				if(_paintOffset < right)
+				{
+					_paintOffset = right;
+				}
+
+				if(_paintOffset < 0)
+				{
+					_paintOffset = 0;
+				}
+
+				_scroller.SetRange(0, 0, 1);
+			}
+			else 
+			{
+				// word wrap
+				_breaks.Clear();
+
+				idRectangle rect = this.TextRectangle;
+				rect.Width -= _sizeBias;
+
+				this.DeviceContext.DrawText(this.Text, this.TextScale, this.TextAlign, idColor.White, rect, true, ((this.Flags & WindowFlags.Focus) == WindowFlags.Focus) ? _cursorPosition : -1, true, _breaks);
+
+				int fit = (int) (this.TextRectangle.Height / (this.MaximumCharacterHeight + 5));
+
+				if(fit < (_breaks.Count + 1))
+				{
+					_scroller.SetRange(0, _breaks.Count + 1 - fit, 1);
+				}
+				else
+				{
+					// the text fits completely in the box
+					_scroller.SetRange(0, 0, 1);
+				}
+
+				if(_forceScroll == true)
+				{
+					_scroller.Value = _breaks.Count - fit;
+				}
+				else if(_readOnly == true)
+				{
+
+				}
+				else
+				{
+					_cursorLine = 0;
+					int count = _breaks.Count;
+
+					for(int i = 1; i < count; i++)
+					{
+						if(_cursorPosition >= _breaks[i])
+						{
+							_cursorLine = i;
+						}
+						else
+						{
+							break;
+						}
+					}
+
+					int topLine = (int) _scroller.Value;
+
+					if(_cursorLine < topLine)
+					{
+						_scroller.Value = _cursorLine;
+					}
+					else if(_cursorLine >= (topLine + fit))
+					{
+						_scroller.Value = (_cursorLine - fit) + 1;
+					}
+				}
+			}
+		}
+
 		private void Init()
 		{
 			_maxChars = 128;
@@ -119,6 +251,50 @@ namespace idTech4.UI
 			}
 		}
 
+		private void InitScroller(bool horizontal)
+		{
+			string thumbImage = "guis/assets/scrollbar_thumb.tga";
+			string barImage = "guis/assets/scrollbarv.tga";
+			string scrollerName = "_scrollerWinV";
+
+			if(horizontal == true)
+			{
+				barImage = "guis/assets/scrollbarh.tga";
+				scrollerName = "_scrollerWinH";
+			}
+
+			idMaterial mat = idE.DeclManager.FindMaterial(barImage);
+			mat.Sort = (float) MaterialSort.Gui;
+
+			_sizeBias = mat.ImageWidth;
+
+			idRectangle scrollRect;
+
+			if(horizontal == true)
+			{
+				_sizeBias = mat.ImageHeight;
+
+				scrollRect.X = 0;
+				scrollRect.Y = this.ClientRectangle.Height - _sizeBias;
+				scrollRect.Width = this.ClientRectangle.Width;
+				scrollRect.Height = _sizeBias;
+			}
+			else
+			{
+				scrollRect.X = this.ClientRectangle.Width - _sizeBias;
+				scrollRect.Y = 0;
+				scrollRect.Width = _sizeBias;
+				scrollRect.Height = this.ClientRectangle.Height;
+
+			}
+
+			_scroller.InitWithDefaults(scrollerName, scrollRect, this.ForeColor, this.MaterialColor, mat.Name, thumbImage, !horizontal, true);
+
+			InsertChild(_scroller, null);
+
+			_scroller.Buddy = this;
+		}
+
 		private void UpdateConsoleVariables(bool read, bool force = false)
 		{
 			if((force == true) || (_liveUpdate == true))
@@ -153,64 +329,67 @@ namespace idTech4.UI
 			if(activate == true)
 			{
 				UpdateConsoleVariables(true, true);
-				// TODO: EnsureCursorVisible();
+				EnsureCursorVisible();
 			}
 		}
 
 		public override void Draw(float x, float y)
 		{
-			//idConsole.Warning("TODO: EditWindow Draw");
-
 			UpdateConsoleVariables(true);
-			/*idVec4 color = foreColor;
 
+			Vector4 color = this.ForeColor;
 
-			int len = text.Length();
-			if ( len != lastTextLength ) {
-				scroller->SetValue( 0.0f );
+			int length = this.Text.Length;
+
+			if(length != _lastTextLength)
+			{
+				_scroller.Value = 0.0f;
 				EnsureCursorVisible();
-				lastTextLength = len;
-			}
-			float scale = textScale;
 
-			idStr		pass;
-			const char* buffer;
-			if ( password ) {		
-				const char* temp = text;
-				for ( ; *temp; temp++ )	{
-					pass += "*";
-				}
-				buffer = pass;
-			} else {
-				buffer = text;
+				_lastTextLength = length;
 			}
 
-			if ( cursorPos > len ) {
-				cursorPos = len;
+			float scale = this.TextScale;
+			string str = this.Text;
+
+			if(_password == true)
+			{
+				str = new String('*', this.Text.Length);
 			}
 
-			idRectangle rect = textRect;
-
-			rect.x -= paintOffset;
-			rect.w += paintOffset;
-
-			if ( wrap && scroller->GetHigh() > 0.0f ) {
-				float lineHeight = GetMaxCharHeight( ) + 5;
-				rect.y -= scroller->GetValue() * lineHeight;
-				rect.w -= sizeBias;
-				rect.h = ( breaks.Num() + 1 ) * lineHeight;
+			if(_cursorPosition > length)
+			{
+				_cursorPosition = length;
 			}
 
-			if ( hover && !noEvents && Contains(gui->CursorX(), gui->CursorY()) ) {
-				color = hoverColor;
-			} else {
-				hover = false;
-			}
-			if ( flags & WIN_FOCUS ) {
-				color = hoverColor;
+			idRectangle rect = this.TextRectangle;
+			rect.X -= _paintOffset;
+			rect.Width += _paintOffset;
+
+			if((_wrap == true) && (_scroller.High > 0.0f))
+			{
+				float lineHeight = this.MaximumCharacterHeight + 5;
+
+				rect.Y -= _scroller.Value * lineHeight;
+				rect.Width -= _sizeBias;
+				rect.Height = (_breaks.Count + 1) * lineHeight;
 			}
 
-			dc->DrawText( buffer, scale, 0, color, rect, wrap, (flags & WIN_FOCUS) ? cursorPos : -1);*/
+			if((this.Hover == true) && (this.NoEvents == false) && (this.Contains(this.UserInterface.CursorX, this.UserInterface.CursorY) == true))
+			{
+				color = this.HoverColor;
+			}
+			else
+			{
+				this.Hover = false;
+			}
+
+			if((this.Flags & WindowFlags.Focus) == WindowFlags.Focus)
+			{
+				color = this.HoverColor;
+			}
+
+			this.DeviceContext.DrawText(str, scale, 0, color, rect, _wrap, ((this.Flags & WindowFlags.Focus) == WindowFlags.Focus) ? _cursorPosition : -1);
 		}
 				
 		public override idWindowVariable GetVariableByName(string name, bool fixup, ref DrawWindow owner)
@@ -481,22 +660,20 @@ namespace idTech4.UI
 
 		public override void RunNamedEvent(string name)
 		{
-			idConsole.Warning("TODO: EditWindow RunNamedEvent");
-			/*idStr event, group;
-	
-			if ( !idStr::Cmpn( eventName, "cvar read ", 10 ) ) {
-				event = eventName;
-				group = event.Mid( 10, event.Length() - 10 );
-				if ( !group.Cmp( cvarGroup ) ) {
-					UpdateCvar( true, true );
+			if(name.StartsWith("cvar read") == true)
+			{
+				if(name.Substring(10) == _cvarGroup.ToString())
+				{
+					UpdateConsoleVariables(true, true);
 				}
-			} else if ( !idStr::Cmpn( eventName, "cvar write ", 11 ) ) {
-				event = eventName;
-				group = event.Mid( 11, event.Length() - 11 );
-				if ( !group.Cmp( cvarGroup ) ) {
-					UpdateCvar( false, true );
+			}
+			else if(name.StartsWith("cvar write") == true)
+			{
+				if(name.Substring(11) == _cvarGroup.ToString())
+				{
+					UpdateConsoleVariables(false, true);
 				}
-			}*/
+			}
 		}
 		#endregion
 
@@ -505,9 +682,8 @@ namespace idTech4.UI
 		{
 			base.OnFocusGained();
 
-			idConsole.Warning("TODO: EditWindow GainFocus");
-			/*cursorPos = text.Length();
-			EnsureCursorVisible();*/
+			_cursorPosition = this.Text.Length;
+			EnsureCursorVisible();
 		}
 
 		protected override bool ParseInternalVariable(string name, Text.idScriptParser parser)
@@ -557,23 +733,22 @@ namespace idTech4.UI
 		protected override void PostParse()
 		{
 			base.PostParse();
-			idConsole.Warning("TODO: EditWindow PostParse");
-			/* TODO: if(maxChars == 0)
+
+			if(_maxChars == 0)
 			{
-				maxChars = 10;
+				_maxChars = 10;
 			}
-			if(sourceFile.Length())
+
+			if((_sourceFile != null) && (_sourceFile != string.Empty))
 			{
-				void* buffer;
-				fileSystem->ReadFile(sourceFile, &buffer);
-				text = (char*) buffer;
-				fileSystem->FreeFile(buffer);
-			}*/
+				byte[] tmp = idE.FileSystem.ReadFile(_sourceFile);
+				this.Text = Encoding.UTF8.GetString(tmp);
+			}
 
 			InitConsoleVariables();
-			/*InitScroller(false);
+			InitScroller(false);
 
-			EnsureCursorVisible();*/
+			EnsureCursorVisible();
 
 			this.Flags |= WindowFlags.CanFocus;
 		}
