@@ -52,6 +52,11 @@ namespace idTech4.Math
 			return XMath.Abs(a);
 		}
 
+		public static float Atan2(float x, float y)
+		{
+			return (float) XMath.Atan2(x, y);
+		}
+
 		public static float Ceiling(float c)
 		{
 			return (float) XMath.Ceiling(c);
@@ -60,6 +65,11 @@ namespace idTech4.Math
 		public static float Cos(float c)
 		{
 			return (float) XMath.Cos(c);
+		}
+
+		public static float Cube(float x)
+		{
+			return x * x * x;
 		}
 
 		public static float Floor(float v)
@@ -80,6 +90,11 @@ namespace idTech4.Math
 		public static float Pow(float a, float b)
 		{
 			return (float) XMath.Pow(a, b);
+		}
+
+		public static float Square(float x)
+		{
+			return x * x;
 		}
 
 		public static float Sqrt(float v)

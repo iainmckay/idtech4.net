@@ -80,6 +80,12 @@ namespace idTech4
 		#endregion
 
 		#region Constructor
+		public idBounds(Vector3 point)
+		{
+			this.Min = point;
+			this.Max = point;
+		}
+
 		public idBounds(Vector3 min, Vector3 max)
 		{
 			this.Min = min;
@@ -242,6 +248,12 @@ namespace idTech4
 		{
 			this.Min = new Vector3(idMath.Infinity, idMath.Infinity, idMath.Infinity);
 			this.Max = new Vector3(-idMath.Infinity, -idMath.Infinity, -idMath.Infinity);
+		}
+
+		public void Translate(Vector3 translation)
+		{
+			this.Min += translation;
+			this.Max += translation;
 		}
 
 		/// <summary>

@@ -497,32 +497,32 @@ namespace idTech4.Renderer
 			ChangeTextureFilter();
 
 			// create built in images
-			_defaultImage = LoadFromCallback("_default", GenerateDefaultImage);
-			_whiteImage = LoadFromCallback("_white", GenerateWhiteImage);
-			_blackImage = LoadFromCallback("_black", GenerateBlackImage);
-			_borderClampImage = LoadFromCallback("_borderClamp", GenerateBorderClampImage);
-			// TODO: _flatNormalMap = LoadFromCallback("_flat", GenerateFlatNormalImage);
+			_defaultImage = ImageFromFile("_default", TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
+			_whiteImage = ImageFromFile("_white", TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
+			_blackImage = ImageFromFile("_black", TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.Default);
+			_borderClampImage = ImageFromFile("_borderClamp", TextureFilter.Linear, false, TextureRepeat.ClampToBorder, TextureDepth.Default);
+			_flatNormalMap = ImageFromFile("_flat", TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
 			// TODO: _ambientNormalMap = LoadFromCallback("_ambient", GenerateAmbientNormalImage);
-			_specularTableImage = LoadFromCallback("_specularTable", GenerateSpecularTableImage);
+			/*_specularTableImage = LoadFromCallback("_specularTable", GenerateSpecularTableImage);
 			_specular2DTableImage = LoadFromCallback("_specular2DTable", GenerateSpecular2DTableImage);
 			_rampImage = LoadFromCallback("_ramp", GenerateRampImage);
 			_alphaRampImage = LoadFromCallback("_alphaRamp", GenerateRampImage);
 			_alphaNotchImage = LoadFromCallback("_alphaNotch", GenerateAlphaNotchImage);
 			_fogImage = LoadFromCallback("_fog", GenerateFogImage);
-			_fogEnterImage = LoadFromCallback("_fogEnter", GenerateFogEnterImage);
+			_fogEnterImage = LoadFromCallback("_fogEnter", GenerateFogEnterImage);*/
 			// TODO: _normalCubeMapImage = LoadFromCallback("_normalCubeMap", makeNormalizeVectorCubeMap);*/
-			_noFalloffImage = LoadFromCallback("_noFalloff", GenerateNoFalloffImage);
+			_noFalloffImage = ImageFromFile("_noFalloff", TextureFilter.Default, false, TextureRepeat.ClampToZero, TextureDepth.HighQuality);
 
-			LoadFromCallback("_quadratic", GenerateQuadraticImage);
+			//LoadFromCallback("_quadratic", GenerateQuadraticImage);
 
 			// cinematicImage is used for cinematic drawing
 			// scratchImage is used for screen wipes/doublevision etc..
-			_cinematicImage = LoadFromCallback("_cinematic", GenerateRGBA8Image);
-			_scratchImage = LoadFromCallback("_scratch", GenerateRGBA8Image);
-			_scratchImage2 = LoadFromCallback("_scratch2", GenerateRGBA8Image);
-			_accumImage = LoadFromCallback("_accum", GenerateRGBA8Image);
+			/*_cinematicImage = LoadFromCallback("_cinematic", GenerateRGBA8Image);*/
+			_scratchImage = ImageFromFile("_scratch", TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
+			_scratchImage2 = ImageFromFile("_scratch2", TextureFilter.Default, false, TextureRepeat.Repeat, TextureDepth.HighQuality);
+			/*_accumImage = LoadFromCallback("_accum", GenerateRGBA8Image);*/
 			// TODO: _scratchCubeMapImage = LoadFromCallback("_scratchCubeMap", makeNormalizeVectorCubeMap);*/
-			_currentRenderImage = LoadFromCallback("_currentRender", GenerateRGBA8Image);
+			//_currentRenderImage = LoadFromCallback("_currentRender", GenerateRGBA8Image);
 
 			// TODO: cmds
 			idE.CmdSystem.AddCommand("reloadImages", "reloads images", CommandFlags.Renderer, new EventHandler<CommandEventArgs>(Cmd_ReloadImages));

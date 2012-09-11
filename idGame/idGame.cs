@@ -11,6 +11,7 @@ using idTech4.Game.Entities;
 using idTech4.Game.Physics;
 using idTech4.Game.Rules;
 using idTech4.Input;
+using idTech4.Math;
 using idTech4.Renderer;
 using idTech4.Sound;
 using idTech4.Text;
@@ -52,6 +53,14 @@ namespace idTech4.Game
 		#endregion
 
 		#region Properties
+		public List<idEntity> ActiveEntities
+		{
+			get
+			{
+				return _activeEntities;
+			}
+		}
+
 		public int ClientCount
 		{
 			get
@@ -73,6 +82,18 @@ namespace idTech4.Game
 			get
 			{
 				return _entities;
+			}
+		}
+
+		public int EntitiesToDeactivate
+		{
+			get
+			{
+				return _entitiesToDeactivate;
+			}
+			set
+			{
+				_entitiesToDeactivate = value;
 			}
 		}
 
@@ -201,6 +222,36 @@ namespace idTech4.Game
 		}
 
 		/// <summary>
+		/// True if active lists needs to be reordered to place pushers at the front.
+		/// </summary>
+		public bool SortPushers
+		{
+			get
+			{
+				return _sortPushers;
+			}
+			set
+			{
+				_sortPushers = value;
+			}
+		}
+
+		/// <summary>
+		/// True if active lists needs to be reordered to place physics team masters before their slaves.
+		/// </summary>
+		public bool SortTeamMasters
+		{
+			get
+			{
+				return _sortTeamMasters;
+			}
+			set
+			{
+				_sortTeamMasters = value;
+			}
+		}
+
+		/// <summary>
 		/// All audio goes to this world.
 		/// </summary>
 		public idSoundWorld SoundWorld
@@ -275,10 +326,14 @@ namespace idTech4.Game
 		private int _entityCount;
 		private int _spawnCount;
 		private int _firstFreeIndex;
+		private int _entitiesToDeactivate;
 
 		private SpawnPoint[] _spawnPoints = new SpawnPoint[] { };
 		private idEntity[] _initialSpawnPoints = new idEntity[] { };
 		private int _currentInitialSpawnPoint;
+
+		private bool _sortPushers;
+		private bool _sortTeamMasters;
 
 		private idWorldSpawn _world;
 		private Vector3 _gravity; // global gravity vector
@@ -304,7 +359,9 @@ namespace idTech4.Game
 		private PlayerState[] _playerStates = new PlayerState[idR.MaxClients];
 
 		private idEntity[] _entities = null;
-		private LinkedList<idEntity> _spawnedEntities = new LinkedList<idEntity>();
+		private List<idEntity> _activeEntities = new List<idEntity>();
+		private List<idEntity> _spawnedEntities = new List<idEntity>();
+
 		private int[] _spawnIds = null;
 		private idUserCommand[] _userCommands = null;
 
@@ -338,6 +395,7 @@ namespace idTech4.Game
 		#endregion
 
 		#region Methods
+		#region Private
 		private void InitCvars()
 		{
 #if DEBUG
@@ -673,14 +731,13 @@ namespace idTech4.Game
 			_gameState = GameState.Uninitialized;
 			_firstFreeIndex = 0;
 			_entityCount = 0;
-
+			_activeEntities.Clear();
+			_entitiesToDeactivate = 0;
 			
+			_sortPushers = false;
+			_sortTeamMasters = false;
 
-			/*activeEntities.Clear();
-			numEntitiesToDeactivate = 0;
-			sortPushers = false;
-			sortTeamMasters = false;
-			persistentLevelInfo.Clear();
+/*			persistentLevelInfo.Clear();
 			memset(globalShaderParms, 0, sizeof(globalShaderParms));*/
 
 			_random = new Random(0);
@@ -770,6 +827,7 @@ namespace idTech4.Game
 					break;
 			}
 
+			// TODO
 			/*if ( gameType == GAME_LASTMAN ) {
 				if ( !serverInfo.GetInt( "si_warmup" ) ) {
 					common->Warning( "Last Man Standing - forcing warmup on" );
@@ -826,11 +884,12 @@ namespace idTech4.Game
 			_spawnCount = idGame.InitialSpawnCount;
 
 			_spawnedEntities.Clear();
-			/*activeEntities.Clear();
-			numEntitiesToDeactivate = 0;
-			sortTeamMasters = false;
-			sortPushers = false;
-			lastGUIEnt = NULL;
+			_activeEntities.Clear();
+			_entitiesToDeactivate = 0;
+
+			_sortTeamMasters = false;
+			_sortPushers = false;
+			/*lastGUIEnt = NULL;
 			lastGUI = 0;
 
 			globalMaterial = NULL;*/
@@ -866,9 +925,7 @@ namespace idTech4.Game
 
 			vacuumAreaNum = -1;		// if an info_vacuum is spawned, it will set this
 
-			if ( !editEntities ) {
-				editEntities = new idEditEntities;
-			}*/
+			*/
 
 			_gravity = new Vector3(0, 0, -idR.CvarSystem.GetFloat("g_gravity"));
 			_spawnArgs.Clear();
@@ -918,7 +975,7 @@ namespace idTech4.Game
 			// spawnCount - 1 is the number of entities spawned into the map, their indexes started at MAX_CLIENTS (included)
 			// mapSpawnCount is used as the max index of map entities, it's the first index of non-map entities
 			/*mapSpawnCount = MAX_CLIENTS + spawnCount - 1;
-
+			
 			// execute pending events before the very first game frame
 			// this makes sure the map script main() function is called
 			// before the physics are run so entities can bind correctly
@@ -1234,6 +1291,66 @@ namespace idTech4.Game
 			cmdSystem->AddCommand( "nextGUI",				Cmd_NextGUI_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"teleport the player to the next func_static with a gui" );
 			cmdSystem->AddCommand( "testid",				Cmd_TestId_f,				CMD_FL_GAME|CMD_FL_CHEAT,	"output the string for the specified id." );*/
 		}
+		#endregion
+
+		#region Public
+		/// <summary>
+		/// Calculates the horizontal and vertical field of view based on a horizontal field of view and custom aspect ratio.
+		/// </summary>
+		/// <param name="baseFov"></param>
+		/// <param name="fovX"></param>
+		/// <param name="fovY"></param>
+		public void CalculateFieldOfView(float baseFov, out float fovX, out float fovY)
+		{
+			// first, calculate the vertical fov based on a 640x480 view
+			float x = 640.0f / idMath.Tan(baseFov / 360.0f * idMath.Pi);
+			float y = idMath.Atan2(480.0f, x);
+
+			float ratioX = 0;
+			float ratioY = 0;
+
+			fovY = y * 360.0f / idMath.Pi;
+		
+			// FIXME: somehow, this is happening occasionally
+			if(fovY <= 0)
+			{
+				idConsole.Error("idGame::CalculateFieldOfView: bad result");
+			}
+
+			switch(idR.CvarSystem.GetInteger("r_aspectRatio"))
+			{
+				default:
+				case 0: // 4:3
+					fovX = baseFov;
+					return;
+
+				case 1: // 16: 9
+					ratioX = 16.0f;
+					ratioY = 9.0f;
+					break;
+
+				case 2: // 16:10
+					ratioX = 16.0f;
+					ratioY = 10.0f;
+					break;
+			}
+
+			y = ratioY / idMath.Tan(fovY / 360.0f * idMath.Pi);
+			fovX = idMath.Atan2(ratioX, y) * 360.0f / idMath.Pi;
+			
+			if(fovX < baseFov)
+			{
+				fovX = baseFov;
+				x = ratioX / idMath.Tan(fovX / 360.0f * idMath.Pi);
+				fovY = idMath.Atan2(ratioY, x) * 360.0f / idMath.Pi;
+			}
+
+			// FIXME: somehow, this is happening occasionally
+			if((fovY <= 0) || (fovX <= 0))
+			{
+				idConsole.Error("idGame::CalculateFieldOfView: bad result");
+			}
+		}
 
 		/// <summary>
 		/// spectators are spawned randomly anywhere.
@@ -1356,41 +1473,27 @@ namespace idTech4.Game
 		/// <returns></returns>
 		public idEntity FindEntityUsingDef(idEntity from, string match)
 		{
-			idEntity ent = null;
-			LinkedListNode<idEntity> node = null;
+			int index = 0;
 
-			if(from == null)
+			if(from != null)
 			{
-				node = _spawnedEntities.First;
-				
-				if(node != null)
-				{
-					ent = node.Value;
-				}
-			}
-			else
-			{
-				node = from.SpawnNode.Next;
+				index = _spawnedEntities.IndexOf(from);
 
-				if(node != null)
+				if(index == -1)
 				{
-					ent = node.Value;
+					index = 0;
 				}
 			}
 
-			while(ent != null)
+			int count = _spawnedEntities.Count;
+
+			for(int i = index; i < count; i++)
 			{
+				idEntity ent = _spawnedEntities[i];
+
 				if(ent.DefName.ToLower() == match.ToLower())
 				{
 					return ent;
-				}
-
-				node = ent.SpawnNode.Next;
-				ent = null;
-
-				if(node != null)
-				{
-					ent = node.Value;
 				}
 			}
 
@@ -1540,15 +1643,15 @@ namespace idTech4.Game
 
 			entity.Index = entitySpawnIndex;
 			entity.SpawnArgs.TransferKeyValues(_spawnArgs);
-
-			entity.SpawnNode = _spawnedEntities.AddLast(entity);
-
+			
+			_spawnedEntities.Add(entity);
 
 			if(entitySpawnIndex >= _entityCount)
 			{
 				_entityCount++;
 			}
 		}
+		#endregion
 		#endregion
 
 		#region idGame implementation
@@ -1695,25 +1798,32 @@ namespace idTech4.Game
 					TODO: timer_think.Start();*/
 
 					// let entities think
+					int count = 0;
+
 					if(idR.CvarSystem.GetFloat("g_timeentities") > 0)
 					{
-						int count = 0;
-
-						/*for( ent = activeEntities.Next(); ent != NULL; ent = ent->activeNode.Next() ) {
-							if ( g_cinematic.GetBool() && inCinematic && !ent->cinematic ) {
+						foreach(idEntity entity in _activeEntities)
+						{
+							// TODO: cinematic
+							/*if ( g_cinematic.GetBool() && inCinematic && !ent->cinematic ) {
 								ent->GetPhysics()->UpdateTime( time );
 								continue;
-							}
-							timer_singlethink.Clear();
-							timer_singlethink.Start();
-							ent->Think();
-							timer_singlethink.Stop();
+							}*/
+
+							// TODO: timer
+							/*timer_singlethink.Clear();
+							timer_singlethink.Start();*/
+
+							entity.Think();
+							
+							/*timer_singlethink.Stop();
 							ms = timer_singlethink.Milliseconds();
 							if ( ms >= g_timeentities.GetFloat() ) {
 								Printf( "%d: entity '%s': %.1f ms\n", time, ent->name.c_str(), ms );
-							}
-							num++;
-						}*/
+							}*/
+
+							count++;
+						}
 					}
 					else
 					{
@@ -1727,16 +1837,22 @@ namespace idTech4.Game
 								ent->Think();
 								num++;
 							}
-						} else {
-							num = 0;
-							for( ent = activeEntities.Next(); ent != NULL; ent = ent->activeNode.Next() ) {
-								ent->Think();
-								num++;
+						} else {*/
+							count = 0;
+
+							foreach(idEntity ent in _activeEntities)
+							{
+								ent.Think();
+								_clientCount++;
 							}
-						}*/
+							
+						/*}*/
 					}
 
 					// remove any entities that have stopped thinking
+					if(_entitiesToDeactivate > 0)
+					{
+						idConsole.Warning("TODO: deactivate entities");
 					/*if ( numEntitiesToDeactivate ) {
 						idEntity *next_ent;
 						int c = 0;
@@ -1748,15 +1864,16 @@ namespace idTech4.Game
 							}
 						}
 						//assert( numEntitiesToDeactivate == c );
-						numEntitiesToDeactivate = 0;
+						numEntitiesToDeactivate = 0;*/
 					}
 
-					timer_think.Stop();
+					// TODO: timer
+					/*timer_think.Stop();
 					timer_events.Clear();
-					timer_events.Start();
+					timer_events.Start();*/
 
 					// service any pending events
-					idEvent::ServiceEvents();
+					/*idEvent::ServiceEvents();
 
 					timer_events.Stop();
 

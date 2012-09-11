@@ -94,6 +94,8 @@ namespace idTech4
 		public const int MaxPrintMessageSize = 4096;
 		public const int MaxRenderCrops = 8;
 		public const int MaxRenderEntityGui = 3;
+		public const int MaxSubModels = 2048;
+		public const int MaxTraceModelVertices = 64;
 		public const int MaxUserCommandRelay = 10;
 		public const int MaxWarningList = 256;
 

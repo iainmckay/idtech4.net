@@ -37,17 +37,17 @@ namespace idTech4.Game.Entities
 		}
 		#endregion
 
+		#region Members
+		private Vector3 _spawnOrigin;	// spawn origin
+		private Matrix _spawnAxis;		// rotation axis used when spawned
+		private int _nextSoundTime;		// next time this can make a sound
+		#endregion
+
 		#region Constructor
 		public idAFEntity()
 			: base()
 		{
-			// TODO
-			idConsole.Warning("TODO: idAFEntity");
-			/*combatModel = NULL;
-			combatModelContents = 0;
-			nextSoundTime = 0;
-			spawnOrigin.Zero();
-			spawnAxis.Identity();*/
+			
 		}
 		#endregion
 
@@ -179,11 +179,9 @@ namespace idTech4.Game.Entities
 		{
 			base.Spawn();
 
-			// TODO
-			idConsole.Warning("TODO: idAFEntity.Spawn");
-			/*spawnOrigin = GetPhysics()->GetOrigin();
-			spawnAxis = GetPhysics()->GetAxis();
-			nextSoundTime = 0;*/
+			_spawnOrigin = this.Physics.GetOrigin();
+			_spawnAxis = this.Physics.GetAxis();
+			_nextSoundTime = 0;
 		}
 
 		public override void Think()

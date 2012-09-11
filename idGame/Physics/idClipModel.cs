@@ -366,18 +366,14 @@ namespace idTech4.Game.Physics
 				_traceModelCacheDict.Remove(model);
 			}
 
-			idConsole.Warning("TODO: GetTraceModelCache");
-
-			/*TraceModelCache entry = new TraceModelCache();
+			TraceModelCache entry = new TraceModelCache();
 			entry.TraceModel = model;
-			entry.TraceModel.GetMassProperties(1.0f, ref entry.Volume, ref entry.CenterOfMass, ref entry.InertiaTensor);
+			entry.TraceModel.GetMassProperties(1.0f, out entry.Volume, out entry.CenterOfMass, out entry.InertiaTensor);
 
 			WeakReference weakRef = new WeakReference(entry);
-			_traceModelCache.Add(model, weakRef);
+			_traceModelCacheDict.Add(model, weakRef);
 
-			return entry;*/
-
-			return null;
+			return entry;
 		}
 		#endregion
 	
@@ -504,6 +500,28 @@ namespace idTech4.Game.Physics
 			_traceModelCache = GetTraceModelCache(traceModel);
 
 			_bounds = traceModel.Bounds;
+		}
+
+		/// <remarks>
+		/// Unlinks the clip model.
+		/// </remarks>
+		/// <param name="rotation"></param>
+		public void Rotate(idRotation rotation)
+		{
+			Unlink();
+
+			_origin *= rotation;
+			_axis *= rotation.ToMatrix();
+		}
+
+		/// <remarks>
+		/// Unlinks the clip model.
+		/// </remarks>
+		/// <param name="translation"></param>
+		public void Translate(Vector3 translation)
+		{
+			Unlink();
+			_origin += translation;
 		}
 		#endregion
 

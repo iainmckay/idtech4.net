@@ -294,7 +294,7 @@ namespace idTech4.Renderer
 
 			model.IsLevelLoadReferenced = true;
 
-			if((createIfNotFound == false) && (model.IsDefaultModel == true))
+			if((createIfNotFound == false) && (model.IsDefault == true))
 			{
 				model.Dispose();
 

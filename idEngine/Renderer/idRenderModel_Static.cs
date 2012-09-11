@@ -46,7 +46,7 @@ namespace idTech4.Renderer
 		private int _lastModifiedFrame;
 		private int _lastArchivedFrame;
 		private List<Surface> _shadowHull;
-		private bool _isStaticWordModel;
+		private bool _isStaticWorldModel;
 		private bool _defaulted;		
 		private bool _fastLoad; // don't generate tangents and shadow data.
 		private bool _reloadable; // if not, reloadModels won't check timestamp
@@ -116,7 +116,7 @@ namespace idTech4.Renderer
 			}
 		}
 		
-		public override bool IsDefaultModel
+		public override bool IsDefault
 		{
 			get 
 			{
@@ -129,7 +129,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public override DynamicModel IsDynamicModel
+		public override DynamicModel IsDynamic
 		{
 			get
 			{
@@ -168,7 +168,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public override bool IsStaticWordModel
+		public override bool IsStaticWorld
 		{
 			get
 			{
@@ -177,7 +177,7 @@ namespace idTech4.Renderer
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				return _isStaticWordModel;
+				return _isStaticWorldModel;
 			}
 		}
 
@@ -502,7 +502,7 @@ namespace idTech4.Renderer
 			// world, and have already been considered for optimized shadows
 			// other model names are inline entity models, and need to be
 			// shadowed normally
-			_isStaticWordModel = (name.StartsWith("_area") == true);
+			_isStaticWorldModel = (name.StartsWith("_area") == true);
 
 			_name = name;
 			_reloadable = false; // if it didn't come from a file, we can't reload it

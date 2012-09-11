@@ -38,7 +38,7 @@ namespace idTech4.Renderer
 
 		}
 
-		public override DynamicModel IsDynamicModel
+		public override DynamicModel IsDynamic
 		{
 			get
 			{

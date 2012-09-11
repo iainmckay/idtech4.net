@@ -195,6 +195,30 @@ namespace idTech4.Game
 			}
 		}
 
+		public bool IsActive
+		{
+			get
+			{
+				return idR.Game.ActiveEntities.Contains(this);
+			}
+		}
+
+		public bool IsAtRest
+		{
+			get
+			{
+				return this.Physics.IsAtRest;
+			}
+		}
+
+		public bool IsHidden
+		{
+			get
+			{
+				return _flags.Hidden;
+			}
+		}
+
 		public virtual idRenderModel Model
 		{
 			get
@@ -375,29 +399,6 @@ namespace idTech4.Game
 				return _spawnArgs;
 			}
 		}
-
-		public LinkedListNode<idEntity> SpawnNode
-		{
-			get
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				return _spawnNode;
-			}
-
-			set
-			{
-				if(this.Disposed == true)
-				{
-					throw new ObjectDisposedException(this.GetType().Name);
-				}
-
-				_spawnNode = value;
-			}
-		}
 		#endregion
 
 		#region Constants
@@ -415,18 +416,23 @@ namespace idTech4.Game
 
 		private bool _cinematic;
 
-		private idRenderView _renderView;
-		private RenderEntityComponent _renderEntity;
-
-		private idDict _spawnArgs = new idDict();
-
-		// for being linked into spawnedEntities list
-		private LinkedListNode<idEntity> _spawnNode;
-		// for being linked into activeEntities list
-		private LinkedListNode<idEntity> _activeNode;
+		protected idRenderView _renderView;
+		protected RenderEntityComponent _renderEntity;
 
 		private idPhysics_Static _defaultPhysicsObject;
 		private idPhysics _physics;
+
+		private idDict _spawnArgs = new idDict();
+		private EntityFlags _flags = new EntityFlags();
+		private EntityThinkFlags _thinkFlags;
+
+		private idEntity _bindMaster;		// entity bound to if unequal NULL
+		private object _bindJoint;			// joint bound to if unequal INVALID_JOINT
+		private int _bindBody;				// body bound to if unequal -1
+		private idEntity _teamMaster;		// master of the physics team
+		private idEntity _teamChain;		// next entity in physics team
+
+		private int	_pvsAreaCount;			// number of renderer areas the entity covers
 		#endregion
 
 		#region Constructor
@@ -446,19 +452,15 @@ namespace idTech4.Game
 			snapshotSequence = -1;*/
 	
 			/*
-			bindJoint = INVALID_JOINT;
-			bindBody = -1;
+			bindJoint = INVALID_JOINT;*/
+			_bindBody = -1;
 
-			memset(PVSAreas, 0, sizeof(PVSAreas));
-			numPVSAreas = -1;
+			/*memset(PVSAreas, 0, sizeof(PVSAreas));*/
+			_pvsAreaCount = -1;
 
-			memset(&fl, 0, sizeof(fl));
-			fl.neverDormant = true;			// most entities never go dormant
+			_flags.NeverDormant = true; // most entities never go dormant
 
-			modelDefHandle = -1;
-			memset(&refSound, 0, sizeof(refSound));
-
-			mpGUIState = -1;*/
+			/* mpGUIState = -1;*/
 		}
 
 		~idEntity()
@@ -490,6 +492,11 @@ namespace idTech4.Game
 		#endregion
 
 		#region Private
+		private void ClearPVSAreas()
+		{
+			_pvsAreaCount = -1;
+		}
+
 		private void InitDefaultPhysics(Vector3 origin, Matrix axis)
 		{
 			string temp = _spawnArgs.GetString("clipmodel", "");
@@ -589,9 +596,48 @@ namespace idTech4.Game
 			_physics = _defaultPhysicsObject;
 		}
 
+		private void UpdateModel()
+		{
+			UpdateModelTransform();
+
+			// check if the entity has an MD5 model
+			idAnimator animator = this.Animator;
+
+			if((animator != null) && (animator.Model != null))
+			{
+				// set the callback to update the joints
+				_renderEntity.Callback = ModelCallback;
+			}
+
+			// set to invalid number to force an update the next time the PVS areas are retrieved
+			ClearPVSAreas();
+
+			// ensure that we call Present this frame
+			BecomeActive(EntityThinkFlags.UpdateVisuals);
+		}
+
+		private void UpdateModelTransform()
+		{
+			Vector3 origin = Vector3.Zero;
+			Matrix axis = Matrix.Identity;
+
+			if(GetPhysicsToVisualTransform(ref origin, ref axis) == true)
+			{
+				_renderEntity.Axis = axis * this.Physics.GetAxis();
+				_renderEntity.Origin = this.Physics.GetOrigin() + Vector3.Transform(origin, _renderEntity.Axis);
+			}
+			else
+			{
+				_renderEntity.Axis = this.Physics.GetAxis();
+				_renderEntity.Origin = this.Physics.GetOrigin();
+			}
+		}
+		#endregion
+
+		#region Protected
 		protected virtual void SetModel(string modelName)
 		{
-			idConsole.Warning("TODO: FreeModelDef();");
+			FreeModelDef();
 
 			_renderEntity.Model = idE.RenderModelManager.FindModel(modelName);
 
@@ -641,12 +687,48 @@ namespace idTech4.Game
 			idConsole.Warning("TODO: _physics.SetMaster(bindMaster, fl.bindOrientated);");
 		}
 
-		private void UpdateVisuals()
+		protected void UpdateVisuals()
 		{
-			idConsole.Warning("TODO: UpdateVisuals");
-			// TODO
-			/*UpdateModel();
-			UpdateSound();*/
+			UpdateModel();
+			idConsole.Warning("TODO: UpdateSound();");
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// May not change the game state whatsoever!
+		/// </remarks>
+		/// <param name="renderEntity"></param>
+		/// <param name="renderView"></param>
+		/// <returns></returns>
+		protected bool ModelCallback(idRenderEntity renderEntity, idRenderView renderView)
+		{
+			idEntity ent = idR.Game.Entities[renderEntity.EntityIndex];
+
+			if(ent == null)
+			{
+				idConsole.Error("idEntity::ModelCallback: callback with null game entity");
+			}
+
+			return ent.UpdateRenderEntity(renderEntity, renderView);
+		}
+
+		protected bool UpdateRenderEntity(idRenderEntity renderEntity, idRenderView renderView)
+		{
+			// TODO: cinematic
+			/*if ( gameLocal.inCinematic && gameLocal.skipCinematic ) {
+				return false;
+			}*/
+
+			idAnimator animator = this.Animator;
+
+			if(animator != null)
+			{
+				return animator.CreateFrame(idR.Game.Time, false);
+			}
+
+			return false;
 		}
 		#endregion
 
@@ -679,6 +761,85 @@ namespace idTech4.Game
 			}
 
 			idConsole.Warning("TODO: idEntity.ApplyImpulse");	
+		}
+
+		public void BecomeActive(EntityThinkFlags flags)
+		{
+			if((flags & EntityThinkFlags.Physics) == EntityThinkFlags.Physics)
+			{
+				// enable the team master if this entity is part of a physics team
+				if((_teamMaster != null) && (_teamMaster != this))
+				{
+					_teamMaster.BecomeActive(EntityThinkFlags.Physics);
+				}
+				else if((_thinkFlags & EntityThinkFlags.Physics) == 0)
+				{
+					// if this is a pusher
+					if((_physics is idPhysics_Parametric) || (_physics is idPhysics_Actor))
+					{
+						idR.Game.SortPushers = true;
+					}
+				}
+			}
+
+			EntityThinkFlags oldFlags = _thinkFlags;
+
+			_thinkFlags |= flags;
+
+			if(_thinkFlags != 0)
+			{
+				if(this.IsActive == false)
+				{
+					idR.Game.ActiveEntities.Add(this);
+				}
+				else if(oldFlags == 0)
+				{
+					// we became inactive this frame, so we have to decrease the count of entities to deactivate
+					idR.Game.EntitiesToDeactivate--;
+				}
+			}
+		}
+
+		public void BecomeInactive(EntityThinkFlags flags)
+		{
+			if((flags & EntityThinkFlags.Physics) == EntityThinkFlags.Physics)
+			{
+				// may only disable physics on a team master if no team members are running physics or bound to a joints
+				if(_teamMaster == this)
+				{
+					idConsole.Warning("TODO: teamMaster");
+		
+					/*for ( idEntity *ent = teamMaster->teamChain; ent; ent = ent->teamChain ) {
+						if ( ( ent->thinkFlags & TH_PHYSICS ) || ( ( ent->bindMaster == this ) && ( ent->bindJoint != INVALID_JOINT ) ) ) {
+							flags &= ~TH_PHYSICS;
+							break;
+						}
+					}*/
+				}
+			}
+
+			if(_thinkFlags != 0)
+			{
+				_thinkFlags &= ~flags;
+
+				if((_thinkFlags == 0) && (this.IsActive == true))
+				{
+					idR.Game.EntitiesToDeactivate++;
+				}
+			}
+
+			if((flags & EntityThinkFlags.Physics) == EntityThinkFlags.Physics)
+			{
+				// if this entity has a team master
+				if((_teamMaster != null) && (_teamMaster != this))
+				{
+					// if the team master is at rest
+					if(_teamMaster.IsAtRest == true)
+					{
+						_teamMaster.BecomeInactive(EntityThinkFlags.Physics);
+					}
+				}
+			}
 		}
 
 		public virtual void ClientPredictionThink()
@@ -825,7 +986,7 @@ namespace idTech4.Game
 			}
 
 			idConsole.Warning("TODO: idEntity.GetPhysicsToSoundTransform");
-
+			
 			return false;
 		}
 
@@ -835,8 +996,6 @@ namespace idTech4.Game
 			{
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
-
-			idConsole.Warning("TODO: idEntity.GetPhysicsToVisualTransform");
 
 			return false;
 		}
@@ -863,14 +1022,13 @@ namespace idTech4.Game
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: Hide");
-			// TODO
-			/*if(!IsHidden())
+			if(this.IsHidden == false)
 			{
-				fl.hidden = true;
+				_flags.Hidden = true;
+
 				FreeModelDef();
 				UpdateVisuals();
-			}*/
+			}
 		}
 
 		/// <summary>
@@ -999,16 +1157,18 @@ namespace idTech4.Game
 
 			for ( i = 0; i < MAX_RENDERENTITY_GUI; i++ ) {
 				UpdateGuiParms( renderEntity.gui[ i ], &spawnArgs );
-			}
+			}*/
 
-			fl.solidForTeam = spawnArgs.GetBool( "solidForTeam", "0" );
-			fl.neverDormant = spawnArgs.GetBool( "neverDormant", "0" );
-			fl.hidden = spawnArgs.GetBool( "hide", "0" );
-			if ( fl.hidden ) {
+			_flags.SolidForTeam = _spawnArgs.GetBool("solidForTeam", false);
+			_flags.NeverDormant = _spawnArgs.GetBool("neverDormant", false);
+			_flags.Hidden = _spawnArgs.GetBool("hide", false);
+
+			if(_flags.Hidden == true)
+			{
 				// make sure we're hidden, since a spawn function might not set it up right
-				PostEventMS( &EV_Hide, 0 );
+				idConsole.Warning("TODO: PostEventMS( &EV_Hide, 0 );");
 			}
-			cinematic = spawnArgs.GetBool( "cinematic", "0" );
+			/*cinematic = spawnArgs.GetBool( "cinematic", "0" );
 
 			networkSync = spawnArgs.FindKey( "networkSync" );
 			if ( networkSync ) {
@@ -1054,26 +1214,30 @@ namespace idTech4.Game
 			{
 				this.SetModel(temp);
 			}
-			// TODO
-			/*
 
-			if ( spawnArgs.GetString( "bind", "", &temp ) ) {
-				PostEventMS( &EV_SpawnBind, 0 );
+			if(_spawnArgs.GetString("bind", string.Empty) == string.Empty)
+			{
+				idConsole.Warning("TODO: PostEventMS( &EV_SpawnBind, 0 );");
 			}
 
 			// auto-start a sound on the entity
-			if ( refSound.shader && !refSound.waitfortrigger ) {
+			// TODO
+			/*if ( refSound.shader && !refSound.waitfortrigger ) {
 				StartSoundShader( refSound.shader, SND_CHANNEL_ANY, 0, false, NULL );
-			}
+			}*/
 
 			// setup script object
-			if ( ShouldConstructScriptObjectAtSpawn() && spawnArgs.GetString( "scriptobject", NULL, &scriptObjectName ) ) {
-				if ( !scriptObject.SetType( scriptObjectName ) ) {
+			string scriptObjectName = _spawnArgs.GetString("scriptobject", string.Empty);
+
+			if((this.ShouldConstructScriptObjectAtSpawn == true) && (scriptObjectName != string.Empty))
+			{
+				idConsole.Warning("TODO: script object");
+				/*if ( !scriptObject.SetType( scriptObjectName ) ) {
 					gameLocal.Error( "Script object '%s' not found on entity '%s'.", scriptObjectName, name.c_str() );
 				}
 
-				ConstructScriptObject();
-			}*/
+				ConstructScriptObject();*/
+			}
 		}
 				
 		public virtual void Show()
@@ -1083,13 +1247,11 @@ namespace idTech4.Game
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			// TODO
-			idConsole.Warning("TODO: Show");
-			/*
-	if ( IsHidden() ) {
-		fl.hidden = false;
-		UpdateVisuals();
-	}*/
+			if(this.IsHidden == true)
+			{
+				_flags.Hidden = false;
+				UpdateVisuals();
+			}
 		}
 
 		public virtual void Teleport(Vector3 origin, idAngles angles, idEntity destination)
@@ -1229,5 +1391,59 @@ namespace idTech4.Game
 			_disposed = true;
 		}
 		#endregion
+	}
+
+	[Flags]
+	public enum EntityThinkFlags
+	{
+		All = -1,
+		/// <summary>Run think function each frame.</summary>
+		Think = 1,
+		/// <summary>Run physics each frame.</summary>
+		Physics = 2,
+		/// <summary>Update animation each frame.</summary>
+		Animate = 4,
+		/// <summary>Update renderEntity.</summary>
+		UpdateVisuals,
+		UpdateParticles = 16
+	}
+
+	public class EntityFlags
+	{
+		/// <summary>If true never attack or target this entity.</summary>
+		public bool NoTarget;
+
+		/// <summary>If true no knockback from hits.</summary>
+		public bool NoKnockBack;
+
+		/// <summary>If true this entity can be damaged.</summary>
+		public bool TakeDamage;
+
+		/// <summary>If true this entity is not visible.</summary>
+		public bool Hidden;
+
+		/// <summary>If true both the master orientation is used for binding.</summary>
+		public bool BindOrientated;
+
+		/// <summary>If true this entity is considered solid when a physics team mate pushes entities.</summary>
+		public bool SolidForTeam;
+
+		/// <summary>If true always update from the physics whether the object moved or not.</summary>
+		public bool ForcePhysicsUpdate;
+
+		/// <summary>If true the entity is selected for editing.</summary>
+		public bool Selected;
+
+		/// <summary>If true the entity never goes dormant.</summary>
+		public bool NeverDormant;
+
+		/// <summary>If true the entity is dormant.</summary>
+		public bool IsDormant;
+
+		/// <summary>Before a monster has been awakened the first time, use full PVS for dormant instead of area-connected.</summary>
+		public bool HasAwakened;
+
+		/// <summary>If true the entity is synchronized over the network.</summary>
+		public bool NetworkSync;
 	}
 }

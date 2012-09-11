@@ -830,7 +830,7 @@ namespace idTech4.Renderer
 				def.World = this;
 				def.Parameters.Model = idE.RenderModelManager.FindModel(string.Format("_area{0}", i));
 
-				if((def.Parameters.Model.IsDefaultModel == true) || (def.Parameters.Model.IsStaticWordModel == false))
+				if((def.Parameters.Model.IsDefault == true) || (def.Parameters.Model.IsStaticWorld == false))
 				{
 					idConsole.Error("idRenderWorld::InitFromMap: bad area model lookup");
 				}

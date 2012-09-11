@@ -23,6 +23,7 @@ namespace idTech4.Game
 		public static readonly int MaxClients = idE.MaxNetworkClients;
 		public static readonly int MaxGameEntities = idE.MaxGameEntities;
 		public static readonly int MaxRenderEntityGui = idE.MaxRenderEntityGui;
+		public static readonly int MaxScreenBlobs = 8;
 
 		public static readonly int GameEntityBits = idE.GameEntityBits;
 
@@ -31,7 +32,18 @@ namespace idTech4.Game
 		public static readonly int EntityCountNormalMax = idE.MaxGameEntities - 2;
 
 		public static readonly string EngineVersion = idE.EngineVersion;
-		
+
+		public const int AnimationChannelCount = 5;
+		public const int AnimationCountPerChannel = 3;
+		public const int MaxSyncedAnimations = 3;
+
+		public const int LagometerImageWidth = 64;
+		public const int LagometerImageHeight = 64;
+		public const int LagometerWidth = 64;
+		public const int LagometerHeight = 44;
+		public const string LagometerMaterial = "textures/sfx/lagometer";
+		public const string LagometerImage = "textures/sfx/lagometer.tga";
+
 		public static readonly idDeclManager DeclManager = idE.DeclManager;
 		public static readonly idCvarSystem CvarSystem = idE.CvarSystem;
 		public static readonly idCmdSystem CmdSystem = idE.CmdSystem;

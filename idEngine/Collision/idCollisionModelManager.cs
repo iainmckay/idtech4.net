@@ -68,7 +68,10 @@ namespace idTech4.Collision
 		private bool _isLoaded;
 		private string _mapName = string.Empty;
 
-		private List<CollisionModel> _models = new List<CollisionModel>();
+		private CollisionModel[] _models;
+		private int _modelCount;
+
+		private idMaterial _traceModelMaterial;
 		#endregion
 
 		#region Constructor
@@ -83,11 +86,11 @@ namespace idTech4.Collision
 		public CollisionModel FindModel(string name)
 		{
 			// check if this model is already loaded
-			int i, count = _models.Count;
+			int i, count = _models.Length;
 
 			for(i = 0; i < count; i++)
 			{
-				if(_models[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase) == true)
+				if((_models[i] != null) && (_models[i].Name.Equals(name, StringComparison.OrdinalIgnoreCase) == true))
 				{
 					return _models[i];
 				}
@@ -123,11 +126,15 @@ namespace idTech4.Collision
 			// clear the collision map
 			Clear();
 
+			// models
+			_models = new CollisionModel[idE.MaxSubModels + 1];
+			_modelCount = 0;
+
 			// setup hash to speed up finding shared vertices and edges
 			idConsole.Warning("TODO: SetupHash();");
 
 			// setup trace model structure
-			idConsole.Warning("TODO: SetupTraceModelStructure();");
+			SetupTraceModelStructure();
 
 			// build collision models
 			BuildModels(mapFile);
@@ -178,7 +185,7 @@ namespace idTech4.Collision
 
 			if(collisionModel != null)
 			{
-				_models.Add(collisionModel);
+				_models[_modelCount++] = collisionModel;
 			}
 
 			return collisionModel;
@@ -243,7 +250,8 @@ namespace idTech4.Collision
 			_mapName = string.Empty;
 			_isLoaded = false;
 			_checkCount = 0;
-			_models.Clear();
+			_models = null;
+			_modelCount = 0;
 
 			/*mapFileTime = 0;			
 			memset( trmPolygons, 0, sizeof( trmPolygons ) );
@@ -532,6 +540,8 @@ namespace idTech4.Collision
 				planeCount = lexer.ParseInt();
 
 				b = new CollisionModelBrush();
+				b.Contents = ContentFlags.All;
+				b.Material = _traceModelMaterial;
 				b.Planes = new Plane[planeCount];
 
 				lexer.ExpectTokenString("{");
@@ -575,7 +585,7 @@ namespace idTech4.Collision
 		{
 			CollisionModel model = new CollisionModel();
 
-			_models.Add(model);
+			_models[_modelCount++] = model;
 
 			// parse the file
 			idToken token = lexer.ExpectTokenType(TokenType.String, 0);
@@ -704,6 +714,8 @@ namespace idTech4.Collision
 				int edgeCount = lexer.ParseInt();
 
 				CollisionModelPolygon p = new CollisionModelPolygon();
+				p.Material = _traceModelMaterial;
+				p.Contents = ContentFlags.All;
 				p.Edges = new int[edgeCount];
 
 				lexer.ExpectTokenString("(");
@@ -757,6 +769,51 @@ namespace idTech4.Collision
 			}
 
 			lexer.ExpectTokenString("}");
+		}
+
+		private void SetupTraceModelStructure()
+		{
+			// setup model
+			CollisionModel model = new CollisionModel();
+
+			_models[idE.MaxSubModels] = model;
+
+			// create node to hold the collision data
+			CollisionModelNode node = new CollisionModelNode();
+			node.PlaneType = -1;
+			model.Node = node;
+
+			// allocate vertex and edge arrays
+			//model.Vertices = new CollisionModelVertex[idE.MaxTraceModelVertices];
+			//model->edges = (cm_edge_t *) Mem_ClearedAlloc( model->maxEdges * sizeof(cm_edge_t) );
+
+			// create a material for the trace model polygons
+			_traceModelMaterial = idE.DeclManager.FindMaterial("_tracemodel", false);
+
+			if(_traceModelMaterial == null)
+			{
+				idConsole.FatalError("_tracemodel material not found");
+			}
+
+			// allocate polygons
+			/*for ( i = 0; i < MAX_TRACEMODEL_POLYS; i++ ) {
+				trmPolygons[i] = AllocPolygonReference( model, MAX_TRACEMODEL_POLYS );
+				trmPolygons[i]->p = AllocPolygon( model, MAX_TRACEMODEL_POLYEDGES );
+				trmPolygons[i]->p->bounds.Clear();
+				trmPolygons[i]->p->plane.Zero();
+				trmPolygons[i]->p->checkcount = 0;
+				trmPolygons[i]->p->contents = -1;		// all contents
+				trmPolygons[i]->p->material = trmMaterial;
+				trmPolygons[i]->p->numEdges = 0;
+			}
+			// allocate brush for position test
+			trmBrushes[0] = AllocBrushReference( model, 1 );
+			trmBrushes[0]->b = AllocBrush( model, MAX_TRACEMODEL_POLYS );
+			trmBrushes[0]->b->primitiveNum = 0;
+			trmBrushes[0]->b->bounds.Clear();
+			trmBrushes[0]->b->checkcount = 0;
+			trmBrushes[0]->b->contents = -1;		// all contents
+			trmBrushes[0]->b->numPlanes = 0;*/
 		}
 		#endregion
 		#endregion
@@ -813,7 +870,7 @@ namespace idTech4.Collision
 	public class CollisionModel
 	{
 		/// <summary>Model name.</summary>
-		public string Name;
+		public string Name = string.Empty;
 
 		/// <summary>Model bounds.</summary>
 		public idBounds Bounds;
@@ -933,7 +990,7 @@ namespace idTech4.Collision
 		public ContentFlags Contents;
 
 		/// <summary>Material.</summary>
-		public idMapBrush Material;
+		public idMaterial Material;
 
 		/// <summary>Number of brush primitive.</summary>
 		public int PrimitiveCount;

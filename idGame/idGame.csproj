@@ -43,6 +43,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Animation\idAnimator.cs" />
+    <Compile Include="Animation\idAnimBlend.cs" />
     <Compile Include="Animation\idAnimManager.cs" />
     <Compile Include="Animation\idDeclModel.cs" />
     <Compile Include="Animation\idMD5Anim.cs" />
@@ -57,6 +58,7 @@
     <Compile Include="idGameCommands.cs" />
     <Compile Include="idGameEdit.cs" />
     <Compile Include="idGameRules.cs" />
+    <Compile Include="idPlayerView.cs" />
     <Compile Include="idR.cs" />
     <Compile Include="idGame.cs" />
     <Compile Include="Physics\idClip.cs" />
@@ -64,6 +66,7 @@
     <Compile Include="Physics\idPhysics.cs" />
     <Compile Include="Physics\idPhysics_Actor.cs" />
     <Compile Include="Physics\idPhysics_Base.cs" />
+    <Compile Include="Physics\idPhysics_Parametric.cs" />
     <Compile Include="Physics\idPhysics_Player.cs" />
     <Compile Include="Physics\idPhysics_Static.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

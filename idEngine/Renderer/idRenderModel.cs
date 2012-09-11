@@ -56,12 +56,12 @@ namespace idTech4.Renderer
 		/// <summary>
 		/// If the load failed for any reason, this will return true.
 		/// </summary>
-		public abstract bool IsDefaultModel
+		public abstract bool IsDefault
 		{
 			get;
 		}
 
-		public abstract DynamicModel IsDynamicModel
+		public abstract DynamicModel IsDynamic
 		{
 			get;
 		}
@@ -88,7 +88,7 @@ namespace idTech4.Renderer
 		/// <summary>
 		/// Models of the form "_area*" may have a prelight shadow model associated with it.
 		/// </summary>
-		public abstract bool IsStaticWordModel
+		public abstract bool IsStaticWorld
 		{
 			get;
 		}

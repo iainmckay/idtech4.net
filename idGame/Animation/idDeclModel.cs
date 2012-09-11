@@ -33,6 +33,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Geometry;
 using idTech4.Renderer;
 using idTech4.Sound;
 using idTech4.Text;
@@ -49,6 +50,19 @@ namespace idTech4.Game.Animation
 		#endregion
 
 		#region Properties
+		public idJointQuaternion[] DefaultPose
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return _model.DefaultPose;
+			}
+		}
+
 		public idDeclSkin DefaultSkin
 		{
 			get
@@ -72,6 +86,19 @@ namespace idTech4.Game.Animation
 				}
 
 				return _model;
+			}
+		}
+
+		public Vector3 VisualOffset
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return _offset;
 			}
 		}
 		#endregion
@@ -137,6 +164,73 @@ namespace idTech4.Game.Animation
 			}
 
 			return null;
+		}
+
+		public idAnim GetAnimation(int index)
+		{
+			if((index < 1) || (index > _anims.Count))
+			{
+				return null;
+			}
+
+			return _anims[index - 1];
+		}
+
+		public void SetupJoints(idJointMatrix[] joints, ref idBounds frameBounds, bool removeOriginOffset)
+		{
+			if(this.Disposed == true)
+			{
+				throw new ObjectDisposedException(this.GetType().Name);
+			}
+
+			if((_model == null) || (_model.IsDefault == true))
+			{
+				joints = null;
+				frameBounds.Clear();
+			}
+
+			// get the number of joints
+			int count = _model.JointCount;
+
+			if(count == 0)
+			{
+				idConsole.Error("model '{0}' has no joints", _model.Name);
+			}
+			
+			// set up initial pose for model (with no pose, model is just a jumbled mess)
+			joints = new idJointMatrix[count];
+			idJointQuaternion[] pose = this.DefaultPose;
+			
+			// convert the joint quaternions to joint matrices
+			idHelper.ConvertJointQuaternionsToJointMatrices(joints, pose);
+
+			// check if we offset the model by the origin joint
+			if(removeOriginOffset == true)
+			{
+#if VELOCITY_MOVE
+				joints[0].Translation(new Vector3(_offset.X, _offset.Y + pose[0].Translation.Y, _offset.Z + pose[0].Translation.Z));
+#else
+				joints[0].Translation = _offset;
+#endif
+			} 
+			else 
+			{
+				joints[0].Translation = pose[0].Translation + _offset;
+			}
+
+			// transform the joint hierarchy
+			idHelper.TransformJoints(joints, _jointParents, 1, joints.Length - 1);
+			
+			// get the bounds of the default pose
+			frameBounds = _model.GetBounds(null);
+		}
+
+		public void Touch()
+		{
+			if(_model != null)
+			{
+				idE.RenderModelManager.FindModel(_model.Name);
+			}
 		}
 		#endregion
 
@@ -600,7 +694,7 @@ namespace idTech4.Game.Animation
 
 						return false;
 					}
-					else if(_model.IsDefaultModel == true)
+					else if(_model.IsDefault == true)
 					{
 						lexer.Warning("Model '{0}' defaulted", fileName);
 						MakeDefault();
@@ -929,6 +1023,14 @@ namespace idTech4.Game.Animation
 	public class idAnim
 	{
 		#region Properties
+		public int AnimationCount
+		{
+			get
+			{
+				return _anims.Length;
+			}
+		}
+
 		public AnimationFlags Flags
 		{
 			get
@@ -1421,6 +1523,32 @@ namespace idTech4.Game.Animation
 
 			// return with no error
 			return null;
+		}
+
+		public bool GetBounds(out idBounds bounds, int animNumber, int currentTime, int cycleCount)
+		{
+			if(_anims[animNumber] == null)
+			{
+				bounds = idBounds.Zero;
+				return false;
+			}
+
+			bounds = _anims[animNumber].GetBounds(currentTime, cycleCount);
+
+			return true;
+		}
+
+		public bool GetOrigin(out Vector3 offset, int animNumber, int currentTime, int cycleCount)
+		{
+			if(_anims[animNumber] == null)
+			{
+				offset = Vector3.Zero;
+				return false;
+			}
+
+			offset = _anims[animNumber].GetOrigin(currentTime, cycleCount);
+
+			return true;
 		}
 			
 		public void SetAnimation(idDeclModel modelDef, string sourceName, string animName, idMD5Anim[] md5anims)

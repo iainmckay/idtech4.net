@@ -35,6 +35,7 @@ using System.Windows.Forms;
 using Microsoft.Xna.Framework;
 
 using idTech4;
+using idTech4.Geometry;
 using idTech4.Math;
 using idTech4.Renderer;
 
@@ -347,6 +348,17 @@ namespace idTech4
 			m.M44 = a[3*4+0]*b[0*4+3] + a[3*4+1]*b[1*4+3] + a[3*4+2]*b[2*4+3] + a[3*4+3]*b[3*4+3];
 		}
 
+		public static void ConvertJointQuaternionsToJointMatrices(idJointMatrix[] jointMatrices, idJointQuaternion[] jointQuaternions)
+		{
+			int count = jointMatrices.Length;
+
+			for(int i = 0; i < count; i++)
+			{
+				jointMatrices[i].Rotation = jointQuaternions[i].Quaternion.ToMatrix();
+				jointMatrices[i].Translation = jointQuaternions[i].Translation;
+			}
+		}
+
 		public static void ConvertMatrix(Matrix a, Matrix b, out Matrix m)
 		{
 			m.M11 = a.M11 * b.M11 + a.M12 * b.M21 + a.M13 * b.M31 + a.M14 * b.M41;
@@ -450,6 +462,16 @@ namespace idTech4
 			}
 
 			return CornerCullLocalBox(bounds, modelMatrix, planeCount, planes);
+		}
+
+		/// <summary>
+		/// Converts from 24 frames per second to milliseconds.
+		/// </summary>
+		/// <param name="frameNumber"></param>
+		/// <returns></returns>
+		public static int FrameToTime(int frameNumber)
+		{
+			return (frameNumber * 1000) / 24;
 		}
 
 		/// <summary>
@@ -881,6 +903,14 @@ namespace idTech4
 			}
 
 			return newStr.ToString();
+		}
+
+		public static void TransformJoints(idJointMatrix[] jointMatrices, int[] parents, int firstJoint, int lastJoint)
+		{
+			for(int i = firstJoint; i <= lastJoint; i++)
+			{
+				jointMatrices[i] = idJointMatrix.Transform(jointMatrices[i], jointMatrices[parents[i]]);
+			}
 		}
 
 		public static string WrapText(string text, int columnWidth, int offset)

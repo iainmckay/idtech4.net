@@ -35,16 +35,7 @@ namespace idTech4.Game.Entities
 		{
 			base.Spawn();
 
-			idR.Game.World = this;
-
-			idConsole.Warning("TODO: idWordSpawn.Spawn");
-
-			// TODO
-			/*idStr				scriptname;
-	idThread			*thread;
-	const function_t	*func;
-	const idKeyValue	*kv;*/
-
+			idR.Game.World = this;			
 			idR.CvarSystem.SetFloat("g_gravity", this.SpawnArgs.GetFloat("gravity", idR.DefaultGravity));
 
 			// disable stamina on hell levels

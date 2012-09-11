@@ -17,8 +17,18 @@ namespace idTech4.Game.Physics
 	/// </summary>
 	public class idPhysics_Actor : idPhysics_Base
 	{
+		#region Properties
+		public Matrix GravityAxis
+		{
+			get
+			{
+				return _clipModelAxis;
+			}
+		}
+		#endregion
+
 		#region Members
-		private idClipModel _clipModel; // clip model used for collision detection
+		protected idClipModel _clipModel; // clip model used for collision detection
 		private Matrix _clipModelAxis; // axis of clip model aligned with gravity direction
 
 		// derived properties
@@ -26,9 +36,9 @@ namespace idTech4.Game.Physics
 		private float _inverseMass;
 
 		// master
-		private idEntity _masterEntity;
-		private float _masterYaw;
-		private float _masterDeltaYaw;
+		protected idEntity _masterEntity;
+		protected float _masterYaw;
+		protected float _masterDeltaYaw;
 
 		// results of last evaluate
 		private idEntity _groundEntity;

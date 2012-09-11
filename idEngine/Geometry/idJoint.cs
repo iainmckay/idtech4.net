@@ -49,6 +49,11 @@ namespace idTech4.Geometry
 		{
 			set
 			{		
+				if(_m == null)
+				{
+					_m = new float[12];
+				}
+
 				// NOTE: idMat3 is transposed because it is column-major
 				_m[0 * 4 + 0] = value.M11;
 				_m[0 * 4 + 1] = value.M21;
@@ -109,6 +114,46 @@ namespace idTech4.Geometry
 		{
 			return new Vector3(_m[0 * 4 + 3], _m[1 * 4 + 3], _m[2 * 4 + 3] );
 		}
+
+		public static idJointMatrix Transform(idJointMatrix x, idJointMatrix y)
+		{
+			float[] m = (float[]) x._m.Clone();
+			float[] dst = new float[3];
+
+			dst[0] = m[0 * 4 + 0] * y._m[0 * 4 + 0] + m[1 * 4 + 0] * y._m[0 * 4 + 1] + m[2 * 4 + 0] * y._m[0 * 4 + 2];
+			dst[1] = m[0 * 4 + 0] * y._m[1 * 4 + 0] + m[1 * 4 + 0] * y._m[1 * 4 + 1] + m[2 * 4 + 0] * y._m[1 * 4 + 2];
+			dst[2] = m[0 * 4 + 0] * y._m[2 * 4 + 0] + m[1 * 4 + 0] * y._m[2 * 4 + 1] + m[2 * 4 + 0] * y._m[2 * 4 + 2];
+			m[0 * 4 + 0] = dst[0];
+			m[1 * 4 + 0] = dst[1];
+			m[2 * 4 + 0] = dst[2];
+
+			dst[0] = m[0 * 4 + 1] * y._m[0 * 4 + 0] + m[1 * 4 + 1] * y._m[0 * 4 + 1] + m[2 * 4 + 1] * y._m[0 * 4 + 2];
+			dst[1] = m[0 * 4 + 1] * y._m[1 * 4 + 0] + m[1 * 4 + 1] * y._m[1 * 4 + 1] + m[2 * 4 + 1] * y._m[1 * 4 + 2];
+			dst[2] = m[0 * 4 + 1] * y._m[2 * 4 + 0] + m[1 * 4 + 1] * y._m[2 * 4 + 1] + m[2 * 4 + 1] * y._m[2 * 4 + 2];
+			m[0 * 4 + 1] = dst[0];
+			m[1 * 4 + 1] = dst[1];
+			m[2 * 4 + 1] = dst[2];
+
+			dst[0] = m[0 * 4 + 2] * y._m[0 * 4 + 0] + m[1 * 4 + 2] * y._m[0 * 4 + 1] + m[2 * 4 + 2] * y._m[0 * 4 + 2];
+			dst[1] = m[0 * 4 + 2] * y._m[1 * 4 + 0] + m[1 * 4 + 2] * y._m[1 * 4 + 1] + m[2 * 4 + 2] * y._m[1 * 4 + 2];
+			dst[2] = m[0 * 4 + 2] * y._m[2 * 4 + 0] + m[1 * 4 + 2] * y._m[2 * 4 + 1] + m[2 * 4 + 2] * y._m[2 * 4 + 2];
+			m[0 * 4 + 2] = dst[0];
+			m[1 * 4 + 2] = dst[1];
+			m[2 * 4 + 2] = dst[2];
+
+			dst[0] = m[0 * 4 + 3] * y._m[0 * 4 + 0] + m[1 * 4 + 3] * y._m[0 * 4 + 1] + m[2 * 4 + 3] * y._m[0 * 4 + 2];
+			dst[1] = m[0 * 4 + 3] * y._m[1 * 4 + 0] + m[1 * 4 + 3] * y._m[1 * 4 + 1] + m[2 * 4 + 3] * y._m[1 * 4 + 2];
+			dst[2] = m[0 * 4 + 3] * y._m[2 * 4 + 0] + m[1 * 4 + 3] * y._m[2 * 4 + 1] + m[2 * 4 + 3] * y._m[2 * 4 + 2];
+			m[0 * 4 + 3] = dst[0];
+			m[1 * 4 + 3] = dst[1];
+			m[2 * 4 + 3] = dst[2];
+
+			m[0 * 4 + 3] += y._m[0 * 4 + 3];
+			m[1 * 4 + 3] += y._m[1 * 4 + 3];
+			m[2 * 4 + 3] += y._m[2 * 4 + 3];
+
+			return new idJointMatrix(m[0], m[1], m[2], m[3], m[4], m[5], m[6], m[7], m[8], m[9], m[10], m[11]);
+		}
 		#endregion
 
 		#region Overloads
@@ -121,7 +166,7 @@ namespace idTech4.Geometry
 		{
 			return !x.Equals(y);
 		}
-
+		
 		public override bool Equals(object obj)
 		{
 			if(obj is idJointMatrix)

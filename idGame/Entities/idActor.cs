@@ -75,11 +75,11 @@ namespace idTech4.Game.Entities
 		private int _painDelay;			// time between playing pain sound
 		private int _painThreshold;		// how much damage monster can take at any one time before playing pain animation
 		
-		private Matrix _viewAxis;		// view axis of the actor
+		protected Matrix _viewAxis;		// view axis of the actor
 		
-		private float _fovDot;			// cos( fovDegrees )
-		private Vector3 _eyeOffset;		// offset of eye relative to physics origin
-		private Vector3 _modelOffset;	// offset of visual model relative to the physics origin
+		protected float _fovDot;			// cos( fovDegrees )
+		protected Vector3 _eyeOffset;		// offset of eye relative to physics origin
+		protected Vector3 _modelOffset;	// offset of visual model relative to the physics origin
 			
 		private bool _useCombatBoundingBox;	// whether to use the bounding box for combat collision
 
@@ -119,8 +119,6 @@ namespace idTech4.Game.Entities
 
 		#region Methods
 		#region Public
-		
-
 		public virtual void GetAASLocation(object aas, Vector3 position, ref int areaNum)
 		{
 			if(this.Disposed == true)
@@ -155,6 +153,26 @@ namespace idTech4.Game.Entities
 			}
 
 			idConsole.Warning("TODO: idActor.Restart");
+		}
+		#endregion
+
+		#region Private
+		private void FinishSetup()
+		{
+			// setup script object
+			string scriptObjectName = this.SpawnArgs.GetString("scriptobject");
+
+			if(scriptObjectName != string.Empty)
+			{
+				idConsole.Warning("TODO: finish setup - script object");
+				/*if ( !scriptObject.SetType( scriptObjectName ) ) {
+					gameLocal.Error( "Script object '%s' not found on entity '%s'.", scriptObjectName, name.c_str() );
+				}
+
+				ConstructScriptObject();*/
+			}
+
+			idConsole.Warning("TODO: SetupBody();");
 		}
 		#endregion
 		#endregion
@@ -264,9 +282,17 @@ namespace idTech4.Game.Entities
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: idActor.GetPhysicsToVisualTransform");
+			// TODO: af
+			/*if(af.IsActive())
+			{
+				af.GetPhysicsToVisualTransform(origin, axis);
+				return true;
+			}*/
 
-			return false;
+			origin = _modelOffset;
+			axis = _viewAxis;
+
+			return true;
 		}
 
 		public override void Hide()
@@ -526,11 +552,9 @@ namespace idTech4.Game.Entities
 				{
 					gameLocal.Warning("idAnimated '%s' at (%s): cannot find joint '%s' for sound playback", name.c_str(), GetPhysics()->GetOrigin().ToString(0), jointName.c_str());
 				}
-			}
+			}*/			
 
-			
-
-			FinishSetup();*/
+			FinishSetup();
 		}
 
 		public override void SpawnGibs(Vector3 direction, string damageDefName)

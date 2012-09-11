@@ -2844,6 +2844,8 @@ namespace idTech4.Renderer
 	[Flags]
 	public enum ContentFlags
 	{
+		All = -1,
+
 		/// <summary>An eye is never valid in a solid.</summary>
 		Solid = 1 << 0,
 		/// <summary>Blocks visibility (for ai).</summary>

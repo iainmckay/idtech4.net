@@ -129,6 +129,8 @@ namespace idTech4
 			_axis.M32 = yz + wx;
 			_axis.M33 = 1.0f - (xx + yy);
 
+			_axis.M44 = 1.0f;
+
 			_axisValid = true;
 
 			return _axis;

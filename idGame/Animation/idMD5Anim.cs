@@ -146,6 +146,89 @@ namespace idTech4.Game.Animation
 			}
 		}
 
+		public idBounds GetBounds(int time, int cycleCount)
+		{
+			FrameBlend frame = ConvertTimeToFrame(time, cycleCount);
+			
+			idBounds bounds = _bounds[frame.Frame1];
+			bounds.AddBounds(_bounds[frame.Frame2]);
+
+			// origin position
+			Vector3 offset = _baseFrame[0].Translation;
+
+			if((_jointInfo[0].AnimationBits & (AnimationBits.TranslationX | AnimationBits.TranslationY | AnimationBits.TranslationZ)) != 0)
+			{
+				int componentOffset1 = _animatedComponentCount * frame.Frame1 + _jointInfo[0].FirstComponent;
+				int componentOffset2 = _animatedComponentCount * frame.Frame2 + _jointInfo[0].FirstComponent;
+
+				if((_jointInfo[0].AnimationBits & AnimationBits.TranslationX) == AnimationBits.TranslationX)
+				{
+					offset.X = _componentFrames[componentOffset1] * frame.FrontLerp + _componentFrames[componentOffset2] * frame.BackLerp;
+					componentOffset1++;
+					componentOffset2++;
+				}
+
+				if((_jointInfo[0].AnimationBits & AnimationBits.TranslationY) == AnimationBits.TranslationY)
+				{
+					offset.Y = _componentFrames[componentOffset1] * frame.FrontLerp + _componentFrames[componentOffset2] * frame.BackLerp;
+					componentOffset1++;
+					componentOffset2++;
+				}
+
+				if((_jointInfo[0].AnimationBits & AnimationBits.TranslationZ) == AnimationBits.TranslationZ)
+				{
+					offset.Z = _componentFrames[componentOffset1] * frame.FrontLerp + _componentFrames[componentOffset2] * frame.BackLerp;
+				}
+			}
+
+			bounds.Min -= offset;
+			bounds.Max -= offset;
+
+			return bounds;
+		}
+
+		public Vector3 GetOrigin(int time, int cycleCount)
+		{
+			Vector3 offset = _baseFrame[0].Translation;
+
+			if((_jointInfo[0].AnimationBits & (AnimationBits.TranslationX | AnimationBits.TranslationY | AnimationBits.TranslationZ)) == 0)
+			{
+				// just use the baseframe		
+				return Vector3.Zero;
+			}
+
+			FrameBlend frame = ConvertTimeToFrame(time, cycleCount);
+
+			int componentOffset1 = _animatedComponentCount * frame.Frame1 + _jointInfo[0].FirstComponent;
+			int componentOffset2 = _animatedComponentCount * frame.Frame2 + _jointInfo[0].FirstComponent;
+
+			if((_jointInfo[0].AnimationBits & AnimationBits.TranslationX) == AnimationBits.TranslationX)
+			{
+				offset.X = _componentFrames[componentOffset1] * frame.FrontLerp + _componentFrames[componentOffset2] * frame.BackLerp;
+				componentOffset1++;
+				componentOffset2++;
+			}
+
+			if((_jointInfo[0].AnimationBits & AnimationBits.TranslationY) == AnimationBits.TranslationY)
+			{
+				offset.Y = _componentFrames[componentOffset1] * frame.FrontLerp + _componentFrames[componentOffset2] * frame.BackLerp;
+				componentOffset1++;
+				componentOffset2++;
+			}
+
+			if((_jointInfo[0].AnimationBits & AnimationBits.TranslationZ) == AnimationBits.TranslationZ)
+			{
+				offset.Z = _componentFrames[componentOffset1] * frame.FrontLerp + _componentFrames[componentOffset2] * frame.BackLerp;
+			}
+
+			if(frame.CycleCount > 0)
+			{
+				offset += _totalDelta * (float) frame.CycleCount;
+			}
+
+			return offset;
+		}
+
 		public bool LoadAnimation(string fileName)
 		{
 			idToken token;
@@ -394,7 +477,70 @@ namespace idTech4.Game.Animation
 			_componentFrames = null;
 			_bounds = null;		
 		}
+
+		private FrameBlend ConvertTimeToFrame(int time, int cycleCount)
+		{
+			FrameBlend frame = new FrameBlend();
+			int frameCount = this.FrameCount;
+
+			if(frameCount <= 1) 
+			{
+				frame.Frame1 = 0;
+				frame.Frame2 = 0;
+				frame.BackLerp = 0.0f;
+				frame.FrontLerp	= 1.0f;
+				frame.CycleCount = 0;
+			}
+			else if(time <= 0)
+			{
+				frame.Frame1 = 0;
+				frame.Frame2 = 1;
+				frame.BackLerp = 0.0f;
+				frame.FrontLerp = 1.0f;
+				frame.CycleCount = 0;
+			}
+			else
+			{
+				int frameTime = time * _frameRate;
+				int frameNumber = frameTime / 1000;
+
+				frame.CycleCount = frameNumber / (frameCount - 1);
+
+				if((cycleCount > 0) && (frame.CycleCount >= cycleCount))
+				{
+					frame.CycleCount = cycleCount - 1;
+					frame.Frame1 = frameCount - 1;
+					frame.Frame2 = frame.Frame1;
+					frame.BackLerp = 0.0f;
+					frame.FrontLerp = 1.0f;
+				}
+				else
+				{
+					frame.Frame1 = frameNumber % (frameCount - 1);
+					frame.Frame2 = frame.Frame1 + 1;
+					if(frame.Frame2 >= frameCount)
+					{
+						frame.Frame2 = 0;
+					}
+
+					frame.BackLerp = (frameTime % 1000) * 0.001f;
+					frame.FrontLerp = 1.0f - frame.BackLerp;
+				}
+			}
+
+			return frame;
+		}
+
 		#endregion
 		#endregion
+	}
+
+	public struct FrameBlend
+	{
+		public int CycleCount; // how many times the anim has wrapped to the begining (0 for clamped anims)
+		public int Frame1;
+		public int Frame2;
+		public float FrontLerp;
+		public float BackLerp;
 	}
 }

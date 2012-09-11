@@ -4525,6 +4525,8 @@ namespace idTech4.Renderer
 		// when the light is behind a closed door.
 	}
 	
+	public delegate bool DeferredEntityCallback(idRenderEntity renderEntity, idRenderView renderView);
+
 	/// <summary>
 	/// 
 	/// </summary>
@@ -4558,8 +4560,8 @@ namespace idTech4.Renderer
 		/// </remarks>
 		public idBounds	Bounds;
 		
-		public object /*deferredEntityCallback_t*/	Callback;
-		/*void *					callbackData;	*/		// used for whatever the callback wants
+		public DeferredEntityCallback	Callback;
+		public object CallbackData;
 		
 		/// <summary>
 		/// Suppress the model in the given view.

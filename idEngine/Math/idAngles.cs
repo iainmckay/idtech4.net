@@ -30,6 +30,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+
 namespace idTech4.Math
 {
 	public struct idAngles
@@ -37,5 +39,79 @@ namespace idTech4.Math
 		public float Pitch;
 		public float Yaw;
 		public float Roll;
+
+		#region Constructor
+		public idAngles(float pitch, float yaw, float roll)
+		{
+			this.Pitch = pitch;
+			this.Yaw = yaw;
+			this.Roll = roll;
+		}
+		#endregion
+
+		#region Methods
+		public float Get(int index)
+		{
+			if(index == 0)
+			{
+				return this.Pitch;
+			}
+			else if(index == 1)
+			{
+				return this.Yaw;
+			}
+			else if(index == 2)
+			{
+				return this.Roll;
+			}
+
+			throw new ArgumentOutOfRangeException("index");
+		}
+
+		public void Set(int index, float value)
+		{
+			if(index == 0)
+			{
+				this.Pitch = value;
+			}
+			else if(index == 1)
+			{
+				this.Yaw = value;
+			}
+			else if(index == 2)
+			{
+				this.Roll = value;
+			}
+
+			throw new ArgumentOutOfRangeException("index");
+		}
+
+		public Matrix ToMatrix()
+		{
+			float sr, sp, sy, cr, cp, cy;
+
+			idMath.SinCos(MathHelper.ToRadians(this.Yaw), out sy, out cy);
+			idMath.SinCos(MathHelper.ToRadians(this.Pitch), out sp, out cp);
+			idMath.SinCos(MathHelper.ToRadians(this.Roll), out sr, out cr);
+
+			return new Matrix(
+				cp * cy, cp * sy, -sp, 0,
+				sr * sp * cy + cr * -sy, sr * sp * sy + cr * cy, sr * cp, 0,
+				cr * sp * cy + -sr * -sy, cr * sp * sy + -sr * cy, cr * cp, 0,
+				0, 0, 0, 1);
+		}
+		#endregion
+
+		#region Overloads
+		public static idAngles operator +(idAngles a, idAngles b)
+		{
+			return new idAngles(a.Pitch + b.Pitch, a.Yaw + b.Yaw, a.Roll + b.Roll);
+		}
+
+		public static idAngles operator *(idAngles a, float s)
+		{
+			return new idAngles(a.Pitch * s, a.Yaw * s, a.Roll * s);
+		}
+		#endregion
 	}
 }

@@ -26,13 +26,15 @@ namespace idTech4.Game.Entities
 		}
 		#endregion
 
+		#region Members
+		private idAnimator _animator;
+		#endregion
+
 		#region Constructor
 		public idAnimatedEntity()
 			: base()
 		{
-			// TODO
-			idConsole.Warning("TODO: idAnimatedEntity");
-			/*animator.SetEntity(this);*/
+			_animator = new idAnimator(this);
 		}
 
 		~idAnimatedEntity()
@@ -52,9 +54,7 @@ namespace idTech4.Game.Entities
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				idConsole.Warning("TODO: idAnimatedEntity.Animator");
-
-				return null;
+				return _animator;
 			}
 		}
 		
@@ -134,7 +134,29 @@ namespace idTech4.Game.Entities
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: idAnimatedEntity.Model set");
+			FreeModelDef();
+
+			this.RenderEntity.Model = _animator.SetModel(modelName);
+
+			if(this.RenderEntity.Model == null)
+			{
+				base.SetModel(modelName);
+			}
+			else
+			{
+				if(this.RenderEntity.CustomSkin == null)
+				{
+					this.RenderEntity.CustomSkin = _animator.ModelDefinition.DefaultSkin;
+				}
+
+				// set the callback to update the joints
+				this.RenderEntity.Callback = ModelCallback;
+				this.RenderEntity.Joints = _animator.GetJoints();
+
+				_animator.GetBounds(idR.Game.Time, out this.RenderEntity.Bounds);
+
+				UpdateVisuals();
+			}
 		}
 
 		public override void Think()

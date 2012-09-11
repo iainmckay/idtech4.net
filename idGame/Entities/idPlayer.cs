@@ -5,6 +5,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Collision;
 using idTech4.Game;
 using idTech4.Game.Physics;
 using idTech4.Game.Rules;
@@ -32,6 +33,48 @@ namespace idTech4.Game.Entities
 
 		#region Properties
 		#region General
+		public float DefaultFieldOfView
+		{
+			get
+			{
+				float fov = idR.CvarSystem.GetFloat("g_fov");
+
+				if(idR.Game.IsMultiplayer == true)
+				{
+					if(fov < 90.0f)
+					{
+						return 90.0f;
+					}
+					else if(fov > 110.0f)
+					{
+						return 110.0f;
+					}
+				}
+
+				return fov;
+			}
+		}
+
+		public Vector3 EyePosition
+		{
+			get
+			{
+				Vector3 origin;
+
+				// use the smoothed origin if spectating another player in multiplayer
+				if((idR.Game.IsClient == true) && (this.Index != idR.Game.LocalClientIndex))
+				{
+					origin = _smoothedOrigin;
+				}
+				else
+				{
+					origin = this.Physics.GetOrigin();
+				}
+
+				return (origin + (this.Physics.GravityNormal * -_eyeOffset.Z));
+			}
+		}
+
 		public idUserInterface Hud
 		{
 			get
@@ -215,6 +258,7 @@ namespace idTech4.Game.Entities
 
 		#region Members
 		private idPhysics_Player _physicsObject; // player physics
+		private idPlayerView _playerView;
 
 		private bool _showWeaponViewModel;
 
@@ -247,6 +291,24 @@ namespace idTech4.Game.Entities
 
 		private int _spawnedTime;
 		private int _tourneyRank;
+
+		// the first person view values are always calculated, even
+		// if a third person view is used
+		private Vector3 _firstPersonViewOrigin;
+		private Matrix _firstPersonViewAxis;
+
+		private bool _spawnAnglesSet; // on first usercmd, we must set deltaAngles
+		private idAngles _spawnAngles;
+		private idAngles _viewAngles; // player view angles
+		private idAngles _cmdAngles; // player cmd angles
+
+		private int _smoothedFrame;
+		private bool _smoothedOriginUpdated;
+		private Vector3 _smoothedOrigin;
+		private idAngles _smoothedAngles;
+
+		private idAngles _viewBobAngles;
+		private Vector3 _viewBob;
 		#endregion
 
 		#region Constructor
@@ -254,79 +316,26 @@ namespace idTech4.Game.Entities
 			: base()
 		{
 			_view = new PlayerView(this);
+			_physicsObject = new idPhysics_Player();
+			_playerView = new idPlayerView(this);
+
 			/* TODO: memset( &usercmd, 0, sizeof( usercmd ) );
-
-			 
-			noclip					= false;
-			godmode					= false;
-
-			spawnAnglesSet			= false;
-			spawnAngles				= ang_zero;
-			viewAngles				= ang_zero;
-			cmdAngles				= ang_zero;
-
-			oldButtons				= 0;
-			buttonMask				= 0;
-			oldFlags				= 0;
-
-			lastHitTime				= 0;
-			lastSndHitTime			= 0;
-			lastSavingThrowTime		= 0;
-
-			objectiveSystemOpen		= false;
 
 			heartRate				= BASE_HEARTRATE;
 			heartInfo.Init( 0, 0, 0, 0 );
-			lastHeartAdjust			= 0;
-			lastHeartBeat			= 0;
-			lastDmgTime				= 0;
-			deathClearContentsTime	= 0;
-			lastArmorPulse			= -10000;
-			stamina					= 0.0f;
-			healthPool				= 0.0f;
-			nextHealthPulse			= 0;
-			healthPulse				= false;
-			nextHealthTake			= 0;
-			healthTake				= false;
-
-			scoreBoardOpen			= false;
-			forceScoreBoard			= false;*/
-			/*spectator				= 0;*/
+			lastArmorPulse			= -10000;*/
 			_colorBar = Vector3.Zero;
 			_colorBarIndex = 0;
 
-			/*lastHitToggle			= false;
-
-			minRespawnTime			= 0;
-			maxRespawnTime			= 0;
-
-			firstPersonViewOrigin	= vec3_zero;
-			firstPersonViewAxis		= mat3_identity;
-
+			/*
 			hipJoint				= INVALID_JOINT;
 			chestJoint				= INVALID_JOINT;
 			headJoint				= INVALID_JOINT;
 
-			bobFoot					= 0;
-			bobFrac					= 0.0f;
-			bobfracsin				= 0.0f;
-			bobCycle				= 0;
-			xyspeed					= 0.0f;
-			stepUpTime				= 0;
-			stepUpDelta				= 0.0f;
-			idealLegsYaw			= 0.0f;
-			legsYaw					= 0.0f;
 			legsForward				= true;
-			oldViewYaw				= 0.0f;
-			viewBobAngles			= ang_zero;
-			viewBob					= vec3_zero;
-			landChange				= 0;
-			landTime				= 0;
-
 			currentWeapon			= -1;
 			idealWeapon				= -1;
 			previousWeapon			= -1;
-			weaponSwitchTime		=  0;
 			weaponEnabled			= true;
 			weapon_soulcube			= -1;
 			weapon_pda				= -1;
@@ -336,96 +345,32 @@ namespace idTech4.Game.Entities
 
 			_baseSkin = string.Empty;
 
-			/*numProjectilesFired		= 0;
-			numProjectileHits		= 0;
-
-			airless					= false;
-			airTics					= 0;
-			lastAirDamage			= 0;
-
-			gibDeath				= false;
-			gibsLaunched			= false;
-			gibsDir					= vec3_zero;
-
+			/*
 			zoomFov.Init( 0, 0, 0, 0 );
 			centerView.Init( 0, 0, 0, 0 );
-			fxFov					= false;
-
-			influenceFov			= 0;
-			influenceActive			= 0;
-			influenceRadius			= 0.0f;
-			influenceEntity			= NULL;
-			influenceMaterial		= NULL;
-			influenceSkin			= NULL;
-
-			privateCameraView		= NULL;
 
 			memset( loggedViewAngles, 0, sizeof( loggedViewAngles ) );
 			memset( loggedAccel, 0, sizeof( loggedAccel ) );
-			currentLoggedAccel	= 0;
-
-			focusTime				= 0;
-			talkCursor				= 0;
-	
-			oldMouseX				= 0;
-			oldMouseY				= 0;
 
 			pdaAudio				= "";
 			pdaVideo				= "";
 			pdaVideoWave			= "";
 
-			lastDamageDef			= 0;
-			lastDamageDir			= vec3_zero;
-			lastDamageLocation		= 0;
-			smoothedFrame			= 0;
-			smoothedOriginUpdated	= false;
-			smoothedOrigin			= vec3_zero;
-			smoothedAngles			= ang_zero;
-
 			fl.networkSync			= true;
 
 			latchedTeam				= -1;
-			doingDeathSkin			= false;
-			weaponGone				= false;
-			useInitialSpawns		= false;
-			tourneyRank				= 0;
-			lastSpectateTeleport	= 0;
-			tourneyLine				= 0;
-			hiddenWeapon			= false;
-			tipUp					= false;
-			objectiveUp				= false;
-			teleportEntity			= NULL;
 			teleportKiller			= -1;*/
-			_ready = false;
-			/*leader					= false;
-			lastSpectateChange		= 0;
+			/*
 			lastTeleFX				= -9999;
-			weaponCatchup			= false;
-			lastSnapshotSequence	= 0;
-
 			MPAim					= -1;
 			lastMPAim				= -1;
-			lastMPAimTime			= 0;
-			MPAimFadeTime			= 0;
-			MPAimHighlight			= false;
 */
-			_spawnedTime = 0;
-			/*
-			lastManOver				= false;
-			lastManPlayAgain		= false;
-			lastManPresent			= false;
-
-			isTelefragged			= false;
-
-			isLagged				= false;*/
-			_isChatting = false;
-
-			/*selfSmooth				= false;*/
 		}
 		#endregion
 
 		#region Methods
-		public void Init()
+		#region Private
+		private void Init()
 		{
 			if(this.Disposed == true)
 			{
@@ -520,20 +465,16 @@ oldViewYaw = 0.0f;*/
 			// set the pm_ cvars
 			if((idR.Game.IsMultiplayer == false) || (idR.Game.IsServer == true))
 			{
-				idConsole.Warning("TODO: player pm_");
-				/*kv = this.SpawnArgs.MatchPrefix("pm_", null);
-
-				while(kv != null)
+				foreach(KeyValuePair<string, string> kvp in this.SpawnArgs.MatchPrefix("pm_"))
 				{
-					idR.CvarSystem.SetString(kv.Key, kv.Value);
-					kv = this.SpawnArgs.MatchPrefix("pm_", kv);
-				}*/
+					idR.CvarSystem.SetString(kvp.Key, kvp.Value);
+				}
 			}
 
 			// disable stamina on hell levels
-			/*if(gameLocal.world && gameLocal.world->spawnArgs.GetBool("no_stamina"))
+			if((idR.Game.World != null) && (idR.Game.World.SpawnArgs.GetBool("no_stamina") == true))
 			{
-				pm_stamina.SetFloat(0.0f);
+				idR.CvarSystem.SetFloat("pm_stamina", 0.0f);
 			}
 
 			// TODO
@@ -549,7 +490,6 @@ oldViewYaw = 0.0f;*/
 			gibsDir.Zero();*/
 
 			// set the gravity
-			_physicsObject = new idPhysics_Player();
 			_physicsObject.Gravity = idR.Game.Gravity;
 
 			// start out standing
@@ -674,6 +614,235 @@ oldViewYaw = 0.0f;*/
 
 			idR.CvarSystem.SetBool("ui_chat", false);
 		}
+
+		private void SetClipModel()
+		{
+			idBounds bounds;
+
+			if(_spectating == true)
+			{
+				bounds = idBounds.Expand(idE.CvarSystem.GetFloat("pm_spectatebbox") * 0.5f);
+			}
+			else
+			{
+				float width = idE.CvarSystem.GetFloat("pm_bboxwidth");
+
+				bounds.Min = new Vector3(-width * 0.5f, -width * 0.5f, 0);
+				bounds.Max = new Vector3(width * 0.5f, width * 0.5f, idE.CvarSystem.GetFloat("pm_normalheight"));
+			}
+
+			// the origin of the clip model needs to be set before calling SetClipModel
+			// otherwise our physics object's current origin value gets reset to 0
+			idClipModel clipModel;
+
+			if(idE.CvarSystem.GetBool("pm_usecylinder") == true)
+			{
+				clipModel = new idClipModel(new idTraceModel(bounds, 8));
+				clipModel.Translate(_physicsObject.PlayerOrigin);
+			}
+			else
+			{
+				clipModel = new idClipModel(new idTraceModel(bounds));
+				clipModel.Translate(_physicsObject.PlayerOrigin);
+			}
+
+			_physicsObject.SetClipModel(clipModel, 1.0f);
+		}
+
+		/// <summary>
+		/// Fixed fov at intermissions, otherwise account for fov variable and zooms.
+		/// </summary>
+		/// <param name="honorZoom"></param>
+		/// <returns></returns>
+		private float CalculateFieldOfView(bool honorZoom)
+		{
+			// TODO fov
+			/*if(_fxFov == true)
+			{
+				return (this.DefaultFieldOfView + 10.0f + idMath.Cos((idR.Game.Time + 2000) * 0.01f) * 10.0f);
+			}
+
+			if(_influenceFov > 0)
+			{
+				return _influenceFov;
+			}*/
+
+			float fov = this.DefaultFieldOfView;
+			 
+
+			/*if ( zoomFov.IsDone( gameLocal.time ) ) {
+				fov = ( honorZoom && usercmd.buttons & BUTTON_ZOOM ) && weapon.GetEntity() ? weapon.GetEntity()->GetZoomFov() : DefaultFov();
+			} else {
+				fov = zoomFov.GetCurrentValue( gameLocal.time );
+			}*/
+
+			// bound normal viewsize
+			if(fov < 1)
+			{
+				fov = 1;
+			}
+			else if(fov > 179)
+			{
+				fov = 179;
+			}
+
+			return fov;
+		}
+
+		private void CalculateFirstPersonView()
+		{
+			int modelView = idR.CvarSystem.GetInteger("pm_modelView");
+
+			if((modelView == 1) || ((modelView == 2) && (this.Health <= 0)))
+			{
+				// displays the view from the point of view of the "camera" joint in the player model
+
+				idConsole.Warning("TODO: view from camera joint");
+
+				/*idMat3 axis;
+				idVec3 origin;
+				idAngles ang;
+
+				ang = viewBobAngles + playerView.AngleOffset();
+				ang.yaw += viewAxis[ 0 ].ToYaw();
+		
+				jointHandle_t joint = animator.GetJointHandle( "camera" );
+				animator.GetJointTransform( joint, gameLocal.time, origin, axis );
+				firstPersonViewOrigin = ( origin + modelOffset ) * ( viewAxis * physicsObj.GetGravityAxis() ) + physicsObj.GetOrigin() + viewBob;
+				firstPersonViewAxis = axis * ang.ToMat3() * physicsObj.GetGravityAxis();*/
+			} 
+			else 
+			{
+				// offset for local bobbing and kicks
+				GetViewPosition(out _firstPersonViewOrigin, out _firstPersonViewAxis);
+
+#if false
+				// shakefrom sound stuff only happens in first person
+				firstPersonViewAxis = firstPersonViewAxis * playerView.ShakeAxis();
+#endif
+			}
+		}
+
+		/// <summary>
+		/// Create the renderView for the current tic.
+		/// </summary>
+		private void CalculateRenderView()
+		{
+			if(_renderView == null)
+			{
+				_renderView = new idRenderView();
+			}
+
+			_renderView.Clear();
+
+			// copy global shader parms
+			for(int i = 0; i < idE.MaxGlobalMaterialParameters; i++)
+			{
+				idConsole.Warning("TODO: renderView->shaderParms[ i ] = gameLocal.globalShaderParms[ i ];");
+			}
+
+			idConsole.Warning("TODO: renderView->globalMaterial = gameLocal.GetGlobalMaterial();");
+
+			_renderView.Time = idR.Game.Time;
+
+			// calculate size of 3D view
+			_renderView.X = 0;
+			_renderView.Y = 0;
+			_renderView.Width = idE.VirtualScreenWidth;
+			_renderView.Height = idE.VirtualScreenHeight;
+			_renderView.ViewID = 0;
+
+			// check if we should be drawing from a camera's POV
+			// TODO: camera
+			/*if ( !noclip && (gameLocal.GetCamera() || privateCameraView) ) {
+				// get origin, axis, and fov
+				if ( privateCameraView ) {
+					privateCameraView->GetViewParms( renderView );
+				} else {
+					gameLocal.GetCamera()->GetViewParms( renderView );
+				}
+			} 
+			else */
+			{
+				if(idR.CvarSystem.GetBool("g_stopTime") == true)
+				{
+					_renderView.ViewOrigin = _firstPersonViewOrigin;
+					_renderView.ViewAxis = _firstPersonViewAxis;
+
+					if(idR.CvarSystem.GetBool("pm_thirdPerson") == true)
+					{
+						// set the viewID to the clientNum + 1, so we can suppress the right player bodies and
+						// allow the right player view weapons
+						_renderView.ViewID = this.Index + 1;
+					}
+				}
+				else if(idR.CvarSystem.GetBool("pm_thirdPerson") == true)
+				{
+					idConsole.Warning("TODO: third person");
+					//OffsetThirdPersonView( pm_thirdPersonAngle.GetFloat(), pm_thirdPersonRange.GetFloat(), pm_thirdPersonHeight.GetFloat(), pm_thirdPersonClip.GetBool() );
+				}
+				else if(idR.CvarSystem.GetBool("pm_thirdPersonDeath") == true)
+				{
+					idConsole.Warning("TODO: third person death");
+
+					//range = gameLocal.time < minRespawnTime ? ( gameLocal.time + RAGDOLL_DEATH_TIME - minRespawnTime ) * ( 120.0f / RAGDOLL_DEATH_TIME ) : 120.0f;
+					//OffsetThirdPersonView( 0.0f, 20.0f + range, 0.0f, false );
+				}
+				else
+				{
+					_renderView.ViewOrigin = _firstPersonViewOrigin;
+					_renderView.ViewAxis = _firstPersonViewAxis;
+
+					// set the viewID to the clientNum + 1, so we can suppress the right player bodies and
+					// allow the right player view weapons
+					_renderView.ViewID = this.Index + 1;
+				}
+
+				// field of view
+				idR.Game.CalculateFieldOfView(CalculateFieldOfView(true), out _renderView.FovX, out _renderView.FovY);
+			}
+
+			if(_renderView.FovY == 0)
+			{
+				idConsole.Error("renderView.FovY == 0");
+			}
+
+			if(idR.CvarSystem.GetBool("g_showviewpos") == true)
+			{
+				idConsole.WriteLine("{0}: {1}", _renderView.ViewOrigin, _renderView.ViewAxis.ToAngles());
+			}
+		}
+		#endregion
+
+		#region Public
+		public void GetViewPosition(out Vector3 origin, out Matrix axis)
+		{
+			idAngles angles = new idAngles();
+
+			// if dead, fix the angle and don't add any kick
+			if(this.Health <= 0)
+			{
+				angles.Yaw = _viewAngles.Yaw;
+				angles.Roll = 40;
+				angles.Pitch = -15;
+
+				axis = angles.ToMatrix();
+				origin = this.EyePosition;
+			} 
+			else 
+			{
+				origin = this.EyePosition + _viewBob;
+				angles = _viewAngles + _viewBobAngles + _playerView.AngleOffset;
+				axis = angles.ToMatrix() * _physicsObject.GravityAxis;
+
+				// adjust the origin based on the camera nodal distance (eye distance from neck)
+				float v = idR.CvarSystem.GetFloat("g_viewNodalZ");
+
+				origin += _physicsObject.GravityNormal * v;
+				origin += new Vector3(axis.M11, axis.M12, axis.M13) * v + new Vector3(axis.M31, axis.M32, axis.M33) * v;
+			}
+		}
+
 
 		/// <summary>
 		/// Try to find a spawn point marked 'initial', otherwise use normal spawn selection.
@@ -859,6 +1028,7 @@ oldViewYaw = 0.0f;*/
 			return modifiedInfo;
 		}
 		#endregion
+		#endregion
 
 		#region idActor implementation
 		#region Properties
@@ -886,9 +1056,7 @@ oldViewYaw = 0.0f;*/
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				idConsole.Warning("TODO: idPlayer.RenderView");
-
-				return null;
+				return _renderView;
 			}
 		}
 		#endregion
@@ -977,9 +1145,56 @@ oldViewYaw = 0.0f;*/
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: idPlayer.GetPhysicsToVisualTransform");
+			// TODO: af
+			/*if(af.IsActive())
+			{
+				af.GetPhysicsToVisualTransform(origin, axis);
+				return true;
+			}*/
 
-			return false;
+			// smoothen the rendered origin and angles of other clients
+			// smooth self origin if snapshots are telling us prediction is off
+			if((idR.Game.IsClient == true) && /* TODO: gameLocal.framenum >= smoothedFrame && */ (this.Index != idR.Game.LocalClientIndex) /* TODO: || selfSmooth)*/)
+			{
+				idConsole.Warning("TODO: idPlayer.GetPhysicsToVisualTransform");
+
+				// render origin and axis
+				/*idMat3 renderAxis = viewAxis * GetPhysics()->GetAxis();
+				idVec3 renderOrigin = GetPhysics()->GetOrigin() + modelOffset * renderAxis;
+
+				// update the smoothed origin
+				if(!smoothedOriginUpdated)
+				{
+					idVec2 originDiff = renderOrigin.ToVec2() - smoothedOrigin.ToVec2();
+					if(originDiff.LengthSqr() < Square(100.0f))
+					{
+						// smoothen by pushing back to the previous position
+						if(selfSmooth)
+						{
+							assert(entityNumber == gameLocal.localClientNum);
+							renderOrigin.ToVec2() -= net_clientSelfSmoothing.GetFloat() * originDiff;
+						}
+						else
+						{
+							renderOrigin.ToVec2() -= gameLocal.clientSmoothing * originDiff;
+						}
+					}
+					smoothedOrigin = renderOrigin;
+
+					smoothedFrame = gameLocal.framenum;
+					smoothedOriginUpdated = true;
+				}
+
+				axis = idAngles(0.0f, smoothedAngles.yaw, 0.0f).ToMat3();
+				origin = (smoothedOrigin - GetPhysics()->GetOrigin()) * axis.Transpose();*/
+			}
+			else
+			{
+				axis = _viewAxis;
+				origin = _modelOffset;
+			}
+
+			return true;
 		}
 
 		public override bool HandleSingleGuiCommand(idEntity entityGui, Text.idLexer lexer)
@@ -1095,9 +1310,8 @@ if ( weap ) {
 
 			// set our collision model
 			_physicsObject.Self = this;
-			// TODO
-			/*
-			SetClipModel();*/
+
+			SetClipModel();
 
 			_physicsObject.SetMass(this.SpawnArgs.GetFloat("mass", 100));
 			_physicsObject.SetContents(ContentFlags.Body);
@@ -1455,7 +1669,7 @@ if ( weap ) {
 
 				// clear out our pain flag so we can tell if we recieve any damage between now and the next time we think
 				AI_PAIN = false;
-			}
+			}*/
 
 			// calculate the exact bobbed view position, which is used to
 			// position the view weapon, among other things
@@ -1464,7 +1678,7 @@ if ( weap ) {
 			// this may use firstPersonView, or a thirdPerson / camera view
 			CalculateRenderView();
 
-			inventory.UpdateArmor();
+			/*inventory.UpdateArmor();
 
 			if(spectating)
 			{
@@ -1475,11 +1689,11 @@ if ( weap ) {
 				UpdateWeapon();
 			}
 
-			UpdateAir();
+			UpdateAir();*/
 
-			UpdateHud();
+			//UpdateHud();
 
-			UpdatePowerUps();
+			/*UpdatePowerUps();
 
 			UpdateDeathSkin(false);
 

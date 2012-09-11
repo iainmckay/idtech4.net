@@ -38,6 +38,43 @@ namespace idTech4
 {
 	public static class Extensions
 	{
+		#region Matrix
+		public static idAngles ToAngles(this Matrix m)
+		{
+			float sp = m.M13;
+
+			// cap off our sin value so that we don't get any NANs
+			if(sp > 1.0f)
+			{
+				sp = 1.0f;
+			}
+			else if(sp < -1.0f)
+			{
+				sp = -1.0f;
+			}
+
+			double theta = -System.Math.Asin(sp);
+			double cp = System.Math.Cos(theta);
+
+			idAngles angles = new idAngles();
+
+			if(cp > (8192.0f * idMath.Epsilon))
+			{
+				angles.Pitch = MathHelper.ToDegrees((float) theta);
+				angles.Yaw = MathHelper.ToDegrees(idMath.Atan2(m.M12, m.M11));
+				angles.Roll = MathHelper.ToDegrees(idMath.Atan2(m.M23, m.M33));
+			}
+			else
+			{
+				angles.Pitch = MathHelper.ToDegrees((float) theta);
+				angles.Yaw = MathHelper.ToDegrees(-idMath.Atan2(m.M21, m.M22));
+				angles.Roll = 0;
+			}
+
+			return angles;
+		}
+		#endregion
+
 		#region Plane
 		public static float Distance(this Plane plane, Vector3 point)
 		{
@@ -47,6 +84,33 @@ namespace idTech4
 		public static void FitThroughPoint(this Plane plane, Vector3 point)
 		{
 			plane.D =  -Vector3.Multiply(plane.Normal, point).Length();
+		}
+		#endregion
+
+		#region Quaternion
+		public static Matrix ToMatrix(this Quaternion q)
+		{
+			float x2 = q.X + q.X;
+			float y2 = q.Y + q.Y;
+			float z2 = q.Z + q.Z;
+
+			float xx = q.X * x2;
+			float xy = q.X * y2;
+			float xz = q.X * z2;
+
+			float yy = q.Y * y2;
+			float yz = q.Y * z2;
+			float zz = q.Z * z2;
+
+			float wx = q.W * x2;
+			float wy = q.W * y2;
+			float wz = q.W * z2;
+
+			return new Matrix(
+				1.0f - (yy + zz), xy - wz, xz + wy, 0,
+				xy + wz, 1.0f - (xx + zz), yz - wx, 0,
+				xz - wy, yz + wx, 1.0f - (xx + yy), 0,
+				0, 0, 0, 1);
 		}
 		#endregion
 
@@ -69,6 +133,26 @@ namespace idTech4
 			}
 
 			return true;
+		}
+
+		public static float Get(this Vector3 v, int index)
+		{
+			if(index == 0)
+			{
+				return v.X;
+			}
+			else if(index == 1)
+			{
+				return v.Y;
+			}
+			else if(index == 2)
+			{
+				return v.Z;
+			}
+			else
+			{
+				throw new ArgumentOutOfRangeException("index");
+			}
 		}
 
 		public static Matrix ToMatrix(this Vector3 v)
