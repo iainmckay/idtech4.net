@@ -1,5 +1,6 @@
 
 *.user
+*.cachefile
 Doom3.suo
 idLib/obj
 idLib/bin
