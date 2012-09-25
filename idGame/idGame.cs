@@ -1519,12 +1519,13 @@ namespace idTech4.Game
 			}
 
 			int count = _spawnedEntities.Count;
+			string matchLower = match.ToLower();
 
 			for(int i = index; i < count; i++)
 			{
 				idEntity ent = _spawnedEntities[i];
 
-				if(ent.DefName.ToLower() == match.ToLower())
+				if(ent.DefName.ToLower() == matchLower)
 				{
 					return ent;
 				}
@@ -1564,8 +1565,6 @@ namespace idTech4.Game
 
 			if(spawn != null)
 			{
-				// replaced with .net reflection instead of native d3 class framework.
-
 				// need to check all loaded assemblies to find the type we're looking for.
 				Type type = null;
 

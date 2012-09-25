@@ -46,7 +46,6 @@ namespace idTech4.Game
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				// TODO
 				idConsole.Warning("TODO: idEntity.Axis");
 				return Matrix.Identity;
 			}
@@ -1055,7 +1054,7 @@ namespace idTech4.Game
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			// TODO
+			// TODO:
 			/*if ( !gameLocal.isNewFrame ) {
 				return;
 			}*/

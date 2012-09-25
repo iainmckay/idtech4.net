@@ -6,6 +6,7 @@ using System.Text;
 using Microsoft.Xna.Framework;
 
 using idTech4.Game.Animation;
+using idTech4.Math;
 using idTech4.Renderer;
 using idTech4.Text;
 using idTech4.Text.Decl;
@@ -113,7 +114,7 @@ namespace idTech4.Game
 
 				if(angle != 0.0f)
 				{
-					renderEntity.Axis = Matrix.CreateRotationY(angle);
+					renderEntity.Axis = new idAngles(0.0f, angle, 0.0f).ToMatrix();
 				}
 				else
 				{
@@ -121,7 +122,7 @@ namespace idTech4.Game
 				}
 			}
 
-			// TODO
+			// TODO:
 			//renderEntity.ReferencedSound = null;
 
 			// get shader parms

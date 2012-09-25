@@ -19,7 +19,7 @@ namespace idTech4.Game.Entities
 		}
 		#endregion
 
-		// TODO
+		// TODO:
 		/*CLASS_DECLARATION( idEntity, idPlayerStart )
 			EVENT( EV_Activate,			idPlayerStart::Event_TeleportPlayer )
 			EVENT( EV_TeleportStage,	idPlayerStart::Event_TeleportStage )
@@ -34,7 +34,7 @@ namespace idTech4.Game.Entities
 		}
 		#endregion
 
-		// TODO
+		// TODO:
 
 		/*void idPlayerStart::Save( idSaveGame *savefile ) const {
 	savefile->WriteInt( teleportStage );
