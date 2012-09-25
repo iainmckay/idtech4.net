@@ -210,7 +210,7 @@ namespace idTech4.Game.Animation
 		{
 			if(_entity != null)
 			{
-				idConsole.Warning("TODO: _entity.BecomeInactive(EntityThinkFlags.Animate);");
+				_entity.BecomeInactive(EntityThinkFlags.Animate);
 			}
 
 			for(int i = (int) AnimationChannel.All; i < (int) AnimationChannel.Count; i++)

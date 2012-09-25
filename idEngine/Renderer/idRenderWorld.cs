@@ -322,7 +322,7 @@ namespace idTech4.Renderer
 			View viewDef = idE.RenderSystem.ViewDefinition;
 
 			// clear the visible lightDef and entityDef lists
-			// TODO: viewDef.ViewLights.Clear();
+			// TODO: viewDef.ViewLights = null
 			viewDef.ViewEntities.Clear();
 
 			// find the area to start the portal flooding in
@@ -465,7 +465,17 @@ namespace idTech4.Renderer
 		/// </summary>
 		/// <param name="index"></param>
 		/// <param name="renderComponent"></param>
-		private void UpdateEntityDefinition(int index, RenderEntityComponent renderComponent)
+		public void UpdateEntityDefinition(idRenderEntity renderEntity, RenderEntityComponent renderComponent)
+		{
+			UpdateEntityDefinition(_entityDefinitions[_entityDefinitions.IndexOf(renderEntity)], renderComponent);
+		}
+
+		/// <summary>
+		/// Does not write to the demo file, which will only be updated for visible entities.
+		/// </summary>
+		/// <param name="index"></param>
+		/// <param name="renderComponent"></param>
+		public void UpdateEntityDefinition(int index, RenderEntityComponent renderComponent)
 		{
 			if(idE.CvarSystem.GetBool("r_skipUpdates") == true)
 			{
@@ -534,8 +544,8 @@ namespace idTech4.Renderer
 				{
 					FreeEntityDefDerivedData(def, false, false);
 				}
-			} 
-			else 
+			}
+			else
 			{
 				// creating a new one
 				def = new idRenderEntity();
@@ -1963,6 +1973,8 @@ namespace idTech4.Renderer
 			if(idE.RenderSystem.ViewDefinition != null)
 			{
 				idHelper.ConvertMatrix(viewModel.ModelMatrix, idE.RenderSystem.ViewDefinition.WorldSpace.ModelViewMatrix, out viewModel.ModelViewMatrix);
+
+				idE.RenderSystem.ViewDefinition.ViewEntities = new List<ViewEntity>();
 				idE.RenderSystem.ViewDefinition.ViewEntities.Add(viewModel);
 			}
 

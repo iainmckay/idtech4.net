@@ -77,6 +77,14 @@ namespace idTech4.Game
 			}
 		}
 
+		public idRenderWorld CurrentRenderWorld
+		{
+			get
+			{
+				return _currentRenderWorld;
+			}
+		}
+
 		public idEntity[] Entities
 		{
 			get
@@ -94,6 +102,28 @@ namespace idTech4.Game
 			set
 			{
 				_entitiesToDeactivate = value;
+			}
+		}
+		
+		/// <summary>
+		/// Used for overriding everything.
+		/// </summary>
+		public idMaterial GlobalMaterial
+		{
+			get
+			{
+				return _globalMaterial;
+			}
+		}
+
+		/// <summary>
+		/// Can be used to automatically effect every material in the world that references globalParms.
+		/// </summary>
+		public float[] GlobalMaterialParameters
+		{
+			get
+			{
+				return _globalMaterialParameters;
 			}
 		}
 
@@ -337,6 +367,9 @@ namespace idTech4.Game
 
 		private idWorldSpawn _world;
 		private Vector3 _gravity; // global gravity vector
+
+		private idMaterial _globalMaterial;
+		private float[] _globalMaterialParameters;
 
 		private Random _random;
 
@@ -737,8 +770,8 @@ namespace idTech4.Game
 			_sortPushers = false;
 			_sortTeamMasters = false;
 
-/*			persistentLevelInfo.Clear();
-			memset(globalShaderParms, 0, sizeof(globalShaderParms));*/
+/*			persistentLevelInfo.Clear();*/
+			_globalMaterialParameters = new float[idE.MaxGlobalMaterialParameters];
 
 			_random = new Random(0);
 
@@ -890,11 +923,10 @@ namespace idTech4.Game
 			_sortTeamMasters = false;
 			_sortPushers = false;
 			/*lastGUIEnt = NULL;
-			lastGUI = 0;
+			lastGUI = 0;*/
 
-			globalMaterial = NULL;*/
-			
-			/*memset( globalShaderParms, 0, sizeof( globalShaderParms ) );*/
+			_globalMaterial = null;
+			_globalMaterialParameters = new float[idE.MaxGlobalMaterialParameters];
 
 			// always leave room for the max number of clients,
 			// even if they aren't all used, so numbers inside that
@@ -967,13 +999,14 @@ namespace idTech4.Game
 			SpawnMapEntities();
 
 			// mark location entities in all connected areas
-			/* TODO: SpreadLocations();*/
+			idConsole.Warning("TODO: SpreadLocations();");
 
 			// prepare the list of randomized initial spawn spots
 			RandomizeInitialSpawns();
 
 			// spawnCount - 1 is the number of entities spawned into the map, their indexes started at MAX_CLIENTS (included)
 			// mapSpawnCount is used as the max index of map entities, it's the first index of non-map entities
+			// TODO:
 			/*mapSpawnCount = MAX_CLIENTS + spawnCount - 1;
 			
 			// execute pending events before the very first game frame
@@ -996,7 +1029,7 @@ namespace idTech4.Game
 				return;
 			}
 
-			// TODO: SetSkill( g_skill.GetInteger() );
+			idConsole.Warning("TODO: SetSkill( g_skill.GetInteger() );");
 
 			int entityCount = _currentMapFile.EntityCount;
 
@@ -1571,7 +1604,7 @@ namespace idTech4.Game
 			}
 
 			idConsole.Warning("TODO: Spawnfunc");
-			// TODO: spawnfunc
+			
 			// check if we should call a script function to spawn
 			/*spawnArgs.GetString( "spawnfunc", NULL, &spawn );
 			if ( spawn ) {
@@ -1594,7 +1627,7 @@ namespace idTech4.Game
 		public void ServerSendChatMessage(int to, string name, string text)
 		{
 			idConsole.Warning("TODO: ServerSendChatMessage");
-			// TODO: 
+			
 			/*idBitMsg outMsg = new idBitMsg();
 			outMsg.InitGame();
 			outMsg.BeginWriting();
@@ -1684,7 +1717,7 @@ namespace idTech4.Game
 
 			idConsole.Warning("TODO: events, class, console");
 			/*
-			TODO: 
+			
 			idEvent::Init();
 			idClass::Init();*/
 
@@ -1692,7 +1725,6 @@ namespace idTech4.Game
 
 			idConsole.Warning("TODO: AAS");
 
-			// TODO: AAS
 			/*
 				// TODO: load default scripts
 				// program.Startup( SCRIPT_DEFAULT );
@@ -1981,20 +2013,7 @@ namespace idTech4.Game
 		/// </summary>
 		/// <param name="dict"></param>
 		public override void CacheDictionaryMedia(idDict dict)
-		{			
-			/*idKeyValue kv = null;
-			// TODO
-			/*if ( dict == NULL ) {
-					if ( cvarSystem->GetCVarBool( "com_makingBuild") ) {
-						DumpOggSounds();
-					}
-					return;
-				}*/
-
-			/*if ( cvarSystem->GetCVarBool( "com_makingBuild" ) ) {
-				GetShakeSounds( dict );
-			}*/
-
+		{	
 			#region Model
 			foreach(KeyValuePair<string, string> kvp in dict.MatchPrefix("model"))
 			{

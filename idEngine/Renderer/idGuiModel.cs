@@ -107,7 +107,6 @@ namespace idTech4.Renderer
 				_surface.Material.EnsureNotPurged(); // in case it was a gui item started before a level change
 			}
 
-			// TODO: remove
 			clip = false;
 
 			// add the verts and indexes to the current surface
@@ -119,6 +118,7 @@ namespace idTech4.Renderer
 
 		// FIXME:	this is grim stuff, and should be rewritten if we have any significant
 		//			number of guis asking for clipping
+				 
 		idFixedWinding w;
 		for ( i = 0; i < indexCount; i += 3 ) {
 			w.Clear();
@@ -289,6 +289,7 @@ namespace idTech4.Renderer
 		/// </summary>
 		public void EmitFullScreen()
 		{
+			return;
 			if(_surfaces[0].VertexCount == 0)
 			{
 				return;

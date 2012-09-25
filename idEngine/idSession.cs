@@ -203,57 +203,7 @@ namespace idTech4
 				// this will call Draw, possibly multiple times if com_aviDemoSamples is > 1
 				renderSystem->TakeScreenshot( com_aviDemoWidth.GetInteger(), com_aviDemoHeight.GetInteger(), name, com_aviDemoSamples.GetInteger(), NULL );
 			}*/
-
-			// at startup, we may be backwards
-			/*TODO: if ( latchedTicNumber > com_ticNumber ) {
-				latchedTicNumber = com_ticNumber;
-			}
-
-			// see how many tics we should have before continuing
-			int	minTic = latchedTicNumber + 1;
-			if ( com_minTics.GetInteger() > 1 ) {
-				minTic = lastGameTic + com_minTics.GetInteger();
-			}
-	
-			if ( readDemo ) {
-				if ( !timeDemo && numDemoFrames != 1 ) {
-					minTic = lastDemoTic + USERCMD_PER_DEMO_FRAME;
-				} else {
-					// timedemos and demoshots will run as fast as they can, other demos
-					// will not run more than 30 hz
-					minTic = latchedTicNumber;
-				}
-			} else if ( writeDemo ) {
-				minTic = lastGameTic + USERCMD_PER_DEMO_FRAME;		// demos are recorded at 30 hz
-			}
-	
-			// fixedTic lets us run a forced number of usercmd each frame without timing
-			if ( com_fixedTic.GetInteger() ) {
-				minTic = latchedTicNumber;
-			}
-
-			// FIXME: deserves a cleanup and abstraction
-		#if defined( _WIN32 )
-			// Spin in place if needed.  The game should yield the cpu if
-			// it is running over 60 hz, because there is fundamentally
-			// nothing useful for it to do.
-			while( 1 ) {
-				latchedTicNumber = com_ticNumber;
-				if ( latchedTicNumber >= minTic ) {
-					break;
-				}
-				Sys_Sleep( 1 );
-			}
-		#else
-			while( 1 ) {
-				latchedTicNumber = com_ticNumber;
-				if ( latchedTicNumber >= minTic ) {
-					break;
-				}
-				Sys_WaitForEvent( TRIGGER_EVENT_ONE );
-			}
-		#endif*/
-
+			
 			// send frame and mouse events to active guis
 			GuiFrameEvents();
 
@@ -284,14 +234,12 @@ namespace idTech4
 				return;
 			}
 			
-			idConsole.Warning("TODO: REST OF FRAME");
-
-			idConsole.Warning("TODO: is network active");
-			/*// in message box / GUIFrame, idSessionLocal::Frame is used for GUI interactivity
+			// in message box / GUIFrame, idSessionLocal::Frame is used for GUI interactivity
 			// but we early exit to avoid running game frames
-			if ( idAsyncNetwork::IsActive() ) {
+			if(idE.AsyncNetwork.IsActive == true)
+			{
 				return;
-			}*/
+			}
 
 			// check for user info changes
 			if((idE.CvarSystem.ModifiedFlags & CvarFlags.UserInfo) == CvarFlags.UserInfo)
@@ -301,70 +249,7 @@ namespace idTech4
 				idE.CvarSystem.ModifiedFlags &= ~CvarFlags.UserInfo;
 			}
 
-			// TODO: do we really need the latch stuff?
-
-			// see how many usercmds we are going to run
-			/*int	numCmdsToRun = latchedTicNumber - lastGameTic;
-
-			// don't let a long onDemand sound load unsync everything
-			if ( timeHitch ) {
-				int	skip = timeHitch / USERCMD_MSEC;
-				lastGameTic += skip;
-				numCmdsToRun -= skip;
-				timeHitch = 0;
-			}
-
-			// don't get too far behind after a hitch
-			if ( numCmdsToRun > 10 ) {
-				lastGameTic = latchedTicNumber - 10;
-			}
-
-			// never use more than USERCMD_PER_DEMO_FRAME,
-			// which makes it go into slow motion when recording
-			if ( writeDemo ) {
-				int fixedTic = USERCMD_PER_DEMO_FRAME;
-				// we should have waited long enough
-				if ( numCmdsToRun < fixedTic ) {
-					common->Error( "idSessionLocal::Frame: numCmdsToRun < fixedTic" );
-				}
-				// we may need to dump older commands
-				lastGameTic = latchedTicNumber - fixedTic;
-			} else if ( com_fixedTic.GetInteger() > 0 ) {
-				// this may cause commands run in a previous frame to
-				// be run again if we are going at above the real time rate
-				lastGameTic = latchedTicNumber - com_fixedTic.GetInteger();
-			} else if (	aviCaptureMode ) {
-				lastGameTic = latchedTicNumber - com_aviDemoTics.GetInteger();
-			}
-
-			// force only one game frame update this frame.  the game code requests this after skipping cinematics
-			// so we come back immediately after the cinematic is done instead of a few frames later which can
-			// cause sounds played right after the cinematic to not play.
-			if ( syncNextGameFrame ) {
-				lastGameTic = latchedTicNumber - 1;
-				syncNextGameFrame = false;
-			}
-
-			// create client commands, which will be sent directly
-			// to the game
-			if ( com_showTics.GetBool() ) {
-				common->Printf( "%i ", latchedTicNumber - lastGameTic );
-			}
-
-			int	gameTicsToRun = latchedTicNumber - lastGameTic;
-			int i;
-			for ( i = 0 ; i < gameTicsToRun ; i++ ) {*/
-
 			RunGameTic();
-
-				/*if ( !mapSpawned ) {
-					// exited game play
-					break;
-				}
-				if ( syncNextGameFrame ) {
-					// long game frame, so break out and continue executing as if there was no hitch
-					break;
-				}*/
 		}
 
 		public void GuiFrameEvents()
@@ -486,9 +371,11 @@ namespace idTech4
 		public bool ProcessEvent(SystemEvent ev)
 		{
 			// hitting escape anywhere brings up the menu
-			// TODO: process event
-			/*if ( !guiActive && event->evType == SE_KEY && event->evValue2 == 1 && event->evValue == K_ESCAPE ) {
-				console->Close();
+			if((_guiActive == null) && (ev.Type == SystemEventType.Key) && (ev.Value2 == 1) && (ev.Value == (int) Keys.Escape))
+			{
+				idConsole.Warning("TODO: escape");
+			
+				/*console->Close();
 				if ( game ) {
 					idUserInterface	*gui = NULL;
 					escReply_t		op;
@@ -501,8 +388,8 @@ namespace idTech4
 					}
 				}
 				StartMenu();
-				return true;
-			}*/
+				return true;*/
+			}
 
 			// let the pull-down console take it if desired
 			if(idE.Console.ProcessEvent(ev, false) == true)
@@ -537,7 +424,6 @@ namespace idTech4
 				return true;
 			}
 
-			idConsole.Warning("TODO: process event");
 			// if we aren't in a game, force the console to take it
 			if(_mapSpawned == false)
 			{
@@ -719,8 +605,7 @@ namespace idTech4
 
 			if(gui == _guiMainMenu)
 			{
-				idConsole.Warning("TODO: HandleMainMenuCommands");
-				// TODO: HandleMainMenuCommands(menuCommand);
+				idConsole.Warning("TODO: HandleMainMenuCommands( menuCommand );");
 			}
 			else if(gui == _guiIntro) 
 			{
@@ -955,11 +840,11 @@ namespace idTech4
 			if(noFadeWipe == false)
 			{
 				// capture the current screen and start a wipe
-				// TODO: StartWipe( "wipeMaterial", true );
+				idConsole.Warning("TODO: StartWipe( wipeMaterial, true );");
 
 				// immediately complete the wipe to fade out the level transition
 				// run the wipe to completion
-				// TODO: CompleteWipe();
+				idConsole.Warning("TODO: CompleteWipe();");
 			}
 
 			// extract the map name from serverinfo
@@ -985,11 +870,11 @@ namespace idTech4
 			{
 				idE.DeclManager.BeginLevelLoad();
 				idE.RenderSystem.BeginLevelLoad();
-				// TODO: soundSystem->BeginLevelLoad();
+				idConsole.Warning("TODO: soundSystem->BeginLevelLoad();");
 			}
 
 			idE.UIManager.BeginLevelLoad();
-			// TODO: idE.UIManager.Reload(true);
+			idConsole.Warning("TODO: idE.UIManager.Reload(true);");
 
 			// set the loading gui that we will wipe to
 			LoadLoadingInterface(mapString);
@@ -1054,7 +939,7 @@ namespace idTech4
 			}
 
 			// load and spawn all other entities ( from a savegame possibly )
-			// TODO: save game
+			idConsole.Warning("TODO: save game");
 			/*if ( loadingSaveGame && savegameFile ) {
 				if ( game->InitFromSaveGame( fullMapName + ".map", rw, sw, savegameFile ) == false ) {
 					// If the loadgame failed, restart the map with the player persistent data
@@ -1225,6 +1110,7 @@ namespace idTech4
 
 			if((menuCommand != null) && (menuCommand.Length > 0))
 			{
+				idConsole.Warning("TODO: key binding");
 				// if the menu didn't handle the event, and it's a key down event for an F key, run the bind
 				// TODO: keys
 				/*if ( event->evType == SE_KEY && event->evValue2 == 1 && event->evValue >= K_F1 && event->evValue <= K_F12 ) {
@@ -1354,11 +1240,8 @@ namespace idTech4
 
 		private void SetMainMenuVariables()
 		{
-			idConsole.Warning("TODO: SetMainMenuVariables");
-
 			_guiMainMenu.State.Set("serverlist_sel_0", "-1");
 			_guiMainMenu.State.Set("serverlist_selid_0", "-1");
-
 			_guiMainMenu.State.Set("com_machineSpec", idE.CvarSystem.GetInteger("com_machineSpec"));
 
 			// "inetGame" will hold a hand-typed inet address, which is not archived to a cvar

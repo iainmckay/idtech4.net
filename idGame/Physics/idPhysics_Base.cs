@@ -955,20 +955,13 @@ namespace idTech4.Game.Physics
 		protected override void Dispose(bool disposing)
 		{
 			base.Dispose(disposing);
-
-			if(this.Disposed == true)
-			{
-				throw new ObjectDisposedException(this.GetType().Name);
-			}
-
+			
 			if((_self != null) && (_self.Physics == this))
 			{
 				idConsole.Warning("TODO: _self.Physics = null;");
 			}
 
 			idConsole.Warning("TODO: idForce::DeletePhysics( this );");
-
-			ClearContacts();
 		}
 		#endregion
 		#endregion

@@ -116,7 +116,7 @@ namespace idTech4.Geometry
 		/// <returns></returns>
 		public bool ClipInPlace(Plane plane, float epsilon = idE.OnPlaneEpsilon, bool keepOn = false)
 		{
-			// TODO: clip in place  important!!!!
+			idConsole.Warning("TODO: clip in place  important!!!!");
 
 			/*float*		dists;
 			byte *		sides;

@@ -129,7 +129,7 @@ namespace idTech4.Game.Rules
 				player.BaseSkin = "skins/characters/player/marine_mp";
 			}
 
-			// TODO: player.Skin = declManager->FindSkin(player.BaseSkin, false);
+			player.Skin = idR.DeclManager.FindSkin(player.BaseSkin, false);
 
 			// match the skin to a color band for scoreboard
 			if(player.BaseSkin.Contains("red") == true)
@@ -155,7 +155,7 @@ namespace idTech4.Game.Rules
 
 			player.ColorBar = idPlayer.ColorBarTable[player.ColorBarIndex];
 
-			// TODO
+			idConsole.Warning("TODO: powerup active");
 			/*if(PowerUpActive(BERSERK))
 			{
 				powerUpSkin = declManager->FindSkin(baseSkinName + "_berserk");
@@ -182,6 +182,7 @@ namespace idTech4.Game.Rules
 
 		public override void Run()
 		{
+			idConsole.Warning("TODO: multiplayer run");
 			base.Run();
 
 			/*	int i, timeLeft;
@@ -329,6 +330,7 @@ namespace idTech4.Game.Rules
 
 		public override bool Draw(int clientIndex)
 		{
+			idConsole.Warning("TODO: multiplayer draw");
 			return base.Draw(clientIndex);
 			/*
 			if(base.Draw(clientIndex) == false)
@@ -552,6 +554,8 @@ namespace idTech4.Game.Rules
 			base.Reset();
 
 			Clear();
+
+			idConsole.Warning("TODO: multiplayer rest");
 			/*
 			memset(&playerState, 0, sizeof(playerState)); 
 			assert( !scoreBoard && !spectateGui && !guiChat && !mainGui && !mapList );
@@ -591,7 +595,7 @@ namespace idTech4.Game.Rules
 			}
 
 			// mp game sounds
-			// TODO: mp game sounds
+			idConsole.Warning("TODO: mp game sounds");
 			/*foreach(string sound in idStrings.GlobalSoundStrings)
 			{
 				idFile f = idR.FileSystem.OpenFileRead(sound);

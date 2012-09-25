@@ -50,6 +50,7 @@ namespace idTech4.Game
 		public static readonly idAsyncNetwork NetworkSystem = idE.AsyncNetwork;
 		public static readonly idCollisionModelManager CollisionModelManager = idE.CollisionModelManager;
 		public static readonly idRenderModelManager RenderModelManager = idE.RenderModelManager;
+		public static readonly idRenderSystem RenderSystem = idE.RenderSystem;
 		public static readonly idFileSystem FileSystem = idE.FileSystem;
 		public static readonly idUserInterfaceManager UIManager = idE.UIManager;
 		public static readonly idLangDict Language = idE.Language;

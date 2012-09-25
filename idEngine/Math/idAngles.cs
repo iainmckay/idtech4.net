@@ -36,6 +36,14 @@ namespace idTech4.Math
 {
 	public struct idAngles
 	{
+		public static idAngles Zero
+		{
+			get
+			{
+				return new idAngles();
+			}
+		}
+
 		public float Pitch;
 		public float Yaw;
 		public float Roll;
@@ -111,6 +119,11 @@ namespace idTech4.Math
 		public static idAngles operator *(idAngles a, float s)
 		{
 			return new idAngles(a.Pitch * s, a.Yaw * s, a.Roll * s);
+		}
+
+		public override string ToString()
+		{
+			return string.Format("Yaw:{0} Pitch:{1} Roll:{2}", this.Yaw, this.Pitch, this.Roll);
 		}
 		#endregion
 	}

@@ -92,6 +92,11 @@ namespace idTech4.Math
 			return (float) XMath.Pow(a, b);
 		}
 
+		public static float ShortToAngle(short x)
+		{
+			return (x * (360.0f / 65536.0f));
+		}
+
 		public static float Square(float x)
 		{
 			return x * x;

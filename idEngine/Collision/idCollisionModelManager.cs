@@ -170,7 +170,7 @@ namespace idTech4.Collision
 				}
 				else
 				{
-					idConsole.Warning("idCollisionModelManagerLocal::LoadModel: collision file for '{0}' contains different model", model);
+					idConsole.Warning("idCollisionModelManager::LoadModel: collision file for '{0}' contains different model", model);
 				}
 			}
 

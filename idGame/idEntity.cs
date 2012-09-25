@@ -288,7 +288,6 @@ namespace idTech4.Game
 					throw new ObjectDisposedException(this.GetType().Name);
 				}
 
-				// TODO:
 				idConsole.Warning("TODO: idEntity.GetOrigin");
 
 				return Vector3.Zero;
@@ -418,6 +417,7 @@ namespace idTech4.Game
 
 		protected idRenderView _renderView;
 		protected RenderEntityComponent _renderEntity;
+		protected idRenderEntity _renderModel;						// handle to static renderer model
 
 		private idPhysics_Static _defaultPhysicsObject;
 		private idPhysics _physics;
@@ -1055,7 +1055,37 @@ namespace idTech4.Game
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: idEntity.Present");
+			// TODO
+			/*if ( !gameLocal.isNewFrame ) {
+				return;
+			}*/
+
+			// don't present to the renderer if the entity hasn't changed
+			/*if ( !( thinkFlags & TH_UPDATEVISUALS ) ) {
+				return;
+			}
+			BecomeInactive( TH_UPDATEVISUALS );*/
+
+			// camera target for remote render views
+			/*if ( cameraTarget && gameLocal.InPlayerPVS( this ) ) {
+				renderEntity.remoteRenderView = cameraTarget->GetRenderView();
+			}*/
+
+			// if set to invisible, skip
+			if((_renderEntity.Model == null) || (this.IsHidden == true))
+			{
+				return;
+			}
+
+			// add to refresh list
+			if(_renderModel == null)
+			{
+				_renderModel = idR.Game.CurrentRenderWorld.AddEntityDefinition(_renderEntity);
+			}
+			else
+			{
+				idR.Game.CurrentRenderWorld.UpdateEntityDefinition(_renderModel, _renderEntity);
+			}
 		}
 
 		public virtual void ProjectOverlay(Vector3 origin, Vector3 direction, float size, string material)
@@ -1174,15 +1204,7 @@ namespace idTech4.Game
 			if ( networkSync ) {
 				fl.networkSync = ( atoi( networkSync->GetValue() ) != 0 );
 			}
-
-		#if 0
-			if ( !gameLocal.isClient ) {
-				// common->DPrintf( "NET: DBG %s - %s is synced: %s\n", spawnArgs.GetString( "classname", "" ), GetType()->classname, fl.networkSync ? "true" : "false" );
-				if ( spawnArgs.GetString( "classname", "" )[ 0 ] == '\0' && !fl.networkSync ) {
-					common->DPrintf( "NET: WRN %s entity, no classname, and no networkSync?\n", GetType()->classname );
-				}
-			}
-		#endif*/
+		*/
 
 			// every object will have a unique name
 			this.Name = _spawnArgs.GetString("name", string.Format("{0}_{1}_{2}", this.ClassName, _spawnArgs.GetString("classname"), this.Index));
@@ -1271,11 +1293,8 @@ namespace idTech4.Game
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			idConsole.Warning("TODO: Think");
-
-			// TODO
-			/*RunPhysics();
-			Present();*/
+			idConsole.Warning("TODO: RunPhysics();");
+			Present();
 		}
 
 		public virtual bool UpdateAnimationControllers()

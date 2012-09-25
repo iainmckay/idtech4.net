@@ -16,6 +16,29 @@ namespace idTech4.Game.Entities
 	public class idActor : idAFEntity_Gibbable
 	{
 		#region Properties
+		/// <summary>
+		/// Delta angles relative to view input angles.
+		/// </summary>
+		public idAngles DeltaViewAngles
+		{
+			get
+			{
+				return _deltaViewAngles;
+			}
+			set
+			{
+				_deltaViewAngles = value;
+			}
+		}
+
+		public virtual Vector3 EyePosition
+		{
+			get
+			{
+				return (this.Physics.GetOrigin() + (this.Physics.GravityNormal * -_eyeOffset.Z));
+			}
+		}
+
 		public float Fov
 		{
 			set
@@ -76,6 +99,8 @@ namespace idTech4.Game.Entities
 		private int _painThreshold;		// how much damage monster can take at any one time before playing pain animation
 		
 		protected Matrix _viewAxis;		// view axis of the actor
+
+		private idAngles _deltaViewAngles;	// delta angles relative to view input angles
 		
 		protected float _fovDot;			// cos( fovDegrees )
 		protected Vector3 _eyeOffset;		// offset of eye relative to physics origin
@@ -143,6 +168,12 @@ namespace idTech4.Game.Entities
 			}
 
 			idConsole.Warning("TODO: idActor.GetAIAimTargets");
+		}
+
+		public virtual void GetViewPosition(out Vector3 origin, out Matrix axis)
+		{
+			origin = this.EyePosition;
+			axis = _viewAxis;
 		}
 		
 		public virtual void Restart()
@@ -282,7 +313,7 @@ namespace idTech4.Game.Entities
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			// TODO: af
+			idConsole.Warning("TODO: if af.IsActive");
 			/*if(af.IsActive())
 			{
 				af.GetPhysicsToVisualTransform(origin, axis);
@@ -300,7 +331,8 @@ namespace idTech4.Game.Entities
 			base.Hide();
 
 			// TODO	
-			idConsole.Warning("TODO: idActor.Hide");
+			idConsole.Warning("TODO: idActor.HideHead");
+			idConsole.Warning("TODO: idActor.HideTeamEntities");
 			/*idAFEntity_Base::Hide();
 			if ( head.GetEntity() ) {
 				head.GetEntity()->Hide();
@@ -314,8 +346,9 @@ namespace idTech4.Game.Entities
 						static_cast<idLight *>( ent )->Off();
 					}
 				}
-			}
-			UnlinkCombat();*/
+			}*/
+
+			UnlinkCombat();
 		}
 
 		public override void LinkCombat()

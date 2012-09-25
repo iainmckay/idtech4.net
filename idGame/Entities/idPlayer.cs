@@ -54,27 +54,7 @@ namespace idTech4.Game.Entities
 				return fov;
 			}
 		}
-
-		public Vector3 EyePosition
-		{
-			get
-			{
-				Vector3 origin;
-
-				// use the smoothed origin if spectating another player in multiplayer
-				if((idR.Game.IsClient == true) && (this.Index != idR.Game.LocalClientIndex))
-				{
-					origin = _smoothedOrigin;
-				}
-				else
-				{
-					origin = this.Physics.GetOrigin();
-				}
-
-				return (origin + (this.Physics.GravityNormal * -_eyeOffset.Z));
-			}
-		}
-
+				
 		public idUserInterface Hud
 		{
 			get
@@ -96,6 +76,19 @@ namespace idTech4.Game.Entities
 			get
 			{
 				return _view;
+			}
+		}
+
+		public idAngles ViewAngles
+		{
+			get
+			{
+				return _viewAngles;
+			}
+			set
+			{
+				UpdateDeltaViewAngles(value);
+				_viewAngles = value;
 			}
 		}
 		#endregion
@@ -496,9 +489,10 @@ oldViewYaw = 0.0f;*/
 			/*SetEyeHeight(pm_normalviewheight.GetFloat());
 
 			stepUpTime = 0;
-			stepUpDelta = 0.0f;
-			viewBobAngles.Zero();
-			viewBob.Zero();*/
+			stepUpDelta = 0.0f;*/
+
+			_viewBob = Vector3.Zero;
+			_viewBobAngles = new idAngles();
 
 			value = this.SpawnArgs.GetString("model", "");
 
@@ -575,11 +569,11 @@ oldViewYaw = 0.0f;*/
 			AI_TURN_LEFT = false;
 			AI_TURN_RIGHT = false;
 
-			// reset the script object
+			// reset the script object*/
 			ConstructScriptObject();
 
 			// execute the script so the script object's constructor takes effect immediately
-			scriptThread->Execute();*/
+			/*scriptThread->Execute();*/
 
 			// TODO: forceScoreBoard = false;
 			this.ForceReady = false;
@@ -656,7 +650,7 @@ oldViewYaw = 0.0f;*/
 		/// <returns></returns>
 		private float CalculateFieldOfView(bool honorZoom)
 		{
-			// TODO fov
+			// TODO: fov
 			/*if(_fxFov == true)
 			{
 				return (this.DefaultFieldOfView + 10.0f + idMath.Cos((idR.Game.Time + 2000) * 0.01f) * 10.0f);
@@ -738,11 +732,10 @@ oldViewYaw = 0.0f;*/
 			// copy global shader parms
 			for(int i = 0; i < idE.MaxGlobalMaterialParameters; i++)
 			{
-				idConsole.Warning("TODO: renderView->shaderParms[ i ] = gameLocal.globalShaderParms[ i ];");
+				_renderView.MaterialParameters[i] = idR.Game.GlobalMaterialParameters[i];
 			}
 
-			idConsole.Warning("TODO: renderView->globalMaterial = gameLocal.GetGlobalMaterial();");
-
+			_renderView.GlobalMaterial = idR.Game.GlobalMaterial;
 			_renderView.Time = idR.Game.Time;
 
 			// calculate size of 3D view
@@ -812,38 +805,21 @@ oldViewYaw = 0.0f;*/
 				idConsole.WriteLine("{0}: {1}", _renderView.ViewOrigin, _renderView.ViewAxis.ToAngles());
 			}
 		}
+
+		private void UpdateDeltaViewAngles(idAngles angles)
+		{
+			// set the delta angle
+			idAngles delta = new idAngles();
+
+			idConsole.Warning("TODO: delta.Pitch = angles.Pitch - idMath.ShortToAngle(_userCommand.Angles.Pitch);");
+			idConsole.Warning("TODO: delta.Yaw = angles.Yaw - idMath.ShortToAngle(_userCommand.Angles.Yaw);");
+			idConsole.Warning("TODO: delta.Pitch = angles.Roll - idMath.ShortToAngle(_userCommand.Angles.Roll);");
+
+			this.DeltaViewAngles = delta;
+		}
 		#endregion
 
 		#region Public
-		public void GetViewPosition(out Vector3 origin, out Matrix axis)
-		{
-			idAngles angles = new idAngles();
-
-			// if dead, fix the angle and don't add any kick
-			if(this.Health <= 0)
-			{
-				angles.Yaw = _viewAngles.Yaw;
-				angles.Roll = 40;
-				angles.Pitch = -15;
-
-				axis = angles.ToMatrix();
-				origin = this.EyePosition;
-			} 
-			else 
-			{
-				origin = this.EyePosition + _viewBob;
-				angles = _viewAngles + _viewBobAngles + _playerView.AngleOffset;
-				axis = angles.ToMatrix() * _physicsObject.GravityAxis;
-
-				// adjust the origin based on the camera nodal distance (eye distance from neck)
-				float v = idR.CvarSystem.GetFloat("g_viewNodalZ");
-
-				origin += _physicsObject.GravityNormal * v;
-				origin += new Vector3(axis.M11, axis.M12, axis.M13) * v + new Vector3(axis.M31, axis.M32, axis.M33) * v;
-			}
-		}
-
-
 		/// <summary>
 		/// Try to find a spawn point marked 'initial', otherwise use normal spawn selection.
 		/// </summary>
@@ -944,14 +920,16 @@ oldViewYaw = 0.0f;*/
 
 			// if this is the first spawn of the map, we don't have a usercmd yet,
 			// so the delta angles won't be correct.  This will be fixed on the first think.
-			// TODO
-			/*viewAngles = ang_zero;
-			SetDeltaViewAngles( ang_zero );
-			SetViewAngles( spawn_angles );
-			spawnAngles = spawn_angles;
-			spawnAnglesSet = false;
 
-			legsForward = true;
+			_viewAngles = idAngles.Zero;
+
+			this.DeltaViewAngles = idAngles.Zero;
+			this.ViewAngles = angles;
+
+			_spawnAngles = angles;
+			_spawnAnglesSet = false;
+
+			/*legsForward = true;
 			legsYaw = 0.0f;
 			idealLegsYaw = 0.0f;
 			oldViewYaw = viewAngles.yaw;*/
@@ -981,10 +959,11 @@ oldViewYaw = 0.0f;*/
 
 			// TODO
 			// kill anything at the new position
-			/*if ( !spectating ) {
-				physicsObj.SetClipMask( MASK_PLAYERSOLID ); // the clip mask is usually maintained in Move(), but KillBox requires it
-				gameLocal.KillBox( this );
-			}*/
+			if(this.IsSpectating == false)
+			{
+				_physicsObject.SetClipMask(ContentFlags.MaskPlayerSolid); // the clip mask is usually maintained in Move(), but KillBox requires it
+				idConsole.Warning("TODO: gameLocal.KillBox( this );");
+			}
 
 			// don't allow full run speed for a bit
 			//physicsObj.SetKnockBack( 100 );
@@ -1000,7 +979,7 @@ oldViewYaw = 0.0f;*/
 
 			// TODO: privateCameraView = NULL;
 
-			// TODO: BecomeActive( TH_THINK );
+			BecomeActive(EntityThinkFlags.Think);
 
 			// run a client frame to drop exactly to the floor,
 			// initialize animations and other things
@@ -1032,6 +1011,29 @@ oldViewYaw = 0.0f;*/
 
 		#region idActor implementation
 		#region Properties
+		public override Vector3 EyePosition
+		{
+			get
+			{
+				Vector3 origin;
+
+				// use the smoothed origin if spectating another player in multiplayer
+				if((idR.Game.IsClient == true) && (this.Index != idR.Game.LocalClientIndex))
+				{
+					origin = _smoothedOrigin;
+				}
+				else
+				{
+					origin = this.Physics.GetOrigin();
+				}
+
+				// TODO: remove this hack.  we need this because we dont do eye height
+				origin.Z = 73f;
+
+				return (origin + (this.Physics.GravityNormal * -_eyeOffset.Z));
+			}
+		}
+
 		public override bool IsOnLadder
 		{
 			get
@@ -1145,7 +1147,7 @@ oldViewYaw = 0.0f;*/
 				throw new ObjectDisposedException(this.GetType().Name);
 			}
 
-			// TODO: af
+			idConsole.Warning("TODO: if af.IsActive");
 			/*if(af.IsActive())
 			{
 				af.GetPhysicsToVisualTransform(origin, axis);
@@ -1195,6 +1197,34 @@ oldViewYaw = 0.0f;*/
 			}
 
 			return true;
+		}
+
+		public override void GetViewPosition(out Vector3 origin, out Matrix axis)
+		{
+			idAngles angles = new idAngles();
+
+			// if dead, fix the angle and don't add any kick
+			if(this.Health <= 0)
+			{
+				angles.Yaw = _viewAngles.Yaw;
+				angles.Roll = 40;
+				angles.Pitch = -15;
+
+				axis = angles.ToMatrix();
+				origin = this.EyePosition;
+			}
+			else
+			{
+				origin = this.EyePosition + _viewBob;
+				angles = _viewAngles + _viewBobAngles + _playerView.AngleOffset;
+				axis = angles.ToMatrix() * _physicsObject.GravityAxis;
+
+				// adjust the origin based on the camera nodal distance (eye distance from neck)
+				float v = idR.CvarSystem.GetFloat("g_viewNodalZ");
+
+				origin += _physicsObject.GravityNormal * v;
+				origin += new Vector3(axis.M11, axis.M12, axis.M13) * v + new Vector3(axis.M31, axis.M32, axis.M33) * v;
+			}
 		}
 
 		public override bool HandleSingleGuiCommand(idEntity entityGui, Text.idLexer lexer)
@@ -1413,54 +1443,70 @@ if ( weap ) {
 			}
 			else
 			{
-				// TODO: SetupWeaponEntity();
+				idConsole.Warning("TODO: SetupWeaponEntity();");
 				SpawnFromSpawnSpot();
 			}
-			/*
+			
 			// trigger playtesting item gives, if we didn't get here from a previous level
 			// the devmap key will be set on the first devmap, but cleared on any level
 			// transitions
-			if ( !gameLocal.isMultiplayer && gameLocal.serverInfo.FindKey( "devmap" ) ) {
+			if((idR.Game.IsMultiplayer == false) && (idR.Game.ServerInfo.ContainsKey("devmap") == true))
+			{
+				idConsole.Warning("TODO: devmap");
+
 				// fire a trigger with the name "devmap"
-				idEntity *ent = gameLocal.FindEntity( "devmap" );
+				/*idEntity *ent = gameLocal.FindEntity( "devmap" );
 				if ( ent ) {
 					ent->ActivateTargets( this );
-				}
+				}*/
 			}
-			if ( hud ) {
-				// We can spawn with a full soul cube, so we need to make sure the hud knows this
-				if ( weapon_soulcube > 0 && ( inventory.weapons & ( 1 << weapon_soulcube ) ) ) {
+
+			if(_hud != null)
+			{
+				idConsole.Warning("TODO: soul cube");
+
+				// we can spawn with a full soul cube, so we need to make sure the hud knows this
+				/*if ( weapon_soulcube > 0 && ( inventory.weapons & ( 1 << weapon_soulcube ) ) ) {
 					int max_souls = inventory.MaxAmmoForAmmoClass( this, "ammo_souls" );
 					if ( inventory.ammo[ idWeapon::GetAmmoNumForName( "ammo_souls" ) ] >= max_souls ) {
 						hud->HandleNamedEvent( "soulCubeReady" );
 					}
-				}
-				hud->HandleNamedEvent( "itemPickup" );
+				}*/
+
+				_hud.HandleNamedEvent("itemPickup");
 			}
 
-			if ( GetPDA() ) {
+			idConsole.Warning("TODO: GetPDA");
+			/*if ( GetPDA() ) {
 				// Add any emails from the inventory
 				for ( int i = 0; i < inventory.emails.Num(); i++ ) {
 					GetPDA()->AddEmail( inventory.emails[i] );
 				}
 				GetPDA()->SetSecurity( common->GetLanguageDict()->GetString( "#str_00066" ) );
-			}
+			}*/
 
-			if ( gameLocal.world->spawnArgs.GetBool( "no_Weapons" ) ) {
-				hiddenWeapon = true;
+			if(idR.Game.World.SpawnArgs.GetBool("no_Weapons") == true)
+			{
+				idConsole.Warning("TODO: no_Weapons");
+			
+				/*hiddenWeapon = true;
 				if ( weapon.GetEntity() ) {
 					weapon.GetEntity()->LowerWeapon();
 				}
-				idealWeapon = 0;
-			} else {
-				hiddenWeapon = false;
-			}*/
+				idealWeapon = 0;*/
+			} 
+			else 
+			{
+				idConsole.Warning("TODO: hiddenWeapon = false;");
+			}
 
 			if(_hud != null)
 			{
-				// TODO: UpdateHudWeapon();
+				idConsole.Warning("TODO: UpdateHudWeapon();");
 				_hud.StateChanged(idR.Game.Time);
 			}
+			
+			idConsole.Warning("TODO: inventory");
 
 			/*tipUp = false;
 			objectiveUp = false;
@@ -1470,27 +1516,36 @@ if ( weap ) {
 			}
 
 			inventory.pdaOpened = false;
-			inventory.selPDA = 0;
+			inventory.selPDA = 0;*/
 
-			if ( !gameLocal.isMultiplayer ) {
-				if ( g_skill.GetInteger() < 2 ) {
-					if ( health < 25 ) {
-						health = 25;
+			if(idR.Game.IsMultiplayer == false)
+			{
+				int skill = idR.CvarSystem.GetInteger("g_skill");
+
+				if(skill < 2)
+				{
+					if(this.Health < 25)
+					{
+						this.Health = 25;
 					}
-					if ( g_useDynamicProtection.GetBool() ) {
-						g_damageScale.SetFloat( 1.0f );
+
+					if(idR.CvarSystem.GetBool("g_useDynamicProtection") == true)
+					{
+						idR.CvarSystem.SetFloat("g_damageScale", 1.0f);
 					}
-				} else {
-					g_damageScale.SetFloat( 1.0f );
-					g_armorProtection.SetFloat( ( g_skill.GetInteger() < 2 ) ? 0.4f : 0.2f );
-		#ifndef ID_DEMO_BUILD
-					if ( g_skill.GetInteger() == 3 ) {
-						healthTake = true;
-						nextHealthTake = gameLocal.time + g_healthTakeTime.GetInteger() * 1000;
+				} 
+				else 
+				{
+					idR.CvarSystem.SetFloat("g_damageScale", 1.0f);
+					idR.CvarSystem.SetFloat("g_armorProtection", (skill < 2) ? 0.4f : 0.2f);
+
+					if(skill == 3)
+					{
+						idConsole.Warning("TODO: this.HealthTake = true");
+						idConsole.Warning("TODO: nextHealthTake = gameLocal.time + g_healthTakeTime.GetInteger() * 1000;");
 					}
-		#endif
 				}
-			}*/
+			}
 		}
 
 		/// <summary>
@@ -1828,17 +1883,19 @@ if ( weap ) {
 		#endregion
 
 		#region Methods
+		#region Public
 		public void Draw(idUserInterface hud)
 		{
-			/*const renderView_t* view = player->GetRenderView();
+			idRenderView renderView = _player.RenderView;
 
-			if(g_skipViewEffects.GetBool())
+			if(idR.CvarSystem.GetBool("g_skipViewEffects") == true)
 			{
-				SingleView(hud, view);
+				SingleView(hud, renderView);
 			}
 			else
 			{
-				if(player->GetInfluenceMaterial() || player->GetInfluenceEntity())
+				// TODO:
+				/*if(player->GetInfluenceMaterial() || player->GetInfluenceEntity())
 				{
 					InfluenceVision(hud, view);
 				}
@@ -1850,19 +1907,142 @@ if ( weap ) {
 				{
 					BerserkVision(hud, view);
 				}
-				else
+				else*/
 				{
-					SingleView(hud, view);
+					SingleView(hud, renderView);
 				}
-				ScreenFade();
+
+				// TODO: ScreenFade();
 			}
 
+			/* TODO: lagometer
 			if(net_clientLagOMeter.GetBool() && lagoMaterial && gameLocal.isClient)
 			{
 				renderSystem->SetColor4(1.0f, 1.0f, 1.0f, 1.0f);
 				renderSystem->DrawStretchPic(10.0f, 380.0f, 64.0f, 64.0f, 0.0f, 0.0f, 1.0f, 1.0f, lagoMaterial);
-			}	*/
+			}*/
 		}
+		#endregion
+
+		#region Private
+		private void SingleView(idUserInterface hud, idRenderView renderView)
+		{
+			// normal rendering
+			if(renderView == null)
+			{
+				return;
+			}
+
+			// place the sound origin for the player
+			// TODO: gameSoundWorld->PlaceListener( view->vieworg, view->viewaxis, player->entityNumber + 1, gameLocal.time, hud ? hud->State().GetString( "location" ) : "Undefined" );
+
+			// if the objective system is up, don't do normal drawing
+			// TODO: objectives
+			/*if ( player->objectiveSystemOpen ) {
+				player->objectiveSystem->Redraw( gameLocal.time );
+				return;
+			}
+			*/
+
+			// hack the shake in at the very last moment, so it can't cause any consistency problems
+			idRenderView hackedView = renderView.Copy();
+			// TODO: hackedView.viewaxis = hackedView.viewaxis * ShakeAxis();
+
+			idR.Game.CurrentRenderWorld.RenderScene(hackedView);
+
+			if(_player.IsSpectating == true)
+			{
+				return;
+			}
+
+			// draw screen blobs
+			if((idR.CvarSystem.GetBool("pm_thirdPerson") == false) && (idR.CvarSystem.GetBool("g_skipViewEffects") == false))
+			{
+				idConsole.Warning("TODO: screen blobs");
+
+				/*for ( int i = 0 ; i < MAX_SCREEN_BLOBS ; i++ ) {
+					screenBlob_t	*blob = &screenBlobs[i];
+					if ( blob->finishTime <= gameLocal.time ) {
+						continue;
+					}
+			
+					blob->y += blob->driftAmount;
+
+					float	fade = (float)( blob->finishTime - gameLocal.time ) / ( blob->finishTime - blob->startFadeTime );
+					if ( fade > 1.0f ) {
+						fade = 1.0f;
+					}
+					if ( fade ) {
+						renderSystem->SetColor4( 1,1,1,fade );
+						renderSystem->DrawStretchPic( blob->x, blob->y, blob->w, blob->h,blob->s1, blob->t1, blob->s2, blob->t2, blob->material );
+					}
+				}
+				player->DrawHUD( hud );
+
+				// armor impulse feedback
+				float	armorPulse = ( gameLocal.time - player->lastArmorPulse ) / 250.0f;
+
+				if ( armorPulse > 0.0f && armorPulse < 1.0f ) {
+					renderSystem->SetColor4( 1, 1, 1, 1.0 - armorPulse );
+					renderSystem->DrawStretchPic( 0, 0, 640, 480, 0, 0, 1, 1, armorMaterial );
+				}
+
+
+				// tunnel vision
+				float	health = 0.0f;
+				if ( g_testHealthVision.GetFloat() != 0.0f ) {
+					health = g_testHealthVision.GetFloat();
+				} else {
+					health = player->health;
+				}
+				float alpha = health / 100.0f;
+				if ( alpha < 0.0f ) {
+					alpha = 0.0f;
+				}
+				if ( alpha > 1.0f ) {
+					alpha = 1.0f;
+				}
+
+				if ( alpha < 1.0f  ) {
+					renderSystem->SetColor4( ( player->health <= 0.0f ) ? MS2SEC( gameLocal.time ) : lastDamageTime, 1.0f, 1.0f, ( player->health <= 0.0f ) ? 0.0f : alpha );
+					renderSystem->DrawStretchPic( 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 0.0f, 1.0f, 1.0f, tunnelMaterial );
+				}
+
+				if ( player->PowerUpActive(BERSERK) ) {
+					int berserkTime = player->inventory.powerupEndTime[ BERSERK ] - gameLocal.time;
+					if ( berserkTime > 0 ) {
+						// start fading if within 10 seconds of going away
+						alpha = (berserkTime < 10000) ? (float)berserkTime / 10000 : 1.0f;
+						renderSystem->SetColor4( 1.0f, 1.0f, 1.0f, alpha );
+						renderSystem->DrawStretchPic( 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 0.0f, 1.0f, 1.0f, berserkMaterial );
+					}
+				}
+
+				if ( bfgVision ) {
+					renderSystem->SetColor4( 1.0f, 1.0f, 1.0f, 1.0f );
+					renderSystem->DrawStretchPic( 0.0f, 0.0f, 640.0f, 480.0f, 0.0f, 0.0f, 1.0f, 1.0f, bfgMaterial );
+				}*/
+		
+			}
+
+			// test a single material drawn over everything
+			if(idR.CvarSystem.GetString("g_testPostProcess") != string.Empty)
+			{
+				idMaterial material = idR.DeclManager.FindMaterial(idR.CvarSystem.GetString("g_testPostProcess"), false);
+
+				if(material == null)
+				{
+					idConsole.Warning("Material not found.");
+					idR.CvarSystem.SetString("g_testPostProcess", string.Empty);
+				}
+				else
+				{
+					idR.RenderSystem.Color = new Vector4(1, 1, 1, 1);
+					idR.RenderSystem.DrawStretchPicture(0, 0, idE.VirtualScreenWidth, idE.VirtualScreenHeight, 0, 0, 1, 1, material);
+				}
+			}
+		}
+		#endregion
 		#endregion
 	}
 }

@@ -61,6 +61,18 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public int DynamicModelFrameCount
+		{
+			get
+			{
+				return _dynamicModelFrameCount;
+			}
+			set
+			{
+				_dynamicModelFrameCount = value;
+			}
+		}
+
 		/// <summary>
 		/// Index in to render world entityDefinitions.
 		/// </summary>

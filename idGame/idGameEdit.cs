@@ -113,7 +113,7 @@ namespace idTech4.Game
 
 				if(angle != 0.0f)
 				{
-					renderEntity.Axis = Matrix.CreateRotationY(angle); // TODO: this might fuck things up, upside down models and stuff
+					renderEntity.Axis = Matrix.CreateRotationY(angle);
 				}
 				else
 				{

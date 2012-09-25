@@ -349,6 +349,8 @@ namespace idTech4.Renderer
 		public void AddDrawSurface(Surface surface, ViewEntity space, RenderEntityComponent renderEntity, idMaterial material, idScreenRect scissor)
 		{
 			float[] materialParameters;
+			float[] referenceRegisters = new float[idE.MaxExpressionRegisters];
+			float[] generatedMaterialParameters = new float[idE.MaxEntityMaterialParameters];
 
 			DrawSurface drawSurface = new DrawSurface();
 			drawSurface.Geometry = surface;
@@ -376,47 +378,47 @@ namespace idTech4.Renderer
 				// a reference shader will take the calculated stage color value from another shader
 				// and use that for the parm0-parm3 of the current shader, which allows a stage of
 				// a light model and light flares to pick up different flashing tables from
-				// different light shaders
-				// TODO: reference shader
-
-				/*if ( renderEntity->referenceShader ) {
+				// different light shaders				
+				if(renderEntity.ReferenceMaterial != null)
+				{
 					// evaluate the reference shader to find our shader parms
-					const shaderStage_t *pStage;
+					//renderEntity.ReferenceMaterial.EvaluateRegisters(ref referenceRegisters, renderEntity.MaterialParameters, this.ViewDefinition, renderEntity.ReferenceSound);
 
-					renderEntity->referenceShader->EvaluateRegisters( refRegs, renderEntity->shaderParms, tr.viewDef, renderEntity->referenceSound );
-					pStage = renderEntity->referenceShader->GetStage(0);
+					idConsole.Warning("TODO: ref material");
+					/*MaterialStage stage = renderEntity.ReferenceMaterial.GetStage(0);
 
 					memcpy( generatedShaderParms, renderEntity->shaderParms, sizeof( generatedShaderParms ) );
 					generatedShaderParms[0] = refRegs[ pStage->color.registers[0] ];
 					generatedShaderParms[1] = refRegs[ pStage->color.registers[1] ];
-					generatedShaderParms[2] = refRegs[ pStage->color.registers[2] ];
+					generatedShaderParms[2] = refRegs[ pStage->color.registers[2] ];*/
 
-					shaderParms = generatedShaderParms;
-				} else */
+					materialParameters = generatedMaterialParameters;
+				} 
+				else
 				{
 					// evaluate with the entityDef's shader parms
 					materialParameters = renderEntity.MaterialParameters;
 				}
 
-				float oldFloatTime;
-				int oldTime;
+				float oldFloatTime = 0;
+				int oldTime = 0;
 
-				// TODO: entityDef
-				/*if ( space->entityDef && space->entityDef->parms.timeGroup ) {
-					oldFloatTime = tr.viewDef->floatTime;
-					oldTime = tr.viewDef->renderView.time;
+				if((space.EntityDef != null) && (space.EntityDef.Parameters.TimeGroup != 0))
+				{
+					oldFloatTime = this.ViewDefinition.FloatTime;
+					oldTime = this.ViewDefinition.RenderView.Time;
 
-					tr.viewDef->floatTime = game->GetTimeGroupTime( space->entityDef->parms.timeGroup ) * 0.001;
-					tr.viewDef->renderView.time = game->GetTimeGroupTime( space->entityDef->parms.timeGroup );
-				}*/
+					this.ViewDefinition.FloatTime = idE.Game.GetTimeGroupTime(space.EntityDef.Parameters.TimeGroup) * 0.001f;
+					this.ViewDefinition.RenderView.Time = idE.Game.GetTimeGroupTime(space.EntityDef.Parameters.TimeGroup);
+				}
 
 				material.EvaluateRegisters(ref drawSurface.MaterialRegisters, materialParameters, idE.RenderSystem.ViewDefinition /* TODO: ,renderEntity->referenceSound*/);
 
-				// TODO: entityDef
-				/*if ( space->entityDef && space->entityDef->parms.timeGroup ) {
-					tr.viewDef->floatTime = oldFloatTime;
-					tr.viewDef->renderView.time = oldTime;
-				}*/
+				if((space.EntityDef != null) && (space.EntityDef.Parameters.TimeGroup != 0))
+				{
+					this.ViewDefinition.FloatTime = oldFloatTime;
+					this.ViewDefinition.RenderView.Time = oldTime;
+				}
 			}
 
 			// check for deformations
@@ -435,42 +437,46 @@ namespace idTech4.Renderer
 
 			// check for gui surfaces
 			// TODO: gui surface
-			/*idUserInterface	*gui = NULL;
+			idUserInterface	gui = null;
 
-			if ( !space->entityDef ) {
-				gui = shader->GlobalGui();
-			} else {
-				int guiNum = shader->GetEntityGui() - 1;
+			if(space.EntityDef == null)
+			{
+				gui = material.GlobalInterface;
+			}
+			else
+			{
+				idConsole.Warning("TODO: global gui");
+				/*int guiNum = shader->GetEntityGui() - 1;
 				if ( guiNum >= 0 && guiNum < MAX_RENDERENTITY_GUI ) {
 					gui = renderEntity->gui[ guiNum ];
 				}
 				if ( gui == NULL ) {
 					gui = shader->GlobalGui();
-				}
-			}*/
+				}*/
+			}
 
-			/*if ( gui ) {
+			if(gui != null)
+			{
 				// force guis on the fast time
-				float oldFloatTime;
-				int oldTime;
+				float oldFloatTime = this.ViewDefinition.FloatTime;
+				int oldTime = this.ViewDefinition.RenderView.Time;
 
-				oldFloatTime = tr.viewDef->floatTime;
-				oldTime = tr.viewDef->renderView.time;
-
-				tr.viewDef->floatTime = game->GetTimeGroupTime( 1 ) * 0.001;
-				tr.viewDef->renderView.time = game->GetTimeGroupTime( 1 );
+				this.ViewDefinition.FloatTime = idE.Game.GetTimeGroupTime(1) * 0.001f;
+				this.ViewDefinition.RenderView.Time = idE.Game.GetTimeGroupTime(1);
 
 				idBounds ndcBounds;
 
-				if ( !R_PreciseCullSurface( drawSurf, ndcBounds ) ) {
+				idConsole.Warning("TODO: precise cull + render gui surface");
+
+				/*if ( !R_PreciseCullSurface( drawSurf, ndcBounds ) ) {
 					// did we ever use this to forward an entity color to a gui that didn't set color?
 		//			memcpy( tr.guiShaderParms, shaderParms, sizeof( tr.guiShaderParms ) );
 					R_RenderGuiSurf( gui, drawSurf );
-				}
+				}*/
 
-				tr.viewDef->floatTime = oldFloatTime;
-				tr.viewDef->renderView.time = oldTime;
-			}*/
+				this.ViewDefinition.FloatTime = oldFloatTime;
+				this.ViewDefinition.RenderView.Time = oldTime;
+			}
 
 			_viewDefinition.DrawSurfaces.Add(drawSurface);
 
@@ -839,10 +845,10 @@ namespace idTech4.Renderer
 			idE.RenderModelManager.EndLevelLoad();
 			idE.ImageManager.EndLevelLoad();
 
-			// TODO: 
-			/*if ( r_forceLoadImages.GetBool() ) {
-				RB_ShowImages();
-			}*/
+			if(idE.CvarSystem.GetBool("r_forceLoadImages") == true)
+			{
+				idConsole.Warning("TODO: RB_ShowImages();");
+			}
 		}
 
 		public void Init(GraphicsDeviceManager graphicsDeviceManager)
@@ -1150,6 +1156,128 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Private
+		/// <summary>
+		/// Adds surfaces for the given viewEntity
+		/// Walks through the viewEntitys list and creates drawSurf_t for each surface of
+		/// each viewEntity that has a non-empty scissorRect.
+		/// </summary>
+		/// <param name="viewEntity"></param>
+		private void AddAmbientDrawSurfaces(ViewEntity viewEntity)
+		{
+			idRenderEntity def = viewEntity.EntityDef;
+			idRenderModel model;
+			idMaterial material;
+			Surface geometry;
+
+			if(def.DynamicModel != null)
+			{
+				model = def.DynamicModel;
+			}
+			else
+			{
+				model = def.Parameters.Model;
+			}
+
+			// add all the surfaces
+			int total = model.SurfaceCount;
+
+			for(int i = 0; i < total; i++)
+			{
+				RenderModelSurface surface = model.GetSurface(i);
+
+				// for debugging, only show a single surface at a time
+				if((idE.CvarSystem.GetInteger("r_singleSurface") >= 0) && (i != idE.CvarSystem.GetInteger("r_singleSurface")))
+				{
+					continue;
+				}
+
+				geometry = surface.Geometry;
+
+				if(geometry == null)
+				{
+					continue;
+				}
+				else if(geometry.Indexes.Length == 0)
+				{
+					continue;
+				}
+
+				material = surface.Material;				
+				material = RemapMaterialBySkin(material, def.Parameters.CustomSkin, def.Parameters.CustomMaterial);
+				material = GlobalMaterialOverride(material);
+
+				if(material == null)
+				{
+					continue;
+				}
+				else if(material.IsDrawn == false)
+				{
+					continue;
+				}
+
+				// debugging tool to make sure we are have the correct pre-calculated bounds
+				if(idE.CvarSystem.GetBool("r_checkBounds") == true)
+				{
+					idConsole.Warning("TODO: r_checkBounds");
+					/*int j, k;
+					for ( j = 0 ; j < tri->numVerts ; j++ ) {
+						for ( k = 0 ; k < 3 ; k++ ) {
+							if ( tri->verts[j].xyz[k] > tri->bounds[1][k] + CHECK_BOUNDS_EPSILON
+								|| tri->verts[j].xyz[k] < tri->bounds[0][k] - CHECK_BOUNDS_EPSILON ) {
+								common->Printf( "bad tri->bounds on %s:%s\n", def->parms.hModel->Name(), shader->GetName() );
+								break;
+							}
+							if ( tri->verts[j].xyz[k] > def->referenceBounds[1][k] + CHECK_BOUNDS_EPSILON
+								|| tri->verts[j].xyz[k] < def->referenceBounds[0][k] - CHECK_BOUNDS_EPSILON ) {
+								common->Printf( "bad referenceBounds on %s:%s\n", def->parms.hModel->Name(), shader->GetName() );
+								break;
+							}
+						}
+						if ( k != 3 ) {
+							break;
+						}
+					}*/
+				}
+
+				// TODO: CullLocalBox
+				// if ( !R_CullLocalBox( tri->bounds, vEntity->modelMatrix, 5, tr.viewDef->frustum ) ) {
+				{
+					def.ViewCount = this.ViewCount;
+
+					// make sure we have an ambient cache
+					if(CreateAmbientCache(geometry, /* TODO: shader->ReceivesLighting() */ false) == false)
+					{
+						// don't add anything if the vertex cache was too full to give us an ambient cache
+						return;
+					}
+										
+					// touch it so it won't get purged
+					//vertexCache.Touch( tri->ambientCache );
+
+					/*if ( r_useIndexBuffers.GetBool() && !tri->indexCache ) {
+						vertexCache.Alloc( tri->indexes, tri->numIndexes * sizeof( tri->indexes[0] ), &tri->indexCache, true );
+					}
+					if ( tri->indexCache ) {
+						vertexCache.Touch( tri->indexCache );
+					}*/
+					
+					// add the surface for drawing
+					AddDrawSurface(geometry, viewEntity, viewEntity.EntityDef.Parameters, material, viewEntity.ScissorRectangle);
+
+					// ambientViewCount is used to allow light interactions to be rejected
+					// if the ambient surface isn't visible at all
+					geometry.AmbientViewCount = this.ViewCount;
+				}
+			}
+
+			// add the lightweight decal surfaces
+			// TODO: decals
+			/*for ( idRenderModelDecal *decal = def->decals; decal; decal = decal->Next() ) {
+				decal->AddDecalDrawSurf( vEntity );
+			}*/
+		}
+
+
 		/// <remarks>
 		/// Here is where dynamic models actually get instantiated, and necessary
 		/// interactions get created.  This is all done on a sort-by-model basis
@@ -1215,18 +1343,20 @@ namespace idTech4.Renderer
 				// add the ambient surface if it has a visible rectangle
 				if(viewEntity.ScissorRectangle.IsEmpty == false)
 				{
-					idConsole.Warning("TODO: entity dynamic model");
+					idRenderModel model = EntityDefinitionDynamicModel(viewEntity.EntityDef);
 
-					/*model = R_EntityDefDynamicModel( vEntity->entityDef );
-					if ( model == NULL || model->NumSurfaces() <= 0 ) {
-						if ( vEntity->entityDef->parms.timeGroup ) {
-							tr.viewDef->floatTime = oldFloatTime;
-							tr.viewDef->renderView.time = oldTime;
+					if((model == null) | (model.SurfaceCount <= 0))
+					{
+						if(viewEntity.EntityDef.Parameters.TimeGroup != 0)
+						{
+							this.ViewDefinition.FloatTime = oldFloatTime;
+							this.ViewDefinition.RenderView.Time = oldTime;
 						}
-						continue;
-					}*/
 
-					// R_AddAmbientDrawsurfs( vEntity );
+						continue;
+					}
+
+					AddAmbientDrawSurfaces(viewEntity);
 					
 					// TODO: tr.pc.c_visibleViewEntities++;
 				} 
@@ -1307,15 +1437,18 @@ namespace idTech4.Renderer
 			GL_State(MaterialStates.DepthFunctionAlways);
 
 			// we don't have to clear the depth / stencil buffer for 2D rendering
-			// TODO:
-			/*if ( backEnd.viewDef->viewEntitys ) {
-				Gl.glStencilMask(0xFF);
+			if(idE.Backend.ViewDefinition.ViewEntities.Count > 0)
+			{
+				idConsole.Warning("TODO: stencil mask");
+
+				/*Gl.glStencilMask(0xFF);
 				// some cards may have 7 bit stencil buffers, so don't assume this
 				// should be 128
 				Gl.glClearStencil(1 << (glConfig.stencilBits - 1));
 				Gl.glClear(Gl.GL_DEPTH_BUFFER_BIT | Gl.GL_STENCIL_BUFFER_BIT);
-				Gl.glEnable(Gl.GL_DEPTH_TEST);
-			} else */
+				Gl.glEnable(Gl.GL_DEPTH_TEST);*/
+			} 
+			else
 			{
 				DepthStencilState s = new DepthStencilState();
 				s.DepthBufferEnable = false;
@@ -1503,9 +1636,9 @@ namespace idTech4.Renderer
 			_sortOffset = 0;
 			_worlds.Clear();
 
-			/*primaryWorld = NULL;
-			memset( &primaryRenderView, 0, sizeof( primaryRenderView ) );
-			primaryView = NULL;*/
+			_primaryRenderWorld = null;
+			_primaryView = null;
+			_primaryRenderView = new idRenderView();
 
 			_defaultMaterial = null;
 
@@ -1552,12 +1685,12 @@ namespace idTech4.Renderer
 			{
 				bounds.AddBounds(vLight->lightDef->frustumTris->bounds);
 			}*/
-
+				
 			foreach(ViewEntity viewEntity in _viewDefinition.ViewEntities)
 			{
 				bounds.AddBounds(viewEntity.EntityDef.ReferenceBounds);
 			}
-
+			
 			_viewDefinition.ViewFrustum.ConstrainToBounds(bounds);
 
 			float farDistance = idE.CvarSystem.GetFloat("r_useFrustumFarDistance");
@@ -1566,6 +1699,25 @@ namespace idTech4.Renderer
 			{
 				_viewDefinition.ViewFrustum.MoveFarDistance(farDistance);
 			}
+		}
+
+		private bool CreateAmbientCache(Surface geometry, bool needsLighting)
+		{
+			if(geometry.AmbientCache != null)
+			{
+				return true;
+			}
+
+			// we are going to use it for drawing, so make sure we have the tangents and normals
+			// TODO: lighting
+			/*if ( needsLighting && !tri->tangentsCalculated ) {
+				R_DeriveTangents( tri );
+			}*/
+
+			geometry.AmbientCache = new VertexCache();
+			geometry.AmbientCache.Data = new Vertex[geometry.Vertices.Length];
+
+			return true;
 		}
 
 		private void DrawElementsWithCounters(Surface tri)
@@ -1680,10 +1832,10 @@ namespace idTech4.Renderer
 		private int DrawShaderPasses(DrawSurface[] surfaces)
 		{
 			// only obey skipAmbient if we are rendering a view
-			// TODO
-			/*if ( backEnd.viewDef->viewEntitys && r_skipAmbient.GetBool() ) {
-				return numDrawSurfs;
-			}*/
+			if((idE.Backend.ViewDefinition.ViewEntities.Count > 0) && (idE.CvarSystem.GetBool("r_skipAmbient") == true))
+			{
+				return surfaces.Length;
+			}
 
 			// RB_LogComment( "---------- RB_STD_DrawShaderPasses ----------\n" );
 
@@ -1751,7 +1903,7 @@ namespace idTech4.Renderer
 
 			return i;
 		}
-
+				
 		private void DrawView(DrawViewRenderCommand command)
 		{
 			idE.Backend.ViewDefinition = command.View;
@@ -1768,7 +1920,8 @@ namespace idTech4.Renderer
 
 			// skip render bypasses everything that has models, assuming
 			// them to be 3D views, but leaves 2D rendering visible
-			if((idE.CvarSystem.GetBool("r_skipRender") == true) /* TODO: && backEnd.viewDef->viewEntitys*/)
+			
+			if((idE.CvarSystem.GetBool("r_skipRender") == true) && (idE.Backend.ViewDefinition.ViewEntities.Count > 0))
 			{
 				return;
 			}
@@ -1798,7 +1951,7 @@ namespace idTech4.Renderer
 
 			// fill the depth buffer and clear color buffer to black except on
 			// subviews
-			// TODO: FillDepthBuffer(surfaces);
+			FillDepthBuffer(surfaces);
 
 			// main light renderer
 			/*switch( tr.backEndRenderer ) {
@@ -1832,12 +1985,105 @@ namespace idTech4.Renderer
 			// TODO: RB_STD_FogAllLights();
 
 			// now draw any post-processing effects using _currentRender
-			/*if ( processed < numDrawSurfs ) {
-				RB_STD_DrawShaderPasses( drawSurfs+processed, numDrawSurfs-processed );
+			if(processed < surfaceCount)
+			{
+				idConsole.Warning("TODO: RB_STD_DrawShaderPasses( drawSurfs+processed, numDrawSurfs-processed );");
 			}
 
-			RB_RenderDebugTools( drawSurfs, numDrawSurfs );*/
+			/*RB_RenderDebugTools( drawSurfs, numDrawSurfs );*/
 
+		}
+
+		/// <summary>
+		/// Issues a deferred entity callback if necessary.
+		/// If the model isn't dynamic, it returns the original.
+		/// Returns the cached dynamic model if present, otherwise creates
+		/// it and any necessary overlays
+		/// </summary>
+		/// <param name="def"></param>
+		/// <returns></returns>
+		private idRenderModel EntityDefinitionDynamicModel(idRenderEntity def) 
+		{
+			bool callbackUpdate;
+
+			// allow deferred entities to construct themselves
+			if(def.Parameters.Callback != null)
+			{
+				callbackUpdate = false;
+				idConsole.Warning("TODO: R_IssueEntityDefCallback( def );");
+			} 
+			else 
+			{
+				callbackUpdate = false;
+			}
+
+			idRenderModel model = def.Parameters.Model;
+
+			if(model == null)
+			{
+				idConsole.Error("EntityDefinitionDynamicModel: null model");
+			}
+
+			if(model.IsDynamic == DynamicModel.Static)
+			{
+				def.DynamicModel = null;
+				def.DynamicModelFrameCount = 0;
+
+				return model;
+			}
+
+			idConsole.Warning("TODO: dynamic model rendering!");
+	// continously animating models (particle systems, etc) will have their snapshot updated every single view
+	/*if ( callbackUpdate || ( model->IsDynamicModel() == DM_CONTINUOUS && def->dynamicModelFrameCount != tr.frameCount ) ) {
+		R_ClearEntityDefDynamicModel( def );
+	}
+
+	// if we don't have a snapshot of the dynamic model, generate it now
+	if ( !def->dynamicModel ) {
+
+		// instantiate the snapshot of the dynamic model, possibly reusing memory from the cached snapshot
+		def->cachedDynamicModel = model->InstantiateDynamicModel( &def->parms, tr.viewDef, def->cachedDynamicModel );
+
+		if ( def->cachedDynamicModel ) {
+
+			// add any overlays to the snapshot of the dynamic model
+			if ( def->overlay && !r_skipOverlays.GetBool() ) {
+				def->overlay->AddOverlaySurfacesToModel( def->cachedDynamicModel );
+			} else {
+				idRenderModelOverlay::RemoveOverlaySurfacesFromModel( def->cachedDynamicModel );
+			}
+
+			if ( r_checkBounds.GetBool() ) {
+				idBounds b = def->cachedDynamicModel->Bounds();
+				if (	b[0][0] < def->referenceBounds[0][0] - CHECK_BOUNDS_EPSILON ||
+						b[0][1] < def->referenceBounds[0][1] - CHECK_BOUNDS_EPSILON ||
+						b[0][2] < def->referenceBounds[0][2] - CHECK_BOUNDS_EPSILON ||
+						b[1][0] > def->referenceBounds[1][0] + CHECK_BOUNDS_EPSILON ||
+						b[1][1] > def->referenceBounds[1][1] + CHECK_BOUNDS_EPSILON ||
+						b[1][2] > def->referenceBounds[1][2] + CHECK_BOUNDS_EPSILON ) {
+					common->Printf( "entity %i dynamic model exceeded reference bounds\n", def->index );
+				}
+			}
+		}
+
+		def->dynamicModel = def->cachedDynamicModel;
+		def->dynamicModelFrameCount = tr.frameCount;
+	}
+
+	// set model depth hack value
+	if ( def->dynamicModel && model->DepthHack() != 0.0f && tr.viewDef ) {
+		idPlane eye, clip;
+		idVec3 ndc;
+		R_TransformModelToClip( def->parms.origin, tr.viewDef->worldSpace.modelViewMatrix, tr.viewDef->projectionMatrix, eye, clip );
+		R_TransformClipToDevice( clip, tr.viewDef, ndc );
+		def->parms.modelDepthHack = model->DepthHack() * ( 1.0f - ndc.z );
+	}
+*/
+	
+			// FIXME: if any of the surfaces have deforms, create a frame-temporary model with references to the
+			// undeformed surfaces.  This would allow deforms to be light interacting.
+
+			return def.DynamicModel;
 		}
 
 		private void ExecuteBackEndCommands(Queue<RenderCommand> commands)
@@ -1905,6 +2151,237 @@ namespace idTech4.Renderer
 				common->Printf( "3d: %i, 2d: %i, SetBuf: %i, SwpBuf: %i, CpyRenders: %i, CpyFrameBuf: %i\n", c_draw3d, c_draw2d, c_setBuffers, c_swapBuffers, c_copyRenders, backEnd.c_copyFrameBuffer );
 				backEnd.c_copyFrameBuffer = 0;
 			}*/
+		}
+
+		/// <summary>
+		/// If we are rendering a subview with a near clip plane, use a second texture
+		/// to force the alpha test to fail when behind that clip plane.
+		/// </summary>
+		/// <param name="surfaces"></param>
+		private void FillDepthBuffer(DrawSurface[] surfaces)
+		{
+			// if we are just doing 2D rendering, no need to fill the depth buffer
+			if(idE.Backend.ViewDefinition.ViewEntities.Count == 0)
+			{
+				return;
+			}
+
+			// TODO: RB_LogComment("---------- RB_STD_FillDepthBuffer ----------\n");
+
+			// enable the second texture for mirror plane clipping if needed
+			// TODO: plane clipping
+			/*if(backEnd.viewDef->numClipPlanes)
+			{
+				GL_SelectTexture(1);
+				globalImages->alphaNotchImage->Bind();
+				qglDisableClientState(GL_TEXTURE_COORD_ARRAY);
+				qglEnable(GL_TEXTURE_GEN_S);
+				qglTexCoord2f(1, 0.5);
+			}*/
+
+			// the first texture will be used for alpha tested surfaces
+			GL_SelectTexture(0);
+
+			// decal surfaces may enable polygon offset
+			// TODO: qglPolygonOffset(r_offsetFactor.GetFloat(), r_offsetUnits.GetFloat());
+
+			GL_State(MaterialStates.DepthFunctionLess);
+
+			// Enable stencil test if we are going to be using it for shadows.
+			// If we didn't do this, it would be legal behavior to get z fighting
+			// from the ambient pass and the light passes.
+			/*qglEnable(GL_STENCIL_TEST);
+			qglStencilFunc(GL_ALWAYS, 1, 255);*/
+
+			RenderDrawSurfaceListWithFunction(surfaces, FillDepthBufferHandler);
+
+			/*if(backEnd.viewDef->numClipPlanes)
+			{
+				GL_SelectTexture(1);
+				globalImages->BindNull();
+				qglDisable(GL_TEXTURE_GEN_S);
+				GL_SelectTexture(0);
+			}*/
+		}
+
+		private void FillDepthBufferHandler(DrawSurface drawSurface)
+		{
+			Surface tri = drawSurface.Geometry;
+			idMaterial material = drawSurface.Material;
+			Vector4 color;
+
+			// update the clip plane if needed
+			// TODO
+			/*if ( backEnd.viewDef->numClipPlanes && surf->space != backEnd.currentSpace ) {
+				GL_SelectTexture( 1 );
+		
+				idPlane	plane;
+
+				R_GlobalPlaneToLocal( surf->space->modelMatrix, backEnd.viewDef->clipPlanes[0], plane );
+				plane[3] += 0.5;	// the notch is in the middle
+				qglTexGenfv( GL_S, GL_OBJECT_PLANE, plane.ToFloatPtr() );
+				GL_SelectTexture( 0 );
+			}*/
+
+			if(material.IsDrawn == false)
+			{
+				return;
+			}
+
+			// some deforms may disable themselves by setting numIndexes = 0
+			if(tri.Indexes.Length == 0)
+			{
+				return;
+			}
+
+			// translucent surfaces don't put anything in the depth buffer and don't
+			// test against it, which makes them fail the mirror clip plane operation
+			if(material.Coverage == MaterialCoverage.Translucent)
+			{
+				return;
+			}
+
+			if(tri.AmbientCache == null)
+			{
+				idConsole.Warning("TODO: RB_T_FillDepthBuffer: !tri->ambientCache");
+				return;
+			}
+
+			// get the expressions for conditionals / color / texcoords
+			float[] regs = drawSurface.MaterialRegisters;
+
+			// if all stages of a material have been conditioned off, don't do anything
+			int stage;
+			MaterialStage materialStage;
+
+			for(stage = 0; stage < material.Stages.Length; stage++)
+			{
+				materialStage = material.GetStage(stage);
+
+				// check the stage enable condition
+				if(regs[materialStage.ConditionRegister] != 0)
+				{
+					break;
+				}
+			}
+
+			if(stage == material.Stages.Length)
+			{
+				return;
+			}
+
+			// set polygon offset if necessary
+			/*if ( shader->TestMaterialFlag(MF_POLYGONOFFSET) ) {
+				qglEnable( GL_POLYGON_OFFSET_FILL );
+				qglPolygonOffset( r_offsetFactor.GetFloat(), r_offsetUnits.GetFloat() * shader->GetPolygonOffset() );
+			}*/
+
+			// subviews will just down-modulate the color buffer by overbright
+			if(material.Sort == (float) MaterialSort.Subview)
+			{
+				GL_State(MaterialStates.SourceBlendDestinationColor | MaterialStates.DestinationBlendZero | MaterialStates.DepthFunctionLess);
+
+				idConsole.Warning("TODO: subview color");
+
+				/*color[0] =
+				color[1] = 
+				color[2] = ( 1.0 / backEnd.overBright );
+				color[3] = 1;*/
+			}
+			else 
+			{
+				// others just draw black
+				color = new Vector4(0, 0, 0, 1);
+			}
+
+			/*idDrawVert *ac = (idDrawVert *)vertexCache.Position( tri->ambientCache );
+			qglVertexPointer( 3, GL_FLOAT, sizeof( idDrawVert ), ac->xyz.ToFloatPtr() );
+			qglTexCoordPointer( 2, GL_FLOAT, sizeof( idDrawVert ), reinterpret_cast<void *>(&ac->st) );*/
+
+			bool drawSolid = false;
+
+			if(material.Coverage == MaterialCoverage.Opaque)
+			{
+				drawSolid = true;
+			}
+			
+			// we may have multiple alpha tested stages
+			if(material.Coverage == MaterialCoverage.Perforated)
+			{
+				idConsole.Warning("TODO: perforated");
+
+				/*// if the only alpha tested stages are condition register omitted,
+				// draw a normal opaque surface
+				bool	didDraw = false;
+
+				qglEnable( GL_ALPHA_TEST );
+				// perforated surfaces may have multiple alpha tested stages
+				for ( stage = 0; stage < shader->GetNumStages() ; stage++ ) {		
+					pStage = shader->GetStage(stage);
+
+					if ( !pStage->hasAlphaTest ) {
+						continue;
+					}
+
+					// check the stage enable condition
+					if ( regs[ pStage->conditionRegister ] == 0 ) {
+						continue;
+					}
+
+					// if we at least tried to draw an alpha tested stage,
+					// we won't draw the opaque surface
+					didDraw = true;
+
+					// set the alpha modulate
+					color[3] = regs[ pStage->color.registers[3] ];
+
+					// skip the entire stage if alpha would be black
+					if ( color[3] <= 0 ) {
+						continue;
+					}
+					qglColor4fv( color );
+
+					qglAlphaFunc( GL_GREATER, regs[ pStage->alphaTestRegister ] );
+
+					// bind the texture
+					pStage->texture.image->Bind();
+
+					// set texture matrix and texGens
+					RB_PrepareStageTexturing( pStage, surf, ac );
+
+					// draw it
+					RB_DrawElementsWithCounters( tri );
+
+					RB_FinishStageTexturing( pStage, surf, ac );
+				}
+				qglDisable( GL_ALPHA_TEST );
+				if ( !didDraw ) {
+					drawSolid = true;
+				}*/
+			}
+			
+
+			// draw the entire surface solid
+			if(drawSolid == true)
+			{
+				idConsole.Warning("TODO: qglColor4fv(color);");
+
+				idE.ImageManager.WhiteImage.Bind();
+
+				// draw it
+				DrawElementsWithCounters(tri);
+			}
+
+			// reset polygon offset
+			/*if ( shader->TestMaterialFlag(MF_POLYGONOFFSET) ) {
+				qglDisable( GL_POLYGON_OFFSET_FILL );
+			}*/
+
+			// reset blending
+			if(material.Sort == (float) MaterialSort.Subview)
+			{
+				GL_State(MaterialStates.DepthFunctionLess);
+			}
 		}
 
 		private void FinishStageTexturing(MaterialStage stage, DrawSurface surface, Vertex[] position)
@@ -2064,6 +2541,24 @@ namespace idTech4.Renderer
 			matrix[15] = 1;
 
 			return matrix;
+		}
+
+		public idMaterial GlobalMaterialOverride(idMaterial material)
+		{
+			if(material.IsDrawn == false)
+			{
+				return material;
+			}
+			else if(this.PrimaryRenderView.GlobalMaterial != null)
+			{
+				return this.PrimaryRenderView.GlobalMaterial;
+			}
+			else if(idE.CvarSystem.GetString("r_materialOverride") != string.Empty)
+			{
+				return idE.DeclManager.FindMaterial(idE.CvarSystem.GetString("r_materialOverride"));
+			}
+
+			return material;
 		}
 
 		/// <summary>
@@ -2773,8 +3268,6 @@ namespace idTech4.Renderer
 			}
 		}
 
-
-
 		private void LoadMaterialTextureMatrix(float[] materialRegisters, TextureStage textureStage)
 		{
 			float[] matrix = GetMaterialTextureMatrix(materialRegisters, textureStage);
@@ -3282,6 +3775,96 @@ namespace idTech4.Renderer
 				{
 					idConsole.Warning("TODO: RB_LeaveDepthHack();");
 				}
+			}
+		}
+
+		public idMaterial RemapMaterialBySkin(idMaterial material, idDeclSkin skin, idMaterial customMaterial)
+		{
+			if(material == null)
+			{
+				return null;
+			}
+
+			// never remap surfaces that were originally nodraw, like collision hulls
+			if(material.IsDrawn == false)
+			{
+				return material;
+			}
+
+			if(customMaterial != null)
+			{
+				// this is sort of a hack, but cause deformed surfaces to map to empty surfaces,
+				// so the item highlight overlay doesn't highlight the autosprite surface
+				if(material.Deform != DeformType.None)
+				{
+					return null;
+				}
+
+
+				return customMaterial;
+			}
+
+			if((skin == null) || (material == null))
+			{
+				return material;
+			}
+
+			return skin.RemapShaderBySkin(material);
+		}
+
+		/// <summary>
+		/// The triangle functions can check backEnd.currentSpace != surf->space
+		/// to see if they need to perform any new matrix setup.  The modelview
+		/// matrix will already have been loaded, and backEnd.currentSpace will
+		/// be updated after the triangle function completes.
+		/// </summary>
+		/// <param name="surfaces"></param>
+		/// <param name="handler"></param>
+		private void RenderDrawSurfaceListWithFunction(DrawSurface[] surfaces, RenderHandler handler)
+		{
+			int count = surfaces.Length;
+
+			for(int i = 0; i < count; i++)
+			{
+				DrawSurface surface = surfaces[i];
+
+				// change the matrix if needed
+				//if(surface.Space != idE.Backend.CurrentSpace)
+				{
+					//qglLoadMatrixf( drawSurf->space->modelViewMatrix );
+				}
+
+				if(surface.Space.WeaponDepthHack == true)
+				{
+					idConsole.Warning("TODO: RB_EnterWeaponDepthHack();");
+				}
+
+				if(surface.Space.ModelDepthHack != 0.0f)
+				{
+					idConsole.Warning("TODO: RB_EnterModelDepthHack( drawSurf->space->modelDepthHack );");
+				}
+
+				// change the scissor if needed
+				if((idE.CvarSystem.GetBool("r_useScissor") == true) && (idE.Backend.CurrentScissor != surface.ScissorRectangle))
+				{
+					idE.Backend.CurrentScissor = surface.ScissorRectangle;
+
+					_graphicsDevice.ScissorRectangle = new Rectangle(
+						idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
+						idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.CurrentScissor.Y1,
+						idE.Backend.CurrentScissor.X2 + 1 - idE.Backend.CurrentScissor.X1,
+						idE.Backend.CurrentScissor.Y2 + 1 - idE.Backend.CurrentScissor.Y1);
+				}
+
+				// render it
+				handler(surface);
+
+				if((surface.Space.WeaponDepthHack == true) || (surface.Space.ModelDepthHack != 0.0f))
+				{
+					idConsole.Warning("TODO: RB_LeaveDepthHack();");
+				}
+
+				idE.Backend.CurrentSpace = surface.Space;
 			}
 		}
 
@@ -4325,10 +4908,9 @@ namespace idTech4.Renderer
 		public View ViewDefinition;
 		/*backEndCounters_t	pc;*/
 
-		/*const viewEntity_t *currentSpace;		// for detecting when a matrix must change*/
+		public ViewEntity CurrentSpace; // for detecting when a matrix must change
 
-		public idScreenRect CurrentScissor;
-		// for scissor clipping, local inside renderView viewport
+		public idScreenRect CurrentScissor; // for scissor clipping, local inside renderView viewport
 
 		/*viewLight_t *		vLight;*/
 		public MaterialStates DepthFunction;	// GLS_DEPTHFUNC_EQUAL, or GLS_DEPTHFUNC_LESS for translucent
@@ -4867,9 +5449,9 @@ namespace idTech4.Renderer
 		/// Create normals from geometry, instead of using explicit ones.
 		/// </summary>
 		public bool GenerateNormals;
-	/*int							ambientViewCount;		// if == tr.viewCount, it is visible this view
+		public int AmbientViewCount;		// if == tr.viewCount, it is visible this view
 
-	bool						tangentsCalculated;		// set when the vertex tangents have been calculated
+	/*bool						tangentsCalculated;		// set when the vertex tangents have been calculated
 	bool						facePlanesCalculated;	// set when the face planes have been calculated
 	bool						perfectHull;			// true if there aren't any dangling edges
 	bool						deformedSurface;		// if true, indexes, silIndexes, mirrorVerts, and silEdges are
@@ -5284,4 +5866,6 @@ namespace idTech4.Renderer
 		}
 		#endregion
 	}
+
+	public delegate void RenderHandler(DrawSurface surface);
 }
