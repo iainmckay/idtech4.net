@@ -1704,7 +1704,7 @@ namespace idTech4.Game
 
 			// register game specific decl folders
 			idR.DeclManager.RegisterDeclFolder("def", ".def", DeclType.EntityDef);
-			// TODO: idR.DeclManager.RegisterDeclFolder("fx", ".fx", DeclType.Fx);
+			idR.DeclManager.RegisterDeclFolder("fx", ".fx", DeclType.Fx);
 			idR.DeclManager.RegisterDeclFolder("particles", ".prt", DeclType.Particle);
 			// TODO: idR.DeclManager.RegisterDeclFolder("af", ".af", DeclType.Af);
 			idR.DeclManager.RegisterDeclFolder("newpdas", ".pda", DeclType.Pda);

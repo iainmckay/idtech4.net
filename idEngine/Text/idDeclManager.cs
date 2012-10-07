@@ -156,7 +156,7 @@ namespace idTech4.Text
 			
 			RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntity>());
 			RegisterDeclType("mapDef", DeclType.MapDef, new idDeclAllocator<idDeclEntity>());
-			/*RegisterDeclType("fx", DeclType.Fx, new idDeclAllocator<idDeclFX>());*/
+			RegisterDeclType("fx", DeclType.Fx, new idDeclAllocator<idDeclFX>());
 			RegisterDeclType("particle", DeclType.Particle, new idDeclAllocator<idDeclParticle>());
 			/*RegisterDeclType("articulatedFigure", DeclType.Af, new idDeclAllocator<idDeclAF>());
 			RegisterDeclType("pda", DeclType.Pda, new idDeclAllocator<idDeclPDA>());*/

@@ -18133,157 +18133,631 @@
       <Name>cube_bmp</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\cube1\cube_d.tga">
       <Name>cube_d</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\cube1\cube_hp_local.tga">
       <Name>cube_hp_local</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\cube1\cube_s.tga">
       <Name>cube_s</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfschamber_bmp.tga">
       <Name>mfschamber_bmp</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfschamber_d.tga">
       <Name>mfschamber_d</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfschamber_local.tga">
       <Name>mfschamber_local</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfschamber_s.tga">
       <Name>mfschamber_s</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfsclamp_bmp.tga">
       <Name>mfsclamp_bmp</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfsclamp_d.tga">
       <Name>mfsclamp_d</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfsclamp_local.tga">
       <Name>mfsclamp_local</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfsclamp_s.tga">
       <Name>mfsclamp_s</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompbase_bmp.tga">
       <Name>mfscompbase_bmp</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompbase_d.tga">
       <Name>mfscompbase_d</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompbase_local.tga">
       <Name>mfscompbase_local</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompbase_s.tga">
       <Name>mfscompbase_s</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_add.tga">
       <Name>mfscompcell_add</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_bmp.tga">
       <Name>mfscompcell_bmp</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_d.tga">
       <Name>mfscompcell_d</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_local.tga">
       <Name>mfscompcell_local</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_s.tga">
       <Name>mfscompcell_s</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_add.tga">
       <Name>mfscompmain_add</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_bmp.tga">
       <Name>mfscompmain_bmp</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_d.tga">
       <Name>mfscompmain_d</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_local.tga">
       <Name>mfscompmain_local</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
     <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_s.tga">
       <Name>mfscompmain_s</Name>
       <Importer>TextureImporter</Importer>
       <Processor>TextureProcessor</Processor>
-      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\a_smalldoor_02.tga">
+      <Name>a_smalldoor_02</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\a_smalldoor_04.tga">
+      <Name>a_smalldoor_04</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\a_smalldoor_b02.tga">
+      <Name>a_smalldoor_b02</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\a_smalldoor_b04.tga">
+      <Name>a_smalldoor_b04</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\a_smalldoor_d02.tga">
+      <Name>a_smalldoor_d02</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\a_smalldoor_d04.tga">
+      <Name>a_smalldoor_d04</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\a_smalldoor_local.tga">
+      <Name>a_smalldoor_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\a_smalldoor_s02.tga">
+      <Name>a_smalldoor_s02</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\a_smalldoor_s04.tga">
+      <Name>a_smalldoor_s04</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2light.tga">
+      <Name>cpudoor2light</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2pipes_d.tga">
+      <Name>cpudoor2pipes_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2pipes_local.tga">
+      <Name>cpudoor2pipes_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2pipes_s.tga">
+      <Name>cpudoor2pipes_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2r_d.tga">
+      <Name>cpudoor2r_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2r_local.tga">
+      <Name>cpudoor2r_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2r_s.tga">
+      <Name>cpudoor2r_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2_bmp.tga">
+      <Name>cpudoor2_bmp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2_d.tga">
+      <Name>cpudoor2_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2_local.tga">
+      <Name>cpudoor2_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\cpudoor2_s.tga">
+      <Name>cpudoor2_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doorlocklight.tga">
+      <Name>doorlocklight</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doorlocklightg.tga">
+      <Name>doorlocklightg</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doorlocklight_local.tga">
+      <Name>doorlocklight_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doormonitor.tga">
+      <Name>doormonitor</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doormonitor2.tga">
+      <Name>doormonitor2</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doormonitorarrow.tga">
+      <Name>doormonitorarrow</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doormonitorarrow_grad.tga">
+      <Name>doormonitorarrow_grad</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doormonitorarrow_local.tga">
+      <Name>doormonitorarrow_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doormonitorarrow_mask.tga">
+      <Name>doormonitorarrow_mask</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doormonitor_local.tga">
+      <Name>doormonitor_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\doormonitor_s.tga">
+      <Name>doormonitor_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoor2tex.tga">
+      <Name>mcitydoor2tex</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoor2tex_hangar.tga">
+      <Name>mcitydoor2tex_hangar</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoor2tex_local.tga">
+      <Name>mcitydoor2tex_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoor2tex_s.tga">
+      <Name>mcitydoor2tex_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoor2tex_s_hangar.tga">
+      <Name>mcitydoor2tex_s_hangar</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoorframeglow.tga">
+      <Name>mcitydoorframeglow</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoorframetex.tga">
+      <Name>mcitydoorframetex</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoorframetex_hangar.tga">
+      <Name>mcitydoorframetex_hangar</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoorframetex_local.tga">
+      <Name>mcitydoorframetex_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoorframetex_s_hangar.tga">
+      <Name>mcitydoorframetex_s_hangar</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoorframetex_white.tga">
+      <Name>mcitydoorframetex_white</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoortex.tga">
+      <Name>mcitydoortex</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoortex_local.tga">
+      <Name>mcitydoortex_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\mcitydoortex_s.tga">
+      <Name>mcitydoortex_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\smalldoorblue_light_add.tga">
+      <Name>smalldoorblue_light_add</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\smalldoorblue_sign_add.tga">
+      <Name>smalldoorblue_sign_add</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\smalldoor_d.tga">
+      <Name>smalldoor_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\smalldoor_light_add.tga">
+      <Name>smalldoor_light_add</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\smalldoor_local.tga">
+      <Name>smalldoor_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\smalldoor_s.tga">
+      <Name>smalldoor_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\smalldoor_sign_add.tga">
+      <Name>smalldoor_sign_add</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\sotechdr2frame_d.tga">
+      <Name>sotechdr2frame_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\sotechdr2frame_s.tga">
+      <Name>sotechdr2frame_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2cb_bmp.tga">
+      <Name>techdr2cb_bmp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2cb_cop_d.tga">
+      <Name>techdr2cb_cop_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2cb_cop_s.tga">
+      <Name>techdr2cb_cop_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2cb_d.tga">
+      <Name>techdr2cb_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2cb_local.tga">
+      <Name>techdr2cb_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2cb_reddirt_d.tga">
+      <Name>techdr2cb_reddirt_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2cb_red_d.tga">
+      <Name>techdr2cb_red_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2cb_s.tga">
+      <Name>techdr2cb_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2frame_cop_d.tga">
+      <Name>techdr2frame_cop_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2frame_cop_s.tga">
+      <Name>techdr2frame_cop_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2frame_d.tga">
+      <Name>techdr2frame_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2frame_grease_d.tga">
+      <Name>techdr2frame_grease_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2frame_grease_s.tga">
+      <Name>techdr2frame_grease_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2frame_local.tga">
+      <Name>techdr2frame_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2frame_mcu_d.tga">
+      <Name>techdr2frame_mcu_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2frame_red_d.tga">
+      <Name>techdr2frame_red_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2frame_s.tga">
+      <Name>techdr2frame_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor2\techdr2lft_mcu_d.tga">
+      <Name>techdr2lft_mcu_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\sotechdr1frame_d.tga">
+      <Name>sotechdr1frame_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\sotechdr1frame_s.tga">
+      <Name>sotechdr1frame_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\sotechdr1lft_d.tga">
+      <Name>sotechdr1lft_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\sotechdr1lft_s.tga">
+      <Name>sotechdr1lft_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\sotechdr1rt_bmp.tga">
+      <Name>sotechdr1rt_bmp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\sotechdr1rt_d.tga">
+      <Name>sotechdr1rt_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\sotechdr1rt_s.tga">
+      <Name>sotechdr1rt_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1frame_cop_d.tga">
+      <Name>techdr1frame_cop_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1frame_cop_s.tga">
+      <Name>techdr1frame_cop_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1frame_d.tga">
+      <Name>techdr1frame_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1frame_local.tga">
+      <Name>techdr1frame_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1frame_mcu_d.tga">
+      <Name>techdr1frame_mcu_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1frame_red_d.tga">
+      <Name>techdr1frame_red_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1frame_s.tga">
+      <Name>techdr1frame_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1lft_cop_d.tga">
+      <Name>techdr1lft_cop_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1lft_cop_s.tga">
+      <Name>techdr1lft_cop_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1lft_d.tga">
+      <Name>techdr1lft_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1lft_local.tga">
+      <Name>techdr1lft_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1lft_s.tga">
+      <Name>techdr1lft_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1rt_blu_d.tga">
+      <Name>techdr1rt_blu_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1rt_bmp.tga">
+      <Name>techdr1rt_bmp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1rt_cop_d.tga">
+      <Name>techdr1rt_cop_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1rt_cop_s.tga">
+      <Name>techdr1rt_cop_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1rt_d.tga">
+      <Name>techdr1rt_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1rt_local.tga">
+      <Name>techdr1rt_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1rt_mcu_d.tga">
+      <Name>techdr1rt_mcu_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1rt_red_d.tga">
+      <Name>techdr1rt_red_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="models\mapobjects\doors\techdoor1\techdr1rt_s.tga">
+      <Name>techdr1rt_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
     </Compile>
     <None Include="strings\english.lang">
       <Name>english</Name>

@@ -152,6 +152,7 @@
     <Compile Include="Sound\idSoundWorld.cs" />
     <Compile Include="Text\Decl\idDeclAudio.cs" />
     <Compile Include="Text\Decl\idDeclEntity.cs" />
+    <Compile Include="Text\Decl\idDeclFX.cs" />
     <Compile Include="Text\Decl\idDeclParticle.cs" />
     <Compile Include="Text\Decl\idDeclSkin.cs" />
     <Compile Include="Text\Decl\idDeclVideo.cs" />
