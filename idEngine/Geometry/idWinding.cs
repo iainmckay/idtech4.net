@@ -252,6 +252,21 @@ namespace idTech4.Geometry
 
 			return plane;
 		}
+
+		public idWinding Reverse()
+		{
+			idWinding w = new idWinding(_pointCount);
+
+			for(int i = 0; i < _pointCount; i++)
+			{
+				for(int j = 0; j < 5; j++)
+				{
+					w[i, j] = this[i, j];
+				}
+			}
+
+			return w;
+		}
 		#endregion
 		#endregion
 	}

@@ -1514,6 +1514,8 @@ namespace idTech4.Renderer
 
 			for(int i = 0; i < _interAreaPortalCount; i++)
 			{
+				_doublePortals[i] = new DoublePortal();
+
 				int pointCount = lexer.ParseInt();
 				int a1 = lexer.ParseInt();
 				int a2 = lexer.ParseInt();
@@ -1543,6 +1545,17 @@ namespace idTech4.Renderer
 
 				_portalAreas[a1].Portals = p;
 				_doublePortals[i].Portals[0] = p;
+
+				// reverse it for a2
+				p = new Portal();
+				p.IntoArea = a1;
+				p.DoublePortal = _doublePortals[i];
+				p.Winding = w.Reverse();
+				p.Plane = w.GetPlane();
+				p.Next = _portalAreas[a2].Portals;
+
+				_portalAreas[a2].Portals = p;
+				_doublePortals[i].Portals[1] = p;
 			}
 
 			lexer.ExpectTokenString("}");
@@ -1634,7 +1647,7 @@ namespace idTech4.Renderer
 
 			for(int i = 0; i < _areaNodeCount; i++)
 			{
-				node = _areaNodes[i];
+				node = _areaNodes[i] = new AreaNode();
 				tmp = lexer.Parse1DMatrix(4);
 				
 				node.Plane = new Plane(tmp[0], tmp[1], tmp[2], tmp[3]);
@@ -1664,12 +1677,13 @@ namespace idTech4.Renderer
 			modelSurface.Geometry.ShadowIndexesNoFrontCapsCount = lexer.ParseInt();
 			modelSurface.Geometry.Indexes = new int[lexer.ParseInt()];
 			modelSurface.Geometry.ShadowCapPlaneBits = lexer.ParseInt();
+			modelSurface.Geometry.Bounds.Clear();
 
-			int count = modelSurface.Geometry.Vertices.Length;
+			int count = modelSurface.Geometry.ShadowVertices.Length;
 
 			for(int j = 0; j < count; j++)
 			{
-				float[] vec = lexer.Parse1DMatrix(8);
+				float[] vec = lexer.Parse1DMatrix(3);
 
 				modelSurface.Geometry.ShadowVertices[j].Position = new Vector4(vec[0], vec[1], vec[2], 1);
 				modelSurface.Geometry.Bounds.AddPoint(modelSurface.Geometry.ShadowVertices[j].Position);

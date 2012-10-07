@@ -2131,9 +2131,8 @@ namespace idTech4.Renderer
 
 			newStage.VertexParameters[parm, 0] = ParseExpression(lexer);
 			token = lexer.ReadTokenOnLine();
-			tokenValue = token.ToString();
 
-			if((tokenValue == string.Empty) || (tokenValue != ","))
+			if((token == null) || (token.ToString() != ","))
 			{
 				newStage.VertexParameters[parm, 1] = newStage.VertexParameters[parm, 2] = newStage.VertexParameters[parm, 3] = newStage.VertexParameters[parm, 0];
 			}
@@ -2141,9 +2140,8 @@ namespace idTech4.Renderer
 			{
 				newStage.VertexParameters[parm, 1] = ParseExpression(lexer);
 				token = lexer.ReadTokenOnLine();
-				tokenValue = token.ToString();
 
-				if((tokenValue == string.Empty) || (tokenValue != ","))
+				if((token == null) || (token.ToString() != ","))
 				{
 					newStage.VertexParameters[parm, 2] = GetExpressionConstant(0);
 					newStage.VertexParameters[parm, 3] = GetExpressionConstant(1);
@@ -2152,9 +2150,8 @@ namespace idTech4.Renderer
 				{
 					newStage.VertexParameters[parm, 2] = ParseExpression(lexer);
 					token = lexer.ReadTokenOnLine();
-					tokenValue = token.ToString();
 
-					if((tokenValue == string.Empty) || (tokenValue != ","))
+					if((token == null) || (token.ToString() != ","))
 					{
 						newStage.VertexParameters[parm, 3] = GetExpressionConstant(1);
 					}
