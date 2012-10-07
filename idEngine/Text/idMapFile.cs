@@ -6,6 +6,9 @@ using System.Text;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Geometry;
+using idTech4.Renderer;
+
 namespace idTech4.Text
 {
 	/// <summary>
@@ -143,7 +146,7 @@ namespace idTech4.Text
 			_name = Path.Combine(Path.GetDirectoryName(fileName), Path.GetFileNameWithoutExtension(fileName));
 
 			string fullName = _name;
-			
+
 			// no string concatenation for epairs and allow path names for materials
 			idLexer lexer = new idLexer(LexerOptions.NoStringConcatination | LexerOptions.NoStringEscapeCharacters | LexerOptions.AllowPathNames);
 			idMapEntity mapEnt;
@@ -228,7 +231,7 @@ namespace idTech4.Text
 								case MapPrimitiveType.Patch:
 									idConsole.Warning("TODO: PATCH");
 									// TODO: ((idMapPatch) mapPrimitive).Material = material;
-									break;						
+									break;
 							}
 						}
 					}
@@ -418,7 +421,7 @@ namespace idTech4.Text
 
 			idMapEntity mapEnt = new idMapEntity();
 			idMapBrush mapBrush = null;
-			// TODO: idMapPatch mapPatch = null;
+			idMapPatch mapPatch = null;
 			Vector3 origin = Vector3.Zero;
 			bool worldEnt = false;
 			string tokenValue;
@@ -467,30 +470,31 @@ namespace idTech4.Text
 					// if is it a patch: patchDef2, patchDef3
 					else if(tokenValue.StartsWith("patch", StringComparison.OrdinalIgnoreCase) == true)
 					{
-						idConsole.Warning("TODO: patch");
-						/*mapPatch = idMapPatch.Parse(lexer, origin, tokenValue.Equals("patchDef3", StringComparison.OrdinalIgnoreCase), version);
+						mapPatch = idMapPatch.Parse(lexer, origin, tokenValue.Equals("patchDef3", StringComparison.OrdinalIgnoreCase), version);
 
 						if(mapPatch == null)
 						{
 							return null;
 						}
 
-						mapEnt.AddPrimitive(mapPatch);*/
+						mapEnt.AddPrimitive(mapPatch);
 					}
 					// assume it's a brush in Q3 or older style
-					else 
+					else
 					{
-						idConsole.Warning("TODO: idMapBrush.ParseQ3");
-						
-						/*src.UnreadToken( &token );
-						mapBrush = idMapBrush::ParseQ3( src, origin );
-						if ( !mapBrush ) {
-							return NULL;
+						lexer.UnreadToken = token;
+
+						mapBrush = idMapBrush.ParseQ3(lexer, origin);
+
+						if(mapBrush == null)
+						{
+							return null;
 						}
-						mapEnt->AddPrimitive( mapBrush );*/
+
+						mapEnt.AddPrimitive(mapBrush);
 					}
-				} 
-				else 
+				}
+				else
 				{
 					// parse a key / value pair
 					string key = token.ToString();
@@ -625,7 +629,7 @@ namespace idTech4.Text
 					lexer.Error("idMapBrush::Parse: unexpected EOF");
 					return null;
 				}
-			
+
 				if(token.ToString() == "}")
 				{
 					break;
@@ -690,7 +694,7 @@ namespace idTech4.Text
 				{
 					// read the three point plane definition
 					float[] tmp, tmp2, tmp3;
-					
+
 					if(((tmp = lexer.Parse1DMatrix(3)) == null)
 						|| ((tmp2 = lexer.Parse1DMatrix(3)) == null)
 						|| ((tmp3 = lexer.Parse1DMatrix(3)) == null))
@@ -699,15 +703,11 @@ namespace idTech4.Text
 						return null;
 					}
 
-					planePoints[0] = new Vector3(tmp[0], tmp[1], tmp[2]);
-					planePoints[1] = new Vector3(tmp2[0], tmp2[1], tmp2[2]);
-					planePoints[2] = new Vector3(tmp3[0], tmp3[1], tmp3[2]);
+					planePoints[0] = new Vector3(tmp[0], tmp[1], tmp[2]) - origin;
+					planePoints[1] = new Vector3(tmp2[0], tmp2[1], tmp2[2]) - origin;
+					planePoints[2] = new Vector3(tmp3[0], tmp3[1], tmp3[2]) - origin;
 
-					planePoints[0] -= origin;
-					planePoints[1] -= origin;
-					planePoints[2] -= origin;
-
-					idConsole.Warning("TODO: side->plane.FromPoints( planepts[0], planepts[1], planepts[2] );");
+					side.Plane.FromPoints(planePoints[0], planePoints[1], planePoints[2]);
 				}
 
 				// read the texture matrix
@@ -723,7 +723,7 @@ namespace idTech4.Text
 				side.TextureMatrix[0] = new Vector3(tmp5[0, 0], tmp5[0, 1], tmp5[0, 2]);
 				side.TextureMatrix[1] = new Vector3(tmp5[1, 0], tmp5[1, 1], tmp5[1, 2]);
 				side.Origin = origin;
-		
+
 				// read the material
 				if((token = lexer.ReadTokenOnLine()) == null)
 				{
@@ -752,23 +752,113 @@ namespace idTech4.Text
 						}
 					}
 				}
-			} 
+			}
 			while(true);
 
 			if(lexer.ExpectTokenString("}") == false)
 			{
 				return null;
 			}
-			
+
 			idMapBrush brush = new idMapBrush();
 
 			foreach(idMapBrushSide s in sides)
 			{
 				brush.AddSide(s);
 			}
-			
+
 			brush.Dict = dict;
-			
+
+			return brush;
+		}
+
+		public static idMapBrush ParseQ3(idLexer lexer, Vector3 origin)
+		{
+			int rotate;
+			int[] shift = new int[2];
+			float[] scale = new float[2];
+
+			Vector3[] planePoints = new Vector3[3];
+			List<idMapBrushSide> sides = new List<idMapBrushSide>();
+			idMapBrushSide side;
+			idToken token;
+
+			do
+			{
+				if(lexer.CheckTokenString("}") == true)
+				{
+					break;
+				}
+
+				side = new idMapBrushSide();
+				sides.Add(side);
+
+				// read the three point plane definition
+				float[] tmp = lexer.Parse1DMatrix(3);
+				float[] tmp2 = lexer.Parse1DMatrix(3);
+				float[] tmp3 = lexer.Parse1DMatrix(3);
+
+				if((tmp == null) || (tmp2 == null) || (tmp3 == null))
+				{
+					lexer.Error("idMapBrush::ParseQ3: unable to read brush side plane definition");
+					return null;
+				}
+
+				planePoints[0] = new Vector3(tmp[0], tmp[1], tmp[2]) - origin;
+				planePoints[1] = new Vector3(tmp2[0], tmp2[1], tmp2[2]) - origin;
+				planePoints[2] = new Vector3(tmp3[0], tmp3[1], tmp3[2]) - origin;
+
+				side.Plane.FromPoints(planePoints[0], planePoints[1], planePoints[2]);
+
+				// read the material
+				token = lexer.ReadTokenOnLine();
+
+				if(token == null)
+				{
+					lexer.Error("idMapBrush::ParseQ3: unable to read brush side material");
+					return null;
+				}
+
+				// we have an implicit 'textures/' in the old format
+				side.Material = "textures/" + token.ToString();
+
+				// read the texture shift, rotate and scale
+				shift[0] = lexer.ParseInt();
+				shift[1] = lexer.ParseInt();
+
+				rotate = lexer.ParseInt();
+
+				scale[0] = lexer.ParseFloat();
+				scale[1] = lexer.ParseFloat();
+
+				side.TextureMatrix[0] = new Vector3(0.03125f, 0.0f, 0.0f);
+				side.TextureMatrix[1] = new Vector3(0.0f, 0.03125f, 0.0f);
+
+				side.Origin = origin;
+
+				// Q2 allowed override of default flags and values, but we don't any more
+				if(lexer.ReadTokenOnLine() != null)
+				{
+					if(lexer.ReadTokenOnLine() != null)
+					{
+						if(lexer.ReadTokenOnLine() != null)
+						{
+
+						}
+					}
+				}
+			}
+			while(true);
+
+			idMapBrush brush = new idMapBrush();
+
+			for(int i = 0; i < sides.Count; i++)
+			{
+				brush.AddSide(sides[i]);
+			}
+
+			brush.Dict = new idDict();
+
 			return brush;
 		}
 		#endregion
@@ -857,6 +947,237 @@ namespace idTech4.Text
 
 				vectors[i].W = _textureMatrix[i].Z + (_origin * tmp);
 			}*/
+		}
+		#endregion
+	}
+
+	public class idMapPatch : idMapPrimitive
+	{
+		#region Properties
+		public bool ExplicitlySubdivided
+		{
+			get
+			{
+				return _explicitSubdivisions;
+			}
+			set
+			{
+				_explicitSubdivisions = value;
+			}
+		}
+
+		public int HorizontalSubdivisions
+		{
+			get
+			{
+				return _horizontalSubdivisions;
+			}
+			set
+			{
+				_horizontalSubdivisions = value;
+			}
+		}
+
+		public int VerticalSubdivisions
+		{
+			get
+			{
+				return _verticalSubdivisions;
+			}
+			set
+			{
+				_verticalSubdivisions = value;
+			}
+		}
+
+		public string Material
+		{
+			get
+			{
+				return _material;
+			}
+			set
+			{
+				_material = value;
+			}
+		}
+
+		public int Width
+		{
+			get
+			{
+				return _surface.Width;
+			}
+		}
+
+		public int Height
+		{
+			get
+			{
+				return _surface.Height;
+			}
+		}
+		#endregion
+
+		#region Members
+		private idPatchSurface _surface;
+
+		private string _material;
+		private int _horizontalSubdivisions;
+		private int _verticalSubdivisions;
+		private bool _explicitSubdivisions;
+		#endregion
+
+		#region Constructor
+		public idMapPatch()
+		{
+			this.Type = MapPrimitiveType.Patch;
+			_surface = new idPatchSurface();
+		}
+
+		public idMapPatch(int maxWidth, int maxHeight)
+		{
+			this.Type = MapPrimitiveType.Patch;
+			_surface = new idPatchSurface(maxWidth, maxHeight);	
+		}
+		#endregion
+
+		#region Methods
+		public void SetVertex(int index, Vertex vertex)
+		{
+			_surface.SetVertex(index, vertex);
+		}
+
+		public static idMapPatch Parse(idLexer lexer, Vector3 origin, bool patchDef3 = true, float version = idMapFile.CurrentMapVersion)
+		{
+			if(lexer.ExpectTokenString("{") == false)
+			{
+				return null;
+			}
+
+			// read the material (we had an implicit 'textures/' in the old format...)
+			idToken token = lexer.ReadToken();
+
+			if(token == null)
+			{
+				lexer.Error("idMapPatch::Parse: unexpected EOF");
+				return null;
+			}
+
+			// Parse it
+			float[] info;
+
+			if(patchDef3 == true)
+			{
+				info = lexer.Parse1DMatrix(7);
+
+				if(info == null)
+				{
+					lexer.Error("idMapPatch::Parse: unable to Parse patchDef3 info");
+					return null;
+				}
+			} 
+			else 
+			{
+				info = lexer.Parse1DMatrix(5);
+
+				if(info == null)
+				{
+					lexer.Error("idMapPatch::Parse: unable to parse patchDef2 info");
+					return null;
+				}
+			}
+
+			idMapPatch patch = new idMapPatch((int) info[0], (int) info[1]);
+
+			if(version < 2.0f)
+			{
+				patch.Material = "textures/" + token.ToString();
+			}
+			else
+			{
+				patch.Material = token.ToString();
+			}
+
+			if(patchDef3 == true)
+			{
+				patch.HorizontalSubdivisions = (int) info[2];
+				patch.VerticalSubdivisions = (int) info[3];
+				patch.ExplicitlySubdivided = true;
+			}
+
+			if((patch.Width < 0) || (patch.Height < 0))
+			{
+				lexer.Error("idMapPatch::Parse: bad size");
+				return null;
+			}
+
+			// these were written out in the wrong order, IMHO
+			if(lexer.ExpectTokenString("(") == false)
+			{
+				lexer.Error("idMapPatch::Parse: bad patch vertex data");
+				return null;
+			}
+
+			for(int j = 0; j < patch.Width; j++)
+			{
+				if(lexer.ExpectTokenString("(") == false)
+				{
+					lexer.Error("idMapPatch::Parse: bad vertex row data");
+					return null;
+				}
+
+				for(int i = 0; i < patch.Height; i++)
+				{
+					float[] v = lexer.Parse1DMatrix(5);
+
+					if(v == null)
+					{
+						lexer.Error("idMapPatch::Parse: bad vertex column data");
+						return null;
+					}
+
+					Vertex vert = new Vertex();
+					vert.Position.X = v[0] - origin.X;
+					vert.Position.Y = v[1] - origin.Y;
+					vert.Position.Z = v[2] - origin.Z;
+					vert.TextureCoordinates = new Vector2(v[3], v[4]);
+
+					patch.SetVertex(i * patch.Width + j, vert);
+				}
+
+				if(lexer.ExpectTokenString(")") == false)
+				{
+					lexer.Error("idMapPatch::Parse: unable to parse patch control points");
+					return null;
+				}
+			}
+
+			if(lexer.ExpectTokenString(")") == false)
+			{
+				lexer.Error("idMapPatch::Parse: unable to parse patch control points, no closure" );
+				return null;
+			}
+
+			// read any key/value pairs
+			while((token = lexer.ReadToken()) != null)
+			{
+				if(token.ToString() == "}")
+				{
+					lexer.ExpectTokenString("}");
+					break;
+				}
+
+				if(token.Type == TokenType.String)
+				{
+					string key = token.ToString();
+					token = lexer.ExpectTokenType(TokenType.String, 0);
+
+					patch.Dict.Set(key, token.ToString());
+				}
+			}
+			
+			return patch;
 		}
 		#endregion
 	}

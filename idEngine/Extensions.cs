@@ -83,7 +83,34 @@ namespace idTech4
 
 		public static void FitThroughPoint(this Plane plane, Vector3 point)
 		{
-			plane.D =  -Vector3.Multiply(plane.Normal, point).Length();
+			plane.D = -Vector3.Multiply(plane.Normal, point).Length();
+		}
+
+		public static bool FromPoints(this Plane plane, Vector3 p1, Vector3 p2, Vector3 p3, bool fixDegenerate = true)
+		{
+			plane.Normal = Vector3.Cross(p1 - p2, p3 - p2);
+
+			if(plane.Normalize(fixDegenerate) == 0.0f)
+			{
+				return false;
+			}
+
+			plane.D = -(plane.Normal * p2).Length();
+
+			return true;
+		}
+
+		public static float Normalize(this Plane plane, bool fixDegenerate)
+		{
+			plane.Normalize();
+			float length = plane.Normal.Length();
+
+			if(fixDegenerate == true)
+			{
+				plane.Normal.FixDegenerateNormal();
+			}
+
+			return length;
 		}
 		#endregion
 
@@ -133,6 +160,104 @@ namespace idTech4
 			}
 
 			return true;
+		}
+
+		public static bool FixDegenerateNormal(this Vector3 v)
+		{
+			if(v.X == 0.0f)
+			{
+				if(v.Y == 0.0f)
+				{
+					if(v.Z > 0.0f)
+					{
+						if(v.Z != 1.0f)
+						{
+							v.Z = 1.0f;
+							return true;
+						}
+					}
+					else
+					{
+						if(v.Z != -1.0f)
+						{
+							v.Z = -1.0f;
+							return true;
+						}
+					}
+					return false;
+				}
+				else if(v.Z == 0.0f)
+				{
+					if(v.Y > 0.0f)
+					{
+						if(v.Y != 1.0f)
+						{
+							v.Y = 1.0f;
+							return true;
+						}
+					}
+					else
+					{
+						if(v.Y != -1.0f)
+						{
+							v.Y = -1.0f;
+							return true;
+						}
+					}
+					return false;
+				}
+			}
+			else if(v.Y == 0.0f)
+			{
+				if(v.Z == 0.0f)
+				{
+					if(v.X > 0.0f)
+					{
+						if(v.X != 1.0f)
+						{
+							v.X = 1.0f;
+							return true;
+						}
+					}
+					else
+					{
+						if(v.X != -1.0f)
+						{
+							v.X = -1.0f;
+							return true;
+						}
+					}
+					return false;
+				}
+			}
+			if(idMath.Abs(v.X) == 1.0f)
+			{
+				if((v.X != 0.0f) || (v.Z != 0.0f))
+				{
+					v.Y = v.Z = 0.0f;
+					return true;
+				}
+				return false;
+			}
+			else if(idMath.Abs(v.Y) == 1.0f)
+			{
+				if((v.X != 0.0f) || (v.Z != 0.0f))
+				{
+					v.X = v.Z = 0.0f;
+					return true;
+				}
+				return false;
+			}
+			else if(idMath.Abs(v.Z) == 1.0f)
+			{
+				if((v.X != 0.0f) || (v.Y != 0.0f))
+				{
+					v.X = v.Y = 0.0f;
+					return true;
+				}
+				return false;
+			}
+			return false;
 		}
 
 		public static float Get(this Vector3 v, int index)

@@ -18153,6 +18153,138 @@
       <Processor>TextureProcessor</Processor>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfschamber_bmp.tga">
+      <Name>mfschamber_bmp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfschamber_d.tga">
+      <Name>mfschamber_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfschamber_local.tga">
+      <Name>mfschamber_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfschamber_s.tga">
+      <Name>mfschamber_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfsclamp_bmp.tga">
+      <Name>mfsclamp_bmp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfsclamp_d.tga">
+      <Name>mfsclamp_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfsclamp_local.tga">
+      <Name>mfsclamp_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfsclamp_s.tga">
+      <Name>mfsclamp_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompbase_bmp.tga">
+      <Name>mfscompbase_bmp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompbase_d.tga">
+      <Name>mfscompbase_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompbase_local.tga">
+      <Name>mfscompbase_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompbase_s.tga">
+      <Name>mfscompbase_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_add.tga">
+      <Name>mfscompcell_add</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_bmp.tga">
+      <Name>mfscompcell_bmp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_d.tga">
+      <Name>mfscompcell_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_local.tga">
+      <Name>mfscompcell_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompcell_s.tga">
+      <Name>mfscompcell_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_add.tga">
+      <Name>mfscompmain_add</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_bmp.tga">
+      <Name>mfscompmain_bmp</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_d.tga">
+      <Name>mfscompmain_d</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_local.tga">
+      <Name>mfscompmain_local</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
+    <Compile Include="models\mapobjects\lab\mfscomp\mfscompmain_s.tga">
+      <Name>mfscompmain_s</Name>
+      <Importer>TextureImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Compile>
     <None Include="strings\english.lang">
       <Name>english</Name>
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
