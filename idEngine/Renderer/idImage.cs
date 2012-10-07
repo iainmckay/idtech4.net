@@ -256,7 +256,20 @@ namespace idTech4.Renderer
 				return _repeat;
 			}
 		}
-		
+
+		public Texture Texture
+		{
+			get
+			{
+				if(this.Disposed == true)
+				{
+					throw new ObjectDisposedException(this.GetType().Name);
+				}
+
+				return _texture;
+			}
+		}
+
 		public TextureType Type
 		{
 			get
@@ -293,6 +306,30 @@ namespace idTech4.Renderer
 				}
 
 				return _width;
+			}
+		}
+
+		public int LastFrameUsed
+		{
+			get
+			{
+				return _frameUsed;
+			}
+			internal set
+			{
+				_frameUsed = value;
+			}
+		}
+
+		public int BindCount
+		{
+			get
+			{
+				return _bindCount;
+			}
+			internal set
+			{
+				_bindCount = value;
 			}
 		}
 		#endregion
@@ -469,19 +506,7 @@ namespace idTech4.Renderer
 				//ActuallyLoadImage(true, true); // check for precompressed, load is from back end
 			}
 
-			// bump our statistic counters
-			_frameUsed = idE.Backend.FrameCount;
-			_bindCount++;
-
-			TextureUnit textureUnit = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit];
-
-			if(idE.Backend.GLState.CurrentTextureUnit < idE.Backend.GLState.TextureUnits.Length)
-			{
-				textureUnit.Type = _type;
-				textureUnit.CurrentTexture = _texture;
-				textureUnit.Filter = _filter;
-				textureUnit.Repeat = _repeat;
-			}
+			idE.RenderSystem.BindTexture(this);			
 		}
 
 		/// <summary>
@@ -795,17 +820,12 @@ namespace idTech4.Renderer
 			{
 				// TODO: because the content manager doesn't actually remove the texture, we don't support
 				// purging/reloading right now.
-				//_texture.Dispose();
+				idConsole.Warning("TODO: _texture.Dispose();");
 				_texture = null;
 			}
 
 			// clear all the current binding caches, so the next bind will do a real one
-			int unitCount = idE.Backend.GLState.TextureUnits.Length;
-
-			for(int i = 0; i < unitCount; i++)
-			{
-				idE.Backend.GLState.TextureUnits[i].CurrentTexture = null;
-			}
+			idE.RenderSystem.ClearTextureUnits();
 		}
 
 		public void Reload(bool checkPrecompressed, bool force)

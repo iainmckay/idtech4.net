@@ -1735,6 +1735,9 @@ base\models\items\tablet\tablet_s.xnb
 base\models\invis_s.xnb
 base\models\monsters\spectre\dis2.xnb
 base\models\monsters\spectre\global_dis.xnb
+base\models\wipes\dust.xnb
+base\models\wipes\hst_mars.xnb
+base\models\wipes\hst_mars_h.xnb
 base\textures\alphalabs\a_enwall13c.xnb
 base\textures\alphalabs\a_enwall13_s.xnb
 base\textures\alphalabs\a_enwall20a_s.xnb
@@ -6855,6 +6858,14 @@ base\ui\assets\scrollbar_left.xnb
 base\ui\assets\scrollbar_right.xnb
 base\ui\assets\scrollbar_thumb.xnb
 base\ui\assets\scrollbar_up.xnb
+base\_black.xnb
+base\_borderClamp.xnb
+base\_default.xnb
+base\_flat.xnb
+base\_white.xnb
+base\_noFalloff.xnb
+base\_scratch.xnb
+base\_scratch2.xnb
 base\af\char_campbell.af
 base\af\char_hazmat.af
 base\af\char_lanternguy.af
@@ -7786,6 +7797,7 @@ base\models\md5\characters\npcs\playermoves\turn_right.md5anim
 base\models\md5\characters\npcs\playermoves\walkjump1.md5anim
 base\models\md5\characters\npcs\playermoves\walk_strafe_left.md5anim
 base\models\md5\characters\npcs\playermoves\walk_strafe_right.md5anim
+base\models\wipes\planet2.lwo
 base\default.cfg
 base\DoomConfig.cfg
 base\guis\admin\admincontrol.gui

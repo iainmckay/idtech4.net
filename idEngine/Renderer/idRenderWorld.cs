@@ -115,7 +115,7 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Constructor
-		public idRenderWorld()
+		internal idRenderWorld()
 		{
 			// TODO: mapTimeStamp = FILE_NOT_FOUND_TIMESTAMP;
 		}
@@ -1962,6 +1962,7 @@ namespace idTech4.Renderer
 			viewModel.EntityDef = def;
 
 			// the scissorRect will be expanded as the model bounds is accepted into visible portal chains
+			viewModel.ScissorRectangle.Clear();
 
 			// copy the model and weapon depth hack for back-end use
 			viewModel.ModelDepthHack = def.Parameters.ModelDepthHack;

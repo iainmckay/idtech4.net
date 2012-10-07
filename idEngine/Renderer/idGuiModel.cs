@@ -289,7 +289,6 @@ namespace idTech4.Renderer
 		/// </summary>
 		public void EmitFullScreen()
 		{
-			return;
 			if(_surfaces[0].VertexCount == 0)
 			{
 				return;

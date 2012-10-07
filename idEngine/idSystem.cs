@@ -121,28 +121,11 @@ namespace idTech4
 
 			InitCvars();
 			
-			_graphics = new GraphicsDeviceManager(this);
 			_rawCommandLineArguments = args;
 
 			this.TargetElapsedTime = TimeSpan.FromMilliseconds(idE.UserCommandMillseconds);
 			this.Content.RootDirectory = "base";
-
-			_graphics.PreparingDeviceSettings += this.graphics_PreparingDeviceSettings;
 		}
-
-		void graphics_PreparingDeviceSettings(object sender, PreparingDeviceSettingsEventArgs e)
-		{
-			foreach(Microsoft.Xna.Framework.Graphics.GraphicsAdapter curAdapter in Microsoft.Xna.Framework.Graphics.GraphicsAdapter.Adapters)
-			{
-				if(curAdapter.Description.Contains("PerfHUD"))
-				{
-					e.GraphicsDeviceInformation.Adapter = curAdapter;
-					Microsoft.Xna.Framework.Graphics.GraphicsAdapter.UseReferenceDevice = true;
-					break;
-				}
-			}
-		}
-
 		#endregion
 
 		#region Methods
@@ -545,7 +528,7 @@ namespace idTech4
 				return;
 			}
 
-			idE.RenderSystem.InitGraphics(this.GraphicsDevice);
+			idE.RenderSystem.InitRenderer();
 			PrintLoadingMessage(idE.Language.Get("#str_04343"));
 		}
 
@@ -1117,6 +1100,8 @@ namespace idTech4
 		protected override void Draw(GameTime gameTime)
 		{
 			base.Draw(gameTime);
+
+			idE.RenderSystem.Present();
 		}
 
 		protected override void Initialize()
@@ -1206,8 +1191,8 @@ namespace idTech4
 				// re-override anything from the config files with command line args
 				StartupVariable(null, false);
 
-				// initialize the renderSystem data structures, but don't start OpenGL yet
-				idE.RenderSystem.Init(_graphics);
+				// initialize the renderSystem data structures
+				idE.RenderSystem.Init();
 				
 				// initialize string database right off so we can use it for loading messages
 				InitLanguageDict();
@@ -1238,14 +1223,9 @@ namespace idTech4
 				// init async network
 				idE.AsyncNetwork.Init();
 
-#if ID_DEDICATED
-			throw new NotImplementedException("don't do dedicated");
-			/*idAsyncNetwork::server.InitPort();*/
-			idE.CvarSystem.SetBool("s_noSound", true);
-#else
 				if(idE.CvarSystem.GetInteger("net_serverDedicated") == 1)
 				{
-					throw new NotImplementedException("don't do dedicated");
+					throw new NotImplementedException("we don't do dedicated");
 
 					/*idAsyncNetwork::server.InitPort();*/
 					idE.CvarSystem.SetBool("s_noSound", true);
@@ -1256,7 +1236,6 @@ namespace idTech4
 					PrintLoadingMessage(idE.Language.Get("#str_04348"));
 					InitRenderSystem();
 				}
-#endif
 
 				base.Initialize();
 			}
@@ -1329,7 +1308,6 @@ namespace idTech4
 				_ticNumber++;
 
 				_frameTime = _ticNumber * idE.UserCommandMillseconds;
-				//_frameTime = this.Milliseconds;
 				
 				/*idAsyncNetwork::RunFrame();*/
 

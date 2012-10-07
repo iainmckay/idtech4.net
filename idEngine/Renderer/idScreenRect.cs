@@ -83,6 +83,15 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public void Clear()
+		{
+			this.X1 = this.Y1 = 32000;
+			this.X2 = this.Y2 = -32000;
+
+			this.MinZ = 0.0f;
+			this.MaxZ = 1.0f;
+		}
+
 		public void Expand()
 		{
 			this.X1--;

@@ -51,7 +51,7 @@ namespace idTech4.Renderer
 	public sealed class idRenderSystem
 	{
 		#region Constants
-		private static readonly VideoMode[] VideoModes = new VideoMode[] {
+		public static readonly VideoMode[] VideoModes = new VideoMode[] {
 			new VideoMode("Mode  0: 320x240",		320,	240),
 			new VideoMode("Mode  1: 400x300",		400,	300),
 			new VideoMode("Mode  2: 512x384",		512,	384),
@@ -105,7 +105,7 @@ namespace idTech4.Renderer
 				return _frameCount;
 			}
 		}
-
+		
 		/// <summary>
 		/// Shader time for all non-world 2D rendering.
 		/// </summary>
@@ -118,14 +118,6 @@ namespace idTech4.Renderer
 			set
 			{
 				_frameShaderTime = value;
-			}
-		}
-
-		public GraphicsDevice GraphicsDevice
-		{
-			get
-			{
-				return _graphicsDevice;
 			}
 		}
 
@@ -196,7 +188,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return _graphicsDevice.Viewport.Width;
+				return _backendRenderer.ScreenWidth;
 			}
 		}
 
@@ -204,7 +196,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return _graphicsDevice.Viewport.Height;
+				return _backendRenderer.ScreenHeight;
 			}
 		}
 
@@ -231,15 +223,20 @@ namespace idTech4.Renderer
 				_viewDefinition = value;
 			}
 		}
+
+		public Vector2 ViewPortOffset
+		{
+			get
+			{
+				return _viewPortOffset;
+			}
+		}
 		#endregion
 
 		#region Members
 		private bool _registered;
 		private bool _graphicsInitialized;
-
-		private GraphicsDevice _graphicsDevice;
-		private GraphicsDeviceManager _graphicsDeviceManager;
-		
+						
 		private int _frameCount;											// incremented every frame
 		private int _viewCount;												// incremented every view (twice a scene if subviewed) and every R_MarkFragments call
 		private float _sortOffset;											// for determinist sorting of equal sort materials
@@ -252,9 +249,7 @@ namespace idTech4.Renderer
 
 		private List<idRenderWorld> _worlds = new List<idRenderWorld>();
 
-		private BackEndRenderer _backEndRenderer;							// determines which back end to use, and if vertex programs are in use
-		private bool _backEndRendererHasVertexPrograms;
-		private float _backEndRendererMaxLight;								// 1.0 for standard, unlimited for floats
+		private idRenderBackendInterface _backendRenderer;					// determines which back end to use, and if vertex programs are in use
 
 		private ushort[] _gammaTable = new ushort[256];						// brightness / gamma modify this
 																			// determines how much overbrighting needs
@@ -265,12 +260,7 @@ namespace idTech4.Renderer
 
 		private int _currentRenderCrop;
 		private idRectangle[] _renderCrops = new idRectangle[idE.MaxRenderCrops];
-
-		private int _stencilIncrement;
-		private int _stencilDecrement;
-
-		private int _fragmentDisplayListBase;								// FPROG_NUM_FRAGMENT_PROGRAMS lists
-
+				
 		// GUI drawing variables for surface creation
 		private int _guiRecursionLevel;										// to prevent infinite overruns
 		private idGuiModel _guiModel;
@@ -508,22 +498,11 @@ namespace idTech4.Renderer
 			// TODO: R_ViewStatistics(parms);
 		}
 
-		private BasicEffect _basicEffect;
-
 		public void BeginFrame(int windowWidth, int windowHeight)
 		{
 			if(this.IsRunning == false)
 			{
 				return;
-			}
-
-			if(_basicEffect == null)
-			{
-				_basicEffect = new BasicEffect(_graphicsDevice);
-				_basicEffect.FogEnabled = false;
-				_basicEffect.LightingEnabled = false;
-				_basicEffect.TextureEnabled = true;
-				_basicEffect.VertexColorEnabled = false;
 			}
 
 			_guiModel.Clear();
@@ -588,6 +567,16 @@ namespace idTech4.Renderer
 		{
 			idE.RenderModelManager.BeginLevelLoad();
 			idE.ImageManager.BeginLevelLoad();
+		}
+
+		public void BindTexture(idImage texture)
+		{
+			_backendRenderer.BindTexture(texture);
+		}
+		
+		public void ClearTextureUnits()
+		{
+			_backendRenderer.ClearTextureUnits();
 		}
 
 		/// <summary>
@@ -760,18 +749,8 @@ namespace idTech4.Renderer
 
 			this.Color = idColor.White;
 		}
-
-		public void DrawStretchPicture(Vertex[] vertices, int[] indexes, idMaterial material)
-		{
-			DrawStretchPicture(vertices, indexes, material, true);
-		}
-
-		public void DrawStretchPicture(Vertex[] vertices, int[] indexes, idMaterial material, bool clip)
-		{
-			DrawStretchPicture(vertices, indexes, material, true, 0.0f, 0.0f, 640.0f, 0.0f);
-		}
-
-		public void DrawStretchPicture(Vertex[] vertices, int[] indexes, idMaterial material, bool clip, float minX, float minY, float maxX, float maxY)
+				
+		public void DrawStretchPicture(Vertex[] vertices, int[] indexes, idMaterial material, bool clip = true, float minX = 0.0f, float minY = 0.0f, float maxX = 640.0f, float maxY = 0.0f)
 		{
 			_guiModel.DrawStretchPicture(vertices, indexes, material, clip, minX, minY, maxX, maxY);
 		}
@@ -851,7 +830,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		public void Init(GraphicsDeviceManager graphicsDeviceManager)
+		public void Init()
 		{
 			idConsole.WriteLine("------- Initializing renderSystem --------");
 
@@ -862,28 +841,14 @@ namespace idTech4.Renderer
 
 			_ambientLightVector = new Vector4(0.5f, 0.5f - 0.385f, 0.8925f, 1.0f);
 			_frameData.Commands = new Queue<RenderCommand>();
+			_backendRenderer = new Backends.XNARenderBackend();
 
 			InitCommands();
+			InitRenderer();
 
 			_guiModel = new idGuiModel();
 			_demoGuiModel = new idGuiModel();
-
-			_graphicsDeviceManager = graphicsDeviceManager;
-
-			GetModeInfo(ref idE.GLConfig.VideoWidth, ref idE.GLConfig.VideoHeight, idE.CvarSystem.GetInteger("r_mode"));
-
-			_graphicsDeviceManager.PreferredBackBufferWidth = idE.GLConfig.VideoWidth;
-			_graphicsDeviceManager.PreferredBackBufferHeight = idE.GLConfig.VideoHeight;
-			_graphicsDeviceManager.PreferMultiSampling = idE.CvarSystem.GetInteger("r_multiSamples") > 1;
-			_graphicsDeviceManager.IsFullScreen = idE.CvarSystem.GetBool("r_fullscreen");
-			_graphicsDeviceManager.SupportedOrientations = DisplayOrientation.Default;
-			_graphicsDeviceManager.ApplyChanges();
-
-			idE.GLConfig.StencilBits = 8;
-			idE.GLConfig.ColorBits = 32;
-			idE.GLConfig.DepthBits = 24;
-			idE.GLConfig.IsFullscreen = _graphicsDeviceManager.IsFullScreen;
-
+			
 			// TODO: R_InitTriSurfData();
 
 			idE.ImageManager.Init();
@@ -899,16 +864,12 @@ namespace idTech4.Renderer
 
 			// set the identity space
 			_identitySpace = new ViewEntity();
-			_identitySpace.ModelMatrix.M11 = 1.0f;
-			_identitySpace.ModelMatrix.M21 = 1.0f;
-			_identitySpace.ModelMatrix.M31 = 1.0f;
-			_identitySpace.ModelMatrix.M44 = 1.0f;
 
 			idConsole.WriteLine("renderSystem initialized.");
 			idConsole.WriteLine("--------------------------------------");
 		}
 
-		public void InitGraphics(GraphicsDevice graphicsDevice)
+		public void InitRenderer()
 		{
 			// start renderer now if it hasn't been started already
 			if(this.IsRunning == true)
@@ -918,7 +879,7 @@ namespace idTech4.Renderer
 
 			idConsole.WriteLine("----- R_InitGraphics -----");
 
-			_graphicsDevice = graphicsDevice;
+			_backendRenderer.Init();
 
 			// in case we had an error while doing a tiled rendering
 			_viewPortOffset = Vector2.Zero;
@@ -926,16 +887,8 @@ namespace idTech4.Renderer
 			// input and sound systems need to be tied to the new window
 			// TODO: Sys_InitInput();
 			// TODO: soundSystem->InitHW();
-
-			// stubbed or broken drivers may have reported 0...
-			if(idE.GLConfig.MaxTextureSize <= 0)
-			{
-				idE.GLConfig.MaxTextureSize = 256;
-			}
-
+			
 			_graphicsInitialized = true;
-
-			CheckCapabilities();
 
 			// allocate the vertex array range or vertex objects
 			/*// TODO: vertexCache.Init();*/
@@ -950,10 +903,7 @@ namespace idTech4.Renderer
 
 		public void Present()
 		{
-			if(_graphicsDevice != null)
-			{
-				_graphicsDevice.Present();
-			}
+			_backendRenderer.Present();
 		}
 
 		public idFontFamily RegisterFont(string fontName, string fileName)
@@ -1261,7 +1211,7 @@ namespace idTech4.Renderer
 						vertexCache.Touch( tri->indexCache );
 					}*/
 					
-					// add the surface for drawing
+					// add the surface for drawing					
 					AddDrawSurface(geometry, viewEntity, viewEntity.EntityDef.Parameters, material, viewEntity.ScissorRectangle);
 
 					// ambientViewCount is used to allow light interactions to be rejected
@@ -1409,214 +1359,7 @@ namespace idTech4.Renderer
 				}
 			}
 		}
-
-
-		/// <summary>
-		/// Any mirrored or portaled views have already been drawn, so prepare
-		/// to actually render the visible surfaces for this view.
-		/// </summary>
-		private void BeginDrawingView()
-		{
-			// set the window clipping
-			_graphicsDevice.Viewport = new Viewport(
-				(int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1,
-				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1,
-				idE.Backend.ViewDefinition.ViewPort.X2 + 1 - idE.Backend.ViewDefinition.ViewPort.X1,
-				idE.Backend.ViewDefinition.ViewPort.Y2 + 1 - idE.Backend.ViewDefinition.ViewPort.Y1);
-
-			// the scissor may be smaller than the viewport for subviews
-			_graphicsDevice.ScissorRectangle = new Rectangle(
-				(int) _viewPortOffset.X + idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.ViewDefinition.Scissor.X1,
-				(int) _viewPortOffset.Y + idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.ViewDefinition.Scissor.Y1,
-				idE.Backend.ViewDefinition.Scissor.X2 + 1 - idE.Backend.ViewDefinition.Scissor.X1,
-				idE.Backend.ViewDefinition.Scissor.Y2 + 1 - idE.Backend.ViewDefinition.Scissor.Y1);
-
-			idE.Backend.CurrentScissor = idE.Backend.ViewDefinition.Scissor;
-
-			// ensures that depth writes are enabled for the depth clear
-			GL_State(MaterialStates.DepthFunctionAlways);
-
-			// we don't have to clear the depth / stencil buffer for 2D rendering
-			if(idE.Backend.ViewDefinition.ViewEntities.Count > 0)
-			{
-				idConsole.Warning("TODO: stencil mask");
-
-				/*Gl.glStencilMask(0xFF);
-				// some cards may have 7 bit stencil buffers, so don't assume this
-				// should be 128
-				Gl.glClearStencil(1 << (glConfig.stencilBits - 1));
-				Gl.glClear(Gl.GL_DEPTH_BUFFER_BIT | Gl.GL_STENCIL_BUFFER_BIT);
-				Gl.glEnable(Gl.GL_DEPTH_TEST);*/
-			} 
-			else
-			{
-				DepthStencilState s = new DepthStencilState();
-				s.DepthBufferEnable = false;
-				s.StencilEnable = false;
-
-				_graphicsDevice.DepthStencilState = s;
-			}
-
-			idE.Backend.GLState.FaceCulling = CullType.None; // force face culling to set next time
-
-			GL_Cull(CullType.Front);
-		}
-
-		/// <summary>
-		/// Handles generating a cinematic frame if needed.
-		/// </summary>
-		/// <param name="texture"></param>
-		/// <param name="registers"></param>
-		private void BindVariableStageImage(TextureStage texture, float[] registers)
-		{
-			/* TODO: if(texture.IsCinematic == true)*/
-			if(false)
-			{
-				idConsole.Warning("TODO: BindVariableStageImage cinematic");
-				/*cinData_t	cin;
-
-				if ( r_skipDynamicTextures.GetBool() ) {
-					globalImages->defaultImage->Bind();
-					return;
-				}
-
-				// offset time by shaderParm[7] (FIXME: make the time offset a parameter of the shader?)
-				// We make no attempt to optimize for multiple identical cinematics being in view, or
-				// for cinematics going at a lower framerate than the renderer.
-				cin = texture->cinematic->ImageForTime( (int)(1000 * ( backEnd.viewDef->floatTime + backEnd.viewDef->renderView.shaderParms[11] ) ) );
-
-				if ( cin.image ) {
-					globalImages->cinematicImage->UploadScratch( cin.image, cin.imageWidth, cin.imageHeight );
-				} else {
-					globalImages->blackImage->Bind();
-				}*/
-			}
-			else
-			{
-				//FIXME: see why image is invalid
-				if(texture.Image != null)
-				{
-					texture.Image.Bind();
-				}
-			}
-		}
-
-		private void CheckCapabilities()
-		{
-			idE.GLConfig.MultiTextureAvailable = true;
-			idE.GLConfig.CubeMapAvailable = true;
-			idE.GLConfig.TextureCompressionAvailable = true;
-			idE.GLConfig.AnisotropicAvailable = true;
-
-			idE.GLConfig.MaxTextureAnisotropy = 16;
-			idE.GLConfig.MaxTextureImageUnits = 8;
-			idE.GLConfig.MaxTextureUnits = 8;
-
-			if(_graphicsDevice.GraphicsProfile == GraphicsProfile.HiDef)
-			{
-				idE.GLConfig.MaxTextureSize = 4096;
-				idE.GLConfig.TextureNonPowerOfTwoAvailable = true;
-				idE.GLConfig.Texture3DAvailable = true;
-			}
-			else
-			{
-				idE.GLConfig.MaxTextureSize = 2048;
-				idE.GLConfig.TextureNonPowerOfTwoAvailable = false;
-			}
-
-			/*idE.GLConfig.TextureEnvCombineAvailable = CheckExtension("GL_ARB_texture_env_combine");
-			idE.GLConfig.EnvDot3Available = CheckExtension("GL_ARB_texture_env_dot3");
-			idE.GLConfig.TextureEnvAddAvailable = CheckExtension("GL_ARB_texture_env_add");
-			idE.GLConfig.TextureNonPowerOfTwoAvailable = CheckExtension("GL_ARB_texture_non_power_of_two");
-			idE.GLConfig.TextureLodBiasAvailable = true;*/
-
-			// GL_EXT_texture_lod_bias
-			// The actual extension is broken as specificed, storing the state in the texture unit instead
-			// of the texture object.  The behavior in GL 1.4 is the behavior we use.
-			/*if((((idE.GLConfig.VersionF.Major <= 1) && (idE.GLConfig.VersionF.Minor < 4)) == false) || (CheckExtension("GL_EXT_texture_lod") == true))
-			{*/
-			//idConsole.WriteLine("...using {0}", "GL_1.4_texture_lod_bias");
-
-			/*}
-			else
-			{
-				idConsole.WriteLine("X..{0} not found\n", "GL_1.4_texture_lod_bias");
-				idE.GLConfig.TextureLodBiasAvailable = false;
-			}*/
-
-			// GL_EXT_shared_texture_palette
-			//idE.GLConfig.SharedTexturePaletteAvailable = CheckExtension("GL_EXT_shared_texture_palette");
-
-			// EXT_stencil_wrap
-			// This isn't very important, but some pathological case might cause a clamp error and give a shadow bug.
-			// Nvidia also believes that future hardware may be able to run faster with this enabled to avoid the
-			// serialization of clamping.
-			if(CheckExtension("GL_EXT_stencil_wrap") == true)
-			{
-				_stencilIncrement = Gl.GL_INCR_WRAP_EXT;
-				_stencilDecrement = Gl.GL_DECR_WRAP_EXT;
-			}
-			else
-			{
-				_stencilIncrement = Gl.GL_INCR_WRAP;
-				_stencilDecrement = Gl.GL_DECR_WRAP;
-			}
-
-			// idE.GLConfig.RegisterCombinersAvailable = CheckExtension("GL_NV_register_combiners");
-			// idE.GLConfig.TwoSidedStencilAvailable = CheckExtension("GL_EXT_stencil_two_side");
-
-			/*if(idE.GLConfig.TwoSidedStencilAvailable == false)
-			{
-				idE.GLConfig.AtiTwoSidedStencilAvailable = CheckExtension("GL_ATI_separate_stencil");
-			}
-
-			idE.GLConfig.AtiFragmentShaderAvailable = CheckExtension("GL_ATI_fragment_shader");
-
-			if(idE.GLConfig.AtiFragmentShaderAvailable == false)
-			{
-				// only on OSX: ATI_fragment_shader is faked through ATI_text_fragment_shader (macosx_glimp.cpp)
-				idE.GLConfig.AtiFragmentShaderAvailable = CheckExtension("GL_ATI_text_fragment_shader");
-			}
-
-			idE.GLConfig.ArbVertexBufferObjectAvailable = CheckExtension("GL_ARB_vertex_buffer_object");
-			idE.GLConfig.ArbVertexProgramAvailable = CheckExtension("GL_ARB_vertex_program");
-
-			// ARB_fragment_program
-			if(idE.CvarSystem.GetBool("r_inhibitFragmentProgram") == true)
-			{
-				idE.GLConfig.ArbFragmentProgramAvailable = false;
-			}
-			else
-			{
-				idE.GLConfig.ArbFragmentProgramAvailable = CheckExtension("GL_ARB_fragment_program");
-			}
-
-			// check for minimum set
-			if((idE.GLConfig.MultiTextureAvailable == false)
-				|| (idE.GLConfig.TextureEnvCombineAvailable == false)
-				|| (idE.GLConfig.CubeMapAvailable == false)
-				|| (idE.GLConfig.EnvDot3Available == false))
-			{
-				idConsole.Error(6780);
-			}
-
-			idE.GLConfig.DepthBoundsTestAvailable = CheckExtension("EXT_depth_bounds_test");*/
-		}
-
-		private bool CheckExtension(string name)
-		{
-			return true;
-			if(idE.GLConfig.Extensions.Contains(name) == true)
-			{
-				idConsole.WriteLine("...using {0}", name);
-				return true;
-			}
-
-			idConsole.WriteLine("X..{0} not found", name);
-
-			return false;
-		}
-
+		
 		private void Clear()
 		{
 			_frameCount = 0;
@@ -1627,10 +1370,6 @@ namespace idTech4.Renderer
 
 			_viewPortOffset = Vector2.Zero;
 			_tiledViewPort = Vector2.Zero;
-
-			_backEndRenderer = BackEndRenderer.Bad;
-			_backEndRendererHasVertexPrograms = false;
-			_backEndRendererMaxLight = 1.0f;
 
 			_ambientLightVector = Vector4.Zero;
 			_sortOffset = 0;
@@ -1715,285 +1454,11 @@ namespace idTech4.Renderer
 			}*/
 
 			geometry.AmbientCache = new VertexCache();
-			geometry.AmbientCache.Data = new Vertex[geometry.Vertices.Length];
+			geometry.AmbientCache.Data = geometry.Vertices;
 
 			return true;
 		}
-
-		private void DrawElementsWithCounters(Surface tri)
-		{
-			// TODO: performance counters
-			/*backEnd.pc.c_drawElements++;
-			backEnd.pc.c_drawIndexes += tri->numIndexes;
-			backEnd.pc.c_drawVertexes += tri->numVerts;*/
-
-			/*if ( tri->ambientSurface != NULL  ) {
-				if ( tri->indexes == tri->ambientSurface->indexes ) {
-					backEnd.pc.c_drawRefIndexes += tri->numIndexes;
-				}
-				if ( tri->verts == tri->ambientSurface->verts ) {
-					backEnd.pc.c_drawRefVertexes += tri->numVerts;
-				}
-			}*/
-
-			if((tri.IndexCache != null) && (idE.CvarSystem.GetBool("r_useIndexBuffers") == true))
-			{
-				idConsole.Warning("TODO: indexCache");
-				/*Gl.glDrawElements(Gl.GL_TRIANGLES,
-					(idE.CvarSystem.GetBool("r_singleTriangle") == true) ? 3 : tri.Indexes.Length,
-					Gl.GL_INDEX_ARRAY_TYPE,
-					(int*) vertexCache.Position(tri->indexCache));*/
-
-				// TODO: backEnd.pc.c_vboIndexes += tri->numIndexes;
-			}
-			else
-			{
-				if(idE.CvarSystem.GetBool("r_useIndexBuffers") == true)
-				{
-					UnbindIndex();
-				}
-
-				TextureUnit textureUnit = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit];
-				Texture texture = textureUnit.CurrentTexture;
-
-				if(texture != null)
-				{
-					_basicEffect.Texture = (Texture2D) texture;
-					_basicEffect.TextureEnabled = true;
-
-					switch(textureUnit.Filter)
-					{
-						case TextureFilter.Default:
-							switch(textureUnit.Repeat)
-							{
-								case TextureRepeat.Repeat:
-									_graphicsDevice.SamplerStates[0] = idE.ImageManager.DefaultRepeatTextureSampler;
-									break;
-
-								default:
-									_graphicsDevice.SamplerStates[0] = idE.ImageManager.DefaultClampTextureSampler;
-									break;
-							}
-							break;
-
-						case TextureFilter.Linear:
-							switch(textureUnit.Repeat)
-							{
-								case TextureRepeat.Repeat:
-									_graphicsDevice.SamplerStates[0] = idE.ImageManager.LinearRepeatTextureSampler;
-									break;
-
-								default:
-									_graphicsDevice.SamplerStates[0] = idE.ImageManager.LinearClampTextureSampler;
-									break;
-							}
-							break;
-
-						case TextureFilter.Nearest:
-							switch(textureUnit.Repeat)
-							{
-								case TextureRepeat.Repeat:
-									_graphicsDevice.SamplerStates[0] = idE.ImageManager.LinearRepeatTextureSampler;
-									break;
-
-								default:
-									_graphicsDevice.SamplerStates[0] = idE.ImageManager.LinearClampTextureSampler;
-									break;
-							}
-							break;
-					}
-				}
-				else
-				{
-					_basicEffect.TextureEnabled = false;
-				}
-
-				_basicEffect.View = idE.Backend.ViewDefinition.WorldSpace.ModelViewMatrix;
-				_basicEffect.Projection = idE.Backend.ViewDefinition.ProjectionMatrix;
-				_basicEffect.World = Matrix.Identity;
-
-				foreach(EffectPass p in _basicEffect.CurrentTechnique.Passes)
-				{
-					p.Apply();
-
-					_graphicsDevice.DrawUserIndexedPrimitives<Vertex>(PrimitiveType.TriangleList,
-						tri.AmbientCache.Data, 0,
-						tri.AmbientCache.Data.Length,
-						tri.Indexes, 0, tri.Indexes.Length / 3);
-				}
-			}
-		}
-
-		/// <summary>
-		/// Draw non-light dependent passes.
-		/// </summary>
-		/// <param name="surfaces"></param>
-		/// <returns></returns>
-		private int DrawShaderPasses(DrawSurface[] surfaces)
-		{
-			// only obey skipAmbient if we are rendering a view
-			if((idE.Backend.ViewDefinition.ViewEntities.Count > 0) && (idE.CvarSystem.GetBool("r_skipAmbient") == true))
-			{
-				return surfaces.Length;
-			}
-
-			// RB_LogComment( "---------- RB_STD_DrawShaderPasses ----------\n" );
-
-			// if we are about to draw the first surface that needs
-			// the rendering in a texture, copy it over
-			if(surfaces[0].Material.Sort >= (float) MaterialSort.PostProcess)
-			{
-				idConsole.Warning("TODO: PostProcess");
-				/*if ( r_skipPostProcess.GetBool() ) {
-					return 0;
-				}
-
-				// only dump if in a 3d view
-				if ( backEnd.viewDef->viewEntitys && tr.backEndRenderer == BE_ARB2 ) {
-					globalImages->currentRenderImage->CopyFramebuffer( backEnd.viewDef->viewport.x1,
-						backEnd.viewDef->viewport.y1,  backEnd.viewDef->viewport.x2 -  backEnd.viewDef->viewport.x1 + 1,
-						backEnd.viewDef->viewport.y2 -  backEnd.viewDef->viewport.y1 + 1, true );
-				}
-				backEnd.currentRenderCopied = true;*/
-			}
-
-			GL_SelectTexture(1);
-			idE.ImageManager.BindNullTexture();
-
-			GL_SelectTexture(0);
-			//Gl.glEnableClientState(Gl.GL_TEXTURE_COORD_ARRAY);
-
-			SetProgramEnvironment();
-
-			// we don't use RB_RenderDrawSurfListWithFunction()
-			// because we want to defer the matrix load because many
-			// surfaces won't draw any ambient passes
-			// TODO: backEnd.currentSpace = NULL;
-			int i;
-			int surfaceCount = surfaces.Length;
-
-			for(i = 0; i < surfaceCount; i++)
-			{
-				DrawSurface surface = surfaces[i];
-
-				// TODO: suppressInSubview
-				/*if ( drawSurfs[i]->material->SuppressInSubview() ) {
-					continue;
-				}*/
-
-				// TODO
-				/*if ( backEnd.viewDef->isXraySubview && drawSurfs[i]->space->entityDef ) {
-					if ( drawSurfs[i]->space->entityDef->parms.xrayIndex != 2 ) {
-						continue;
-					}
-				}
-				*/
-
-				// we need to draw the post process shaders after we have drawn the fog lights
-				if((surface.Material.Sort >= (float) MaterialSort.PostProcess) && (idE.Backend.CurrentRenderCopied == false))
-				{
-					break;
-				}
-
-				RenderShaderPasses(surface);
-			}
-
-			GL_Cull(CullType.TwoSided);
-			// TODO: Gl.glColor3f(1, 1, 1);
-
-			return i;
-		}
-				
-		private void DrawView(DrawViewRenderCommand command)
-		{
-			idE.Backend.ViewDefinition = command.View;
-
-			// we will need to do a new copyTexSubImage of the screen
-			// when a SS_POST_PROCESS material is used
-			idE.Backend.CurrentRenderCopied = false;
-
-			// if there aren't any drawsurfs, do nothing
-			if(idE.Backend.ViewDefinition.DrawSurfaces.Count == 0)
-			{
-				return;
-			}
-
-			// skip render bypasses everything that has models, assuming
-			// them to be 3D views, but leaves 2D rendering visible
-			
-			if((idE.CvarSystem.GetBool("r_skipRender") == true) && (idE.Backend.ViewDefinition.ViewEntities.Count > 0))
-			{
-				return;
-			}
-
-			// TODO: backEnd.pc.c_surfaces += backEnd.viewDef->numDrawSurfs;
-
-			// TODO: RB_ShowOverdraw();
-
-			// render the scene, jumping to the hardware specific interaction renderers
-			DrawViewActual();
-		}
-
-		private void DrawViewActual()
-		{
-			// TODO: RB_LogComment( "---------- RB_STD_DrawView ----------\n" );
-
-			idE.Backend.DepthFunction = MaterialStates.DepthFunctionEqual;
-
-			DrawSurface[] surfaces = idE.Backend.ViewDefinition.DrawSurfaces.ToArray();
-			int surfaceCount = surfaces.Length;
-
-			// clear the z buffer, set the projection matrix, etc
-			BeginDrawingView();
-
-			// decide how much overbrighting we are going to do
-			// TODO: RB_DetermineLightScale();
-
-			// fill the depth buffer and clear color buffer to black except on
-			// subviews
-			FillDepthBuffer(surfaces);
-
-			// main light renderer
-			/*switch( tr.backEndRenderer ) {
-			case BE_ARB:
-				RB_ARB_DrawInteractions();
-				break;
-			case BE_ARB2:
-				RB_ARB2_DrawInteractions();
-				break;
-			case BE_NV20:
-				RB_NV20_DrawInteractions();
-				break;
-			case BE_NV10:
-				RB_NV10_DrawInteractions();
-				break;
-			case BE_R200:
-				RB_R200_DrawInteractions();
-				break;
-			}*/
-
-			// disable stencil shadow test			
-			//Gl.glStencilFunc(Gl.GL_ALWAYS, 128, 255);
-
-			// uplight the entire screen to crutch up not having better blending range
-			// TODO: RB_STD_LightScale();
-
-			// now draw any non-light dependent shading passes
-			int processed = DrawShaderPasses(surfaces);
-
-			// fob and blend lights
-			// TODO: RB_STD_FogAllLights();
-
-			// now draw any post-processing effects using _currentRender
-			if(processed < surfaceCount)
-			{
-				idConsole.Warning("TODO: RB_STD_DrawShaderPasses( drawSurfs+processed, numDrawSurfs-processed );");
-			}
-
-			/*RB_RenderDebugTools( drawSurfs, numDrawSurfs );*/
-
-		}
-
+		
 		/// <summary>
 		/// Issues a deferred entity callback if necessary.
 		/// If the model isn't dynamic, it returns the original.
@@ -2084,464 +1549,7 @@ namespace idTech4.Renderer
 			// undeformed surfaces.  This would allow deforms to be light interacting.
 
 			return def.DynamicModel;
-		}
-
-		private void ExecuteBackEndCommands(Queue<RenderCommand> commands)
-		{
-			// r_debugRenderToTexture
-			int draw3DCount = 0, draw2DCount = 0, setBufferCount = 0, swapBufferCount = 0, copyRenderCount = 0;
-
-			if((commands.Peek().CommandID == RenderCommandType.Nop) && (commands.Count == 1))
-			{
-				return;
-			}
-
-			// TODO: backEndStartTime = Sys_Milliseconds();
-
-			// needed for editor rendering
-			SetDefaultGLState();
-
-			// upload any image loads that have completed
-			idE.ImageManager.CompleteBackgroundLoading();
-
-			foreach(RenderCommand cmd in commands)
-			{
-				switch(cmd.CommandID)
-				{
-					case RenderCommandType.Nop:
-						break;
-
-					case RenderCommandType.DrawView:
-						DrawView((DrawViewRenderCommand) cmd);
-
-						// TODO: perf counter
-						/*
-						if ( ((const drawSurfsCommand_t *)cmds)->viewDef->viewEntitys ) {
-							c_draw3d++;
-						}
-						else {
-							c_draw2d++;
-						}*/
-						break;
-
-					case RenderCommandType.SetBuffer:
-						SetBuffer((SetBufferRenderCommand) cmd);
-						setBufferCount++;
-						break;
-
-					case RenderCommandType.SwapBuffers:
-						SwapBuffers((SwapBuffersRenderCommand) cmd);
-						swapBufferCount++;
-						break;
-
-					case RenderCommandType.CopyRender:
-						idConsole.Warning("TODO: RenderCommandType.CopyRender");
-						/*RB_CopyRender( cmds );
-						c_copyRenders++;*/
-						break;
-				}
-			}
-
-			// stop rendering on this thread
-			// TODO: backEndFinishTime = Sys_Milliseconds();
-			// TODO: backEnd.pc.msec = backEndFinishTime - backEndStartTime;
-
-			// TODO: debugRenderToTexture
-			/*if ( r_debugRenderToTexture.GetInteger() == 1 ) {
-				common->Printf( "3d: %i, 2d: %i, SetBuf: %i, SwpBuf: %i, CpyRenders: %i, CpyFrameBuf: %i\n", c_draw3d, c_draw2d, c_setBuffers, c_swapBuffers, c_copyRenders, backEnd.c_copyFrameBuffer );
-				backEnd.c_copyFrameBuffer = 0;
-			}*/
-		}
-
-		/// <summary>
-		/// If we are rendering a subview with a near clip plane, use a second texture
-		/// to force the alpha test to fail when behind that clip plane.
-		/// </summary>
-		/// <param name="surfaces"></param>
-		private void FillDepthBuffer(DrawSurface[] surfaces)
-		{
-			// if we are just doing 2D rendering, no need to fill the depth buffer
-			if(idE.Backend.ViewDefinition.ViewEntities.Count == 0)
-			{
-				return;
-			}
-
-			// TODO: RB_LogComment("---------- RB_STD_FillDepthBuffer ----------\n");
-
-			// enable the second texture for mirror plane clipping if needed
-			// TODO: plane clipping
-			/*if(backEnd.viewDef->numClipPlanes)
-			{
-				GL_SelectTexture(1);
-				globalImages->alphaNotchImage->Bind();
-				qglDisableClientState(GL_TEXTURE_COORD_ARRAY);
-				qglEnable(GL_TEXTURE_GEN_S);
-				qglTexCoord2f(1, 0.5);
-			}*/
-
-			// the first texture will be used for alpha tested surfaces
-			GL_SelectTexture(0);
-
-			// decal surfaces may enable polygon offset
-			// TODO: qglPolygonOffset(r_offsetFactor.GetFloat(), r_offsetUnits.GetFloat());
-
-			GL_State(MaterialStates.DepthFunctionLess);
-
-			// Enable stencil test if we are going to be using it for shadows.
-			// If we didn't do this, it would be legal behavior to get z fighting
-			// from the ambient pass and the light passes.
-			/*qglEnable(GL_STENCIL_TEST);
-			qglStencilFunc(GL_ALWAYS, 1, 255);*/
-
-			RenderDrawSurfaceListWithFunction(surfaces, FillDepthBufferHandler);
-
-			/*if(backEnd.viewDef->numClipPlanes)
-			{
-				GL_SelectTexture(1);
-				globalImages->BindNull();
-				qglDisable(GL_TEXTURE_GEN_S);
-				GL_SelectTexture(0);
-			}*/
-		}
-
-		private void FillDepthBufferHandler(DrawSurface drawSurface)
-		{
-			Surface tri = drawSurface.Geometry;
-			idMaterial material = drawSurface.Material;
-			Vector4 color;
-
-			// update the clip plane if needed
-			// TODO
-			/*if ( backEnd.viewDef->numClipPlanes && surf->space != backEnd.currentSpace ) {
-				GL_SelectTexture( 1 );
-		
-				idPlane	plane;
-
-				R_GlobalPlaneToLocal( surf->space->modelMatrix, backEnd.viewDef->clipPlanes[0], plane );
-				plane[3] += 0.5;	// the notch is in the middle
-				qglTexGenfv( GL_S, GL_OBJECT_PLANE, plane.ToFloatPtr() );
-				GL_SelectTexture( 0 );
-			}*/
-
-			if(material.IsDrawn == false)
-			{
-				return;
-			}
-
-			// some deforms may disable themselves by setting numIndexes = 0
-			if(tri.Indexes.Length == 0)
-			{
-				return;
-			}
-
-			// translucent surfaces don't put anything in the depth buffer and don't
-			// test against it, which makes them fail the mirror clip plane operation
-			if(material.Coverage == MaterialCoverage.Translucent)
-			{
-				return;
-			}
-
-			if(tri.AmbientCache == null)
-			{
-				idConsole.Warning("TODO: RB_T_FillDepthBuffer: !tri->ambientCache");
-				return;
-			}
-
-			// get the expressions for conditionals / color / texcoords
-			float[] regs = drawSurface.MaterialRegisters;
-
-			// if all stages of a material have been conditioned off, don't do anything
-			int stage;
-			MaterialStage materialStage;
-
-			for(stage = 0; stage < material.Stages.Length; stage++)
-			{
-				materialStage = material.GetStage(stage);
-
-				// check the stage enable condition
-				if(regs[materialStage.ConditionRegister] != 0)
-				{
-					break;
-				}
-			}
-
-			if(stage == material.Stages.Length)
-			{
-				return;
-			}
-
-			// set polygon offset if necessary
-			/*if ( shader->TestMaterialFlag(MF_POLYGONOFFSET) ) {
-				qglEnable( GL_POLYGON_OFFSET_FILL );
-				qglPolygonOffset( r_offsetFactor.GetFloat(), r_offsetUnits.GetFloat() * shader->GetPolygonOffset() );
-			}*/
-
-			// subviews will just down-modulate the color buffer by overbright
-			if(material.Sort == (float) MaterialSort.Subview)
-			{
-				GL_State(MaterialStates.SourceBlendDestinationColor | MaterialStates.DestinationBlendZero | MaterialStates.DepthFunctionLess);
-
-				idConsole.Warning("TODO: subview color");
-
-				/*color[0] =
-				color[1] = 
-				color[2] = ( 1.0 / backEnd.overBright );
-				color[3] = 1;*/
-			}
-			else 
-			{
-				// others just draw black
-				color = new Vector4(0, 0, 0, 1);
-			}
-
-			/*idDrawVert *ac = (idDrawVert *)vertexCache.Position( tri->ambientCache );
-			qglVertexPointer( 3, GL_FLOAT, sizeof( idDrawVert ), ac->xyz.ToFloatPtr() );
-			qglTexCoordPointer( 2, GL_FLOAT, sizeof( idDrawVert ), reinterpret_cast<void *>(&ac->st) );*/
-
-			bool drawSolid = false;
-
-			if(material.Coverage == MaterialCoverage.Opaque)
-			{
-				drawSolid = true;
-			}
-			
-			// we may have multiple alpha tested stages
-			if(material.Coverage == MaterialCoverage.Perforated)
-			{
-				idConsole.Warning("TODO: perforated");
-
-				/*// if the only alpha tested stages are condition register omitted,
-				// draw a normal opaque surface
-				bool	didDraw = false;
-
-				qglEnable( GL_ALPHA_TEST );
-				// perforated surfaces may have multiple alpha tested stages
-				for ( stage = 0; stage < shader->GetNumStages() ; stage++ ) {		
-					pStage = shader->GetStage(stage);
-
-					if ( !pStage->hasAlphaTest ) {
-						continue;
-					}
-
-					// check the stage enable condition
-					if ( regs[ pStage->conditionRegister ] == 0 ) {
-						continue;
-					}
-
-					// if we at least tried to draw an alpha tested stage,
-					// we won't draw the opaque surface
-					didDraw = true;
-
-					// set the alpha modulate
-					color[3] = regs[ pStage->color.registers[3] ];
-
-					// skip the entire stage if alpha would be black
-					if ( color[3] <= 0 ) {
-						continue;
-					}
-					qglColor4fv( color );
-
-					qglAlphaFunc( GL_GREATER, regs[ pStage->alphaTestRegister ] );
-
-					// bind the texture
-					pStage->texture.image->Bind();
-
-					// set texture matrix and texGens
-					RB_PrepareStageTexturing( pStage, surf, ac );
-
-					// draw it
-					RB_DrawElementsWithCounters( tri );
-
-					RB_FinishStageTexturing( pStage, surf, ac );
-				}
-				qglDisable( GL_ALPHA_TEST );
-				if ( !didDraw ) {
-					drawSolid = true;
-				}*/
-			}
-			
-
-			// draw the entire surface solid
-			if(drawSolid == true)
-			{
-				idConsole.Warning("TODO: qglColor4fv(color);");
-
-				idE.ImageManager.WhiteImage.Bind();
-
-				// draw it
-				DrawElementsWithCounters(tri);
-			}
-
-			// reset polygon offset
-			/*if ( shader->TestMaterialFlag(MF_POLYGONOFFSET) ) {
-				qglDisable( GL_POLYGON_OFFSET_FILL );
-			}*/
-
-			// reset blending
-			if(material.Sort == (float) MaterialSort.Subview)
-			{
-				GL_State(MaterialStates.DepthFunctionLess);
-			}
-		}
-
-		private void FinishStageTexturing(MaterialStage stage, DrawSurface surface, Vertex[] position)
-		{
-			// unset privatePolygonOffset if necessary
-			if((stage.PrivatePolygonOffset > 0) && (surface.Material.TestMaterialFlag(MaterialFlags.PolygonOffset) == false))
-			{
-				// TODO: Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
-			}
-
-			if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
-			{
-				idConsole.Warning("TODO: FinishStageTexturing DiffuseCube");
-
-				// TODO qglTexCoordPointer( 2, GL_FLOAT, sizeof( idDrawVert ), (void *)&ac->st );
-			}
-			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
-			{
-				idConsole.Warning("TODO: TexCoord Screen");
-
-				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
-				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
-				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
-			}
-			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2)
-			{
-				idConsole.Warning("TODO: TexCoord Screen2");
-
-				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_S);
-				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_T);
-				// TODO: Gl.glDisable(Gl.GL_TEXTURE_GEN_Q);
-			}
-			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
-			{
-				idConsole.Warning("TODO: FinishStageTexturing GlassWarp");
-
-				/*if ( tr.backEndRenderer == BE_ARB2) {
-					GL_SelectTexture( 2 );
-					globalImages->BindNull();
-
-					GL_SelectTexture( 1 );
-					if ( pStage->texture.hasMatrix ) {
-						RB_LoadShaderTextureMatrix( surf->shaderRegisters, &pStage->texture );
-					}
-					qglDisable( GL_TEXTURE_GEN_S );
-					qglDisable( GL_TEXTURE_GEN_T );
-					qglDisable( GL_TEXTURE_GEN_Q );
-					qglDisable( GL_FRAGMENT_PROGRAM_ARB );
-					globalImages->BindNull();
-					GL_SelectTexture( 0 );
-				}*/
-			}
-			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
-			{
-				idConsole.Warning("TODO: FinishStageTexturing ReflectCube");
-				/*if ( tr.backEndRenderer == BE_ARB2 ) {
-					// see if there is also a bump map specified
-					const shaderStage_t *bumpStage = surf->material->GetBumpStage();
-					if ( bumpStage ) {
-						// per-pixel reflection mapping with bump mapping
-						GL_SelectTexture( 1 );
-						globalImages->BindNull();
-						GL_SelectTexture( 0 );
-
-						qglDisableVertexAttribArrayARB( 9 );
-						qglDisableVertexAttribArrayARB( 10 );
-					} else {
-						// per-pixel reflection mapping without bump mapping
-					}
-
-					qglDisableClientState( GL_NORMAL_ARRAY );
-					qglDisable( GL_FRAGMENT_PROGRAM_ARB );
-					qglDisable( GL_VERTEX_PROGRAM_ARB );
-					// Fixme: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
-					qglBindProgramARB( GL_VERTEX_PROGRAM_ARB, 0 );
-				} else {
-					qglDisable( GL_TEXTURE_GEN_S );
-					qglDisable( GL_TEXTURE_GEN_T );
-					qglDisable( GL_TEXTURE_GEN_R );
-					qglTexGenf( GL_S, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR );
-					qglTexGenf( GL_T, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR );
-					qglTexGenf( GL_R, GL_TEXTURE_GEN_MODE, GL_OBJECT_LINEAR );
-					qglDisableClientState( GL_NORMAL_ARRAY );
-
-					qglMatrixMode( GL_TEXTURE );
-					qglLoadIdentity();
-					qglMatrixMode( GL_MODELVIEW );
-				}*/
-			}
-
-			if(stage.Texture.HasMatrix == true)
-			{
-				//Gl.glMatrixMode(Gl.GL_TEXTURE);
-				//Gl.glLoadIdentity();
-				//Gl.glMatrixMode(Gl.GL_MODELVIEW);
-			}
-		}
-
-
-		private bool GetModeInfo(ref int width, ref int height, int mode)
-		{
-			if((mode < -1) || (mode >= VideoModes.Length))
-			{
-				return false;
-			}
-
-			if(mode == -1)
-			{
-				width = idE.CvarSystem.GetInteger("r_customWidth");
-				height = idE.CvarSystem.GetInteger("r_customHeight");
-
-				return true;
-			}
-
-			VideoMode videoMode = VideoModes[mode];
-
-			width = videoMode.Width;
-			height = videoMode.Height;
-
-			return true;
-		}
-
-		private float[] GetMaterialTextureMatrix(float[] materialRegisters, TextureStage textureStage)
-		{
-			float[] matrix = new float[16];
-
-			matrix[0] = materialRegisters[textureStage.Matrix[0, 0]];
-			matrix[4] = materialRegisters[textureStage.Matrix[0, 1]];
-			matrix[8] = 0;
-			matrix[12] = materialRegisters[textureStage.Matrix[0, 2]];
-
-			// we attempt to keep scrolls from generating incredibly large texture values, but
-			// center rotations and center scales can still generate offsets that need to be > 1
-			if((matrix[12] < -40) || (matrix[12] > 40))
-			{
-				matrix[12] -= (int) matrix[12];
-			}
-
-			matrix[1] = materialRegisters[textureStage.Matrix[1, 0]];
-			matrix[5] = materialRegisters[textureStage.Matrix[1, 1]];
-			matrix[9] = 0;
-			matrix[13] = materialRegisters[textureStage.Matrix[1, 2]];
-
-			if((matrix[13] < -40) || (matrix[13] > 40))
-			{
-				matrix[13] -= (int) matrix[13];
-			}
-
-			matrix[2] = 0;
-			matrix[6] = 0;
-			matrix[10] = 1;
-			matrix[14] = 0;
-
-			matrix[3] = 0;
-			matrix[7] = 0;
-			matrix[11] = 0;
-			matrix[15] = 1;
-
-			return matrix;
-		}
+		}	
 
 		public idMaterial GlobalMaterialOverride(idMaterial material)
 		{
@@ -2559,341 +1567,6 @@ namespace idTech4.Renderer
 			}
 
 			return material;
-		}
-
-		/// <summary>
-		/// This handles the flipping needed when the view being rendered is a mirrored view.
-		/// </summary>
-		/// <param name="type"></param>
-		private void GL_Cull(CullType type)
-		{
-			if(idE.Backend.GLState.FaceCulling == type)
-			{
-				return;
-			}
-
-			if(type == CullType.TwoSided)
-			{
-				// TODO: Gl.glDisable(Gl.GL_CULL_FACE);
-			}
-			else
-			{
-				if(idE.Backend.GLState.FaceCulling == CullType.TwoSided)
-				{
-					// TODO: Gl.glDisable(Gl.GL_CULL_FACE);
-				}
-
-				if(type == CullType.TwoSided)
-				{
-					if(idE.Backend.ViewDefinition.IsMirror == true)
-					{
-						// TODO: Gl.glCullFace(Gl.GL_FRONT);
-					}
-					else
-					{
-						// TODO: Gl.glCullFace(Gl.GL_BACK);
-					}
-				}
-				else
-				{
-					if(idE.Backend.ViewDefinition.IsMirror == true)
-					{
-						// TODO: Gl.glCullFace(Gl.GL_BACK);
-					}
-					else
-					{
-						// TODO: Gl.glCullFace(Gl.GL_FRONT);
-					}
-				}
-			}
-
-			idE.Backend.GLState.FaceCulling = type;
-		}
-
-		private void GL_SelectTexture(int unit)
-		{
-			if(idE.Backend.GLState.CurrentTextureUnit == unit)
-			{
-				return;
-			}
-
-			if((unit < 0) || (unit >= idE.GLConfig.MaxTextureUnits) && (unit >= idE.GLConfig.MaxTextureImageUnits))
-			{
-				idConsole.Warning("GL_SelectTexture: unit = {0}", unit);
-			}
-			else
-			{
-				//Gl.glActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
-				//Gl.glClientActiveTextureARB(Gl.GL_TEXTURE0_ARB + unit);
-
-				// TODO: RB_LogComment("glActiveTextureARB( %i );\nglClientActiveTextureARB( %i );\n", unit, unit);
-
-				idE.Backend.GLState.CurrentTextureUnit = unit;
-			}
-		}
-
-		/// <summary>
-		/// This routine is responsible for setting the most commonly changed state.
-		/// </summary>
-		/// <param name="state"></param>
-		private void GL_State(MaterialStates state)
-		{
-			MaterialStates diff;
-			int srcFactor;
-			int dstFactor;
-
-			BlendState blendState = new BlendState();
-
-			if((idE.CvarSystem.GetBool("r_useStateCaching") == false) || (idE.Backend.GLState.ForceState == true))
-			{
-				// make sure everything is set all the time, so we
-				// can see if our delta checking is screwing up
-				diff = MaterialStates.Invalid;
-				idE.Backend.GLState.ForceState = false;
-			}
-			else
-			{
-				diff = state ^ idE.Backend.GLState.StateBits;
-
-				if(diff == 0)
-				{
-					return;
-				}
-			}
-
-			//
-			// check depthFunc bits
-			//
-			if((diff & (MaterialStates.DepthFunctionEqual | MaterialStates.DepthFunctionLess | MaterialStates.DepthFunctionAlways)) != 0)
-			{
-				if((state & MaterialStates.DepthFunctionEqual) == MaterialStates.DepthFunctionEqual)
-				{
-					//idConsole.Warning("TODO: DepthFuncEqual");
-					//  TODO: Gl.glDepthFunc(Gl.GL_EQUAL);
-				}
-				else if((state & MaterialStates.DepthFunctionAlways) == MaterialStates.DepthFunctionAlways)
-				{
-					//idConsole.Warning("TODO: DepthFuncAlways");
-					// TODO: Gl.glDepthFunc(Gl.GL_ALWAYS);
-				}
-				else
-				{
-					//idConsole.Warning("TODO: DepthFuncLEqual");
-					// TODO: Gl.glDepthFunc(Gl.GL_LEQUAL);
-				}
-			}
-
-			//
-			// check blend bits
-			//
-			if((diff & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) != 0)
-			{
-				switch(state & MaterialStates.SourceBlendBits)
-				{
-					case MaterialStates.SourceBlendZero:
-						blendState.AlphaSourceBlend = Blend.Zero;
-						blendState.ColorSourceBlend = Blend.Zero;
-						break;
-					case MaterialStates.SourceBlendOne:
-						blendState.AlphaSourceBlend = Blend.One;
-						blendState.ColorSourceBlend = Blend.One;
-						break;
-					case MaterialStates.SourceBlendDestinationColor:
-						blendState.AlphaSourceBlend = Blend.DestinationColor;
-						blendState.ColorSourceBlend = Blend.DestinationColor;
-						break;
-					case MaterialStates.SourceBlendOneMinusDestinationColor:
-						blendState.AlphaSourceBlend = Blend.InverseDestinationColor;
-						blendState.ColorSourceBlend = Blend.InverseDestinationColor;
-						break;
-					case MaterialStates.SourceBlendSourceAlpha:
-						blendState.AlphaSourceBlend = Blend.SourceAlpha;
-						blendState.ColorSourceBlend = Blend.SourceAlpha;
-						break;
-					case MaterialStates.SourceBlendOneMinusSourceAlpha:
-						blendState.AlphaSourceBlend = Blend.InverseSourceAlpha;
-						blendState.ColorSourceBlend = Blend.InverseSourceAlpha;
-						break;
-					case MaterialStates.SourceBlendDestinationAlpha:
-						blendState.AlphaSourceBlend = Blend.DestinationAlpha;
-						blendState.ColorSourceBlend = Blend.DestinationAlpha;
-						break;
-					case MaterialStates.SourceBlendOneMinusDestinationAlpha:
-						blendState.AlphaSourceBlend = Blend.InverseDestinationAlpha;
-						blendState.ColorSourceBlend = Blend.InverseDestinationAlpha;
-						break;
-					case MaterialStates.SourceBlendAlphaSaturate:
-						blendState.AlphaSourceBlend = Blend.SourceAlphaSaturation;
-						blendState.ColorSourceBlend = Blend.SourceAlphaSaturation;
-						break;
-					default:
-						idConsole.Error("GL_State: invalid source blend state bits");
-						break;
-				}
-
-				switch(state & MaterialStates.DestinationBlendBits)
-				{
-					case MaterialStates.DestinationBlendZero:
-						blendState.AlphaDestinationBlend = Blend.Zero;
-						blendState.ColorDestinationBlend = Blend.Zero;
-						break;
-					case MaterialStates.DestinationBlendOne:
-						blendState.AlphaDestinationBlend = Blend.One;
-						blendState.ColorDestinationBlend = Blend.One;
-						break;
-					case MaterialStates.DestinationBlendSourceColor:
-						blendState.AlphaDestinationBlend = Blend.SourceColor;
-						blendState.ColorDestinationBlend = Blend.SourceColor;
-						break;
-					case MaterialStates.DestinationBlendOneMinusSourceColor:
-						blendState.AlphaDestinationBlend = Blend.InverseSourceColor;
-						blendState.ColorDestinationBlend = Blend.InverseSourceColor;
-						break;
-					case MaterialStates.DestinationBlendSourceAlpha:
-						blendState.AlphaDestinationBlend = Blend.SourceAlpha;
-						blendState.ColorDestinationBlend = Blend.SourceAlpha;
-						break;
-					case MaterialStates.DestinationBlendOneMinusSourceAlpha:
-						blendState.AlphaDestinationBlend = Blend.InverseSourceAlpha;
-						blendState.ColorDestinationBlend = Blend.InverseSourceAlpha;
-						break;
-					case MaterialStates.DestinationBlendDestinationAlpha:
-						blendState.AlphaDestinationBlend = Blend.DestinationAlpha;
-						blendState.ColorDestinationBlend = Blend.DestinationAlpha;
-						break;
-					case MaterialStates.DestinationBlendOneMinusDestinationAlpha:
-						blendState.AlphaDestinationBlend = Blend.InverseDestinationAlpha;
-						blendState.ColorDestinationBlend = Blend.InverseDestinationAlpha;
-						break;
-					default:
-						idConsole.Error("GL_State: invalid dst blend state bits");
-						break;
-				}
-			}
-
-			//
-			// check depthmask
-			//
-			if((diff & MaterialStates.DepthMask) == MaterialStates.DepthMask)
-			{
-				//idConsole.Warning("TODO: depthmask");
-				if((state & MaterialStates.DepthMask) == MaterialStates.DepthMask)
-				{
-					// TODO: Gl.glDepthMask(Gl.GL_FALSE);
-				}
-				else
-				{
-					// TODO: Gl.glDepthMask(Gl.GL_TRUE);
-				}
-			}
-
-			//
-			// check colormask
-			//
-			if((diff & (MaterialStates.RedMask | MaterialStates.GreenMask | MaterialStates.BlueMask | MaterialStates.AlphaMask)) != 0)
-			{
-				ColorWriteChannels colorChannels = ColorWriteChannels.None;
-
-				if((diff & MaterialStates.RedMask) == 0)
-				{
-					colorChannels |= ColorWriteChannels.Red;
-				}
-
-				if((diff & MaterialStates.GreenMask) == 0)
-				{
-					colorChannels |= ColorWriteChannels.Green;
-				}
-
-				if((diff & MaterialStates.BlueMask) == 0)
-				{
-					colorChannels |= ColorWriteChannels.Blue;
-				}
-
-				if((diff & MaterialStates.AlphaMask) == 0)
-				{
-					colorChannels |= ColorWriteChannels.Alpha;
-				}
-
-				blendState.ColorWriteChannels = colorChannels;
-			}
-
-			//
-			// fill/line mode
-			//
-			if((diff & MaterialStates.PolygonModeLine) == MaterialStates.PolygonModeLine)
-			{
-				if((state & MaterialStates.PolygonModeLine) == MaterialStates.PolygonModeLine)
-				{
-					// TODO: Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_LINE);					
-				}
-				else
-				{
-					// TODO: Gl.glPolygonMode(Gl.GL_FRONT_AND_BACK, Gl.GL_FILL);
-				}
-			}
-
-			//
-			// alpha test
-			//
-			if((diff & MaterialStates.AlphaTestBits) == MaterialStates.AlphaTestBits)
-			{
-				switch(state & MaterialStates.AlphaTestBits)
-				{
-					case 0:
-
-						//_graphicsDevice.BlendState = BlendState.Opaque;
-						break;
-
-					case MaterialStates.AlphaTestEqual255:
-						idConsole.Warning("TODO: glEnable ALPHA255");
-						//Gl.glEnable(Gl.GL_ALPHA_TEST);
-						//Gl.glAlphaFunc(Gl.GL_EQUAL, 1.0f);
-						break;
-
-					case MaterialStates.AlphaTestLessThan128:
-						idConsole.Warning("TODO: glEnable ALPHA128");
-						//Gl.glEnable(Gl.GL_ALPHA_TEST);
-						//Gl.glAlphaFunc(Gl.GL_LESS, 0.5f);
-						break;
-
-					case MaterialStates.AlphaTestGreaterOrEqual128:
-						idConsole.Warning("TODO: glEnable LEALPHA128");
-						//Gl.glEnable(Gl.GL_ALPHA_TEST);
-						//Gl.glAlphaFunc(Gl.GL_GEQUAL, 0.5f);
-						break;
-
-					default:
-						break;
-				}
-			}
-
-			_graphicsDevice.BlendState = blendState;
-
-			idE.Backend.GLState.StateBits = state;
-		}
-
-		private void GL_TextureEnvironment(int env)
-		{
-			if(env == idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].TexEnv)
-			{
-				return;
-			}
-
-			idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit].TexEnv = env;
-
-			switch(env)
-			{
-				case Gl.GL_COMBINE_EXT:
-				case Gl.GL_MODULATE:
-				case Gl.GL_REPLACE:
-				case Gl.GL_DECAL:
-				case Gl.GL_ADD:
-					// TODO: Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_MODE, env);
-					break;
-				default:
-					idConsole.Error("GL_TexEnv: invalid env '{0}' passed\n", env);
-					break;
-			}
 		}
 
 		private void InitCommands()
@@ -3140,7 +1813,7 @@ namespace idTech4.Renderer
 			// draw 2D graphics
 			if(idE.CvarSystem.GetBool("r_skipBackEnd") == false)
 			{
-				ExecuteBackEndCommands(_frameData.Commands);
+				_backendRenderer.Execute(_frameData.Commands);
 			}
 
 			ClearCommandChain();
@@ -3267,517 +1940,7 @@ namespace idTech4.Renderer
 				}
 			}
 		}
-
-		private void LoadMaterialTextureMatrix(float[] materialRegisters, TextureStage textureStage)
-		{
-			float[] matrix = GetMaterialTextureMatrix(materialRegisters, textureStage);
-
-			// need texture uv transform
-			// TODO: idConsole.WriteLine("TODO: LoadMaterialTextureMatrix");
-			
-			/*qglMatrixMode(GL_TEXTURE);
-			qglLoadMatrixf(matrix);
-			qglMatrixMode(GL_MODELVIEW);*/
-		}
-
-		private void PrepareStageTexturing(MaterialStage stage, DrawSurface surface, Vertex[] position)
-		{
-			// set privatePolygonOffset if necessary
-			if(stage.PrivatePolygonOffset > 0)
-			{
-				// TODO: Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
-				// TODO: Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * stage.PrivatePolygonOffset);
-			}
-
-			// set the texture matrix if needed
-			if(stage.Texture.HasMatrix == true)
-			{
-				LoadMaterialTextureMatrix(surface.MaterialRegisters, stage.Texture);
-			}
-
-			// texgens
-			if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube)
-			{
-				idConsole.Warning("TODO: TexGen DiffuseCube");
-				// TODO: Gl.glTexCoordPointer(3, Gl.GL_FLOAT, sizeof( idVertex ), new float[] { position.Normal.X, position.Normal.Y, position.Normal.Z });
-			}
-			else if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube) || (stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube))
-			{
-				idConsole.Warning("TODO: TexGen SkyboxCube | WobbleSky");
-				// TODO: Gl.glTexCoordPointer(3, Gl.GL_FLOAT, 0, vertexCache.Position( surf->dynamicTexCoords));
-			}
-			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
-			{
-				idConsole.Warning("TODO: TexGen Screen");
-
-				/*qglEnable( GL_TEXTURE_GEN_S );
-				qglEnable( GL_TEXTURE_GEN_T );
-				qglEnable( GL_TEXTURE_GEN_Q );
-
-				float	mat[16], plane[4];
-				myGlMultMatrix( surf->space->modelViewMatrix, backEnd.viewDef->projectionMatrix, mat );
-
-				plane[0] = mat[0];
-				plane[1] = mat[4];
-				plane[2] = mat[8];
-				plane[3] = mat[12];
-				qglTexGenfv( GL_S, GL_OBJECT_PLANE, plane );
-
-				plane[0] = mat[1];
-				plane[1] = mat[5];
-				plane[2] = mat[9];
-				plane[3] = mat[13];
-				qglTexGenfv( GL_T, GL_OBJECT_PLANE, plane );
-
-				plane[0] = mat[3];
-				plane[1] = mat[7];
-				plane[2] = mat[11];
-				plane[3] = mat[15];
-				qglTexGenfv( GL_Q, GL_OBJECT_PLANE, plane );*/
-			}
-			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2)
-			{
-				idConsole.Warning("TODO: TexGen Screen2");
-				/*qglEnable( GL_TEXTURE_GEN_S );
-				qglEnable( GL_TEXTURE_GEN_T );
-				qglEnable( GL_TEXTURE_GEN_Q );
-
-				float	mat[16], plane[4];
-				myGlMultMatrix( surf->space->modelViewMatrix, backEnd.viewDef->projectionMatrix, mat );
-
-				plane[0] = mat[0];
-				plane[1] = mat[4];
-				plane[2] = mat[8];
-				plane[3] = mat[12];
-				qglTexGenfv( GL_S, GL_OBJECT_PLANE, plane );
-
-				plane[0] = mat[1];
-				plane[1] = mat[5];
-				plane[2] = mat[9];
-				plane[3] = mat[13];
-				qglTexGenfv( GL_T, GL_OBJECT_PLANE, plane );
-
-				plane[0] = mat[3];
-				plane[1] = mat[7];
-				plane[2] = mat[11];
-				plane[3] = mat[15];
-				qglTexGenfv( GL_Q, GL_OBJECT_PLANE, plane );*/
-			}
-			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
-			{
-				idConsole.Warning("TODO: TexGen GlassWarp");
-
-				/*if ( tr.backEndRenderer == BE_ARB2) {
-					qglBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, FPROG_GLASSWARP );
-					qglEnable( GL_FRAGMENT_PROGRAM_ARB );
-
-					GL_SelectTexture( 2 );
-					globalImages->scratchImage->Bind();
-
-					GL_SelectTexture( 1 );
-					globalImages->scratchImage2->Bind();
-
-					qglEnable( GL_TEXTURE_GEN_S );
-					qglEnable( GL_TEXTURE_GEN_T );
-					qglEnable( GL_TEXTURE_GEN_Q );
-
-					float	mat[16], plane[4];
-					myGlMultMatrix( surf->space->modelViewMatrix, backEnd.viewDef->projectionMatrix, mat );
-
-					plane[0] = mat[0];
-					plane[1] = mat[4];
-					plane[2] = mat[8];
-					plane[3] = mat[12];
-					qglTexGenfv( GL_S, GL_OBJECT_PLANE, plane );
-
-					plane[0] = mat[1];
-					plane[1] = mat[5];
-					plane[2] = mat[9];
-					plane[3] = mat[13];
-					qglTexGenfv( GL_T, GL_OBJECT_PLANE, plane );
-
-					plane[0] = mat[3];
-					plane[1] = mat[7];
-					plane[2] = mat[11];
-					plane[3] = mat[15];
-					qglTexGenfv( GL_Q, GL_OBJECT_PLANE, plane );
-
-					GL_SelectTexture( 0 );
-				}*/
-			}
-			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
-			{
-				idConsole.Warning("TODO: TexGen ReflectCube");
-
-				/*if ( tr.backEndRenderer == BE_ARB2 ) {
-					// see if there is also a bump map specified
-					const shaderStage_t *bumpStage = surf->material->GetBumpStage();
-					if ( bumpStage ) {
-						// per-pixel reflection mapping with bump mapping
-						GL_SelectTexture( 1 );
-						bumpStage->texture.image->Bind();
-						GL_SelectTexture( 0 );
-
-						qglNormalPointer( GL_FLOAT, sizeof( idDrawVert ), ac->normal.ToFloatPtr() );
-						qglVertexAttribPointerARB( 10, 3, GL_FLOAT, false, sizeof( idDrawVert ), ac->tangents[1].ToFloatPtr() );
-						qglVertexAttribPointerARB( 9, 3, GL_FLOAT, false, sizeof( idDrawVert ), ac->tangents[0].ToFloatPtr() );
-
-						qglEnableVertexAttribArrayARB( 9 );
-						qglEnableVertexAttribArrayARB( 10 );
-						qglEnableClientState( GL_NORMAL_ARRAY );
-
-						// Program env 5, 6, 7, 8 have been set in RB_SetProgramEnvironmentSpace
-
-						qglBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, FPROG_BUMPY_ENVIRONMENT );
-						qglEnable( GL_FRAGMENT_PROGRAM_ARB );
-						qglBindProgramARB( GL_VERTEX_PROGRAM_ARB, VPROG_BUMPY_ENVIRONMENT );
-						qglEnable( GL_VERTEX_PROGRAM_ARB );
-					} else {
-						// per-pixel reflection mapping without a normal map
-						qglNormalPointer( GL_FLOAT, sizeof( idDrawVert ), ac->normal.ToFloatPtr() );
-						qglEnableClientState( GL_NORMAL_ARRAY );
-
-						qglBindProgramARB( GL_FRAGMENT_PROGRAM_ARB, FPROG_ENVIRONMENT );
-						qglEnable( GL_FRAGMENT_PROGRAM_ARB );
-						qglBindProgramARB( GL_VERTEX_PROGRAM_ARB, VPROG_ENVIRONMENT );
-						qglEnable( GL_VERTEX_PROGRAM_ARB );
-					}
-				} else {
-					qglEnable( GL_TEXTURE_GEN_S );
-					qglEnable( GL_TEXTURE_GEN_T );
-					qglEnable( GL_TEXTURE_GEN_R );
-					qglTexGenf( GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT );
-					qglTexGenf( GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT );
-					qglTexGenf( GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP_EXT );
-					qglEnableClientState( GL_NORMAL_ARRAY );
-					qglNormalPointer( GL_FLOAT, sizeof( idDrawVert ), ac->normal.ToFloatPtr() );
-
-					qglMatrixMode( GL_TEXTURE );
-					float	mat[16];
-
-					R_TransposeGLMatrix( backEnd.viewDef->worldSpace.modelViewMatrix, mat );
-
-					qglLoadMatrixf( mat );
-					qglMatrixMode( GL_MODELVIEW );
-				}*/
-			}
-		}
-
-		private void RenderShaderPasses(DrawSurface surface)
-		{
-			Surface tri = surface.Geometry;
-			idMaterial material = surface.Material;
-			int count;
-			
-			if(material.HasAmbient == false)
-			{
-				return;
-			}
-
-			if(material.IsPortalSky == true)
-			{
-				return;
-			}
-
-			// change the matrix if needed
-			// TODO
-			/*if ( surf->space != backEnd.currentSpace ) {
-				qglLoadMatrixf( surf->space->modelViewMatrix );
-				backEnd.currentSpace = surf->space;
-				RB_SetProgramEnvironmentSpace();
-			}*/
-
-			// change the scissor if needed
-			if((idE.CvarSystem.GetBool("r_useScissor") == true) && (idE.Backend.CurrentScissor != surface.ScissorRectangle))
-			{
-				idE.Backend.CurrentScissor = surface.ScissorRectangle;
-
-				_graphicsDevice.ScissorRectangle = new Rectangle(
-					idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
-					idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.CurrentScissor.Y1,
-					idE.Backend.CurrentScissor.X2 + 1 - idE.Backend.CurrentScissor.X1,
-					idE.Backend.CurrentScissor.Y2 + 1 - idE.Backend.CurrentScissor.Y1);
-			}
-
-			// some deforms may disable themselves by setting numIndexes = 0
-			if(tri.Indexes.Length == 0)
-			{
-				return;
-			}
-
-			if(tri.AmbientCache == null)
-			{
-				idConsole.WriteLine("RenderShaderPasses: !tri.AmbientCache");
-				return;
-			}
-
-			// get the expressions for conditionals / color / texcoords
-			float[] registers = surface.MaterialRegisters;
-
-			// set face culling appropriately
-			GL_Cull(material.CullType);
-
-			// set polygon offset if necessary
-			if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
-			{
-				idConsole.Warning("TODO: polygon offset fill");
-				//Gl.glEnable(Gl.GL_POLYGON_OFFSET_FILL);
-				//Gl.glPolygonOffset(idE.CvarSystem.GetFloat("r_offsetFactor"), idE.CvarSystem.GetFloat("r_offsetUnits") * material.PolygonOffset);
-			}
-
-			if(surface.Space.WeaponDepthHack == true)
-			{
-				idConsole.Warning("TODO: RB_EnterWeaponDepthHack();");
-			}
-
-			if(surface.Space.ModelDepthHack != 0.0f)
-			{
-				idConsole.Warning("TODO: RB_EnterModelDepthHack( surf->space->modelDepthHack );");
-			}
-
-			foreach(MaterialStage stage in material.Stages)
-			{
-				// check the enable condition
-				if(registers[stage.ConditionRegister] == 0)
-				{
-					continue;
-				}
-
-				// skip the stages involved in lighting
-				if(stage.Lighting != StageLighting.Ambient)
-				{
-					continue;
-				}
-
-				// skip if the stage is ( GL_ZERO, GL_ONE ), which is used for some alpha masks
-				if((stage.DrawStateBits & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits))
-					== (MaterialStates.SourceBlendZero | MaterialStates.DestinationBlendOne))
-				{
-					continue;
-				}
-
-				// see if we are a new-style stage
-				NewMaterialStage newStage = stage.NewStage;
-
-				if(newStage.IsEmpty == false)
-				{
-					throw new Exception("THIS MIGHT NOT WORK!!!");
-					//--------------------------
-					//
-					// new style stages
-					//
-					//--------------------------
-
-					if(idE.CvarSystem.GetBool("r_skipNewAmbient") == true)
-					{
-						continue;
-					}
-
-					idConsole.Warning("TODO: render");
-					/*Gl.glColorPointer(4, Gl.GL_UNSIGNED_BYTE, Marshal.SizeOf(typeof(Vertex)), (void*) &ambientCacheData->color);
-					Gl.glVertexAttribPointerARB(9, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[0].ToFloatPtr());
-					Gl.glVertexAttribPointerARB(10, 3, Gl.GL_FLOAT, false, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->tangents[1].ToFloatPtr());
-					Gl.glNormalPointer(Gl.GL_FLOAT, Marshal.SizeOf(typeof(Vertex)), ambientCacheData->normal.ToFloatPtr());*/
-
-					//Gl.glEnableClientState(Gl.GL_COLOR_ARRAY);
-					//Gl.glEnableVertexAttribArray(9);
-					//Gl.glEnableVertexAttribArray(10);
-					//Gl.glEnableClientState(Gl.GL_NORMAL_ARRAY);
-
-					GL_State(stage.DrawStateBits);
-
-					idConsole.Warning("TODO: glBindProgramARB");
-					/*Gl.glBindProgramARB(Gl.GL_VERTEX_PROGRAM_ARB, newStage.VertexProgram);
-					Gl.glEnable(Gl.GL_VERTEX_PROGRAM_ARB);*/
-
-					// megaTextures bind a lot of images and set a lot of parameters
-					// TODO: megatextures
-					/*if ( newStage->megaTexture ) {
-						newStage->megaTexture->SetMappingForSurface( tri );
-						idVec3	localViewer;
-						R_GlobalPointToLocal( surf->space->modelMatrix, backEnd.viewDef->renderView.vieworg, localViewer );
-						newStage->megaTexture->BindForViewOrigin( localViewer );
-					}*/
-
-					count = newStage.VertexParameters.Length;
-
-					for(int i = 0; i < count; i++)
-					{
-						float[] parm = new float[4];
-						parm[0] = registers[newStage.VertexParameters[i, 0]];
-						parm[1] = registers[newStage.VertexParameters[i, 1]];
-						parm[2] = registers[newStage.VertexParameters[i, 2]];
-						parm[3] = registers[newStage.VertexParameters[i, 3]];
-
-						//Gl.glProgramLocalParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, i, parm);
-					}
-
-					count = newStage.FragmentProgramImages.Length;
-
-					for(int i = 0; i < count; i++)
-					{
-						if(newStage.FragmentProgramImages[i] != null)
-						{
-							GL_SelectTexture(i);
-							newStage.FragmentProgramImages[i].Bind();
-						}
-					}
-
-					//Gl.glBindProgramARB(Gl.GL_FRAGMENT_PROGRAM_ARB, newStage.FragmentProgram);
-					//Gl.glEnable(Gl.GL_FRAGMENT_PROGRAM_ARB);
-
-					// draw it
-					DrawElementsWithCounters(tri);
-
-					count = newStage.FragmentProgramImages.Length;
-
-					for(int i = 1; i < count; i++)
-					{
-						if(newStage.FragmentProgramImages[i] != null)
-						{
-							GL_SelectTexture(i);
-							idE.ImageManager.BindNullTexture();
-						}
-					}
-
-					// TODO: megatexture
-					/*if ( newStage->megaTexture ) {
-						newStage->megaTexture->Unbind();
-					}*/
-
-					GL_SelectTexture(0);
-
-					//Gl.glDisable(Gl.GL_VERTEX_PROGRAM_ARB);
-					//Gl.glDisable(Gl.GL_FRAGMENT_PROGRAM_ARB);
-					// Fixme: Hack to get around an apparent bug in ATI drivers.  Should remove as soon as it gets fixed.
-					//Gl.glBindProgramARB(Gl.GL_VERTEX_PROGRAM_ARB, 0);
-
-					//Gl.glDisableClientState(Gl.GL_COLOR_ARRAY);
-					//Gl.glDisableVertexAttribArrayARB(9);
-					//Gl.glDisableVertexAttribArrayARB(10);
-					//Gl.glDisableClientState(Gl.GL_NORMAL_ARRAY);
-
-					continue;
-				}
-				else
-				{
-					//--------------------------
-					//
-					// old style stages
-					//
-					//--------------------------
-
-					// set the color
-					float[] color = new float[4];
-					color[0] = registers[stage.Color.Registers[0]];
-					color[1] = registers[stage.Color.Registers[1]];
-					color[2] = registers[stage.Color.Registers[2]];
-					color[3] = registers[stage.Color.Registers[3]];
-
-					// skip the entire stage if an add would be black
-					if(((stage.DrawStateBits & (MaterialStates.SourceBlendBits & MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne))
-						&& (color[0] <= 0) && (color[1] <= 0) && (color[2] <= 0))
-					{
-						continue;
-					}
-
-					// skip the entire stage if a blend would be completely transparent
-					if(((stage.DrawStateBits & (MaterialStates.SourceBlendBits & MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendSourceAlpha | MaterialStates.DestinationBlendOneMinusSourceAlpha))
-						&& (color[3] <= 0))
-					{
-						continue;
-					}
-
-					// select the vertex color source
-					if(stage.VertexColor == StageVertexColor.Ignore)
-					{
-						_basicEffect.DiffuseColor = new Vector3(color[0], color[1], color[2]);
-						_basicEffect.Alpha = color[3];
-					}
-					else
-					{
-						if(stage.VertexColor == StageVertexColor.InverseModulate)
-						{
-							idConsole.Warning("TODO: InverseModulate");
-							//GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
-
-							/*GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.CombineRgb, (int) All.Modulate);
-							GL.TexEnv(TextureEnvTarget.TextureEnv, TextureEnvParameter.Source0Rgb, (int) All.Texture);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB_ARB, Gl.GL_PRIMARY_COLOR_ARB);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB_ARB, Gl.GL_SRC_COLOR);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB_ARB, Gl.GL_ONE_MINUS_SRC_COLOR);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE_ARB, 1);*/
-						}
-
-						// for vertex color and modulated color, we need to enable a second texture stage
-						if(color[0] != 1 || color[1] != 1 || color[2] != 1 || color[3] != 1)
-						{
-							GL_SelectTexture(1);
-							idE.ImageManager.WhiteImage.Bind();
-							idConsole.Warning("TODO: vertex color");
-							// GL_TextureEnvironment(Gl.GL_COMBINE_ARB);
-
-							/*Gl.glTexEnvfv(Gl.GL_TEXTURE_ENV, Gl.GL_TEXTURE_ENV_COLOR, color);
-
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_RGB_ARB, Gl.GL_MODULATE);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_RGB_ARB, Gl.GL_PREVIOUS_ARB);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_RGB_ARB, Gl.GL_CONSTANT_ARB);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_RGB_ARB, Gl.GL_SRC_COLOR);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_RGB_ARB, Gl.GL_SRC_COLOR);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_RGB_SCALE_ARB, 1);
-
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_COMBINE_ALPHA_ARB, Gl.GL_MODULATE);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE0_ALPHA_ARB, Gl.GL_PREVIOUS_ARB);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_SOURCE1_ALPHA_ARB, Gl.GL_CONSTANT_ARB);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND0_ALPHA_ARB, Gl.GL_SRC_ALPHA);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_OPERAND1_ALPHA_ARB, Gl.GL_SRC_ALPHA);
-							Gl.glTexEnvi(Gl.GL_TEXTURE_ENV, Gl.GL_ALPHA_SCALE, 1);
-
-							GL_SelectTexture(0);*/
-						}
-					}
-
-					// bind the texture
-					BindVariableStageImage(stage.Texture, registers);
-
-					// set the state
-					GL_State(stage.DrawStateBits);
-
-					PrepareStageTexturing(stage, surface, tri.AmbientCache.Data);
-
-					// draw it
-					DrawElementsWithCounters(tri);
-
-					FinishStageTexturing(stage, surface, tri.AmbientCache.Data);
-
-					if(stage.VertexColor != StageVertexColor.Ignore)
-					{
-						idConsole.Warning("TODO: SVC ignore");
-						/*GL.DisableClientState(ArrayCap.ColorArray);*/
-
-						GL_SelectTexture(1);
-						GL_TextureEnvironment(Gl.GL_MODULATE);
-
-						idE.ImageManager.BindNullTexture();
-
-						GL_SelectTexture(0);
-						GL_TextureEnvironment(Gl.GL_MODULATE);
-					}
-				}
-
-				// reset polygon offset
-				if(material.TestMaterialFlag(MaterialFlags.PolygonOffset) == true)
-				{
-					// TODO: Gl.glDisable(Gl.GL_POLYGON_OFFSET_FILL);
-				}
-
-				if((surface.Space.WeaponDepthHack == true) || (surface.Space.ModelDepthHack != 0.0f))
-				{
-					idConsole.Warning("TODO: RB_LeaveDepthHack();");
-				}
-			}
-		}
-
+		
 		public idMaterial RemapMaterialBySkin(idMaterial material, idDeclSkin skin, idMaterial customMaterial)
 		{
 			if(material == null)
@@ -3800,7 +1963,6 @@ namespace idTech4.Renderer
 					return null;
 				}
 
-
 				return customMaterial;
 			}
 
@@ -3811,225 +1973,7 @@ namespace idTech4.Renderer
 
 			return skin.RemapShaderBySkin(material);
 		}
-
-		/// <summary>
-		/// The triangle functions can check backEnd.currentSpace != surf->space
-		/// to see if they need to perform any new matrix setup.  The modelview
-		/// matrix will already have been loaded, and backEnd.currentSpace will
-		/// be updated after the triangle function completes.
-		/// </summary>
-		/// <param name="surfaces"></param>
-		/// <param name="handler"></param>
-		private void RenderDrawSurfaceListWithFunction(DrawSurface[] surfaces, RenderHandler handler)
-		{
-			int count = surfaces.Length;
-
-			for(int i = 0; i < count; i++)
-			{
-				DrawSurface surface = surfaces[i];
-
-				// change the matrix if needed
-				//if(surface.Space != idE.Backend.CurrentSpace)
-				{
-					//qglLoadMatrixf( drawSurf->space->modelViewMatrix );
-				}
-
-				if(surface.Space.WeaponDepthHack == true)
-				{
-					idConsole.Warning("TODO: RB_EnterWeaponDepthHack();");
-				}
-
-				if(surface.Space.ModelDepthHack != 0.0f)
-				{
-					idConsole.Warning("TODO: RB_EnterModelDepthHack( drawSurf->space->modelDepthHack );");
-				}
-
-				// change the scissor if needed
-				if((idE.CvarSystem.GetBool("r_useScissor") == true) && (idE.Backend.CurrentScissor != surface.ScissorRectangle))
-				{
-					idE.Backend.CurrentScissor = surface.ScissorRectangle;
-
-					_graphicsDevice.ScissorRectangle = new Rectangle(
-						idE.Backend.ViewDefinition.ViewPort.X1 + idE.Backend.CurrentScissor.X1,
-						idE.Backend.ViewDefinition.ViewPort.Y1 + idE.Backend.CurrentScissor.Y1,
-						idE.Backend.CurrentScissor.X2 + 1 - idE.Backend.CurrentScissor.X1,
-						idE.Backend.CurrentScissor.Y2 + 1 - idE.Backend.CurrentScissor.Y1);
-				}
-
-				// render it
-				handler(surface);
-
-				if((surface.Space.WeaponDepthHack == true) || (surface.Space.ModelDepthHack != 0.0f))
-				{
-					idConsole.Warning("TODO: RB_LeaveDepthHack();");
-				}
-
-				idE.Backend.CurrentSpace = surface.Space;
-			}
-		}
-
-		/// <summary>
-		/// Check for changes in the back end renderSystem, possibly invalidating cached data.
-		/// </summary>
-		private void SetBackEndRenderer()
-		{
-			if(idE.CvarSystem.IsModified("r_renderer") == false)
-			{
-				return;
-			}
-
-			bool oldVPState = _backEndRendererHasVertexPrograms;
-			string renderer = idE.CvarSystem.GetString("r_renderer").ToLower();
-
-			_backEndRenderer = BackEndRenderer.Bad;
-
-			if(renderer == "arb")
-			{
-				_backEndRenderer = BackEndRenderer.ARB;
-			}
-			else if(renderer == "arb2")
-			{
-				if(idE.GLConfig.AllowArb2Path == true)
-				{
-					_backEndRenderer = BackEndRenderer.ARB2;
-				}
-			}
-			else if(renderer == "nv10")
-			{
-				if(idE.GLConfig.AllowNV10Path == true)
-				{
-					_backEndRenderer = BackEndRenderer.NV10;
-				}
-			}
-			else if(renderer == "nv20")
-			{
-				if(idE.GLConfig.AllowNV20Path == true)
-				{
-					_backEndRenderer = BackEndRenderer.NV20;
-				}
-			}
-			else if(renderer == "r200")
-			{
-				if(idE.GLConfig.AllowR200Path == true)
-				{
-					_backEndRenderer = BackEndRenderer.R200;
-				}
-			}
-
-			// fallback
-			if(_backEndRenderer == BackEndRenderer.Bad)
-			{
-				// choose the best
-				if(idE.GLConfig.AllowArb2Path == true)
-				{
-					_backEndRenderer = BackEndRenderer.ARB2;
-				}
-				else if(idE.GLConfig.AllowR200Path == true)
-				{
-					_backEndRenderer = BackEndRenderer.R200;
-				}
-				else if(idE.GLConfig.AllowNV20Path == true)
-				{
-					_backEndRenderer = BackEndRenderer.NV20;
-				}
-				else if(idE.GLConfig.AllowNV10Path == true)
-				{
-					_backEndRenderer = BackEndRenderer.NV10;
-				}
-				else
-				{
-					// the others are considered experimental
-					_backEndRenderer = BackEndRenderer.ARB;
-				}
-			}
-
-			_backEndRendererHasVertexPrograms = false;
-			_backEndRendererMaxLight = 1.0f;
-
-			switch(_backEndRenderer)
-			{
-				case BackEndRenderer.ARB:
-					idConsole.WriteLine("using ARB renderSystem");
-					break;
-				case BackEndRenderer.NV10:
-					idConsole.WriteLine("using NV10 renderSystem");
-					break;
-				case BackEndRenderer.NV20:
-					idConsole.WriteLine("using NV20 renderSystem");
-
-					_backEndRendererHasVertexPrograms = true;
-					break;
-				case BackEndRenderer.R200:
-					idConsole.WriteLine("using R200 renderSystem");
-
-					_backEndRendererHasVertexPrograms = true;
-					break;
-				case BackEndRenderer.ARB2:
-					idConsole.WriteLine("using ARB2 renderSystem");
-
-					_backEndRendererHasVertexPrograms = true;
-					_backEndRendererMaxLight = 999;
-					break;
-			}
-
-			// clear the vertex cache if we are changing between
-			// using vertex programs and not, because specular and
-			// shadows will be different data
-			// TODO
-			/*if ( oldVPstate != backEndRendererHasVertexPrograms ) {
-				vertexCache.PurgeAll();
-				if ( primaryWorld ) {
-					primaryWorld->FreeInteractions();
-				}
-			}*/
-
-			idE.CvarSystem.ClearModified("r_renderer");
-		}
-
-		private void SetBuffer(SetBufferRenderCommand cmd)
-		{
-			// see which draw buffer we want to render the frame to
-			idE.Backend.FrameCount = cmd.FrameCount;
-
-			// clear screen for debugging
-			// automatically enable this with several other debug tools
-			// that might leave unrendered portions of the screen
-			if((idE.CvarSystem.GetFloat("r_clear") > 0)
-				|| (idE.CvarSystem.GetString("r_clear").Length != 1)
-				|| (idE.CvarSystem.GetBool("r_lockSurfaces") == true)
-				|| (idE.CvarSystem.GetBool("r_singleArea") == true)
-				|| (idE.CvarSystem.GetBool("r_showOverDraw") == true))
-			{
-				string[] parts = idE.CvarSystem.GetString("r_clear").Split(' ');
-				Color color;
-
-				if(parts.Length == 3)
-				{
-					float tmp1, tmp2, tmp3;
-					float.TryParse(parts[0], out tmp1);
-					float.TryParse(parts[1], out tmp2);
-					float.TryParse(parts[2], out tmp3);
-
-					Vector4 tmp4 = new Vector4(tmp1, tmp2, tmp3, 1);
-					color = Microsoft.Xna.Framework.Color.FromNonPremultiplied(tmp4);
-				}
-				else if(idE.CvarSystem.GetInteger("r_clear") == 2)
-				{
-					color = Microsoft.Xna.Framework.Color.FromNonPremultiplied(0, 0, 0, 255);
-				}
-				else if(idE.CvarSystem.GetBool("r_showOverDraw") == true)
-				{
-					color = Microsoft.Xna.Framework.Color.FromNonPremultiplied(255, 255, 255, 255);
-				}
-				else
-				{
-					color = Microsoft.Xna.Framework.Color.FromNonPremultiplied(102, 0, 64, 255);
-				}
-
-				_graphicsDevice.Clear(color);
-			}
-		}
-
+				
 		private void SetColorMappings()
 		{
 			float g = idE.CvarSystem.GetFloat("r_gamma");
@@ -4069,131 +2013,7 @@ namespace idTech4.Renderer
 
 			SetGamma(_gammaTable, _gammaTable, _gammaTable);
 		}
-
-		/// <summary>
-		/// This should initialize all GL state that any part of the entire program
-		/// may touch, including the editor.
-		/// </summary>
-		private void SetDefaultGLState()
-		{
-			// TODO: RB_LogComment("--- R_SetDefaultGLState ---\n");
-
-
-			// TODO: Gl.glClearDepth(1.0f);
-
-			idE.Backend.GLState = new GLState();
-			idE.Backend.GLState.ForceState = true;
-
-			_graphicsDevice.BlendState = BlendState.Opaque;
-			_graphicsDevice.DepthStencilState = DepthStencilState.Default;
-			_graphicsDevice.RasterizerState = RasterizerState.CullCounterClockwise;
-			_graphicsDevice.SamplerStates[0] = SamplerState.LinearWrap;
-
-			if(idE.CvarSystem.GetBool("r_useScissor") == true)
-			{
-				_graphicsDevice.ScissorRectangle = new Rectangle(0, 0, idE.GLConfig.VideoWidth, idE.GLConfig.VideoHeight);
-			}
-
-			for(int i = idE.GLConfig.MaxTextureUnits - 1; i >= 0; i--)
-			{
-				GL_SelectTexture(i);
-
-				// object linear texgen is our default
-				// TODO: Gl.glTexGenf(Gl.GL_S, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-				// TODO: Gl.glTexGenf(Gl.GL_T, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-				// TODO: Gl.glTexGenf(Gl.GL_R, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-				// TODO: Gl.glTexGenf(Gl.GL_Q, Gl.GL_TEXTURE_GEN_MODE, Gl.GL_OBJECT_LINEAR);
-
-				// TODO: GL_TextureEnvironment(Gl.GL_MODULATE);
-				// TODO: Gl.glDisable(Gl.GL_TEXTURE_2D);
-			}
-		}
-
-		/// <summary>
-		/// Draw all the images to the screen, on top of whatever
-		/// was there.  This is used to test for texture thrashing.
-		/// </summary>
-		private void ShowImages()
-		{
-			idConsole.Warning("TODO: ShowImages");
-
-			// TODO: showimages
-			/*GL_Set2D();
-			
-			//Gl.glFinish();
-
-			int x, y, w, h;
-			int start = idE.System.Time;
-
-			foreach(idImage image in idE.ImageManager.Images)
-			{
-				if((image.IsLoaded == true) && (image.PartialImage == null))
-				{
-					continue;
-				}
-
-				w = idE.GLConfig.VideoWidth / 20;
-				h = idE.GLConfig.VideoHeight / 15;
-				x = idE 
-
-		w = glConfig.vidWidth / 20;
-		h = glConfig.vidHeight / 15;
-		x = i % 20 * w;
-		y = i / 20 * h;
-
-		// show in proportional size in mode 2
-		if ( r_showImages.GetInteger() == 2 ) {
-			w *= image->uploadWidth / 512.0f;
-			h *= image->uploadHeight / 512.0f;
-		}
-
-		image->Bind();
-		qglBegin (GL_QUADS);
-		qglTexCoord2f( 0, 0 );
-		qglVertex2f( x, y );
-		qglTexCoord2f( 1, 0 );
-		qglVertex2f( x + w, y );
-		qglTexCoord2f( 1, 1 );
-		qglVertex2f( x + w, y + h );
-		qglTexCoord2f( 0, 1 );
-		qglVertex2f( x, y + h );
-		qglEnd();
-	}
-
-	qglFinish();
-
-	end = Sys_Milliseconds();
-	common->Printf( "%i msec to draw all images\n", end - start );*/
-		}
-
-		private void SwapBuffers(SwapBuffersRenderCommand cmd)
-		{
-			// texture swapping test
-			if(idE.CvarSystem.GetInteger("r_showImages") != 0)
-			{
-				ShowImages();
-			}
-
-			// TODO: RB_LogComment("***************** RB_SwapBuffers *****************\n\n\n");
-
-			// don't flip if drawing to front buffer
-			if(idE.CvarSystem.GetBool("r_frontBuffer") == false)
-			{
-				//
-				// wglSwapinterval is a windows-private extension,
-				// so we must check for it here instead of portably
-				//
-				if(idE.CvarSystem.IsModified("r_swapInterval") == true)
-				{
-					idE.CvarSystem.ClearModified("r_swapInterval");
-
-					idConsole.Warning("TODO: r_swapInterval");
-
-					// Wgl.wglSwapIntervalEXT(idE.CvarSystem.GetInteger("r_swapInterval"));
-				}
-			}
-		}
-
+		
 		private void ToggleSmpFrame()
 		{
 			if(idE.CvarSystem.GetBool("r_lockSurfaces") == true)
@@ -4225,11 +2045,6 @@ namespace idTech4.Renderer
 
 			ClearCommandChain();
 		}
-
-		private void UnbindIndex()
-		{
-			//Gl.glBindBufferARB(Gl.GL_ELEMENT_ARRAY_BUFFER_ARB, 0);
-		}
 		#endregion
 
 		#region GLimp* - to be refactored in to separate render lib
@@ -4255,55 +2070,7 @@ namespace idTech4.Renderer
 				common->Printf( "WARNING: SetDeviceGammaRamp failed.\n" );
 			}*/
 		}
-
-		/// <summary>
-		/// Sets variables that can be used by all vertex programs.
-		/// </summary>
-		private void SetProgramEnvironment()
-		{
-			if(idE.GLConfig.ArbVertexProgramAvailable == false)
-			{
-				return;
-			}
-
-			float[] parameters = new float[4];
-			int pot;
-
-			// screen power of two correction factor, assuming the copy to _currentRender
-			// also copied an extra row and column for the bilerp
-			int width = idE.Backend.ViewDefinition.ViewPort.X2 - idE.Backend.ViewDefinition.ViewPort.X1 + 1;
-			pot = idE.ImageManager.CurrentRenderImage.Width;
-			parameters[0] = width / pot;
-
-			int height = idE.Backend.ViewDefinition.ViewPort.Y2 - idE.Backend.ViewDefinition.ViewPort.Y1 + 1;
-			pot = idE.ImageManager.CurrentRenderImage.Height;
-			parameters[1] = height / pot;
-
-			parameters[2] = 0;
-			parameters[3] = 1;
-
-			//Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 0, parameters);
-			//Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 0, parameters);
-
-			// window coord to 0.0 to 1.0 conversion
-			parameters[0] = 1.0f / width;
-			parameters[1] = 1.0f / height;
-			parameters[2] = 0;
-			parameters[3] = 1;
-
-			//Gl.glProgramEnvParameter4fvARB(Gl.GL_FRAGMENT_PROGRAM_ARB, 1, parameters);
-
-			//
-			// set eye position in global space
-			//
-			parameters[0] = idE.Backend.ViewDefinition.RenderView.ViewOrigin.X;
-			parameters[1] = idE.Backend.ViewDefinition.RenderView.ViewOrigin.Y;
-			parameters[2] = idE.Backend.ViewDefinition.RenderView.ViewOrigin.Z;
-			parameters[3] = 1.0f;
-
-			//Gl.glProgramEnvParameter4fvARB(Gl.GL_VERTEX_PROGRAM_ARB, 1, parameters);
-		}
-
+		
 		private void SetupProjection()
 		{
 			float jitterX = 0;
@@ -4443,13 +2210,10 @@ namespace idTech4.Renderer
 			float[]	viewerMatrix = new float[16];
 
 			ViewEntity world = new ViewEntity();
-
-			// the model matrix is an identity
-			world.ModelViewMatrix = Matrix.Identity;
-
+			
 			// transform by the camera placement
 			Vector3 origin = view.RenderView.ViewOrigin;
-
+			
 			viewerMatrix[0] = _viewDefinition.RenderView.ViewAxis.M11;
 			viewerMatrix[4] = _viewDefinition.RenderView.ViewAxis.M12;
 			viewerMatrix[8] = _viewDefinition.RenderView.ViewAxis.M13;
@@ -4477,399 +2241,7 @@ namespace idTech4.Renderer
 			idHelper.ConvertMatrix(viewerMatrix, FlipMatrix, out view.WorldSpace.ModelViewMatrix);
 		}
 		#endregion
-
-		#region NV10
-		private void InitNV10()
-		{
-			idE.GLConfig.AllowNV10Path = idE.GLConfig.RegisterCombinersAvailable;
-		}
-		#endregion
-
-		#region NV20
-		private void InitNV20()
-		{
-			idE.GLConfig.AllowNV20Path = false;
-
-			idConsole.WriteLine("---------- R_NV20_Init ----------");
-
-			if((idE.GLConfig.RegisterCombinersAvailable == false) || (idE.GLConfig.ArbVertexProgramAvailable == false) || (idE.GLConfig.MaxTextureUnits < 4))
-			{
-				idConsole.WriteLine("Not available.");
-			}
-			else
-			{
-				//CheckOpenGLErrors();
-
-				// create our "fragment program" display lists
-				//_fragmentDisplayListBase = Gl.glGenLists((int) FragmentProgram.Count);
-
-				// force them to issue commands to build the list
-				bool temp = idE.CvarSystem.GetBool("r_useCombinerDisplayLists");
-				idE.CvarSystem.SetBool("r_useCombinerDisplayLists", false);
-
-				/*//Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.BumpAndLight, Gl.GL_COMPILE);
-				NV20_BumpAndLightFragment();
-				//Gl.glEndList();
-
-				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseColor, Gl.GL_COMPILE);
-				NV20_DiffuseColorFragment();
-				Gl.glEndList();
-
-				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.SpecularColor, Gl.GL_COMPILE);
-				NV20_SpecularColorFragment();
-				Gl.glEndList();
-
-				Gl.glNewList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseAndSpecularColor, Gl.GL_COMPILE);
-				NV20_DiffuseAndSpecularColorFragment();
-				Gl.glEndList();*/
-
-				idE.CvarSystem.SetBool("r_useCombinerDisplayLists", temp);
-
-				idConsole.WriteLine("---------------------------------");
-
-				idE.GLConfig.AllowNV20Path = true;
-			}
-		}
-
-		private void NV20_BumpAndLightFragment()
-		{
-			/*if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
-			{
-				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.BumpAndLight);
-			}
-			else
-			{
-				// program the nvidia register combiners
-				Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 3);
-
-				// stage 0 rgb performs the dot product
-				// SPARE0 = TEXTURE0 dot TEXTURE1
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE1_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_TRUE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-
-				// stage 1 rgb multiplies texture 2 and 3 together
-				// SPARE1 = TEXTURE2 * TEXTURE3
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE2_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE3_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB,
-					Gl.GL_SPARE1_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// stage 1 alpha does nohing
-
-				// stage 2 color multiplies spare0 * spare 1 just for debugging
-				// SPARE0 = SPARE0 * SPARE1
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_SPARE1_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// stage 2 alpha multiples spare0 * spare 1
-				// SPARE0 = SPARE0 * SPARE1
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_ALPHA, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_BLUE);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_ALPHA, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_SPARE1_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_BLUE);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_ALPHA,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// final combiner
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_SPARE0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_SPARE0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
-			}/
-		}
-
-		private void NV20_DiffuseAndSpecularColorFragment()
-		{
-			/if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
-			{
-				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseAndSpecularColor);
-			}
-			else
-			{
-				// program the nvidia register combiners
-				Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 3);
-
-				// GL_CONSTANT_COLOR0_NV will be the diffuse color
-				// GL_CONSTANT_COLOR1_NV will be the specular color
-
-				// stage 0 rgb performs the dot product
-				// GL_SECONDARY_COLOR_NV = ( TEXTURE0 dot TEXTURE1 - 0.5 ) * 2
-				// the scale and bias steepen the specular curve
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE1_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_TRUE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// stage 0 alpha does nothing
-
-				// stage 1 color takes bump * bump
-				// PRIMARY_COLOR = ( GL_SECONDARY_COLOR_NV * GL_SECONDARY_COLOR_NV - 0.5 ) * 2
-				// the scale and bias steepen the specular curve
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// stage 1 alpha does nothing
-
-				// stage 2 color
-				// PRIMARY_COLOR = ( PRIMARY_COLOR * TEXTURE3 ) * 2
-				// SPARE0 = 1.0 * 1.0 (needed for final combiner)
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE3_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_C_NV,
-					Gl.GL_ZERO, Gl.GL_UNSIGNED_INVERT_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_D_NV,
-					Gl.GL_ZERO, Gl.GL_UNSIGNED_INVERT_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// stage 2 alpha does nothing
-
-				// final combiner = TEXTURE2_ARB * CONSTANT_COLOR0_NV + PRIMARY_COLOR_NV * CONSTANT_COLOR1_NV
-				// alpha = GL_ZERO
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_CONSTANT_COLOR1_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_SECONDARY_COLOR_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_E_TIMES_F_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_E_NV, Gl.GL_TEXTURE2_ARB,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_F_NV, Gl.GL_CONSTANT_COLOR0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
-			}/
-		}
-
-		private void NV20_DiffuseColorFragment()
-		{
-			/if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
-			{
-				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.DiffuseColor);
-			}
-			else
-			{
-				// program the nvidia register combiners
-				Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 1);
-
-				// stage 0 is free, so we always do the multiply of the vertex color
-				// when the vertex color is inverted, Gl.glCombinerInputNV(GL_VARIABLE_B_NV) will be changed
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_PRIMARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_ALPHA,
-					Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// for GL_CONSTANT_COLOR0_NV * TEXTURE0 * TEXTURE1
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_CONSTANT_COLOR0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_E_TIMES_F_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_E_NV, Gl.GL_TEXTURE0_ARB,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_F_NV, Gl.GL_TEXTURE1_ARB,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
-			}*/
-		}
-
-		private void NV20_SpecularColorFragment()
-		{
-			/*if(idE.CvarSystem.GetBool("r_useCombinerDisplayLists") == true)
-			{
-				Gl.glCallList(_fragmentDisplayListBase + (int) FragmentProgram.SpecularColor);
-			}
-			else
-			{
-				// program the nvidia register combiners
-				Gl.glCombinerParameteriNV(Gl.GL_NUM_GENERAL_COMBINERS_NV, 4);
-
-				// we want GL_CONSTANT_COLOR1_NV * PRIMARY_COLOR * TEXTURE2 * TEXTURE3 * specular( TEXTURE0 * TEXTURE1 )
-
-				// stage 0 rgb performs the dot product
-				// GL_SPARE0_NV = ( TEXTURE0 dot TEXTURE1 - 0.5 ) * 2
-				// TEXTURE2 = TEXTURE2 * PRIMARY_COLOR
-				// the scale and bias steepen the specular curve
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_TEXTURE1_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE0_ARB, Gl.GL_EXPAND_NORMAL_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER0_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_TRUE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// stage 0 alpha does nothing
-
-				// stage 1 color takes bump * bump
-				// GL_SPARE0_NV = ( GL_SPARE0_NV * GL_SPARE0_NV - 0.5 ) * 2
-				// the scale and bias steepen the specular curve
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER1_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_SCALE_BY_TWO_NV, Gl.GL_BIAS_BY_NEGATIVE_ONE_HALF_NV, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// stage 1 alpha does nothing
-
-				// stage 2 color
-				// GL_SPARE0_NV = GL_SPARE0_NV * TEXTURE3
-				// SECONDARY_COLOR = CONSTANT_COLOR * TEXTURE2
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SPARE0_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_TEXTURE3_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_C_NV,
-					Gl.GL_CONSTANT_COLOR1_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB, Gl.GL_VARIABLE_D_NV,
-					Gl.GL_TEXTURE2_ARB, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER2_NV, Gl.GL_RGB,
-					Gl.GL_SPARE0_NV, Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// stage 2 alpha does nothing
-
-
-				// stage 3 scales the texture by the vertex color
-				Gl.glCombinerInputNV(Gl.GL_COMBINER3_NV, Gl.GL_RGB, Gl.GL_VARIABLE_A_NV,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerInputNV(Gl.GL_COMBINER3_NV, Gl.GL_RGB, Gl.GL_VARIABLE_B_NV,
-					Gl.GL_PRIMARY_COLOR_NV, Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glCombinerOutputNV(Gl.GL_COMBINER3_NV, Gl.GL_RGB,
-					Gl.GL_SECONDARY_COLOR_NV, Gl.GL_DISCARD_NV, Gl.GL_DISCARD_NV,
-					Gl.GL_NONE, Gl.GL_NONE, Gl.GL_FALSE, Gl.GL_FALSE, Gl.GL_FALSE);
-
-				// stage 3 alpha does nothing
-
-				// final combiner = GL_SPARE0_NV * SECONDARY_COLOR + PRIMARY_COLOR * SECONDARY_COLOR
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_A_NV, Gl.GL_SPARE0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_B_NV, Gl.GL_SECONDARY_COLOR_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_C_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_D_NV, Gl.GL_E_TIMES_F_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_E_NV, Gl.GL_SPARE0_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_F_NV, Gl.GL_SECONDARY_COLOR_NV,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_RGB);
-				Gl.glFinalCombinerInputNV(Gl.GL_VARIABLE_G_NV, Gl.GL_ZERO,
-					Gl.GL_UNSIGNED_IDENTITY_NV, Gl.GL_ALPHA);
-			}*/
-		}
-		#endregion
-
-		#region R200
-		private void InitR200()
-		{
-			idE.GLConfig.AllowR200Path = false;
-
-			idConsole.WriteLine("----------- R200_Init -----------");
-
-			if((idE.GLConfig.AtiFragmentShaderAvailable == false) || (idE.GLConfig.ArbFragmentProgramAvailable == false) || (idE.GLConfig.ArbVertexBufferObjectAvailable == false))
-			{
-				idConsole.WriteLine("Not available.");
-			}
-			else
-			{
-				idConsole.Warning("TODO: R200_Init");
-				// TODO: R200
-				/*Gl.glGetIntegerv( Gl.GL_NUM_FRAGMENT_REGISTERS_ATI, &fsi.numFragmentRegisters );
-				Gl.glGetIntegerv( Gl.GL_NUM_FRAGMENT_CONSTANTS_ATI, &fsi.numFragmentConstants );
-				Gl.glGetIntegerv( Gl.GL_NUM_PASSES_ATI, &fsi.numPasses );
-				Gl.glGetIntegerv( Gl.GL_NUM_INSTRUCTIONS_PER_PASS_ATI, &fsi.numInstructionsPerPass );
-				Gl.glGetIntegerv( Gl.GL_NUM_INSTRUCTIONS_TOTAL_ATI, &fsi.numInstructionsTotal );
-				Gl.glGetIntegerv( Gl.GL_COLOR_ALPHA_PAIRING_ATI, &fsi.colorAlphaPairing );
-				Gl.glGetIntegerv( Gl.GL_NUM_LOOPBACK_COMPONENTS_ATI, &fsi.numLoopbackComponenets );
-				Gl.glGetIntegerv( Gl.GL_NUM_INPUT_INTERPOLATOR_COMPONENTS_ATI, &fsi.numInputInterpolatorComponents );
-
-				common->Printf( "GL_NUM_FRAGMENT_REGISTERS_ATI: %i\n", fsi.numFragmentRegisters );
-				common->Printf( "GL_NUM_FRAGMENT_CONSTANTS_ATI: %i\n", fsi.numFragmentConstants );
-				common->Printf( "GL_NUM_PASSES_ATI: %i\n", fsi.numPasses );
-				common->Printf( "GL_NUM_INSTRUCTIONS_PER_PASS_ATI: %i\n", fsi.numInstructionsPerPass );
-				common->Printf( "GL_NUM_INSTRUCTIONS_TOTAL_ATI: %i\n", fsi.numInstructionsTotal );
-				common->Printf( "GL_COLOR_ALPHA_PAIRING_ATI: %i\n", fsi.colorAlphaPairing );
-				common->Printf( "GL_NUM_LOOPBACK_COMPONENTS_ATI: %i\n", fsi.numLoopbackComponenets );
-				common->Printf( "GL_NUM_INPUT_INTERPOLATOR_COMPONENTS_ATI: %i\n", fsi.numInputInterpolatorComponents );
-
-				common->Printf( "FPROG_FAST_PATH\n" );
-				R_BuildSurfaceFragmentProgram( FPROG_FAST_PATH );*/
-
-				idConsole.WriteLine("---------------------");
-
-				idE.GLConfig.AllowR200Path = true;
-			}
-		}
-		#endregion
-
-		#region ARB2
-		private void InitARB2()
-		{
-			idE.GLConfig.AllowArb2Path = false;
-
-			idConsole.WriteLine("---------- R_ARB2_Init ----------");
-
-			if((idE.GLConfig.ArbVertexProgramAvailable == false) || (idE.GLConfig.ArbFragmentProgramAvailable == false))
-			{
-				idConsole.WriteLine("Not available.");
-			}
-			else
-			{
-				idConsole.WriteLine("Available.");
-				idConsole.WriteLine("---------------------------------");
-
-				idE.GLConfig.AllowArb2Path = true;
-			}
-		}
-		#endregion
-
+		
 		#region Command handlers
 		private void Cmd_ReloadArbPrograms(object sender, CommandEventArgs e)
 		{
@@ -4887,71 +2259,7 @@ namespace idTech4.Renderer
 		#endregion
 		#endregion
 	}
-
-	internal enum BackEndRenderer
-	{
-		ARB,
-		NV10,
-		NV20,
-		R200,
-		ARB2,
-		Bad
-	}
-
-	/// <summary>
-	/// All state modified by the back end is separated from the front end state.
-	/// </summary>
-	internal class BackEndState
-	{
-		public int FrameCount; // used to track all images used in a frame.
-
-		public View ViewDefinition;
-		/*backEndCounters_t	pc;*/
-
-		public ViewEntity CurrentSpace; // for detecting when a matrix must change
-
-		public idScreenRect CurrentScissor; // for scissor clipping, local inside renderView viewport
-
-		/*viewLight_t *		vLight;*/
-		public MaterialStates DepthFunction;	// GLS_DEPTHFUNC_EQUAL, or GLS_DEPTHFUNC_LESS for translucent
-		/*float				lightTextureMatrix[16];	// only if lightStage->texture.hasMatrix
-		float				lightColor[4];		// evaluation of current light's color stage
-
-		float				lightScale;			// Every light color calaculation will be multiplied by this,
-												// which will guarantee that the result is < tr.backEndRendererMaxLight
-												// A card with high dynamic range will have this set to 1.0
-		float				overBright;			// The amount that all light interactions must be multiplied by
-												// with post processing to get the desired total light level.
-												// A high dynamic range card will have this set to 1.0.*/
-
-		public bool CurrentRenderCopied;		// true if any material has already referenced CurrentRender
-
-		// our OpenGL state deltas.
-		public GLState GLState = new GLState();
-
-		//int					c_copyFrameBuffer;*/
-	}
-
-	internal class GLState
-	{
-		public TextureUnit[] TextureUnits = new TextureUnit[8];
-		public int CurrentTextureUnit;
-
-		public CullType FaceCulling;
-		public MaterialStates StateBits;
-		public bool ForceState; // the next GL_State will ignore glStateBits and set everything.
-
-		public GLState()
-		{
-			int count = TextureUnits.Length;
-
-			for(int i = 0; i < count; i++)
-			{
-				TextureUnits[i] = new TextureUnit();
-			}
-		}
-	}
-
+	
 	/// <summary>
 	/// Contains variables specific to the OpenGL configuration being run right now.
 	/// </summary>
@@ -5025,8 +2333,8 @@ namespace idTech4.Renderer
 	{
 		public idRenderView RenderView = new idRenderView();
 
-		public Matrix ProjectionMatrix;
-		public ViewEntity WorldSpace;
+		public Matrix ProjectionMatrix = Matrix.Identity;
+		public ViewEntity WorldSpace = new ViewEntity();
 		public idRenderWorld RenderWorld;
 
 		public float FloatTime;
@@ -5393,7 +2701,7 @@ namespace idTech4.Renderer
 		}
 	}
 
-	public struct ViewEntity
+	public class ViewEntity
 	{
 		// back end should NOT reference the entityDef, because it can change when running SMP
 		public idRenderEntity EntityDef;
@@ -5408,8 +2716,8 @@ namespace idTech4.Renderer
 		public bool WeaponDepthHack;
 		public float ModelDepthHack;
 
-		public Matrix ModelMatrix; // local coords to global coords
-		public Matrix ModelViewMatrix; // local coords to eye coords
+		public Matrix ModelMatrix = Matrix.Identity; // local coords to global coords
+		public Matrix ModelViewMatrix = Matrix.Identity; // local coords to eye coords
 	}
 
 	public struct DrawSurface
@@ -5684,7 +2992,7 @@ namespace idTech4.Renderer
 		public Queue<RenderCommand> Commands;
 	}
 
-	internal struct VideoMode
+	public struct VideoMode
 	{
 		public string Description;
 		public int Width;
@@ -5708,7 +3016,7 @@ namespace idTech4.Renderer
 		Count
 	}
 
-	internal enum RenderCommandType
+	public enum RenderCommandType
 	{
 		Nop,
 		DrawView,
@@ -5761,7 +3069,7 @@ namespace idTech4.Renderer
 		}
 	}
 
-	internal abstract class RenderCommand
+	public abstract class RenderCommand
 	{
 		#region Properties
 		public abstract RenderCommandType CommandID

@@ -133,7 +133,9 @@
     <Compile Include="Net\idAsyncServer.cs" />
     <Compile Include="Net\idBitMsg.cs" />
     <Compile Include="Net\idBitMsgDelta.cs" />
+    <Compile Include="Renderer\Backends\XNARenderBackend.cs" />
     <Compile Include="Renderer\idFont.cs" />
+    <Compile Include="Renderer\idRenderBackendInterface.cs" />
     <Compile Include="Renderer\idRenderEntity.cs" />
     <Compile Include="Renderer\idRenderModel.cs" />
     <Compile Include="Renderer\idRenderModelManager.cs" />

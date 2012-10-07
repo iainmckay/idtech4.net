@@ -156,7 +156,6 @@ namespace idTech4
 		internal static idGameConsole Console = new idGameConsole();
 		internal static SystemConsole SystemConsole = new SystemConsole();
 		
-		internal static BackEndState Backend = new BackEndState(); // TODO: refactor in to render library so we can support XNA more easily.
 		internal static GLConfig GLConfig = new GLConfig();
 		#endregion
 	}

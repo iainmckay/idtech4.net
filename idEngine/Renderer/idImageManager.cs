@@ -428,9 +428,7 @@ namespace idTech4.Renderer
 		/// </summary>
 		public void BindNullTexture()
 		{
-			TextureUnit unit = idE.Backend.GLState.TextureUnits[idE.Backend.GLState.CurrentTextureUnit];
-			unit.CurrentTexture = null;
-			unit.Type = TextureType.Disabled;
+			idE.RenderSystem.BindTexture(null);
 		}
 
 		/// <summary>

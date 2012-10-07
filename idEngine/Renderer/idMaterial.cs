@@ -588,8 +588,7 @@ namespace idTech4.Renderer
 			_stageCount = 0;
 			_ambientStageCount = 0;
 			_registerCount = 0;
-
-
+			
 			_lightFalloffImage = null;
 			_entityGui = 0;
 			_shouldCreateBackSides = false;
