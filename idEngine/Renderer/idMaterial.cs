@@ -662,12 +662,15 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "qer_editorimage")
 				{
-					_editorImageName = lexer.ReadTokenOnLine().ToString();
+					token = lexer.ReadTokenOnLine();
+					_editorImageName = (token != null) ? token.ToString() : string.Empty;
+
 					lexer.SkipRestOfLine();
 				}
 				else if(tokenLower == "description")
 				{
-					_description = lexer.ReadTokenOnLine().ToString();
+					token = lexer.ReadTokenOnLine();
+					_description = (token != null) ? token.ToString() : string.Empty;
 				}
 				// check for the surface / content bit flags.
 				else if(CheckSurfaceParameter(token) == true)
