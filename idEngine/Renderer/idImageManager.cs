@@ -505,13 +505,13 @@ namespace idTech4.Renderer
 			_specular2DTableImage = LoadFromCallback("_specular2DTable", GenerateSpecular2DTableImage);
 			_rampImage = LoadFromCallback("_ramp", GenerateRampImage);
 			_alphaRampImage = LoadFromCallback("_alphaRamp", GenerateRampImage);
-			_alphaNotchImage = LoadFromCallback("_alphaNotch", GenerateAlphaNotchImage);
-			_fogImage = LoadFromCallback("_fog", GenerateFogImage);
-			_fogEnterImage = LoadFromCallback("_fogEnter", GenerateFogEnterImage);*/
+			_alphaNotchImage = LoadFromCallback("_alphaNotch", GenerateAlphaNotchImage);*/
+			_fogImage = ImageFromFile("_fog", TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
+			_fogEnterImage = ImageFromFile("_fogEnter", TextureFilter.Linear, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 			// TODO: _normalCubeMapImage = LoadFromCallback("_normalCubeMap", makeNormalizeVectorCubeMap);*/
 			_noFalloffImage = ImageFromFile("_noFalloff", TextureFilter.Default, false, TextureRepeat.ClampToZero, TextureDepth.HighQuality);
 
-			//LoadFromCallback("_quadratic", GenerateQuadraticImage);
+			ImageFromFile("_quadratic", TextureFilter.Default, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 
 			// cinematicImage is used for cinematic drawing
 			// scratchImage is used for screen wipes/doublevision etc..
