@@ -1,0 +1,2 @@
+E:\Projects2\idtech4.net\idTech4\obj\x86\Debug\ResolveAssemblyReference.cache
+E:\Projects2\idtech4.net\idTech4\obj\x86\Debug\Microsoft.Xna.Framework.RuntimeProfile.txt
