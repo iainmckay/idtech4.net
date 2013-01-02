@@ -128,6 +128,7 @@
     <Compile Include="Input\idInputField.cs" />
     <Compile Include="Input\idInputSystem.cs" />
     <Compile Include="IO\idFileSystem.cs" />
+    <Compile Include="IO\idResourceContainer.cs" />
     <Compile Include="Platform\BasePlatform.cs" />
     <Compile Include="idVersion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
@@ -140,6 +141,7 @@
     <Compile Include="Services\IPlatformService.cs" />
     <Compile Include="Text\idLexer.cs" />
     <Compile Include="Text\idToken.cs" />
+    <Compile Include="Threading\idThread.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />

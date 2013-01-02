@@ -29,6 +29,8 @@ using System;
 using System.IO;
 using System.Text;
 
+using idTech4.Services;
+
 namespace idTech4.Text
 {
 	/// <summary>
@@ -441,7 +443,7 @@ namespace idTech4.Text
 			return "unknown punctuation";
 		}
 
-		public bool LoadFile(string fileName, bool osPath = false)
+		public bool LoadFile(string fileName)
 		{
 			if(this.IsLoaded == true)
 			{
@@ -449,11 +451,10 @@ namespace idTech4.Text
 				return false;
 			}
 
-			string pathName;
-			Stream content;
+			string pathName;			
 			DateTime lastModified;
 
-			if((osPath == false) && (_baseFolder != null))
+			if((Path.IsPathRooted(fileName) == false) && (_baseFolder != null))
 			{
 				pathName = Path.Combine(_baseFolder, fileName);
 			}
@@ -461,16 +462,10 @@ namespace idTech4.Text
 			{
 				pathName = fileName;
 			}
-			
-			if(osPath == true)
-			{
-				content = idE.FileSystem.OpenExplicitFileRead(pathName, out lastModified);
-			}
-			else
-			{
-				content = idE.FileSystem.OpenFileRead(pathName, out lastModified);
-			}
 
+			IFileSystem fileSystem = idEngine.Instance.GetService<IFileSystem>();
+			Stream content = fileSystem.OpenFileRead(pathName, out lastModified);				
+						
 			if(content == null)
 			{
 				return false;

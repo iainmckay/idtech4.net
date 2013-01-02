@@ -174,7 +174,7 @@ namespace idTech4.Platform.Win32
 		{
 			get
 			{
-				return "Windows;
+				return "Windows";
 			}
 		}
 

@@ -27,9 +27,8 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
-using System.Linq;
+using System.IO;
 using System.Runtime.InteropServices;
-using System.Text;
 
 using idTech4.Services;
 
@@ -48,11 +47,19 @@ namespace idTech4.IO
 	/// The following cvars store paths used by the file system:
 	///	"fs_basepath"		path to local install
 	/// "fs_savepath"		path to config, save game, etc. files, read & write
-	/// <p/>
+	/// <para/>
 	/// The base path for file saving can be set to "fs_savepath" or "fs_basepath".
+	/// <para/>
+	/// Note: Unlike Doom 3 BFG, we do not use a binary resource file, we still use zip files.
 	/// </remarks>
 	public class idFileSystem : IFileSystem
 	{
+		#region Members
+		private string _gameFolder;	// this will be a single name without separators
+		private List<SearchPath> _searchPaths = new List<SearchPath>();
+		private List<idResourceContainer> _resourceContainers = new List<idResourceContainer>();
+		#endregion
+
 		#region Constructor
 		public idFileSystem()
 		{
@@ -86,7 +93,7 @@ namespace idTech4.IO
 			// busted and error out now, rather than getting an unreadable
 			// graphics screen when the font fails to load
 			// Dedicated servers can run with no outside files at all
-			if(FileExists("default.cfg") == fakse)
+			if(FileExists("default.cfg") == false)
 			{
 				engine.FatalError("Couldn't load default.cfg");
 			}
@@ -133,7 +140,7 @@ namespace idTech4.IO
 		/// Takes care of the correct search order.
 		/// </summary>
 		/// <param name="gameName"></param>
-		private void SetupGameDirectory(string gameName)
+		private void SetupGameDirectories(string gameName)
 		{
 			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
 
@@ -147,6 +154,54 @@ namespace idTech4.IO
 			if(cvarSystem.GetString("fs_savepath") != string.Empty)
 			{
 				AddGameDirectory(cvarSystem.GetString("fs_savepath"), gameName);
+			}
+		}
+
+		/// <summary>
+		/// Sets gameFolder, adds the directory to the head of the search paths.
+		/// </summary>
+		/// <param name="path"></param>
+		/// <param name="directory"></param>
+		private void AddGameDirectory(string path, string directory)
+		{
+			// check if the search path already exists
+			foreach(SearchPath searchPath in _searchPaths)
+			{
+				if((searchPath.Path.Equals(path) == true)
+					&& (searchPath.GameDirectory.Equals(directory) == true))
+				{
+					return;
+				}
+			}
+
+			_gameFolder = directory;
+
+			//
+			// add the directory to the search path
+			//
+			_searchPaths.Add(new SearchPath(path, directory));
+
+			string resourceDirectory = GetAbsolutePath(path, directory, string.Empty);
+			
+			// get a list of resource files
+			string[] resourceFiles = Directory.GetFiles(resourceDirectory, "*.resources");
+			Array.Sort(resourceFiles);
+			Stream resourceStream;
+	
+			foreach(string resourceFile in resourceFiles)
+			{
+				resourceStream = (resourceFile == "_ordered.resources") ? OpenFileReadMemory(resourceFile) : OpenFileRead(resourceFile);
+
+				if(resourceStream == null)
+				{
+					idLog.Warning("Unable to open resource file {0}", resourceFile);
+				}
+				else
+				{
+					_resourceContainers.Add(new idResourceContainer(resourceStream));
+
+					idLog.WriteLine("Loaded resource file {0}", resourceFile);
+				}
 			}
 		}
 		#endregion
@@ -172,7 +227,7 @@ namespace idTech4.IO
 				if(Environment.OSVersion.Version.Major >= 6)
 				{
 					IntPtr pathPtr;
-					int hr = SHGetKnownFolderPath(ref Constants.FolderID_SavedGames_IdTech5, 0, IntPtr.Zero, out pathPtr);
+					int hr = SHGetKnownFolderPath(Constants.FolderID_SavedGames_IdTech5, 0, IntPtr.Zero, out pathPtr);
 
 					if(hr == 0)
 					{
@@ -193,62 +248,328 @@ namespace idTech4.IO
 			}
 		}
 		#endregion
+
+		#region Methods
+		#region Checks
+		/// <summary>
+		/// Checks if the given physical file exists.
+		/// </summary>
+		/// <param name="path">Path on the underlying filesystem.</param>
+		/// <returns>True if the file exists, false if not.</returns>
+		public bool FileExists(string path)
+		{
+			Stream file = OpenFileRead(path, FileFlags.SearchDirectories);
+
+			if(file == null)
+			{
+				return false;
+			}
+
+			file.Dispose();
+
+			return true;
+		}
+
+		/// <summary>
+		/// Checks if the given file exists in a resource container.
+		/// </summary>
+		/// <param name="path">Path inside a resource container.</param>
+		/// <returns>True if the file exists, false if not.</returns>
+		public bool ResourceFileExists(string path)
+		{
+			idLog.WriteLine("TODO: ResourceFileExists");
+			return false;
+		}
+		#endregion
+
+		#region Paths
+		public string GetAbsolutePath(string baseDirectory, string gameDirectory, string relativePath)
+		{
+			// handle case of this already being an absolute path
+			if(Path.IsPathRooted(relativePath) == true)
+			{
+				return Path.GetFullPath(relativePath);
+			}
+
+			return Path.GetFullPath(Path.Combine(baseDirectory, gameDirectory, relativePath));
+		}
+		#endregion
+
+		#region Reading
+		public Stream OpenFileRead(string relativePath, bool allowCopyFiles = true, string gameDirectory = null)
+		{
+			return OpenFileRead(relativePath, FileFlags.SearchDirectories, allowCopyFiles, gameDirectory);
+		}
+
+		public Stream OpenFileRead(string relativePath, out DateTime lastModified, bool allowCopyFiles = true, string gameDirectory = null)
+		{
+			return OpenFileRead(relativePath, FileFlags.SearchDirectories, out lastModified, allowCopyFiles, gameDirectory);
+		}
+
+		/// <summary>
+		/// Finds the file in the search path, following search flag recommendations.
+		/// </summary>
+		public Stream OpenFileRead(string relativePath, FileFlags searchFlags, bool allowCopyFiles = true, string gameDirectory = null)
+		{
+			DateTime lastModified;
+
+			return OpenFileRead(relativePath, searchFlags, out lastModified, allowCopyFiles, gameDirectory);
+		}
+
+		/// <summary>
+		/// Finds the file in the search path, following search flag recommendations.
+		/// </summary>
+		public Stream OpenFileRead(string relativePath, FileFlags searchFlags, out DateTime lastModified, bool allowCopyFiles = true, string gameDirectory = null)
+		{
+			lastModified = DateTime.MinValue;
+
+			if(relativePath == null)
+			{
+				idEngine.Instance.FatalError("idFileSystem::OpenFileRead: NULL 'relativePath' parameter passed");
+				return null;
+			}
+
+			// qpaths are not supposed to have a leading slash
+			if((relativePath[0] == '/') || (relativePath[0] == '\\'))
+			{
+				relativePath = relativePath.Substring(1);
+			}
+
+			// make absolutely sure that it can't back up the path.
+			// The searchpaths do guarantee that something will always
+			// be prepended, so we don't need to worry about "c:" or "//limbo" 
+			if((relativePath.StartsWith("..") == true) || (relativePath.StartsWith("::") == true))
+			{
+				return null;
+			}
+
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+
+			if(cvarSystem.GetInt("fs_debug") > 0)
+			{
+				idLog.WriteLine("FILE DEBUG: opening {0}", relativePath);
+			}
+
+			if((_resourceContainers.Count > 0) && (cvarSystem.GetInt("fs_resourceLoadPriority") == 1))
+			{
+				idLog.WriteLine("TODO: GetResourceFile({0})", relativePath);
+
+				/*idFile * rf = GetResourceFile( relativePath, ( searchFlags & FSFLAG_RETURN_FILE_MEM ) != 0, out lastModified );
+				if ( rf != NULL ) {
+					return rf;
+				}*/
+			}
+
+			//
+			// search through the path, one element at a time
+			//
+			if((searchFlags & FileFlags.SearchDirectories) != 0)
+			{
+				for(int idx = _searchPaths.Count - 1; idx >= 0; idx--)
+				{
+					SearchPath searchPath = _searchPaths[idx];
+
+					if((string.IsNullOrEmpty(gameDirectory) == true) || (searchPath.GameDirectory != gameDirectory))
+					{
+						continue;
+					}
+
+					string filePath = GetAbsolutePath(searchPath.Path, searchPath.GameDirectory, relativePath);
+
+					// don't open if the path is outside our cwd
+					if(filePath.StartsWith(Environment.CurrentDirectory) == false)
+					{
+						return null;
+					}
+
+					if(File.Exists(filePath) == false)
+					{
+						continue;
+					}
+
+					FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
+					lastModified = File.GetLastWriteTime(filePath);
+
+					if(cvarSystem.GetInt("fs_debug") > 0)
+					{
+						idLog.WriteLine("idFileSystem::OpenFileRead: {0} (found in '{1}/{2}')\n", relativePath, searchPath.Path, searchPath.GameDirectory);
+					}
+
+					// if fs_copyfiles is set
+					if(allowCopyFiles == true)
+					{
+						idLog.WriteLine("TODO: allowCopyFiles");
+
+						/*idStr copypath;
+						idStr name;
+						copypath = BuildOSPath( fs_savepath.GetString(), searchPaths[sp].gamedir, relativePath );
+						netpath.ExtractFileName( name );
+						copypath.StripFilename();
+						copypath += PATHSEPARATOR_STR;
+						copypath += name;
+
+						if ( fs_buildResources.GetBool() ) {
+							idStrStatic< MAX_OSPATH > relativePath = OSPathToRelativePath( copypath );
+							relativePath.BackSlashesToSlashes();
+							relativePath.ToLower();
+
+							if ( IsSoundSample( relativePath ) ) {
+								idStrStatic< MAX_OSPATH > samplePath = relativePath;
+								samplePath.SetFileExtension( "idwav" );
+								if ( samplePath.Find( "generated/" ) == -1 ) {
+									samplePath.Insert( "generated/", 0 );
+								}
+								fileManifest.AddUnique( samplePath );
+								if ( relativePath.Find( "/vo/", false ) >= 0 ) {
+									// this is vo so add the language variants
+									for ( int i = 0; i < Sys_NumLangs(); i++ ) {
+										const char *lang = Sys_Lang( i );
+										if ( idStr::Icmp( lang, ID_LANG_ENGLISH ) == 0 ) {
+											continue;
+										}
+										samplePath = relativePath;
+										samplePath.Replace( "/vo/", va( "/vo/%s/", lang ) );
+										samplePath.SetFileExtension( "idwav" );
+										if ( samplePath.Find( "generated/" ) == -1 ) {
+											samplePath.Insert( "generated/", 0 );
+										}
+										fileManifest.AddUnique( samplePath );
+
+									}
+								}
+							} else if ( relativePath.Icmpn( "guis/", 5 ) == 0 ) {
+								// this is a gui so add the language variants
+								for ( int i = 0; i < Sys_NumLangs(); i++ ) {
+									const char *lang = Sys_Lang( i );
+									if ( idStr::Icmp( lang, ID_LANG_ENGLISH ) == 0 ) {
+										fileManifest.Append( relativePath );
+										continue;
+									}
+									idStrStatic< MAX_OSPATH > guiPath = relativePath;
+									guiPath.Replace( "guis/", va( "guis/%s/", lang ) );
+									fileManifest.Append( guiPath );
+								}
+							} else {
+								// never add .amp files
+								if ( strstr( relativePath, ".amp" ) == NULL ) {
+									fileManifest.Append( relativePath );
+								}
+							}
+
+						}
+
+						if ( fs_copyfiles.GetBool() ) {
+							CopyFile( netpath, copypath );
+						}*/
+					}
+
+					if((searchFlags & FileFlags.ReturnMemoryFile) != 0)
+					{
+						MemoryStream memoryStream = new MemoryStream((int) stream.Length);
+						stream.CopyTo(memoryStream);
+						stream.Dispose();
+
+						return memoryStream;
+					}
+
+					return stream;
+				}
+
+
+				if((_resourceContainers.Count > 0) && (cvarSystem.GetInt("fs_resourceLoadPriority") == 0))
+				{
+					idLog.WriteLine("TODO: GetResourceFile({0})", relativePath);
+
+					/*idFile * rf = GetResourceFile( relativePath, ( searchFlags & FSFLAG_RETURN_FILE_MEM ) != 0, out lastModified);
+					if ( rf != NULL ) {
+						return rf;
+					}*/
+				}
+			}
+
+			if(cvarSystem.GetInt("fs_debug") > 0)
+			{
+				idLog.WriteLine("Can't find {0}", relativePath);
+			}
+
+			return null;
+		}
+
+		public Stream OpenFileReadMemory(string relativePath, bool allowCopyFiles = true, string gameDirectory = null)
+		{
+			return OpenFileRead(relativePath, FileFlags.SearchDirectories | FileFlags.ReturnMemoryFile, allowCopyFiles, gameDirectory);
+		}
+
+		public Stream OpenFileReadMemory(string relativePath, out DateTime lastModified, bool allowCopyFiles = true, string gameDirectory = null)
+		{
+			return OpenFileRead(relativePath, FileFlags.SearchDirectories | FileFlags.ReturnMemoryFile, out lastModified, allowCopyFiles, gameDirectory);
+		}
+
+		public byte[] ReadFile(string relativePath, bool allowCopyFiles = true, string gameDirectory = null)
+		{
+			Stream stream = OpenFileRead(relativePath, allowCopyFiles, gameDirectory);
+
+			if(stream == null)
+			{
+				return null;
+			}
+
+			byte[] data = new byte[stream.Length];
+			stream.Read(data, 0, data.Length);
+
+			return data;
+		}
+		#endregion
+
+		#region Writing
+		public Stream OpenFileWrite(string relativePath, string basePath = "fs_savepath")
+		{
+			idEngine engine = idEngine.Instance;
+			ICVarSystem cvarSystem = engine.GetService<ICVarSystem>();
+
+			string path = cvarSystem.GetString(basePath);
+
+			if(string.IsNullOrEmpty(path) == true)
+			{
+				path = cvarSystem.GetString("fs_savepath");
+			}
+
+			path = GetAbsolutePath(path, _gameFolder, relativePath);
+
+			// don't open if the path is outside our cwd
+			if(path.StartsWith(Environment.CurrentDirectory) == false)
+			{
+				return null;
+			}
+
+			if(cvarSystem.GetInt("fs_debug") > 0)
+			{
+				idLog.WriteLine("idFileSystem::OpenFileWrite: {0}", path);
+			}
+
+			idLog.DeveloperWriteLine("writing to: {0}", path);
+
+			return File.OpenWrite(path);
+		}
+		#endregion
+		#endregion
 		#endregion
 
 		#region P/Invoke
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
-		private static extern int SHGetKnownFolderPath(ref Guid id, int flags, IntPtr token, out IntPtr path);
+		private static extern int SHGetKnownFolderPath(Guid id, int flags, IntPtr token, out IntPtr path);
 		#endregion
 	}
 
-	public sealed class Pack
+	public sealed class SearchPath
 	{
-		public string FileName; // c:\doom\base\pak0.pk4
-		public ZipFile Zip;
-		public int FileCount;
-
-		public bool IsReferenced;
-		public bool IsAddon; // this is an addon pack - addon_search tells if it's 'active'.
-		// TODO
-		/*
-		int					checksum;
-		int					length;
-		binaryStatus_t		binary;
-			
-		bool				addon_search;				// is in the search list
-		addonInfo_t			*addon_info;
-		pureStatus_t		pureStatus;
-		bool				isNew;						// for downloaded paks
-		fileInPack_t		*buildBuffer;*/
-	}
-
-	public sealed class idDirectory
-	{
-		public string Path; // c:\doom
+		public string Path; // c:\doom3
 		public string GameDirectory; // base
 
-		public idDirectory(string path, string directory)
+		public SearchPath(string path, string directory)
 		{
 			this.Path = path;
 			this.GameDirectory = directory;
-		}
-	}
-
-	public struct SearchPath
-	{
-		public Pack Pack; // only one of pack/dir will be non null.
-		public idDirectory Directory;
-	}
-
-	public sealed class idFileList
-	{
-		public string BaseDirectory;
-		public string[] Files;
-
-		public idFileList(string baseDirectory, string[] files)
-		{
-			this.BaseDirectory = baseDirectory;
-			this.Files = files;
 		}
 	}
 }

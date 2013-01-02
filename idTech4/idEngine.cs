@@ -35,6 +35,7 @@ using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Input;
 
 using idTech4.Input;
+using idTech4.IO;
 using idTech4.Services;
 
 namespace idTech4
@@ -140,10 +141,11 @@ namespace idTech4
 			}
 						
 			// if we don't have the renderer running, make it a fatal error
-			if(idE.RenderSystem.IsRunning == false)
+			// TODO: important! if(idE.RenderSystem.IsRunning == false)
+			/*if(idE.RenderSystem.IsRunning == false)
 			{
 				code = ErrorType.Fatal;
-			}
+			}*/
 
 			// if we got a recursive error, make it fatal
 			if(_errorEntered > 0)
@@ -491,10 +493,10 @@ namespace idTech4
 				this.Services.AddService(typeof(IConsole), new idConsole());
 
 				// get architecture info
-				Sys_Init();
+				idLog.WriteLine("TODO: Sys_Init();");
 
 				// initialize networking
-				Sys_InitNetworking();
+				idLog.WriteLine("TODO: Sys_InitNetworking();");
 
 				// override cvars from command line
 				StartupVariable(null);
@@ -512,11 +514,11 @@ namespace idTech4
 				// initialize the file system
 				this.Services.AddService(typeof(IFileSystem), new idFileSystem());
 
-				const char * defaultLang = Sys_DefaultLanguage();
+				/*const char * defaultLang = Sys_DefaultLanguage();
 				com_isJapaneseSKU = ( idStr::Icmp( defaultLang, ID_LANG_JAPANESE ) == 0 );
 
 				// Allow the system to set a default lanugage
-				Sys_SetLanguageFromSystem();
+				Sys_SetLanguageFromSystem();*/
 
 				// pre-allocate our 20 MB save buffer here on time, instead of on-demand for each save....
 				idLog.WriteLine("TOOD: savefile pre-allocation");
@@ -526,7 +528,7 @@ namespace idTech4
 				stringsFile.SetNameAndType( SAVEGAME_STRINGS_FILENAME, SAVEGAMEFILE_BINARY );
 				stringsFile.PreAllocate( MAX_SAVEGAME_STRING_TABLE_SIZE );*/
 
-				fileSystem->BeginLevelLoad( "_startup", saveFile.GetDataPtr(), saveFile.GetAllocated() );
+				/*fileSystem->BeginLevelLoad( "_startup", saveFile.GetDataPtr(), saveFile.GetAllocated() );
 
 				// initialize the declaration manager
 				declManager->Init();
@@ -535,7 +537,7 @@ namespace idTech4
 				eventLoop->Init();
 
 				// init the parallel job manager
-				parallelJobManager->Init();
+				parallelJobManager->Init();*/
 
 				// exec the startup scripts
 				cmdSystem.BufferCommandText("exec default.cfg");

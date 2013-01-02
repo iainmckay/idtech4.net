@@ -32,6 +32,7 @@ using System.IO;
 using System.Text;
 
 using idTech4.Services;
+using idTech4.Threading;
 
 namespace idTech4
 {
@@ -158,11 +159,6 @@ namespace idTech4
 		/// <param name="args"></param>
 		public static void Write(string format, params object[] args)
 		{
-			if(_cvarSystem == null)
-			{
-				return;
-			}
-
 			int timeLength = 0;
 			
 			// optionally put a timestamp at the beginning of each print,

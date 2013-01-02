@@ -171,7 +171,7 @@ namespace idTech4.Platform.Xbox360
 		{
 			get
 			{
-				return "Xbox360;
+				return "Xbox360";
 			}
 		}
 

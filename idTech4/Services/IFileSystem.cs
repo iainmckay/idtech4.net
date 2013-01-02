@@ -25,6 +25,9 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+using System.IO;
+
 namespace idTech4.Services
 {
 	public interface IFileSystem
@@ -35,5 +38,54 @@ namespace idTech4.Services
 		string DefaultSavePath { get; }
 		#endregion
 		#endregion
+
+		#region Methods
+		#region Checks
+		/// <summary>
+		/// Checks if the given physical file exists.
+		/// </summary>
+		/// <param name="path">Path on the underlying filesystem.</param>
+		/// <returns>True if the file exists, false if not.</returns>
+		bool FileExists(string path);
+
+		/// <summary>
+		/// Checks if the given file exists in a resource container.
+		/// </summary>
+		/// <param name="path">Path inside a resource container.</param>
+		/// <returns>True if the file exists, false if not.</returns>
+		bool ResourceFileExists(string path);
+		#endregion
+
+		#region Paths
+		string GetAbsolutePath(string baseDirectory, string gameDirectory, string relativePath);
+		#endregion
+
+		#region Reading
+		Stream OpenFileRead(string relativePath, bool allowCopyFiles = true, string gameDirectory = null);
+		Stream OpenFileRead(string relativePath, out DateTime lastModified, bool allowCopyFiles = true, string gameDirectory = null);
+
+		/// <summary>
+		/// Finds the file in the search path, following search flag recommendations.
+		/// </summary>
+		Stream OpenFileRead(string relativePath, FileFlags searchFlags, bool allowCopyFiles = true, string gameDirectory = null);
+		Stream OpenFileRead(string relativePath, FileFlags searchFlags, out DateTime lastModified, bool allowCopyFiles = true, string gameDirectory = null);
+
+		Stream OpenFileReadMemory(string relativePath, bool allowCopyFiles = true, string gameDirectory = null);
+		Stream OpenFileReadMemory(string relativePath, out DateTime lastModified, bool allowCopyFiles = true, string gameDirectory = null);
+
+		byte[] ReadFile(string relativePath, bool allowCopyFiles = true, string gameDirectory = null);
+		#endregion
+
+		#region Writing
+		Stream OpenFileWrite(string relativePath, string basePath = "fs_savepath");
+		#endregion
+		#endregion
+	}
+	
+	[Flags]
+	public enum FileFlags
+	{
+		SearchDirectories = (1 << 0),
+		ReturnMemoryFile = (1 << 1)
 	}
 }
