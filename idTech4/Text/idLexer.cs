@@ -26,9 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using System;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Text;
 
 namespace idTech4.Text
@@ -238,7 +236,7 @@ namespace idTech4.Text
 			{
 				if(_tokenAvailable == true)
 				{
-					idConsole.FatalError("unread token called twice");
+					idEngine.Instance.FatalError("unread token called twice");
 				}
 
 				_token = value;
@@ -248,6 +246,8 @@ namespace idTech4.Text
 		#endregion
 
 		#region Members
+		private idToken _token; // available token.
+
 		private bool _loaded; // set when a script file is loaded from file or memory.
 		private string _baseFolder;
 		private string _fileName; // file name of the script.
@@ -259,7 +259,7 @@ namespace idTech4.Text
 		private int _lastLine; // line before reading token.
 		private bool _tokenAvailable; // set by unreadToken.
 		private LexerOptions _options;	// several script flags.
-		private idToken _token; // available token.
+		
 		private bool _hadError; // set by idLexer::Error, even if the error is supressed.
 
 		private int _scriptPosition; // current position in the script.
@@ -352,11 +352,11 @@ namespace idTech4.Text
 
 			if((_options & LexerOptions.NoFatalErrors) == LexerOptions.NoFatalErrors)
 			{
-				idConsole.Warning("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
+				idLog.Warning("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
 			}
 			else
 			{
-				idConsole.Error("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
+				idEngine.Instance.Error("file {0}, line {1}: {2}", _fileName, _line, string.Format(format, args));
 			}
 		}
 
@@ -445,7 +445,7 @@ namespace idTech4.Text
 		{
 			if(this.IsLoaded == true)
 			{
-				idConsole.Error("idLexer.LoadFile: another script is already loaded");
+				idEngine.Instance.Error("idLexer.LoadFile: another script is already loaded");
 				return false;
 			}
 
@@ -461,7 +461,7 @@ namespace idTech4.Text
 			{
 				pathName = fileName;
 			}
-
+			
 			if(osPath == true)
 			{
 				content = idE.FileSystem.OpenExplicitFileRead(pathName, out lastModified);
@@ -487,13 +487,13 @@ namespace idTech4.Text
 
 			_scriptPosition = 0;
 			_lastScriptPosition = 0;
-			_endPosition = _length;
+			_endPosition	= _length;
 
 			_tokenAvailable = false;
-			_line = 1;
-			_lastLine = 1;
-			_allocated = true;
-			_loaded = true;
+			_line			= 1;
+			_lastLine		= 1;
+			_allocated		= true;
+			_loaded			= true;
 
 			return true;
 		}
@@ -521,7 +521,7 @@ namespace idTech4.Text
 		{
 			if(this.IsLoaded == true)
 			{
-				idConsole.Error("idLexer.LoadMemory: another script is already loaded");
+				idEngine.Instance.Error("idLexer.LoadMemory: another script is already loaded");
 				return false;
 			}
 
@@ -786,7 +786,7 @@ namespace idTech4.Text
 
 			if(this.IsLoaded == false)
 			{
-				idConsole.Error("idLexer.ReadToken: no file loaded");
+				idEngine.Instance.Error("idLexer.ReadToken: no file loaded");
 				return null;
 			}
 
@@ -927,7 +927,7 @@ namespace idTech4.Text
 				return;
 			}
 
-			idConsole.Warning("file {0}, line {1}: {2}\n", _fileName, _line, string.Format(format, args));
+			idLog.Warning("file {0}, line {1}: {2}\n", _fileName, _line, string.Format(format, args));
 		}
 		#endregion
 
@@ -949,7 +949,7 @@ namespace idTech4.Text
 
 		private char GetBufferCharacter(int position)
 		{
-			return idHelper.GetBufferCharacter(_buffer, position);
+			return idUtil.GetBufferCharacter(_buffer, position);
 		}
 
 		private float ParseFloat(out bool errorFlag, bool useErrorFlag)

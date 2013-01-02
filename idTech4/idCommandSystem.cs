@@ -27,12 +27,10 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Text;
 
 using idTech4.Services;
-using idTech4.Text;
 
 namespace idTech4
 {
@@ -47,26 +45,11 @@ namespace idTech4
 	/// Command execution takes a string, breaks it into tokens,
 	/// then searches for a command or variable that matches the first token.
 	/// </remarks>
-	public sealed class idCommandSystem : ICommandSystemService
+	public sealed class idCommandSystem : ICommandSystem
 	{
-		#region Properties
-		/// <summary>
-		/// Has the command system been initialized yet?
-		/// </summary>
-		public bool IsInitialized
-		{
-			get
-			{
-				return _initialized;
-			}
-		}
-		#endregion
-
 		#region Members
-		private bool _initialized;
 		private int _wait;
 		private StringBuilder _cmdBuffer = new StringBuilder();
-
 		private Dictionary<string, CommandDefinition> _commands = new Dictionary<string, CommandDefinition>(StringComparer.OrdinalIgnoreCase);
 
 		// piggybacks on the text buffer, avoids tokenize again and screwing it up.
@@ -76,24 +59,12 @@ namespace idTech4
 		#region Constructor
 		public idCommandSystem()
 		{
-
+			
 		}
 		#endregion
 
 		#region Methods
 		#region Public
-		/// <summary>
-		/// Registers a command and the delegate to call for it.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="handler"></param>
-		/// <param name="flags"></param>
-		/// <param name="description"></param>
-		public void AddCommand(string name, string description, CommandFlags flags, EventHandler<CommandEventArgs> handler)
-		{
-			AddCommand(name, description, flags, handler, null);
-		}
-
 		/// <summary>
 		/// Registers a command and the delegate to call for it.
 		/// </summary>
@@ -138,12 +109,13 @@ namespace idTech4
 			}
 
 			CommandDefinition cmd;
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
 
 			// check registered command functions.
 			if(_commands.TryGetValue(args.Get(0), out cmd) == true)
 			{
 				if(((cmd.Flags & (CommandFlags.Cheat | CommandFlags.Tool)) != 0)
-					&& (idE.Session.IsMultiplayer == true) && (idE.CvarSystem.GetBool("net_allowCheats") == false))
+					&& (idEngine.Instance.IsMultiplayer == true) && (cvarSystem.GetBool("net_allowCheats") == false))
 				{
 					idLog.WriteLine("Command '{0}' not valid in multiplayer mode.", cmd.Name);
 					return;
@@ -159,12 +131,10 @@ namespace idTech4
 			}
 
 			// check cvars.
-			if(idE.CvarSystem.Command(args) == true)
+			if(cvarSystem.Command(args) == false)
 			{
-				return;
+				idLog.WriteLine("Unknown command '{0}'", args.Get(0));
 			}
-
-			idLog.WriteLine("Unknown command '{0}'", args.Get(0));
 		}
 
 		private void InsertCommandText(string text)
@@ -187,6 +157,21 @@ namespace idTech4
 		#endregion
 
 		#region ICommandSystemService implementation
+		#region Properties
+		public int Wait
+		{
+			get
+			{
+				return _wait;
+			}
+			set
+			{
+				_wait = value;
+			}
+		}
+		#endregion
+
+		#region Methods
 		#region Command execution/queueing
 		public void BufferCommandArgs(CommandArguments args, Execute exec = Execute.Append)
 		{
@@ -293,16 +278,11 @@ namespace idTech4
 			return Array.FindAll(_commands.Keys.ToArray(), filter);
 		}
 
-		public void ListByFlags(CommandArguments args, CommandFlags flags)
+		public void ListByFlags(string[] args, CommandFlags flags)
 		{
-			string match = string.Empty;
+			string match = string.Join("", args).Replace(" ", "");
 			List<CommandDefinition> cmdList = new List<CommandDefinition>();
-
-			if(args.Length > 1)
-			{
-				match = args.Get(1, -1).Replace(" ", "");
-			}
-
+			
 			foreach(KeyValuePair<string, CommandDefinition> kvp in _commands)
 			{
 				if((kvp.Value.Flags & flags) == 0)
@@ -327,6 +307,7 @@ namespace idTech4
 
 			idLog.WriteLine("{0} commands", cmdList.Count);
 		}
+		#endregion
 		#endregion
 		#endregion
 

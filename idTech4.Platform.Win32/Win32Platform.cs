@@ -28,7 +28,6 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.Management;
 
-using idTech4.Platform;
 using idTech4.Services;
 
 namespace idTech4.Platform.Win32

@@ -25,14 +25,11 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+using idTech4.Services;
 
 namespace idTech4
 {
-	public class idCVar
+	public sealed class idCVar
 	{
 		#region Properties
 		/// <summary>
@@ -42,7 +39,7 @@ namespace idTech4
 		{
 			get
 			{
-				return _internal._name;
+				return _name;
 			}
 		}
 
@@ -53,7 +50,7 @@ namespace idTech4
 		{
 			get
 			{
-				return _internal._description;
+				return _description;
 			}
 		}
 
@@ -64,11 +61,7 @@ namespace idTech4
 		{
 			get
 			{
-				return _internal._flags;
-			}
-			internal set
-			{
-				_internal._flags = value;
+				return _flags;
 			}
 		}
 
@@ -79,7 +72,7 @@ namespace idTech4
 		{
 			get
 			{
-				return _internal._valueMin;
+				return _valueMin;
 			}
 		}
 
@@ -90,7 +83,7 @@ namespace idTech4
 		{
 			get
 			{
-				return _internal._valueMax;
+				return _valueMax;
 			}
 		}
 
@@ -138,163 +131,9 @@ namespace idTech4
 			}
 		}
 
-		internal idCvar Internal
-		{
-			get
-			{
-				return _internal;
-			}
-			set
-			{
-				_internal = value;
-			}
-		}
-		#endregion
-
-		#region Members
-		protected string _name;
-		protected string _description;
-		protected string _value;
-		protected CVarFlags _flags;
-		protected float _valueMin;
-		protected float _valueMax;
-		protected string[] _valueStrings;
-		protected ArgCompletion _valueCompletion;
-
-		protected int _intValue;
-		protected float _floatValue;
-
-		protected idCvar _internal;
-		#endregion
-
-		#region Constructor
-		internal idCVar()
-		{
-
-		}
-
-		internal idCVar(string name, string value, string description, CVarFlags flags)
-		{
-			Init(name, value, description, 0, 0, null, flags, null);
-		}
-
-		internal idCVar(string name, string value, string description, ArgCompletion valueCompletion, CVarFlags flags)
-		{
-			Init(name, value, description, 1, -1, null, flags, valueCompletion);
-		}
-
-		internal idCVar(string name, string value, float valueMin, float valueMax, string description, CVarFlags flags)
-			: this(name, value, valueMin, valueMax, description, null, flags)
-		{
-
-		}
-
-		internal idCVar(string name, string value, float valueMin, float valueMax, string description, ArgCompletion valueCompletion, CVarFlags flags)
-		{
-			Init(name, value, description, valueMin, valueMax, null, flags, valueCompletion);
-		}
-
-		internal idCVar(string name, string value, string description, string[] valueStrings, CVarFlags flags)
-			: this(name, value, valueStrings, description, null, flags)
-		{
-
-		}
-
-		internal idCVar(string name, string value, string[] valueStrings, string description, ArgCompletion valueCompletion, CVarFlags flags)
-		{
-			Init(name, value, description, 1, -1, valueStrings, flags, valueCompletion);
-		}
-		#endregion
-
-		#region Methods
-		#region Public
-		public void Set(string value)
-		{
-			_internal.SetStringInternal(value);
-		}
-
-		public void Set(bool value)
-		{
-			_internal.SetBoolInternal(value);
-		}
-
-		public void Set(int value)
-		{
-			_internal.SetIntegerInternal(value);
-		}
-
-		public void Set(float value)
-		{
-			_internal.SetFloatInternal(value);
-		}
-
-		public int ToInt()
-		{
-			return _internal._intValue;
-		}
-
-		public float ToFloat()
-		{
-			return _internal._floatValue;
-		}
-
-		public bool ToBool()
-		{
-			return (_internal._intValue != 0);
-		}
-
-		public override string ToString()
-		{
-			return _internal._value;
-		}
-		#endregion
-
-		#region Private
-		private void Init(string name, string value, string description, float valueMin, float valueMax, string[] valueStrings, CVarFlags flags, ArgCompletion valueCompletion)
-		{
-			_name = name;
-			_value = value;
-			_flags = flags | CVarFlags.Static;
-			_description = description;
-			_valueMin = valueMin;
-			_valueMax = valueMax;
-			_valueStrings = valueStrings;
-			_valueCompletion = valueCompletion;
-
-			_intValue = 0;
-			_floatValue = 0.0f;
-
-			_internal = this;
-		}
-		#endregion
-
-		#region Protected
-		internal virtual void SetStringInternal(string value)
-		{
-
-		}
-
-		internal virtual void SetBoolInternal(bool value)
-		{
-
-		}
-
-		internal virtual void SetIntegerInternal(int value)
-		{
-
-		}
-
-		internal virtual void SetFloatInternal(float value)
-		{
-
-		}
-		#endregion
-		#endregion
-	}
-
-	internal sealed class idInternalCVar : idCVar
-	{
-		#region Properties
+		/// <summary>
+		/// Default value to reset to.
+		/// </summary>
 		public string ResetString
 		{
 			get
@@ -305,124 +144,175 @@ namespace idTech4
 		#endregion
 
 		#region Members
-		private string _nameString;
-		private string _resetString;
+		private string _name;
+		private string _description;
+
+		private string _value;
 		private string _valueString;
-		private string _descriptionString;
+		private string _resetString;
+
+		private CVarFlags _flags;
+		private float _valueMin;
+		private float _valueMax;
+		private string[] _valueStrings;
+		private ArgCompletion _valueCompletion;
+
+		private int _intValue;
+		private float _floatValue;
+
+		private ICVarSystem _cvarSystem;
 		#endregion
 
 		#region Constructor
-		public idInternalCVar(string name, string value, CVarFlags flags)
+		internal idCVar(ICVarSystem cvarSystem)
 		{
-			_name = name;
-			_nameString = name;
-
-			_value = value;
-			_valueString = value;
-			_resetString = value;
-
-			_description = string.Empty;
-			_descriptionString = string.Empty;
-
-			_flags = (flags & ~CVarFlags.Static) | CVarFlags.Modified;
-
-			_valueMin = 1;
-			_valueMax = -1;
-			_valueStrings = null;
-
-			UpdateValue();
-			UpdateCheat();
-
-			_internal = this;
+			_cvarSystem = cvarSystem;
 		}
 
-		public idInternalCVar(idCVar var)
+		internal idCVar(ICVarSystem cvarSystem, string name, string value, string description, CVarFlags flags) 
+			: this(cvarSystem)
 		{
-			_name = var.Name;
-			_nameString = var.Name;
-			_value = var.ToString();
-			_valueString = var.ToString();
-			_resetString = var.ToString();
-			_description = var.Description;
-			_descriptionString = var.Description;
-			_flags = var.Flags | CVarFlags.Modified;
-			_valueMin = var.MinValue;
-			_valueMax = var.MaxValue;
-			_valueStrings = var.ValueStrings;
-			_valueCompletion = var.ValueCompletion;
+			Init(name, value, description, 0, 0, null, flags, null);
+		}
 
-			UpdateValue();
-			UpdateCheat();
+		internal idCVar(ICVarSystem cvarSystem, string name, string value, string description, ArgCompletion valueCompletion, CVarFlags flags)
+			: this(cvarSystem)
+		{
+			Init(name, value, description, 1, -1, null, flags, valueCompletion);
+		}
 
-			_internal = this;
+		internal idCVar(ICVarSystem cvarSystem, string name, string value, float valueMin, float valueMax, string description, CVarFlags flags)
+			: this(cvarSystem, name, value, valueMin, valueMax, description, null, flags)
+		{
+
+		}
+
+		internal idCVar(ICVarSystem cvarSystem, string name, string value, float valueMin, float valueMax, string description, ArgCompletion valueCompletion, CVarFlags flags)
+			: this(cvarSystem)
+		{
+			Init(name, value, description, valueMin, valueMax, null, flags, valueCompletion);
+		}
+
+		internal idCVar(ICVarSystem cvarSystem, string name, string value, string description, string[] valueStrings, CVarFlags flags)
+			: this(cvarSystem, name, value, valueStrings, description, null, flags)
+		{
+
+		}
+
+		internal idCVar(ICVarSystem cvarSystem, string name, string value, string[] valueStrings, string description, ArgCompletion valueCompletion, CVarFlags flags)
+			: this(cvarSystem)
+		{
+			Init(name, value, description, 1, -1, valueStrings, flags, valueCompletion);
 		}
 		#endregion
 
 		#region Methods
-		#region Public
-		public void Update(idCVar var)
+		#region Initialization
+		private void Init(string name, string value, string description, float valueMin, float valueMax, string[] valueStrings, CVarFlags flags, ArgCompletion valueCompletion)
 		{
-			// if this is a statically declared variable
-			if((var.Flags & CVarFlags.Static) == CVarFlags.Static)
-			{
-				if((_flags & CVarFlags.Static) == CVarFlags.Static)
-				{
-					// the code has more than one static declaration of the same variable, make sure they have the same properties
-					if(_resetString.ToLower() == var.ToString().ToLower())
-					{
-						idLog.Warning("cvar '{0}' declared multiple times with different initial value", _nameString);
-					}
+			_name = name;
+			_value = value;
+			_valueString = value;
+			_resetString = value;
 
-					if((_flags & (CVarFlags.Bool | CVarFlags.Integer | CVarFlags.Float)) == 0)
-					{
-						idLog.Warning("cvar '{0}' declared multiple times with different type", _nameString);
-					}
+			_flags = flags;
+			_description = description;
+			_valueMin = valueMin;
+			_valueMax = valueMax;
+			_valueStrings = valueStrings;
+			_valueCompletion = valueCompletion;
 
-					if((_valueMin != var.MinValue) || (_valueMax != var.MaxValue))
-					{
-						idLog.Warning("cvar '{0}' declared multiple times with different minimum/maximum", _nameString);
-					}
-				}
-
-				// the code is now specifying a variable that the user already set a value for, take the new value as the reset value
-				_resetString = var.ToString();
-				_descriptionString = var.Description;
-				_description = var.Description;
-				_valueMin = var.MinValue;
-				_valueMax = var.MaxValue;
-				_valueStrings = var.ValueStrings;
-				_valueCompletion = var.ValueCompletion;
-
-				UpdateValue();
-
-				idE.CvarSystem.ModifiedFlags = var.Flags;
-			}
-
-			_flags |= var.Flags;
-
-			UpdateCheat();
-
-			// only allow one non-empty reset string without a warning
-			if(_resetString == string.Empty)
-			{
-				_resetString = var.ToString();
-			}
-			else if(var.ToString().ToLower() == _resetString.ToLower())
-			{
-				idLog.Warning("cvar \"{0}\" given initial values: \"{1}\" and \"{2}\"", _nameString, _resetString, var.ToString());
-			}
-		}
-
-		public void Reset()
-		{
-			_valueString = _resetString;
-			_value = _valueString;
+			_intValue = 0;
+			_floatValue = 0.0f;
 
 			UpdateValue();
+			UpdateCheat();
 		}
 		#endregion
 
-		#region Private
+		#region Modification
+		public void Set(string value)
+		{
+			Set(value, true, false);
+		}
+
+		public void Set(bool value)
+		{
+			Set(value.ToString(), true, false);
+		}
+
+		public void Set(int value)
+		{
+			Set(value.ToString(), true, false);
+		}
+
+		public void Set(float value)
+		{
+			Set(value.ToString(), true, false);
+		}
+
+		// let the internal commands call this
+		internal void Set(string value, bool force, bool fromServer)
+		{
+			idLog.Warning("TODO: network cvar");
+
+			/*if ( session && session->IsMultiplayer() && !fromServer ) {
+#ifndef ID_TYPEINFO
+				if ( ( flags & CVAR_NETWORKSYNC ) && idAsyncNetwork::client.IsActive() ) {
+					common->Printf( "%s is a synced over the network and cannot be changed on a multiplayer client.\n", nameString.c_str() );
+#if ID_ALLOW_CHEATS
+					common->Printf( "ID_ALLOW_CHEATS override!\n" );
+#else				
+					return;
+#endif
+				}
+#endif
+				if ( ( flags & CVAR_CHEAT ) && !cvarSystem->GetCVarBool( "net_allowCheats" ) ) {
+					common->Printf( "%s cannot be changed in multiplayer.\n", nameString.c_str() );
+#if ID_ALLOW_CHEATS
+					common->Printf( "ID_ALLOW_CHEATS override!\n" );
+#else				
+					return;
+#endif
+				}	
+			}*/
+
+			if(value == string.Empty)
+			{
+				value = _resetString;
+			}
+
+			if(force == false)
+			{
+				if((_flags & CVarFlags.ReadOnly) == CVarFlags.ReadOnly)
+				{
+					idLog.WriteLine("{0} is read only.", _name);
+					return;
+				}
+
+				if((_flags & CVarFlags.Init) == CVarFlags.Init)
+				{
+					idLog.WriteLine("{0} is write protected.", _name);
+					return;
+				}
+			}
+
+			if(_valueString.ToLower() == value.ToLower())
+			{
+				return;
+			}
+
+			_valueString = value;
+			_value = _valueString;
+
+			UpdateValue();
+			
+			this.IsModified = true;
+			_cvarSystem.SetModifiedFlags(_flags);
+		}
+		#endregion
+
+		#region Updating
 		private void UpdateValue()
 		{
 			bool clamped = false;
@@ -539,10 +429,10 @@ namespace idTech4
 			}
 		}
 
-		internal void UpdateCheat()
+		private void UpdateCheat()
 		{
 			// all variables are considered cheats except for a few types
-			if((_flags & (CVarFlags.NoCheat | CVarFlags.Init | CVarFlags.ReadOnly | CVarFlags.Archive | CVarFlags.UserInfo | CVarFlags.ServerInfo | CVarFlags.NetworkSync)) != 0)
+			if((_flags & (CVarFlags.NoCheat | CVarFlags.Init | CVarFlags.ReadOnly | CVarFlags.Archive | CVarFlags.ServerInfo | CVarFlags.NetworkSync)) != 0)
 			{
 				_flags &= ~CVarFlags.Cheat;
 			}
@@ -552,86 +442,39 @@ namespace idTech4
 			}
 		}
 
-		internal void Set(string value, bool force, bool fromServer)
+		public void Reset()
 		{
-			idLog.Warning("TODO: network cvar");
-
-			/*if ( session && session->IsMultiplayer() && !fromServer ) {
-#ifndef ID_TYPEINFO
-				if ( ( flags & CVAR_NETWORKSYNC ) && idAsyncNetwork::client.IsActive() ) {
-					common->Printf( "%s is a synced over the network and cannot be changed on a multiplayer client.\n", nameString.c_str() );
-#if ID_ALLOW_CHEATS
-					common->Printf( "ID_ALLOW_CHEATS override!\n" );
-#else				
-					return;
-#endif
-				}
-#endif
-				if ( ( flags & CVAR_CHEAT ) && !cvarSystem->GetCVarBool( "net_allowCheats" ) ) {
-					common->Printf( "%s cannot be changed in multiplayer.\n", nameString.c_str() );
-#if ID_ALLOW_CHEATS
-					common->Printf( "ID_ALLOW_CHEATS override!\n" );
-#else				
-					return;
-#endif
-				}	
-			}*/
-
-			if(value == string.Empty)
-			{
-				value = _resetString;
-			}
-
-			if(force == false)
-			{
-				if((_flags & CVarFlags.ReadOnly) == CVarFlags.ReadOnly)
-				{
-					idLog.WriteLine("{0} is read only.", _nameString);
-					return;
-				}
-
-				if((_flags & CVarFlags.Init) == CVarFlags.Init)
-				{
-					idLog.WriteLine("{0} is write protected.", _nameString);
-					return;
-				}
-			}
-
-			if(_valueString.ToLower() == value.ToLower())
-			{
-				return;
-			}
-
-			_valueString = value;
+			_valueString = _resetString;
 			_value = _valueString;
 
 			UpdateValue();
-
-			this.IsModified = true;
-
-			idE.CvarSystem.ModifiedFlags = _flags;
 		}
 		#endregion
 
-		#region Protected
-		internal override void SetStringInternal(string value)
+		#region Value Retrieval
+		public int ToInt()
 		{
-			Set(value, true, false);
+			return _intValue;
 		}
 
-		internal override void SetBoolInternal(bool value)
+		public long ToInt64()
 		{
-			Set(value.ToString(), true, false);
+			return (long) _intValue;
 		}
 
-		internal override void SetIntegerInternal(int value)
+		public float ToFloat()
 		{
-			Set(value.ToString(), true, false);
+			return _floatValue;
 		}
 
-		internal override void SetFloatInternal(float value)
+		public bool ToBool()
 		{
-			Set(value.ToString(), true, false);
+			return (_intValue != 0);
+		}
+
+		public override string ToString()
+		{
+			return _value;
 		}
 		#endregion
 		#endregion

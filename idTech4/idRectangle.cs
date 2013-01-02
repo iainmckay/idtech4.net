@@ -25,22 +25,85 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace idTech4.Services
+namespace idTech4
 {
-	public interface ICVarSystemService
+	public struct idRectangle
 	{
-		CVarFlags ModifiedFlags { get; set; }
+		public float Bottom
+		{
+			get
+			{
+				return (this.Y + this.Height);
+			}
+		}
 
-		idCVar Register(string name, string value, string description, CVarFlags flags);
-		idCVar Register(string name, string value, string description, CVarFlags flags, ArgCompletion valueCompletion);
-		idCVar Register(string name, string value, float valueMin, float valueMax, string description, CVarFlags flags);
-		idCVar Register(string name, string value, float valueMin, float valueMax, string description, CVarFlags flags, ArgCompletion valueCompletion);
-		idCVar Register(string name, string value, string description, string[] valueStrings, CVarFlags flags);
-		idCVar Register(string name, string value, string[] valueStrings, string description, CVarFlags flags, ArgCompletion valueCompletion);
+		public float Right
+		{
+			get
+			{
+				return (this.X + this.Width);
+			}
+		}
+
+		public float X;
+		public float Y;
+		public float Width;
+		public float Height;
+
+		public static idRectangle Empty = new idRectangle();
+
+		public idRectangle(float x, float y, float width, float height)
+		{
+			this.X = x;
+			this.Y = y;
+			this.Width = width;
+			this.Height = height;
+		}
+
+		public bool Contains(float x, float y)
+		{
+			if((this.Width == 0) && (this.Height == 0))
+			{
+				return false;
+			}
+
+			return ((x >= this.X)
+				&& (x <= this.Right)
+				&& (y >= this.Y)
+				&& (y <= this.Bottom));
+		}
+
+		public void Offset(float x, float y)
+		{
+			this.X += x;
+			this.Y += y;
+		}
+
+		public override int GetHashCode()
+		{
+			return ((int) X ^ (int) Y ^ (int) Width ^ (int) Height);
+		}
+
+		public override bool Equals(object obj)
+		{
+			if(obj is idRectangle)
+			{
+				idRectangle r = (idRectangle) obj;
+
+				return ((this.X == r.X) && (this.Y == r.Y) && (this.Width == r.Width) && (this.Height == r.Height));
+			}
+
+			return false;
+		}
+
+		public static bool operator ==(idRectangle r1, idRectangle r2)
+		{
+			return ((r1.X == r2.X) && (r1.Y == r2.Y) && (r1.Width == r2.Width) && (r1.Height == r2.Height));
+		}
+
+		public static bool operator !=(idRectangle r1, idRectangle r2)
+		{
+			return ((r1.X != r2.X) || (r1.Y != r2.Y) || (r1.Width != r2.Width) || (r1.Height != r2.Height));
+		}
 	}
 }

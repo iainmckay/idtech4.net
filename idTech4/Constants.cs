@@ -27,88 +27,19 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 
-using idTech4.Services;
-
-namespace idTech4.Platform
+namespace idTech4
 {
-	public abstract class BasePlatform : IPlatformService
+	class Constants
 	{
-		#region Properties
-		public abstract CpuCapabilities CpuCapabilities { get; }
+		public const int ConsoleTextSize				= 0x30000;
 
-		public bool Is64Bit
-		{
-			get
-			{
-				return (IntPtr.Size == 8);
-			}
-		}
+		public const int MaxWarningList					= 256;
 
-		public bool IsWindows
-		{
-			get
-			{
-				return false;
-			}
-		}
+		public const int SmallCharacterWidth			= 8;
+		public const int SmallCharacterHeight			= 16;
+		public const int BigCharacterWidth				= 16;
+		public const int BigCharacterHeight				= 16;
 
-		public bool IsLinux
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsMac
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsXbox
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsDebug
-		{
-			get
-			{
-#if DEBUG
-				return true;
-#else
-				return false;
-#endif
-			}
-		}
-
-		public abstract bool IsAMD { get; }
-		public abstract bool IsIntel { get; }
-
-		public abstract uint ClockSpeed { get; }
-
-		public abstract uint CoreCount { get; }
-		public abstract uint ThreadCount { get; }
-
-		public abstract uint TotalPhysicalMemory { get; }
-		public abstract uint TotalVideoMemory { get; }
-
-		public abstract string Name { get; }
-		public abstract string TagName { get; }
-		#endregion
-
-
-		#region Constructor
-		public BasePlatform()
-		{
-
-		}
-		#endregion
+		public static readonly Guid FolderID_SavedGames_IdTech5	= new Guid(0x4c5c32ff, 0xbb9d, 0x43b0, 0xb5, 0xb4, 0x2d, 0x72, 0xe5, 0x4e, 0xaa, 0xa4);
 	}
 }

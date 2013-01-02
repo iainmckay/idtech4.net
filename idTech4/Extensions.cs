@@ -25,11 +25,6 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 using Microsoft.Xna.Framework;
 
 namespace idTech4

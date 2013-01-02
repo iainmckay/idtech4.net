@@ -28,7 +28,6 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 using idTech4.Services;
 
@@ -80,12 +79,12 @@ namespace idTech4
 	/// CVAR_ROM, CVAR_ARCHIVE, CVAR_USERINFO, CVAR_SERVERINFO, CVAR_NETWORKSYNC
 	/// is set.
 	/// </remarks>
-	public sealed class idCVarSystem : ICVarSystemService
+	public sealed class idCVarSystem : ICVarSystem
 	{		
 		#region Members
 		private bool _initialized;
 		private CVarFlags _modifiedFlags;
-		private Dictionary<string, idInternalCVar> _cvarList = new Dictionary<string, idInternalCVar>(StringComparer.OrdinalIgnoreCase);
+		private Dictionary<string, idCVar> _cvarList = new Dictionary<string, idCVar>(StringComparer.OrdinalIgnoreCase);
 		#endregion
 
 		#region Constructor
@@ -101,7 +100,7 @@ namespace idTech4
 		{
 			dict.Clear();
 
-			foreach(KeyValuePair<string, idInternalCVar> cvar in _cvarList)
+			foreach(KeyValuePair<string, idCVar> cvar in _cvarList)
 			{
 				if((cvar.Value.Flags & flags) != 0)
 				{
@@ -110,70 +109,53 @@ namespace idTech4
 			}
 		}
 		#endregion
-		
-		#region Command Execution
-		/// <summary>
-		/// Called by the command system when a command is unrecognized.
-		/// </summary>
-		/// <param name="args"></param>
-		/// <returns></returns>
-		public bool Command(CommandArguments args)
+				
+		#region Registration
+		private idCVar Register(idCVar var)
 		{
-			idInternalCVar intern = FindInternal(args.Get(0));
+			idCVar existing = Find(var.Name, true);
 
-			if(intern == null)
+			if(existing != null)
 			{
-				return false;
-			}
-
-			if(args.Length == 1)
-			{
-				// print the variable
-				idLog.WriteLine("\"{0}\" is: \"{1}\" {2} default: \"{3}\"", intern.Name, intern.ToString(), idColorString.White, intern.ResetString);
-
-				if(intern.Description.Length > 0)
-				{
-					idLog.WriteLine("{0}{1}", idColorString.White, intern.Description);
-				}
+				idLog.WriteLine("a cvar already exists with the name '{0}'", var.Name);
 			}
 			else
 			{
-				// set the value
-				intern.Set(args.ToString(), false, false);
+				_cvarList.Add(var.Name, var);
 			}
 
-			return true;
+			return var;
+		}
+		#endregion
+		#endregion
+
+		#region ICVarSystemService implementation
+		#region Methods
+		#region Command Completion
+		public string[] ArgumentCompletion(string name, string argText)
+		{
+			CommandArguments args = new CommandArguments(argText, true);
+			idCVar var = Find(name);
+			List<string> matches = new List<string>();
+
+			if((var != null) && (var.ValueCompletion != null))
+			{
+				matches.AddRange(var.ValueCompletion.Complete(args));
+			}
+
+			return matches.ToArray();
 		}
 
 		public string[] CommandCompletion(Predicate<string> filter)
 		{
 			return Array.FindAll(_cvarList.Keys.ToArray(), filter);
-		}
-
-		public string[] ArgCompletion(string name, string argText)
-		{
-			CommandArguments args = new CommandArguments(argText, true);
-			idInternalCVar intern = FindInternal(name);
-			List<string> matches = new List<string>();
-
-			if((intern != null) && (intern.ValueCompletion != null))
-			{
-				matches.AddRange(intern.ValueCompletion.Complete(args));
-			}
-
-			return matches.ToArray();
-		}
+		}		
 		#endregion
 
 		#region Find
-		public idCVar Find(string name)
+		public idCVar Find(string name, bool ignoreMissing = false)
 		{
-			return FindInternal(name);
-		}
-
-		private idInternalCVar FindInternal(string name, bool ignoreMissing = false)
-		{
-			idInternalCVar var;
+			idCVar var;
 
 			if(_cvarList.TryGetValue(name, out var) == true)
 			{
@@ -187,75 +169,65 @@ namespace idTech4
 
 			return null;
 		}
-
-		private void SetInternal(string name, string value, CVarFlags flags)
-		{
-			idInternalCVar intern = FindInternal(name);
-
-			if(intern != null)
-			{
-				intern.SetStringInternal(value);
-				intern.Flags |= flags & ~CVarFlags.Static;
-				intern.UpdateCheat();
-			}
-			else
-			{
-				idLog.Warning("Tried to set unknown cvar '{0}'", name);
-
-				intern = new idInternalCVar(name, value, flags);
-
-				_cvarList.Add(intern.Name, intern);
-			}
-		}
-
-		public void Init()
-		{
-			if(this.IsInitialized == true)
-			{
-				throw new InvalidOperationException("cvar system already initialized");
-			}
-			
-			idE.CmdSystem.AddCommand("toggle", "toggles a cvar", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Toggle));
-			idE.CmdSystem.AddCommand("set", "sets a cvar", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Set));
-			idE.CmdSystem.AddCommand("sets", "sets a cvar", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Set));
-			idE.CmdSystem.AddCommand("setu", "sets a cvar", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Set));
-			idE.CmdSystem.AddCommand("sett", "sets a cvar", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Set));
-			idE.CmdSystem.AddCommand("seta", "sets a cvar", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Set));
-			idE.CmdSystem.AddCommand("reset", "resets a cvar", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Reset));
-			idE.CmdSystem.AddCommand("listCvars", "list cvars", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_List));
-			idE.CmdSystem.AddCommand("cvar_reset", "restart the cvar system", CommandFlags.System, new EventHandler<CommandEventArgs>(Cmd_Restart));
-			cmdSystem->AddCommand("cvarAdd", CvarAdd_f, CMD_FL_SYSTEM, "adds a value to a numeric cvar");
-
-			RegisterStatics();
-
-			_initialized = true;
-		}
 		#endregion
 
 		#region Misc
-		private void ListByFlags(CommandArguments args, CVarFlags flags)
+		/// <summary>
+		/// Called by the command system when a command is unrecognized.
+		/// </summary>
+		/// <param name="args"></param>
+		/// <returns></returns>
+		public bool Command(CommandArguments args)
 		{
-			int argNum = 1;
+			idCVar var = Find(args.Get(0));
+
+			if(var == null)
+			{
+				return false;
+			}
+
+			if(args.Length == 1)
+			{
+				// print the variable
+				idLog.WriteLine("\"{0}\" is: \"{1}\" {2} default: \"{3}\"", var.Name, var.ToString(), idColorString.White, var.ResetString);
+
+				if(var.Description.Length > 0)
+				{
+					idLog.WriteLine("{0}{1}", idColorString.White, var.Description);
+				}
+			}
+			else
+			{
+				// set the value
+				var.Set(args.ToString(), false, false);
+			}
+
+			return true;
+		}
+
+		public void ListByFlags(string[] args, CVarFlags flags)
+		{
+			int argNum = 0;
 			string match;
 			ShowMode show = ShowMode.Value;
 			List<idCVar> list = new List<idCVar>();
 
-			if((StringComparer.OrdinalIgnoreCase.Compare(args.Get(argNum), "-") == 0)
-				|| (StringComparer.OrdinalIgnoreCase.Compare(args.Get(argNum), "/") == 0))
+			if((StringComparer.OrdinalIgnoreCase.Compare(args[argNum], "-") == 0)
+				|| (StringComparer.OrdinalIgnoreCase.Compare(args[argNum], "/") == 0))
 			{
-				if((StringComparer.OrdinalIgnoreCase.Compare(args.Get(argNum + 1), "help") == 0)
-					|| (StringComparer.OrdinalIgnoreCase.Compare(args.Get(argNum + 1), "?") == 0))
+				if((StringComparer.OrdinalIgnoreCase.Compare(args[argNum], "help") == 0)
+					|| (StringComparer.OrdinalIgnoreCase.Compare(args[argNum], "?") == 0))
 				{
 					argNum = 3;
 					show = ShowMode.Description;
 				}
-				else if((StringComparer.OrdinalIgnoreCase.Compare(args.Get(argNum + 1), "type") == 0)
-					|| (StringComparer.OrdinalIgnoreCase.Compare(args.Get(argNum + 1), "range") == 0))
+				else if((StringComparer.OrdinalIgnoreCase.Compare(args[argNum + 1], "type") == 0)
+					|| (StringComparer.OrdinalIgnoreCase.Compare(args[argNum + 1], "range") == 0))
 				{
 					argNum = 3;
 					show = ShowMode.Type;
 				}
-				else if(StringComparer.OrdinalIgnoreCase.Compare(args.Get(argNum + 1), "flags") == 0)
+				else if(StringComparer.OrdinalIgnoreCase.Compare(args[argNum + 1], "flags") == 0)
 				{
 					argNum = 3;
 					show = ShowMode.Flags;
@@ -264,7 +236,7 @@ namespace idTech4
 
 			if(args.Length > argNum)
 			{
-				match = args.Get(argNum, -1);
+				match = string.Join("", args, argNum, args.Length - 1);
 				match = match.Replace(" ", string.Empty);
 			}
 			else
@@ -272,9 +244,9 @@ namespace idTech4
 				match = string.Empty;
 			}
 
-			foreach(KeyValuePair<string, idInternalCVar> kvp in _cvarList)
+			foreach(KeyValuePair<string, idCVar> kvp in _cvarList)
 			{
-				idInternalCVar cvar = kvp.Value;
+				idCVar cvar = kvp.Value;
 
 				if((cvar.Flags & flags) == 0)
 				{
@@ -303,7 +275,7 @@ namespace idTech4
 				case ShowMode.Description:
 					foreach(idCVar cvar in list)
 					{
-						idLog.WriteLine("{0}{1}{2}", cvar.Name.PadRight(32), idColorString.White, idHelper.WrapText(cvar.Description, 77 - 33, 33));
+						idLog.WriteLine("{0}{1}{2}", cvar.Name.PadRight(32), idColorString.White, cvar.Description);
 					}
 					break;
 
@@ -416,13 +388,13 @@ namespace idTech4
 							str += string.Format("{0}     ", idColorString.White);
 						}
 
-						str += ((cvar.Flags & CVarFlags.ServerInfo) == CVarFlags.ServerInfo) ? "SI " : "   ";
-						str += ((cvar.Flags & CVarFlags.Static) == CVarFlags.Static) ? "ST " : "   ";
-						str += ((cvar.Flags & CVarFlags.Cheat) == CVarFlags.Cheat) ? "CH " : "   ";
-						str += ((cvar.Flags & CVarFlags.Init) == CVarFlags.Init) ? "IN " : "   ";
-						str += ((cvar.Flags & CVarFlags.ReadOnly) == CVarFlags.ReadOnly) ? "RO " : "   ";
-						str += ((cvar.Flags & CVarFlags.Archive) == CVarFlags.Archive) ? "AR " : "   ";
-						str += ((cvar.Flags & CVarFlags.Modified) == CVarFlags.Modified) ? "MO " : "   ";
+						str += ((cvar.Flags & CVarFlags.ServerInfo) == CVarFlags.ServerInfo)	? "SI " : "   ";
+						str += ((cvar.Flags & CVarFlags.Static) == CVarFlags.Static)			? "ST " : "   ";
+						str += ((cvar.Flags & CVarFlags.Cheat) == CVarFlags.Cheat)				? "CH " : "   ";
+						str += ((cvar.Flags & CVarFlags.Init) == CVarFlags.Init)				? "IN " : "   ";
+						str += ((cvar.Flags & CVarFlags.ReadOnly) == CVarFlags.ReadOnly)		? "RO " : "   ";
+						str += ((cvar.Flags & CVarFlags.Archive) == CVarFlags.Archive)			? "AR " : "   ";
+						str += ((cvar.Flags & CVarFlags.Modified) == CVarFlags.Modified)		? "MO " : "   ";
 
 						idLog.WriteLine(str);
 					}
@@ -435,244 +407,14 @@ namespace idTech4
 			idLog.WriteLine("listCvar -type [search string]    = list cvar types");
 			idLog.WriteLine("listCvar -flags [search string]   = list cvar flags");
 		}
-		#endregion
 
-		#region Modification
-		public void ClearModified(string name)
-		{
-			idInternalCVar intern = FindInternal(name);
-
-			if(intern != null)
-			{
-				intern.IsModified = false;
-			}
-		}
-
-		public bool IsModified(string name)
-		{
-			idInternalCVar intern = FindInternal(name);
-
-			if(intern != null)
-			{
-				return intern.IsModified;
-			}
-
-			return false;
-		}
-
-		public void Set(string name, string value, CVarFlags flags = 0)
-		{
-			SetInternal(name, value, flags);
-		}
-
-		public void Set(string name, bool value, CVarFlags flags = 0)
-		{
-			SetInternal(name, ((value == true) ? 1 : 0).ToString(), flags);
-		}
-
-		public void Set(string name, int value, CVarFlags flags = 0)
-		{
-			SetInternal(name, value.ToString(), flags);
-		}
-
-		public void Set(string name, float value, CVarFlags flags = 0)
-		{
-			SetInternal(name, value.ToString(), flags);
-		}
-
-		public void SetModified(string name)
-		{
-			idCVar intern = FindInternal(name);
-
-			if(intern != null)
-			{
-				intern.Flags |= CVarFlags.Modified;
-			}
-		}
-		#endregion
-
-		#region Registration
-		private idCVar Register(idCVar var)
-		{
-			var.Internal = var;
-
-			idInternalCVar intern = FindInternal(var.Name, true);
-
-			if(intern != null)
-			{
-				intern.Update(var);
-			}
-			else
-			{
-				intern = new idInternalCVar(var);
-
-				_cvarList.Add(intern.Name, intern);
-			}
-
-			var.Internal = intern;
-
-			return var;
-		}
-		#endregion
-
-		#region Value Retrieval
-		public string GetString(string name)
-		{
-			idInternalCVar intern = FindInternal(name);
-
-			if(intern != null)
-			{
-				return intern.ToString();
-			}
-
-			return string.Empty;
-		}
-
-		public bool GetBool(string name)
-		{
-			idInternalCVar intern = FindInternal(name);
-
-			if(intern != null)
-			{
-				return intern.ToBool();
-			}
-
-			return false;
-		}
-
-		public int GetInteger(string name)
-		{
-			idInternalCVar intern = FindInternal(name);
-
-			if(intern != null)
-			{
-				return intern.ToInt();
-			}
-
-			return 0;
-		}
-
-		public float GetFloat(string name)
-		{
-			idInternalCVar intern = FindInternal(name);
-
-			if(intern != null)
-			{
-				return intern.ToFloat();
-			}
-
-			return 0;
-		}
-		#endregion
-						
-		#region Command handlers
-		private void Cmd_Toggle(object sender, CommandEventArgs e)
-		{
-			int argCount = e.Args.Length;
-
-			if(argCount < 2)
-			{
-				idLog.WriteLine("usage:");
-				idLog.WriteLine("    toggle <variable> - toggles between 0 and 1");
-				idLog.WriteLine("    toggle <variable> <value> - toggles between 0 and <value>");
-				idLog.WriteLine("    toggle <variable [string 1] [string 2]...[string n] - cycles through all strings");
-			}
-			else
-			{
-				idInternalCVar cvar = FindInternal(e.Args.Get(1));
-
-				if(cvar == null)
-				{
-					idLog.WriteLine("toggle: cvar \"{0}\" not found", e.Args.Get(1));
-				}
-				else if(argCount > 3)
-				{
-					// cycle through multiple values
-					string text = cvar.ToString();
-					int i = 0;
-
-
-					for(i = 2; i < argCount; i++)
-					{
-						if(StringComparer.OrdinalIgnoreCase.Compare(text, e.Args.Get(i)) == 0)
-						{
-							i++;
-							break;
-						}
-					}
-
-					if(i >= argCount)
-					{
-						i = 2;
-					}
-
-					idLog.WriteLine("set {0} = {1}", e.Args.Get(1), e.Args.Get(i));
-					cvar.Set(e.Args.Get(i), false, false);
-				}
-				else
-				{
-					// toggle between 0 and 1
-					float current = cvar.ToFloat();
-					float set = 0;
-
-					if(e.Args.Length == 3)
-					{
-						float.TryParse(e.Args.Get(2), out set);
-					}
-					else
-					{
-						set = 1.0f;
-					}
-
-					if(current == 0.0f)
-					{
-						current = set;
-					}
-					else
-					{
-						current = 0.0f;
-					}
-
-					idLog.WriteLine("set {0} = {1}", e.Args.Get(1), current);
-					cvar.Set(current.ToString(), false, false);
-				}
-			}
-		}
-
-		private void Cmd_Set(object sender, CommandEventArgs e)
-		{
-			Set(e.Args.Get(1), e.Args.Get(2, e.Args.Length - 1));
-		}
-				
-		private void Cmd_Reset(object sender, CommandEventArgs e)
-		{
-			if(e.Args.Length != 2)
-			{
-				idLog.WriteLine("usage: reset <variable>");
-			}
-			else
-			{
-				idInternalCVar cvar = FindInternal(e.Args.Get(1));
-
-				if(cvar != null)
-				{
-					cvar.Reset();
-				}
-			}
-		}
-
-		private void Cmd_List(object sender, CommandEventArgs e)
-		{
-			ListByFlags(e.Args, CVarFlags.All);
-		}
-
-		private void Cmd_Restart(object sender, CommandEventArgs e)
+		public void Restart()
 		{
 			List<string> toRemove = new List<string>();
 
-			foreach(KeyValuePair<string, idInternalCVar> kvp in _cvarList)
+			foreach(KeyValuePair<string, idCVar> kvp in _cvarList)
 			{
-				idInternalCVar cvar = kvp.Value;
+				idCVar cvar = kvp.Value;
 
 				// don't mess with rom values
 				if((cvar.Flags & (CVarFlags.ReadOnly | CVarFlags.Init)) != 0)
@@ -697,56 +439,184 @@ namespace idTech4
 			}
 		}
 		#endregion
-		#endregion
 
-		#region ICVarSystemService implementation
-		#region Properties
-		/// <summary>
-		/// Gets/sets the modified flags that tell what kind of cvars have changed.
-		/// </summary>
-		public CVarFlags ModifiedFlags
+		#region Modification
+		public void ClearModified(string name)
 		{
-			get
+			idCVar var = Find(name);
+
+			if(var != null)
 			{
-				return _modifiedFlags;
+				var.IsModified = false;
 			}
-			set
+		}
+
+		public void ClearModifiedFlags(CVarFlags flags)
+		{
+			_modifiedFlags &= ~flags;
+		}
+
+		public bool IsModified(string name)
+		{
+			idCVar var = Find(name);
+
+			if(var != null)
 			{
-				_modifiedFlags = value;
+				return var.IsModified;
 			}
+
+			return false;
+		}	
+
+		public void Set(string name, string value)
+		{
+			SetInternal(name, value);
+		}
+
+		public void Set(string name, bool value)
+		{
+			SetInternal(name, ((value == true) ? 1 : 0).ToString());
+		}
+
+		public void Set(string name, int value)
+		{
+			SetInternal(name, value.ToString());
+		}
+
+		public void Set(string name, float value)
+		{
+			SetInternal(name, value.ToString());
+		}
+
+		private void SetInternal(string name, string value)
+		{
+			idCVar var = Find(name);
+
+			if(var != null)
+			{
+				var.Set(value);
+			}
+			else
+			{
+				idLog.Warning("Tried to set unknown cvar '{0}', creating...", name);
+
+				// create the cvar if it doesn't exist
+				Register(new idCVar(this, name, value, "", 0));
+			}
+		}
+
+		public void SetModified(string name)
+		{
+			idCVar var = Find(name);
+
+			if(var != null)
+			{
+				var.IsModified = true;
+			}
+		}
+
+		/// <summary>
+		/// Sets the modified flags that tell what kind of cvars have changed.
+		/// </summary>
+		public void SetModifiedFlags(CVarFlags flags)
+		{
+			_modifiedFlags |= flags;
 		}
 		#endregion
 
-		#region Methods
+		#region Registration
 		public idCVar Register(string name, string value, string description, CVarFlags flags)
 		{
-			return Register(new idCVar(name, value, description, flags));
+			return Register(new idCVar(this, name, value, description, flags | CVarFlags.Static));
 		}
 
 		public idCVar Register(string name, string value, string description, CVarFlags flags, ArgCompletion valueCompletion)
 		{
-			return Register(new idCVar(name, value, description, valueCompletion, flags));
+			return Register(new idCVar(this, name, value, description, valueCompletion, flags | CVarFlags.Static));
 		}
 
 		public idCVar Register(string name, string value, float valueMin, float valueMax, string description, CVarFlags flags)
 		{
-			return Register(new idCVar(name, value, valueMin, valueMax, description, flags));
+			return Register(new idCVar(this, name, value, valueMin, valueMax, description, flags | CVarFlags.Static));
 		}
 
 		public idCVar Register(string name, string value, float valueMin, float valueMax, string description, CVarFlags flags, ArgCompletion valueCompletion)
 		{
-			return Register(new idCVar(name, value, valueMin, valueMax, description, valueCompletion, flags));
+			return Register(new idCVar(this, name, value, valueMin, valueMax, description, valueCompletion, flags | CVarFlags.Static));
 		}
 
 		public idCVar Register(string name, string value, string description, string[] valueStrings, CVarFlags flags)
 		{
-			return Register(new idCVar(name, value, description, valueStrings, flags));
+			return Register(new idCVar(this, name, value, description, valueStrings, flags | CVarFlags.Static));
 		}
 
 		public idCVar Register(string name, string value, string[] valueStrings, string description, CVarFlags flags, ArgCompletion valueCompletion)
 		{
-			return Register(new idCVar(name, value, valueStrings, description, valueCompletion, flags));
+			return Register(new idCVar(this, name, value, valueStrings, description, valueCompletion, flags | CVarFlags.Static));
 		}
+		#endregion
+
+		#region Value Retrieval
+		public string GetString(string name)
+		{
+			idCVar var = Find(name);
+
+			if(var != null)
+			{
+				return var.ToString();
+			}
+
+			return string.Empty;
+		}
+
+		public bool GetBool(string name)
+		{
+			idCVar var = Find(name);
+
+			if(var != null)
+			{
+				return var.ToBool();
+			}
+
+			return false;
+		}
+
+		public int GetInt(string name)
+		{
+			idCVar var = Find(name);
+
+			if(var != null)
+			{
+				return var.ToInt();
+			}
+
+			return 0;
+		}
+
+		public long GetInt64(string name)
+		{
+			idCVar var = Find(name);
+
+			if(var != null)
+			{
+				return var.ToInt64();
+			}
+
+			return 0;
+		}
+
+		public float GetFloat(string name)
+		{
+			idCVar var = Find(name);
+
+			if(var != null)
+			{
+				return var.ToFloat();
+			}
+
+			return 0;
+		}
+		#endregion
 		#endregion
 		#endregion
 

@@ -29,8 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Text;
+
+using idTech4.Services;
 
 namespace idTech4
 {
@@ -61,15 +62,25 @@ namespace idTech4
 
 	public sealed class idLog
 	{
-		#region Constants
-		public const int MaxWarningList = 256;
+		#region Properties
+		public static bool RefreshOnPrint
+		{
+			get
+			{
+				return _refreshOnPrint;
+			}
+			set
+			{
+				_refreshOnPrint = value;
+			}
+		}
 		#endregion
 
 		#region Members
 		private static Queue<string> _inputHistory = new Queue<string>();
 
 		private static string _warningCaption;
-		private static List<string> _warningList = new List<string>(MaxWarningList);
+		private static List<string> _warningList = new List<string>(Constants.MaxWarningList);
 
 		private static StringBuilder _redirectBuffer = null;
 		private static EventHandler<RedirectBufferEventArgs> _redirectFlushHandler;
@@ -77,6 +88,7 @@ namespace idTech4
 		private static StreamWriter _logFile;
 		private static bool _logFileFailed;
 		private static bool _recursingLogFileOpen;
+		private static bool _refreshOnPrint;
 		#endregion
 
 		#region Methods
@@ -115,18 +127,18 @@ namespace idTech4
 		/// <param name="args"></param>
 		public static void DeveloperWrite(string format, params object[] args)
 		{
-			if((idE.CvarSystem.IsInitialized == false) || (idE.CvarSystem.GetBool("developer") == false))
+			if(idEngine.Instance.GetService<ICVarSystem>().GetBool("developer") == false)
 			{
 				return; // don't confuse non-developers with techie stuff...
 			}
 
 			// never refresh the screen, which could cause reentrency problems
-			bool temp = idE.System.RefreshOnPrint;
-			idE.System.RefreshOnPrint = false;
+			bool temp = _refreshOnPrint;
+			_refreshOnPrint = false;
 
 			Write(string.Format("{0}{1}", idColorString.Red, string.Format(format, args)));
 
-			idE.System.RefreshOnPrint = temp;
+			_refreshOnPrint = temp;
 		}
 
 		/// <summary>
@@ -146,14 +158,13 @@ namespace idTech4
 		/// <param name="args"></param>
 		public static void Write(string format, params object[] args)
 		{
-			int timeLength = 0;
-
-			// if the cvar system is not initialized
-			if(idE.CvarSystem.IsInitialized == false)
+			if(_cvarSystem == null)
 			{
 				return;
 			}
 
+			int timeLength = 0;
+			
 			// optionally put a timestamp at the beginning of each print,
 			// so we can see how long different init sections are taking
 
@@ -216,7 +227,7 @@ namespace idTech4
 			AddToConsoleBuffer(msg);
 
 			// remove any color codes
-			msg = idHelper.RemoveColors(msg);
+			msg = idColor.StripColors(msg);
 
 			// echo to dedicated console and early console
 			Print(msg);
@@ -224,27 +235,30 @@ namespace idTech4
 			// print to script debugger server
 			// DebuggerServerPrint( msg );
 
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+			IFileSystem fileSystem = idEngine.Instance.GetService<IFileSystem>();
+
 			// logFile
-			if((idE.CvarSystem.GetInteger("logFile") != 0) && (_logFileFailed == false) && (idE.FileSystem.IsInitialized == true))
+			if((cvarSystem.GetInt("logFile") != 0) && (_logFileFailed == false))
 			{
 				if((_logFile == null) && (_recursingLogFileOpen == false))
 				{
 					string fileName = "qconsole.log";
 
-					if(idE.CvarSystem.GetString("logFileName") != string.Empty)
+					if(cvarSystem.GetString("logFileName") != string.Empty)
 					{
-						fileName = idE.CvarSystem.GetString("logFileName");
+						fileName = cvarSystem.GetString("logFileName");
 					}
 
 					// fileSystem->OpenFileWrite can cause recursive prints into here
 					_recursingLogFileOpen = true;
 
-					Stream s = idE.FileSystem.OpenFileWrite(fileName);
+					Stream s = fileSystem.OpenFileWrite(fileName);
 
 					if(s == null)
 					{
 						_logFileFailed = true;
-						FatalError("failed to open log file '{0}'", fileName);
+						idEngine.Instance.FatalError("failed to open log file '{0}'", fileName);
 					}
 
 					_recursingLogFileOpen = false;
@@ -256,7 +270,7 @@ namespace idTech4
 
 				if(_logFile != null)
 				{
-					_logFile.Write(idHelper.RemoveColors(msg));
+					_logFile.Write(idColor.StripColors(msg));
 				}
 			}
 
@@ -316,10 +330,10 @@ namespace idTech4
 		#region Private
 		private static void AddToConsoleBuffer(string msg)
 		{
-			idE.Console.WriteLine(msg);
+			// TODO: important! idE.Console.WriteLine(msg);
 		}
 
-		private static void Print(string format, params object[] args)
+		public static void Print(string format, params object[] args)
 		{
 			string msg = string.Format(format, args);
 

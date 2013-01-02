@@ -27,15 +27,19 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 using idTech4.Text;
 
 namespace idTech4.Services
 {
-	interface ICommandSystemService
+	interface ICommandSystem
 	{
+		/// <summary>
+		/// Get/set the number of frames to wait before processing more commands.
+		/// </summary>
+		int Wait { get; set; }
+
 		void BufferCommandArgs(CommandArguments args, Execute exec = Execute.Append);
 
 		/// <summary>
@@ -52,7 +56,7 @@ namespace idTech4.Services
 
 		string[] CommandCompletion(Predicate<string> filter);
 
-		void ListByFlags(CommandArguments args, CommandFlags flags);
+		void ListByFlags(string[] args, CommandFlags flags);
 	}
 
 	/// <summary>
@@ -212,11 +216,6 @@ namespace idTech4.Services
 
 			while(true)
 			{
-				if(newArgs.Count == idE.MaxCommandArgs)
-				{
-					break; // this is usually something malicious.
-				}
-
 				if((token = lexer.ReadToken()) == null)
 				{
 					break;
@@ -241,11 +240,13 @@ namespace idTech4.Services
 						break;
 					}
 
-					if(idE.CvarSystem.IsInitialized == true)
+					idLog.WriteLine("TODO: cvar expansion");
+
+					/*if(idE.CvarSystem.IsInitialized == true)
 					{
 						token.Set(idE.CvarSystem.GetString(token.ToString()));
 					}
-					else
+					else*/
 					{
 						token.Set("<unknown>");
 					}
@@ -290,19 +291,25 @@ namespace idTech4.Services
 	/// </summary>
 	public enum CommandFlags
 	{
-		All = -1,
+		All			= -1,
+
 		/// <summary>Command is considered a cheat.</summary>
-		Cheat = 1 << 0,
+		Cheat		= 1 << 0,
+
 		/// <summary>System command.</summary>
-		System = 1 << 1,
+		System		= 1 << 1,
+
 		/// <summary>Renderer command.</summary>
-		Renderer = 1 << 2,
+		Renderer	= 1 << 2,
+
 		/// <summary>Sound command.</summary>
-		Sound = 1 << 3,
+		Sound		= 1 << 3,
+
 		/// <summary>Game command.</summary>
-		Game = 1 << 4,
+		Game		= 1 << 4,
+
 		/// <summary>Tool command.</summary>
-		Tool = 1 << 5
+		Tool		= 1 << 5
 	}
 
 	/// <summary>

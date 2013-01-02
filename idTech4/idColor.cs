@@ -25,9 +25,6 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 using Microsoft.Xna.Framework;
@@ -52,6 +49,38 @@ namespace idTech4
 		public static readonly Vector4 LightGrey	= new Vector4(0.75f, 0.75f, 0.75f, 1.0f);
 		public static readonly Vector4 MediumGrey	= new Vector4(0.0f, 0.5f, 0.5f, 1.0f);
 		public static readonly Vector4 DarkGrey		= new Vector4(0.25f, 0.25f, 0.25f, 1.0f);
+
+		public static bool IsColor(string buffer, int index)
+		{
+			if((index + 1) >= buffer.Length)
+			{
+				return false;
+			}
+
+			return ((buffer[index] == (int) idColorIndex.Escape) && (buffer[index + 1] != '\0') && (buffer[index + 1] != ' '));
+		}
+
+		public static string StripColors(string str)
+		{
+            StringBuilder newStr = new StringBuilder();
+            int length = str.Length;
+
+            for(int i = 0; i < length; i++)
+            {
+                char c = str[i];
+
+                if(IsColor(str, i) == true)
+                {
+                    i++;
+                }
+                else
+                {
+                    newStr.Append(c);
+                }
+            }
+
+            return newStr.ToString();
+		}
 	}
 
 	public enum idColorIndex

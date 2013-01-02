@@ -60,6 +60,9 @@
     <XnaCompressContent>true</XnaCompressContent>
   </PropertyGroup>
   <ItemGroup>
+    <Reference Include="ICSharpCode.SharpZipLib">
+      <HintPath>..\bin\ICSharpCode.SharpZipLib.dll</HintPath>
+    </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
       <Private>False</Private>
     </Reference>
@@ -108,21 +111,32 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Commands.cs" />
+    <Compile Include="Constants.cs" />
     <Compile Include="CVars.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="idColor.cs" />
     <Compile Include="idCommandSystem.cs" />
+    <Compile Include="idConsole.cs" />
     <Compile Include="idCVar.cs" />
     <Compile Include="idCVarSystem.cs" />
-    <Compile Include="idGame.cs" />
+    <Compile Include="idDict.cs" />
+    <Compile Include="idEngine.cs" />
     <Compile Include="idLicensee.cs" />
     <Compile Include="idLog.cs" />
+    <Compile Include="idRectangle.cs" />
+    <Compile Include="idUtil.cs" />
+    <Compile Include="Input\idInputField.cs" />
+    <Compile Include="Input\idInputSystem.cs" />
+    <Compile Include="IO\idFileSystem.cs" />
     <Compile Include="Platform\BasePlatform.cs" />
     <Compile Include="idVersion.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Program.cs" />
-    <Compile Include="Services\ICommandSystemService.cs" />
-    <Compile Include="Services\ICVarSystemService.cs" />
+    <Compile Include="Services\ICommandSystem.cs" />
+    <Compile Include="Services\IConsole.cs" />
+    <Compile Include="Services\ICVarSystem.cs" />
+    <Compile Include="Services\IFileSystem.cs" />
+    <Compile Include="Services\IInputSystem.cs" />
     <Compile Include="Services\IPlatformService.cs" />
     <Compile Include="Text\idLexer.cs" />
     <Compile Include="Text\idToken.cs" />

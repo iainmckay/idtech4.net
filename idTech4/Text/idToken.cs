@@ -26,8 +26,6 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace idTech4.Text
@@ -324,6 +322,12 @@ namespace idTech4.Text
 		}
 		#endregion
 		#endregion
+	}
+
+	[Flags]
+	public enum TokenFlags
+	{
+		RecursiveDefine = 1
 	}
 
 	public enum TokenType

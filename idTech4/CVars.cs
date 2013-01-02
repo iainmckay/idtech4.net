@@ -25,11 +25,6 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
 using Microsoft.Xna.Framework;
 
 using idTech4.Services;
@@ -38,9 +33,9 @@ namespace idTech4
 {
 	public class CVars
 	{
-		public static void Register(Game game)
+		public static void Register()
 		{
-			ICVarSystemService cvarSystem = game.Services.GetService<ICVarSystemService>();
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
 
 			#region Common
 			cvarSystem.Register("developer",				"0", "developer mode",											CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);
@@ -83,8 +78,6 @@ namespace idTech4
 
 			#region Filesystem
 			cvarSystem.Register("fs_basepath",					"", "",												CVarFlags.System | CVarFlags.Init);
-			cvarSystem.Register("fs_buildresources",			"0", "Copy every file touched to a resource file",	CVarFlags.System | CVarFlags.Bool | CVarFlags.Init);
-			cvarSystem.Register("fs_copyfiles",					"0", "Copy every file touched to fs_savepath",		CVarFlags.System | CVarFlags.Bool | CVarFlags.Init);
 			cvarSystem.Register("fs_debug",						"0", 0, 2, "",										CVarFlags.System | CVarFlags.Bool, new ArgCompletion_Integer(0, 2));
 			cvarSystem.Register("fs_debugBGL",					"0", "",											CVarFlags.System | CVarFlags.Bool);
 			cvarSystem.Register("fs_debugResources",			"0", "",											CVarFlags.System | CVarFlags.Bool);
@@ -92,7 +85,6 @@ namespace idTech4
 			cvarSystem.Register("fs_enableBGL",					"0", "",											CVarFlags.System | CVarFlags.Bool);
 			cvarSystem.Register("fs_game",						"", "mod path",										CVarFlags.System | CVarFlags.Init | CVarFlags.ServerInfo);
 			cvarSystem.Register("fs_game_base",					"", "alternate mod path, searched after the main fs_game path, before the basedir", CVarFlags.System | CVarFlags.Init | CVarFlags.ServerInfo);
-			cvarSystem.Register("fs_resourceLoadPriority",		"1", "if 1, open requests will be honored from resource files first; if 0, the resource files are checked after normal search paths", CVarFlags.System);
 			cvarSystem.Register("fs_savepath",					"", "",												CVarFlags.System | CVarFlags.Init);
 			#endregion
 

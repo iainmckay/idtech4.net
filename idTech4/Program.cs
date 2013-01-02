@@ -37,10 +37,7 @@ namespace idTech4
 		/// </summary>
 		public static void Main(string[] args)
 		{
-			using(idGame game = new idGame(args))
-			{
-				game.Run();
-			}
+			idEngine.Instance.Run(args);
 		}
 	}
 #endif

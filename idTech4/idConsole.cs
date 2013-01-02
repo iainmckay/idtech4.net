@@ -25,89 +25,43 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-
+using idTech4.Input;
 using idTech4.Services;
 
-namespace idTech4.Platform
+namespace idTech4
 {
-	public abstract class BasePlatform : IPlatformService
+	public class idConsole : IConsole
 	{
-		#region Properties
-		public abstract CpuCapabilities CpuCapabilities { get; }
+		#region Members
+		// allow these constants to be adjusted for HMD
+		private int _localSafeLeft;
+		private int _localSafeRight;
+		private int _localSafeTop;
+		private int _localSafeBottom;
+		private int _localSafeWidth;
+		private int _localSafeHeight;
 
-		public bool Is64Bit
-		{
-			get
-			{
-				return (IntPtr.Size == 8);
-			}
-		}
+		private int _lineWidth;
+		private int _totalLines;
 
-		public bool IsWindows
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsLinux
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsMac
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsXbox
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsDebug
-		{
-			get
-			{
-#if DEBUG
-				return true;
-#else
-				return false;
-#endif
-			}
-		}
-
-		public abstract bool IsAMD { get; }
-		public abstract bool IsIntel { get; }
-
-		public abstract uint ClockSpeed { get; }
-
-		public abstract uint CoreCount { get; }
-		public abstract uint ThreadCount { get; }
-
-		public abstract uint TotalPhysicalMemory { get; }
-		public abstract uint TotalVideoMemory { get; }
-
-		public abstract string Name { get; }
-		public abstract string TagName { get; }
+		private idInputField _consoleField;
 		#endregion
-
-
+		
 		#region Constructor
-		public BasePlatform()
+		public idConsole()
 		{
+			_localSafeLeft = 32;
+			_localSafeRight = 608;
+			_localSafeTop = 24;
+			_localSafeBottom = 456;
+			_localSafeWidth = _localSafeRight - _localSafeLeft;
+			_localSafeHeight = _localSafeBottom - _localSafeTop;
 
+			_lineWidth = ((_localSafeWidth / Constants.SmallCharacterWidth) - 2);
+			_totalLines = Constants.ConsoleTextSize / _lineWidth;
+
+			_consoleField = new idInputField();
+			_consoleField.WidthInCharacters = _lineWidth;
 		}
 		#endregion
 	}

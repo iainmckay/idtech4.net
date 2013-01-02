@@ -26,89 +26,13 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-using idTech4.Services;
-
-namespace idTech4.Platform
+namespace idTech4.Services
 {
-	public abstract class BasePlatform : IPlatformService
+	public interface IConsole
 	{
-		#region Properties
-		public abstract CpuCapabilities CpuCapabilities { get; }
-
-		public bool Is64Bit
-		{
-			get
-			{
-				return (IntPtr.Size == 8);
-			}
-		}
-
-		public bool IsWindows
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsLinux
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsMac
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsXbox
-		{
-			get
-			{
-				return false;
-			}
-		}
-
-		public bool IsDebug
-		{
-			get
-			{
-#if DEBUG
-				return true;
-#else
-				return false;
-#endif
-			}
-		}
-
-		public abstract bool IsAMD { get; }
-		public abstract bool IsIntel { get; }
-
-		public abstract uint ClockSpeed { get; }
-
-		public abstract uint CoreCount { get; }
-		public abstract uint ThreadCount { get; }
-
-		public abstract uint TotalPhysicalMemory { get; }
-		public abstract uint TotalVideoMemory { get; }
-
-		public abstract string Name { get; }
-		public abstract string TagName { get; }
-		#endregion
-
-
-		#region Constructor
-		public BasePlatform()
-		{
-
-		}
-		#endregion
 	}
 }
