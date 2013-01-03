@@ -254,7 +254,6 @@ namespace idTech4.Text
 		private string _baseFolder;
 		private string _fileName; // file name of the script.
 		private DateTime _fileTime; // file time.
-		private bool _allocated;	// true if buffer memory was allocated.
 		private string _buffer; // buffer containing the script.
 		private int _length; // length of the script in bytes.
 		private int _line; // current line in script.
@@ -487,7 +486,6 @@ namespace idTech4.Text
 			_tokenAvailable = false;
 			_line			= 1;
 			_lastLine		= 1;
-			_allocated		= true;
 			_loaded			= true;
 
 			return true;
@@ -532,7 +530,6 @@ namespace idTech4.Text
 			_tokenAvailable = false;
 			_line = startLine;
 			_lastLine = startLine;
-			_allocated = false;
 			_loaded = true;
 
 			return true;

@@ -82,7 +82,6 @@ namespace idTech4
 	public sealed class idCVarSystem : ICVarSystem
 	{		
 		#region Members
-		private bool _initialized;
 		private CVarFlags _modifiedFlags;
 		private Dictionary<string, idCVar> _cvarList = new Dictionary<string, idCVar>(StringComparer.OrdinalIgnoreCase);
 		#endregion

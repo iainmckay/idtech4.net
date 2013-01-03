@@ -1,12 +1,11 @@
 
 *.user
 *.cachefile
-Doom3.suo
-idLib/obj
-idLib/bin
 idEngineContent
-idGame/obj
-idGame/bin
-idEngine/obj
-idEngine/bin
-Build
+idTech4/obj
+idTech4/bin
+idTech4.Platform.Win32\bin
+idTech4.Platform.Win32\obj
+idTech4.Platform.Xbox360\bin
+idTech4.Platform.Xbox360\obj
+idtech4.net.suo

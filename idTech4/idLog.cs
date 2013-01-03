@@ -185,7 +185,7 @@ namespace idTech4
 					_redirectFlushHandler(null, new RedirectBufferEventArgs(_redirectBuffer.ToString()));
 					_redirectBuffer.Clear();
 				}
-
+					
 				_redirectBuffer.Append(msg);
 
 				return;
@@ -235,7 +235,8 @@ namespace idTech4
 			IFileSystem fileSystem = idEngine.Instance.GetService<IFileSystem>();
 
 			// logFile
-			if((cvarSystem != null) && (cvarSystem.GetInt("logFile") != 0) && (_logFileFailed == false))
+			if((cvarSystem != null) && (fileSystem != null)
+				&& (cvarSystem.GetInt("logFile") != 0) && (_logFileFailed == false))
 			{
 				if((_logFile == null) && (_recursingLogFileOpen == false))
 				{

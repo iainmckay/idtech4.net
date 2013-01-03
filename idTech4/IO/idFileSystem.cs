@@ -57,7 +57,7 @@ namespace idTech4.IO
 		#region Members
 		private string _gameFolder;	// this will be a single name without separators
 		private List<SearchPath> _searchPaths = new List<SearchPath>();
-		private List<idResourceContainer> _resourceContainers = new List<idResourceContainer>();
+		private List<idResourceContainer> _resourceContainers = new List<idResourceContainer>();		
 		#endregion
 
 		#region Constructor
@@ -227,7 +227,7 @@ namespace idTech4.IO
 				if(Environment.OSVersion.Version.Major >= 6)
 				{
 					IntPtr pathPtr;
-					int hr = SHGetKnownFolderPath(Constants.FolderID_SavedGames_IdTech5, 0, IntPtr.Zero, out pathPtr);
+					int hr = SHGetKnownFolderPath(ref Constants.FolderID_SavedGames_IdTech5, 0, IntPtr.Zero, out pathPtr);
 
 					if(hr == 0)
 					{
@@ -369,18 +369,12 @@ namespace idTech4.IO
 				{
 					SearchPath searchPath = _searchPaths[idx];
 
-					if((string.IsNullOrEmpty(gameDirectory) == true) || (searchPath.GameDirectory != gameDirectory))
+					if((string.IsNullOrEmpty(gameDirectory) == false) && (searchPath.GameDirectory != gameDirectory))
 					{
 						continue;
 					}
 
 					string filePath = GetAbsolutePath(searchPath.Path, searchPath.GameDirectory, relativePath);
-
-					// don't open if the path is outside our cwd
-					if(filePath.StartsWith(Environment.CurrentDirectory) == false)
-					{
-						return null;
-					}
 
 					if(File.Exists(filePath) == false)
 					{
@@ -535,13 +529,7 @@ namespace idTech4.IO
 			}
 
 			path = GetAbsolutePath(path, _gameFolder, relativePath);
-
-			// don't open if the path is outside our cwd
-			if(path.StartsWith(Environment.CurrentDirectory) == false)
-			{
-				return null;
-			}
-
+			
 			if(cvarSystem.GetInt("fs_debug") > 0)
 			{
 				idLog.WriteLine("idFileSystem::OpenFileWrite: {0}", path);
@@ -557,7 +545,7 @@ namespace idTech4.IO
 
 		#region P/Invoke
 		[DllImport("shell32.dll", CharSet = CharSet.Auto)]
-		private static extern int SHGetKnownFolderPath(Guid id, int flags, IntPtr token, out IntPtr path);
+		private static extern int SHGetKnownFolderPath(ref Guid id, int flags, IntPtr token, out IntPtr path);
 		#endregion
 	}
 

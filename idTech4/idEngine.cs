@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.IO;
 using System.Reflection;
 
 using Microsoft.Xna.Framework;
@@ -448,7 +449,7 @@ namespace idTech4
 		protected override void Initialize()
 		{
 			// done before Com/Sys_Init since we need this for error output
-			idLog.WriteLine("TODO: Sys_CreateConsole();");
+			/*idLog.WriteLine("TODO: Sys_CreateConsole();");
 
 			idLog.WriteLine("TODO: optimalPCTBuffer( 0.5f );");
 			idLog.WriteLine("TODO: currentGame( DOOM3_BFG );");
@@ -459,7 +460,7 @@ namespace idTech4
 			idLog.WriteLine("TODO: snapCurrent.serverTime = -1;");
 			idLog.WriteLine("TODO: snapPrevious.serverTime = -1;");
 
-			idLog.WriteLine("TODO: ClearWipe();");
+			idLog.WriteLine("TODO: ClearWipe();");*/
 
 			try 
 			{
@@ -478,11 +479,11 @@ namespace idTech4
 				this.Services.AddService(typeof(ICVarSystem), cvarSystem);
 				this.Services.AddService(typeof(IPlatformService), platform);
 
-				idLog.WriteLine("Command line: {0}", String.Join(" ", _rawCommandLineArguments));
-
 				// register all static CVars
 				CVars.Register();
-								
+
+				idLog.WriteLine("Command line: {0}", String.Join(" ", _rawCommandLineArguments));
+												
 				idLog.WriteLine("QA Timing INIT");
 				idLog.WriteLine(idVersion.ToString(platform));
 
@@ -745,8 +746,9 @@ namespace idTech4
 					Sys_ShowConsole(0, false);
 				}*/
 			} 
-			catch(Exception) 
+			catch(Exception ex) 
 			{
+				throw new Exception("Uh oh!", ex);
 				Sys_Error("Error during initialization");
 			}
 			
@@ -765,13 +767,15 @@ namespace idTech4
 			// TODO: clean this up
 #if WINDOWS
 			string assemblyName = "idTech4.Platform.Win32.dll";
-			string typeName = "Win32Platform, idTech4.Platform.Win32";
+			string typeName = "idTech4.Platform.Win32.Win32Platform";
 #elif XBOX
 			string assemblyName = "idTech4.Platform.Xbox360.dll";
-			string typeName = "Xbox360Platform, idTech4.Platform.Xbox360";
+			string typeName = "idTech4.Platform.Xbox360.Xbox360Platform";
 #else
 			return null;
 #endif
+
+			assemblyName = Path.Combine(Environment.CurrentDirectory, assemblyName);
 
 			return Assembly.LoadFile(assemblyName).CreateInstance(typeName) as IPlatformService;
 		}
@@ -857,7 +861,9 @@ namespace idTech4
 			_gameTimer.Stop();
 			// TODO: Sys_ShutdownInput();
 
-			if(this.GetService<ICVarSystem>().GetInt("com_productionMode") == 0)
+			ICVarSystem cvarSystem = this.GetService<ICVarSystem>();
+
+			if((cvarSystem != null) && (cvarSystem.GetInt("com_productionMode") == 0))
 			{
 				// wait for the user to quit
 				// TODO: important!
