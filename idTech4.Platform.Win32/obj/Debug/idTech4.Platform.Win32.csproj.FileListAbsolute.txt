@@ -1,1 +1,8 @@
 E:\Projects2\idtech4.net\idTech4.Platform.Win32\obj\Debug\ResolveAssemblyReference.cache
+E:\Projects2\idtech4.net\idTech4.Platform.Win32\bin\Debug\idTech4.Platform.Win32.dll
+E:\Projects2\idtech4.net\idTech4.Platform.Win32\bin\Debug\idTech4.Platform.Win32.pdb
+E:\Projects2\idtech4.net\idTech4.Platform.Win32\bin\Debug\idTech4.exe
+E:\Projects2\idtech4.net\idTech4.Platform.Win32\bin\Debug\ICSharpCode.SharpZipLib.dll
+E:\Projects2\idtech4.net\idTech4.Platform.Win32\bin\Debug\idTech4.pdb
+E:\Projects2\idtech4.net\idTech4.Platform.Win32\obj\Debug\idTech4.Platform.Win32.dll
+E:\Projects2\idtech4.net\idTech4.Platform.Win32\obj\Debug\idTech4.Platform.Win32.pdb

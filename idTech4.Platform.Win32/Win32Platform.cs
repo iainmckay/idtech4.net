@@ -34,8 +34,72 @@ namespace idTech4.Platform.Win32
 {
 	public sealed class Win32Platform : BasePlatform
 	{
+		#region Members
+		private uint _currentClockSpeed;
+		private uint _coreCount;
+		private uint _threadCount;
+
+		private uint _totalPhysicalMemory;
+		private uint _totalVideoMemory;
+
+		private bool _isIntel;
+		#endregion
+
+		#region Constructor
+		public Win32Platform()
+			: base()
+		{
+			using(ManagementObjectSearcher mosInfo = new ManagementObjectSearcher("SELECT * FROM Win32_Processor"))
+			{
+				// FIXME: ha! going to limit this to one cpu, who in the universe would have more than one, eh?!
+				// might come to regret this.
+				foreach(ManagementObject mosObj in mosInfo.Get())
+				{
+					_currentClockSpeed = (uint) mosObj["CurrentClockSpeed"];
+
+					// only vista and above support these properties
+					if(Environment.OSVersion.Version.Major >= 6)
+					{
+						_coreCount = (uint) mosObj["NumberOfCores"];
+						_threadCount = (uint) mosObj["NumberOfLogicalProcessors"];
+					}
+					else
+					{
+						_coreCount = 1;
+						_threadCount = 1;
+					}
+
+					string desc = (string) mosObj["Description"];
+
+					_isIntel = desc.Contains("Intel");
+
+					mosObj.Dispose();
+					break;
+				}
+			}
+
+			using(ManagementObjectSearcher mosInfo = new ManagementObjectSearcher("SELECT * FROM Win32_ComputerSystem"))
+			{
+				foreach(ManagementObject mosObj in mosInfo.Get())
+				{
+					_totalPhysicalMemory = (uint) ((ulong) mosObj["TotalPhysicalMemory"] / 1024 / 1024);
+				}
+			}
+
+			using(ManagementObjectSearcher mosInfo = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController"))
+			{
+				// we only check one graphics card.
+				foreach(ManagementObject mosObj in mosInfo.Get())
+				{
+					_totalVideoMemory = (uint) mosObj["AdapterRAM"] / 1024 / 1024;
+				}
+			}
+		}
+		#endregion
+
+		#region BasePlatform implementation
 		#region Properties
-		public CpuCapabilities CpuCapabilities
+		public override CpuCapabilities CpuCapabilities
 		{
 			get
 			{
@@ -106,7 +170,7 @@ namespace idTech4.Platform.Win32
 			}
 		}
 
-		public bool IsWindows
+		public override bool IsWindows
 		{
 			get
 			{
@@ -114,7 +178,7 @@ namespace idTech4.Platform.Win32
 			}
 		}
 
-		public bool IsIntel
+		public override bool IsIntel
 		{
 			get
 			{
@@ -122,15 +186,15 @@ namespace idTech4.Platform.Win32
 			}
 		}
 
-		public bool IsAMD
+		public override bool IsAMD
 		{
 			get
 			{
-				return (_isIntel == false);
+				return (this.IsIntel == false);
 			}
 		}
 
-		public uint ClockSpeed
+		public override uint ClockSpeed
 		{
 			get
 			{
@@ -138,7 +202,7 @@ namespace idTech4.Platform.Win32
 			}
 		}
 
-		public uint CoreCount
+		public override uint CoreCount
 		{
 			get
 			{
@@ -146,7 +210,7 @@ namespace idTech4.Platform.Win32
 			}
 		}
 
-		public uint ThreadCount
+		public override uint ThreadCount
 		{
 			get
 			{
@@ -154,7 +218,7 @@ namespace idTech4.Platform.Win32
 			}
 		}
 
-		public uint TotalPhysicalMemory
+		public override uint TotalPhysicalMemory
 		{
 			get
 			{
@@ -162,7 +226,7 @@ namespace idTech4.Platform.Win32
 			}
 		}
 
-		public uint TotalVideoMemory
+		public override uint TotalVideoMemory
 		{
 			get
 			{
@@ -170,7 +234,7 @@ namespace idTech4.Platform.Win32
 			}
 		}
 
-		public string Name
+		public override string Name
 		{
 			get
 			{
@@ -178,7 +242,7 @@ namespace idTech4.Platform.Win32
 			}
 		}
 
-		public string TagName
+		public override string TagName
 		{
 			get
 			{
@@ -186,68 +250,6 @@ namespace idTech4.Platform.Win32
 			}
 		}
 		#endregion
-
-		#region Members
-		private uint _currentClockSpeed;
-		private uint _coreCount;
-		private uint _threadCount;
-
-		private uint _totalPhysicalMemory;
-		private uint _totalVideoMemory;
-
-		private bool _isIntel;
-		#endregion
-
-		#region Constructor
-		public Win32Platform()
-			: base()
-		{
-			using(ManagementObjectSearcher mosInfo = new ManagementObjectSearcher("SELECT * FROM Win32_Processor"))
-			{
-				// FIXME: ha! going to limit this to one cpu, who in the universe would have more than one, eh?!
-				// might come to regret this.
-				foreach(ManagementObject mosObj in mosInfo.Get())
-				{
-					_currentClockSpeed = (uint) mosObj["CurrentClockSpeed"];
-
-					// only vista and above support these properties
-					if(Environment.OSVersion.Version.Major >= 6)
-					{
-						_coreCount = (uint) mosObj["NumberOfCores"];
-						_threadCount = (uint) mosObj["NumberOfLogicalProcessors"];
-					}
-					else
-					{
-						_coreCount = 1;
-						_threadCount = 1;
-					}
-
-					string desc = (string) mosObj["Description"];
-
-					_isIntel = desc.Contains("Intel");
-
-					mosObj.Dispose();
-					break;
-				}
-			}
-
-			using(ManagementObjectSearcher mosInfo = new ManagementObjectSearcher("SELECT * FROM Win32_ComputerSystem"))
-			{
-				foreach(ManagementObject mosObj in mosInfo.Get())
-				{
-					_totalPhysicalMemory = (uint) ((ulong) mosObj["TotalPhysicalMemory"] / 1024 / 1024);
-				}
-			}
-
-			using(ManagementObjectSearcher mosInfo = new ManagementObjectSearcher("SELECT * FROM Win32_VideoController"))
-			{
-				// we only check one graphics card.
-				foreach(ManagementObject mosObj in mosInfo.Get())
-				{
-					_totalVideoMemory = (uint) mosObj["AdapterRAM"] / 1024 / 1024;
-				}
-			}
-		}
 		#endregion
 	}
 }

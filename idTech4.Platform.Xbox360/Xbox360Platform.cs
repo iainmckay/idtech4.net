@@ -31,8 +31,18 @@ namespace idTech4.Platform.Xbox360
 {
 	public sealed class Xbox360Platform : BasePlatform
 	{
+		#region Constructor
+		public Xbox360Platform()
+			: base()
+		{
+
+		}
+		#endregion
+
+		#region BasePlatform implementation
+
 		#region Properties
-		public CpuCapabilities CpuCapabilities
+		public override CpuCapabilities CpuCapabilities
 		{
 			get
 			{
@@ -103,7 +113,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public bool IsXbox
+		public override bool IsXbox
 		{
 			get
 			{
@@ -111,7 +121,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public bool IsIntel
+		public override bool IsIntel
 		{
 			get
 			{
@@ -119,7 +129,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public bool IsAMD
+		public override bool IsAMD
 		{
 			get
 			{
@@ -127,7 +137,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public uint ClockSpeed
+		public override uint ClockSpeed
 		{
 			get
 			{
@@ -135,7 +145,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public uint CoreCount
+		public override uint CoreCount
 		{
 			get
 			{
@@ -143,7 +153,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public uint ThreadCount
+		public override uint ThreadCount
 		{
 			get
 			{
@@ -151,7 +161,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public uint TotalPhysicalMemory
+		public override uint TotalPhysicalMemory
 		{
 			get
 			{
@@ -159,7 +169,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public uint TotalVideoMemory
+		public override uint TotalVideoMemory
 		{
 			get
 			{
@@ -167,7 +177,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public string Name
+		public override string Name
 		{
 			get
 			{
@@ -175,7 +185,7 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 
-		public string TagName
+		public override string TagName
 		{
 			get
 			{
@@ -183,13 +193,6 @@ namespace idTech4.Platform.Xbox360
 			}
 		}
 		#endregion
-
-		#region Constructor
-		public Xbox360Platform()
-			: base()
-		{
-
-		}
 		#endregion
 	}
 }

@@ -36,7 +36,7 @@ namespace idTech4.Platform
 		#region Properties
 		public abstract CpuCapabilities CpuCapabilities { get; }
 
-		public bool Is64Bit
+		public virtual bool Is64Bit
 		{
 			get
 			{
@@ -44,7 +44,7 @@ namespace idTech4.Platform
 			}
 		}
 
-		public bool IsWindows
+		public virtual bool IsWindows
 		{
 			get
 			{
@@ -52,7 +52,7 @@ namespace idTech4.Platform
 			}
 		}
 
-		public bool IsLinux
+		public virtual bool IsLinux
 		{
 			get
 			{
@@ -60,7 +60,7 @@ namespace idTech4.Platform
 			}
 		}
 
-		public bool IsMac
+		public virtual bool IsMac
 		{
 			get
 			{
@@ -68,7 +68,7 @@ namespace idTech4.Platform
 			}
 		}
 
-		public bool IsXbox
+		public virtual bool IsXbox
 		{
 			get
 			{

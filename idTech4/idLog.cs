@@ -235,7 +235,7 @@ namespace idTech4
 			IFileSystem fileSystem = idEngine.Instance.GetService<IFileSystem>();
 
 			// logFile
-			if((cvarSystem.GetInt("logFile") != 0) && (_logFileFailed == false))
+			if((cvarSystem != null) && (cvarSystem.GetInt("logFile") != 0) && (_logFileFailed == false))
 			{
 				if((_logFile == null) && (_recursingLogFileOpen == false))
 				{
