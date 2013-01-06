@@ -371,31 +371,31 @@ namespace idTech4
 
 		#region Input System
 		[Command("bind", "binds a command to a key", CommandFlags.System /* TODO: idKeyInput::ArgCompletion_KeyName*/)]
-		private void Input_Bind(idEngine engine, string key, string command = null)
+		private static void Input_Bind(idEngine engine, string key, string command = null)
 		{
 			idLog.WriteLine("TODO: bind");
 		}
 
 		[Command("bindunbindtwo", "binds a key but unbinds it first if there are more than two binds", CommandFlags.System)]
-		private void Input_BindUnbindTwo(idEngine engine, string key, string command = null)
+		private static void Input_BindUnbindTwo(idEngine engine, string key, string command = null)
 		{
 			idLog.WriteLine("TODO: bindunbindtwo");
 		}
 
 		[Command("unbind", "unbinds any command from a key", CommandFlags.System /* TODO: idKeyInput::ArgCompletion_KeyName*/)]
-		private void Input_Unbind(idEngine engine, string key)
+		private static void Input_Unbind(idEngine engine, string key)
 		{
 			idLog.WriteLine("TODO: unbind");
 		}
 
 		[Command("unbindall", "unbinds any commands from all keys", CommandFlags.System)]
-		private void Input_UnbindAll(idEngine engine)
+		private static void Input_UnbindAll(idEngine engine)
 		{
 			idLog.WriteLine("TODO: unbindall");
 		}
 
 		[Command("listBinds", "lists key bindings", CommandFlags.System)]
-		private void Input_ListBinds(idEngine engine)
+		private static void Input_ListBinds(idEngine engine)
 		{
 			idLog.WriteLine("TODO: listbinds");
 		}
