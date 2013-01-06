@@ -91,6 +91,10 @@ namespace idTech4
 			cvarSystem.Register("fs_savepath",					"", "",												CVarFlags.System | CVarFlags.Init);
 			#endregion
 
+			#region Game
+			cvarSystem.Register("g_demoMode", "0", "this is a demo", CVarFlags.Integer);
+			#endregion
+
 			#region System
 			cvarSystem.Register("sys_arch",			"",			"", CVarFlags.System | CVarFlags.Init);
 			cvarSystem.Register("sys_cpustring",	"detect",	"", CVarFlags.System | CVarFlags.Init);

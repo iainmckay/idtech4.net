@@ -474,13 +474,17 @@ namespace idTech4
 				ICVarSystem cvarSystem = new idCVarSystem();
 				ICommandSystem cmdSystem = new idCommandSystem();				
 				IPlatformService platform = FindPlatform();
-								
-				this.Services.AddService(typeof(ICommandSystem), cmdSystem);
+							
 				this.Services.AddService(typeof(ICVarSystem), cvarSystem);
+				this.Services.AddService(typeof(ICommandSystem), cmdSystem);
+				this.Services.AddService(typeof(IFileSystem), new idFileSystem());
 				this.Services.AddService(typeof(IPlatformService), platform);
 
 				// register all static CVars
 				CVars.Register();
+
+				// scan for commands
+				cmdSystem.Scan();
 
 				idLog.WriteLine("Command line: {0}", String.Join(" ", _rawCommandLineArguments));
 												
@@ -511,10 +515,7 @@ namespace idTech4
 
 				// initialize processor specific SIMD implementation
 				idLog.WriteLine("TODO: InitSIMD();");
-
-				// initialize the file system
-				this.Services.AddService(typeof(IFileSystem), new idFileSystem());
-
+				
 				/*const char * defaultLang = Sys_DefaultLanguage();
 				com_isJapaneseSKU = ( idStr::Icmp( defaultLang, ID_LANG_JAPANESE ) == 0 );
 
@@ -544,9 +545,7 @@ namespace idTech4
 				cmdSystem.BufferCommandText("exec default.cfg");
 
 				// skip the config file if "safe" is on the command line
-				idLog.WriteLine("TODO: SafeMode()");
-
-				if(/*!SafeMode() &&*/ (cvarSystem.GetBool("g_demoMode") == false))
+				if((IsSafeMode() == false) && (cvarSystem.GetBool("g_demoMode") == false))
 				{
 					cmdSystem.BufferCommandText(string.Format("exec {0}", idLicensee.ConfigFile));
 				}
@@ -753,6 +752,25 @@ namespace idTech4
 			}
 			
 			base.Initialize();
+		}
+
+		/// <summary>
+		/// Check for "safe" on the command line, which will
+		/// skip loading of config file (DoomConfig.cfg)
+		/// </summary>
+		private bool IsSafeMode()
+		{
+			foreach(CommandArguments args in _commandLineArguments)
+			{
+				if((args.Get(0).Equals("safe", StringComparison.OrdinalIgnoreCase) == true)
+					|| (args.Get(0).Equals("cvar_restart", StringComparison.OrdinalIgnoreCase) == true))
+				{
+					args.Clear();
+					return true;
+				}
+			}
+
+			return false;
 		}
 
 		protected override void OnExiting(object sender, EventArgs args)

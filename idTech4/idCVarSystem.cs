@@ -163,7 +163,7 @@ namespace idTech4
 
 			if(ignoreMissing == false)
 			{
-				idLog.Warning("Tried to find unknown cvar '{0}'", name);
+				idLog.Warning("tried to find unknown cvar '{0}'", name);
 			}
 
 			return null;
@@ -497,7 +497,7 @@ namespace idTech4
 			}
 			else
 			{
-				idLog.Warning("Tried to set unknown cvar '{0}', creating...", name);
+				idLog.Warning("tried to set unknown cvar '{0}', creating...", name);
 
 				// create the cvar if it doesn't exist
 				Register(new idCVar(this, name, value, "", 0));

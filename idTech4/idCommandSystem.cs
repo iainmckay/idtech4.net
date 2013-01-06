@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 
 using idTech4.Services;
@@ -50,50 +51,42 @@ namespace idTech4
 		#region Members
 		private int _wait;
 		private StringBuilder _cmdBuffer = new StringBuilder();
-		private Dictionary<string, CommandDefinition> _commands = new Dictionary<string, CommandDefinition>(StringComparer.OrdinalIgnoreCase);
+		private Dictionary<string, List<CommandSignature>> _commands = new Dictionary<string, List<CommandSignature>>(StringComparer.OrdinalIgnoreCase);
 
 		// piggybacks on the text buffer, avoids tokenize again and screwing it up.
 		private List<CommandArguments> _tokenizedCommands = new List<CommandArguments>();
+
+		// for scanning
+		private Dictionary<Type, Type> _acceptedParameterTypes = new Dictionary<Type, Type>();
 		#endregion
 
 		#region Constructor
 		public idCommandSystem()
 		{
-			
+			_acceptedParameterTypes.Add(typeof(Int16),		typeof(Int16CommandParameter));
+			_acceptedParameterTypes.Add(typeof(Int32),		typeof(Int32CommandParameter));
+			_acceptedParameterTypes.Add(typeof(Int64),		typeof(Int64CommandParameter));
+ 			_acceptedParameterTypes.Add(typeof(UInt16),		typeof(UInt16CommandParameter));
+			_acceptedParameterTypes.Add(typeof(UInt32),		typeof(UInt32CommandParameter));
+			_acceptedParameterTypes.Add(typeof(UInt64),		typeof(UInt64CommandParameter));
+			_acceptedParameterTypes.Add(typeof(Single),		typeof(SingleCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Double),		typeof(DoubleCommandParameter));
+
+			_acceptedParameterTypes.Add(typeof(String),		typeof(StringCommandParameter));
+			_acceptedParameterTypes.Add(typeof(String[]),	typeof(StringListCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Boolean),	typeof(BoolCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Char),		typeof(CharCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Decimal),	typeof(DecimalCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Byte),		typeof(ByteCommandParameter));
+			_acceptedParameterTypes.Add(typeof(SByte),		typeof(SByteCommandParameter));
+						
+			_acceptedParameterTypes.Add(typeof(Enum),		typeof(EnumCommandParameter));
+		
+			AppDomain.CurrentDomain.AssemblyLoad += new AssemblyLoadEventHandler(OnAssemblyLoad);
 		}
 		#endregion
 
 		#region Methods
-		#region Public
-		/// <summary>
-		/// Registers a command and the delegate to call for it.
-		/// </summary>
-		/// <param name="name"></param>
-		/// <param name="handler"></param>
-		/// <param name="flags"></param>
-		/// <param name="description"></param>
-		/// <param name="argCompletion"></param>
-		public void AddCommand(string name, string description, CommandFlags flags, EventHandler<CommandEventArgs> handler, EventHandler<CommandEventArgs> completionHandler)
-		{
-			if(_commands.ContainsKey(name) == true)
-			{
-				idLog.WriteLine("idCmdSystem.AddCommand: {0} already defined", name);
-			}
-			else
-			{
-				CommandDefinition cmd = new CommandDefinition();
-				cmd.Name = name;
-				cmd.Description = description;
-
-				cmd.Handler = handler;
-				cmd.CompletionHandler = completionHandler;
-				cmd.Flags = flags;
-
-				_commands.Add(name, cmd);
-			}
-		}		
-		#endregion
-
 		#region Private
 		private void ExecuteCommandText(string text)
 		{
@@ -102,38 +95,105 @@ namespace idTech4
 
 		private void ExecuteTokenizedString(CommandArguments args)
 		{
-			// execute the command line.
 			if(args.Length == 0)
 			{
-				return; // no tokens.
+				return; // no tokens
 			}
 
-			CommandDefinition cmd;
 			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+			List<CommandSignature> signatures;
+			bool executed = false;
 
-			// check registered command functions.
-			if(_commands.TryGetValue(args.Get(0), out cmd) == true)
+			// check registered command functions
+			if(_commands.TryGetValue(args.Get(0), out signatures) == true)
 			{
-				if(((cmd.Flags & (CommandFlags.Cheat | CommandFlags.Tool)) != 0)
-					&& (idEngine.Instance.IsMultiplayer == true) && (cvarSystem.GetBool("net_allowCheats") == false))
-				{
-					idLog.WriteLine("Command '{0}' not valid in multiplayer mode.", cmd.Name);
-					return;
-				}
+				// find a signature that matches the given parameters
 
-				// perform the action.
-				if(cmd.Handler != null)
-				{
-					cmd.Handler(this, new CommandEventArgs(args));
-				}
+				// 1. find a signature that has the same number of parameters
+				int paramCount = args.Length - 1;
 
-				return;
+				foreach(CommandSignature sig in signatures)
+				{
+					if((paramCount < sig.MinParameterCount) || (paramCount > sig.MaxParameterCount))
+					{
+						continue;
+					}
+
+					// found a signature that will accept our number of parameters and perhaps some optional ones too.
+					// see if we can convert our values to what the signature expects
+					object[] convertedParameters = new object[paramCount + 1];					
+					int i;
+
+					// first parameter is always idEngine
+					convertedParameters[0] = idEngine.Instance;
+
+					for(i = 1; i < convertedParameters.Length; i++)
+					{
+						CommandSignatureParameter param = sig.Parameters[i - 1];
+
+						if((convertedParameters[i] = param.Convert(args.Get(i), i, args)) == null)
+						{
+							// bad value
+							break;
+						}
+					}
+
+					// did we convert all the parameters to something usable?
+					if(i != convertedParameters.Length)
+					{
+						continue;
+					}
+
+					// this will produce confusing behaviour if we've bound multiple signatures to the same command
+					// but with completely different flags as we may still find another usable signature.
+					if(((sig.Flags & (CommandFlags.Cheat | CommandFlags.Tool)) != 0)
+						&& (idEngine.Instance.IsMultiplayer == true) && (cvarSystem.GetBool("net_allowCheats") == false))
+					{
+						idLog.WriteLine("command '{0}' not valid in multiplayer mode.", sig.Name);
+						continue;
+					}
+
+					// invoke the command
+					sig.Method.Invoke(null, convertedParameters);
+					executed = true;
+
+					break;
+				}
 			}
 
-			// check cvars.
-			if(cvarSystem.Command(args) == false)
+			if(executed == false)
 			{
-				idLog.WriteLine("Unknown command '{0}'", args.Get(0));
+				// print out accepted signatures
+				if(signatures != null)
+				{
+					foreach(CommandSignature sig in signatures)
+					{
+						idLog.Write("{0} ", sig.Name);
+
+						foreach(CommandSignatureParameter param in sig.Parameters)
+						{
+							if(param.IsOptional == true)
+							{
+								idLog.Write("[{0} = {1}] ", param.Name, param.DefaultValue);
+							}
+							else
+							{
+								idLog.Write("<{0}> ", param.Name);
+							}
+						}
+
+						if(string.IsNullOrEmpty(sig.Description) == false)
+						{
+							idLog.Write(": {0}", sig.Description);
+						}
+
+						idLog.WriteLine(string.Empty);
+					}
+				}
+				else if(cvarSystem.Command(args) == false)
+				{
+					idLog.WriteLine("unknown command '{0}'", args.Get(0));
+				}
 			}
 		}
 
@@ -152,6 +212,100 @@ namespace idTech4
 		public static void ArgCompletion_ConfigName(object sender, CommandCompletionEventArgs e)
 		{
 			idLog.WriteLine("ArgCompletion_ConfigName: TODO!");
+		}
+		#endregion
+
+		#region Scanning
+		private void Scan(Assembly assembly)
+		{
+			idLog.DeveloperWriteLine("loaded '{0}', scanning for commands...", assembly.FullName);
+
+			foreach(Type type in assembly.GetTypes())
+			{
+				// don't care unless it's a class
+				if(type.IsClass == false)
+				{
+					continue;
+				}
+
+				// handlers must be static
+				foreach(MethodInfo methodInfo in type.GetMethods(BindingFlags.Static | BindingFlags.NonPublic | BindingFlags.Public))
+				{
+					// a handler can have multiple command definitions (allow for aliases and such)
+					object[] a = methodInfo.GetCustomAttributes(typeof(CommandAttribute), false);
+
+					if(a.Length > 0)
+					{
+						foreach(CommandAttribute attribute in (CommandAttribute[]) a)
+						{
+							AddCommand(attribute, methodInfo);
+						}
+					}
+				}
+			}
+		}
+
+		/// <summary>
+		/// Registers a command and the delegate to call for it.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <param name="handler"></param>
+		/// <param name="flags"></param>
+		/// <param name="description"></param>
+		/// <param name="argCompletion"></param>
+		private void AddCommand(CommandAttribute attribute, MethodInfo method)
+		{
+			// we allow multiple signatures for the same command
+			List<CommandSignatureParameter> parameters = new List<CommandSignatureParameter>();
+			ParameterInfo[] parameterInfoList = method.GetParameters();
+
+			// first parameter must be idEngine
+			if((parameterInfoList.Length == 0) || (parameterInfoList[0].ParameterType != typeof(idEngine)))
+			{
+				idLog.DeveloperWriteLine("...found bad definition {0}, first parameter must be idEngine");
+				return;
+			}
+
+			for(int i = 1; i < parameterInfoList.Length; i++)
+			{
+				ParameterInfo parameterInfo = parameterInfoList[i];
+
+				if(IsAcceptableParameter(parameterInfo) == false)
+				{
+					idLog.DeveloperWriteLine("...found bad definition {0}, we only accept value types for parameters");
+					return;
+				}
+
+				// build a converter for this
+				parameters.Add((CommandSignatureParameter) Activator.CreateInstance(_acceptedParameterTypes[parameterInfo.ParameterType], parameterInfo.ParameterType, parameterInfo.Name, parameterInfo.IsOptional, parameterInfo.DefaultValue));
+			}
+
+			idLog.DeveloperWriteLine("...found {0}", attribute.Name);
+
+			CommandSignature cmd = new CommandSignature(attribute.Name, attribute.Description, attribute.Flags, method, parameters.ToArray());
+
+			if(_commands.ContainsKey(cmd.Name) == false)
+			{
+				_commands.Add(cmd.Name, new List<CommandSignature>());
+			}
+
+			_commands[cmd.Name].Add(cmd);
+		}	
+
+		private bool IsAcceptableParameter(ParameterInfo parameter)
+		{
+			if((_acceptedParameterTypes.ContainsKey(parameter.ParameterType) == false)
+				|| (parameter.IsOut == true))
+			{
+				return false;
+			}
+			
+			return true;
+		}
+
+		private void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
+		{
+			Scan(args.LoadedAssembly);
 		}
 		#endregion
 		#endregion
@@ -281,45 +435,557 @@ namespace idTech4
 		public void ListByFlags(string[] args, CommandFlags flags)
 		{
 			string match = string.Join("", args).Replace(" ", "");
-			List<CommandDefinition> cmdList = new List<CommandDefinition>();
+			List<CommandSignature> cmdList = new List<CommandSignature>();
 			
-			foreach(KeyValuePair<string, CommandDefinition> kvp in _commands)
+			foreach(KeyValuePair<string, List<CommandSignature>> kvp in _commands)
 			{
-				if((kvp.Value.Flags & flags) == 0)
+				if((kvp.Value[0].Flags & flags) == 0)
 				{
 					continue;
 				}
 
-				if((match.Length > 0) && (kvp.Value.Name.StartsWith(match) == false))
+				if((match.Length > 0) && (kvp.Value[0].Name.StartsWith(match) == false))
 				{
 					continue;
 				}
 
-				cmdList.Add(kvp.Value);
+				cmdList.Add(kvp.Value[0]);
 			}
 
 			cmdList.Sort((a, b) => a.Description.CompareTo(b.Description));
 
-			foreach(CommandDefinition cmd in cmdList)
+			foreach(CommandSignature cmd in cmdList)
 			{
 				idLog.WriteLine(" {0} {1}", cmd.Name.PadRight(21, ' '), cmd.Description);
 			}
 
 			idLog.WriteLine("{0} commands", cmdList.Count);
 		}
+
+		public void Scan()
+		{
+			Scan(this.GetType().Assembly);
+		}
 		#endregion
 		#endregion
 		#endregion
 
 		#region CommandDefinition
-		private class CommandDefinition
+		private class CommandSignature
 		{
-			public string Name;
-			public string Description;
+			#region Properties
+			public string Name
+			{
+				get
+				{
+					return _name;
+				}
+			}
 
-			public EventHandler<CommandEventArgs> Handler;
-			public EventHandler<CommandEventArgs> CompletionHandler;
-			public CommandFlags Flags;
+			public string Description
+			{
+				get
+				{
+					return _description;
+				}
+			}
+
+			public CommandFlags Flags
+			{
+				get
+				{
+					return _flags;
+				}
+			}
+
+			public MethodInfo Method
+			{
+				get
+				{
+					return _method;
+				}
+			}
+
+			public CommandSignatureParameter[] Parameters
+			{
+				get
+				{
+					return _parameters;
+				}
+			}
+
+			public int MinParameterCount
+			{
+				get
+				{
+					return _minParameterCount;
+				}
+			}
+
+			public int MaxParameterCount
+			{
+				get
+				{
+					return _maxParameterCount;
+				}
+			}
+			#endregion
+
+			#region Members
+			private string _name;
+			private string _description;
+			private CommandFlags _flags;
+
+			private MethodInfo _method;
+			private CommandSignatureParameter[] _parameters;
+
+			private int _minParameterCount;
+			private int _maxParameterCount;
+			#endregion
+
+			#region Constructor
+			public CommandSignature(string name, string description, CommandFlags flags, MethodInfo method, CommandSignatureParameter[] parameters)
+			{
+				_name = name;
+				_description = description;
+				_flags = flags;
+				_method = method;
+				_parameters = parameters;
+
+				// figure out what the minimum number of required parameters are
+				_maxParameterCount = _parameters.Length;
+				_minParameterCount = _maxParameterCount;
+
+				for(int i = 0; i < _parameters.Length; i++)
+				{
+					if(_parameters[i].IsOptional == true)
+					{
+						_minParameterCount = i;
+						break;
+					}
+				}
+			}
+			#endregion
+		}
+
+		private abstract class CommandSignatureParameter
+		{
+			public Type ParameterType;
+			public string Name;
+			public bool IsOptional;
+			public object DefaultValue;
+
+			public CommandSignatureParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+			{
+				this.ParameterType = parameterType;
+				this.Name = name;
+				this.IsOptional = isOptional;
+				this.DefaultValue = defaultValue;
+			}
+
+			public abstract object Convert(string value, int index, CommandArguments args);
+		}
+
+		private sealed class Int16CommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public Int16CommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				short val;
+
+				if(short.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class Int32CommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public Int32CommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				int val;
+
+				if(int.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class Int64CommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public Int64CommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				long val;
+
+				if(long.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class UInt16CommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public UInt16CommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				ushort val;
+
+				if(ushort.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class UInt32CommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public UInt32CommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				uint val;
+
+				if(uint.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class UInt64CommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public UInt64CommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				ulong val;
+
+				if(ulong.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class ByteCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public ByteCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				byte val;
+
+				if(byte.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class SByteCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public SByteCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				sbyte val;
+
+				if(sbyte.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class DecimalCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public DecimalCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				decimal val;
+
+				if(decimal.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class DoubleCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public DoubleCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				double val;
+
+				if(double.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class SingleCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public SingleCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				float val;
+
+				if(float.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class StringCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public StringCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				return value;
+			}
+			#endregion
+		}
+
+		private sealed class StringListCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public StringListCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				return args.ToArray(index, args.Length);
+			}
+			#endregion
+		}
+
+		private sealed class CharCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public CharCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				char val;
+
+				if(char.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class BoolCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public BoolCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				bool val;
+
+				if(bool.TryParse(value, out val) == true)
+				{
+					return val;
+				}
+
+				// try some other acceptable values
+				switch(value.ToLower())
+				{
+					case "yes":
+					case "1":
+						return true;
+
+					case "no":
+					case "0":
+						return false;
+				}
+
+				return null;
+			}
+			#endregion
+		}
+
+		private sealed class EnumCommandParameter : CommandSignatureParameter
+		{
+			#region Constructor
+			public EnumCommandParameter(Type parameterType, string name, bool isOptional, object defaultValue = null)
+				: base(parameterType, name, isOptional, defaultValue = null)
+			{
+				
+			}
+			#endregion
+
+			#region CommandSignatureParameter implementation
+			public override object Convert(string value, int index, CommandArguments args)
+			{
+				try
+				{
+					return Enum.Parse(this.ParameterType, value, true);
+				}
+				catch(OverflowException)
+				{
+					return false;
+				}
+				catch(ArgumentException)
+				{
+					return false;
+				}
+			}
+			#endregion
 		}
 		#endregion
 	}
@@ -327,6 +993,32 @@ namespace idTech4
 	[AttributeUsage(AttributeTargets.Method, AllowMultiple=true, Inherited=false)]
 	public sealed class CommandAttribute : Attribute
 	{
+		#region Properties
+		public string Name
+		{
+			get
+			{
+				return _command;
+			}
+		}
+
+		public string Description
+		{
+			get
+			{
+				return _description;
+			}
+		}
+
+		public CommandFlags Flags
+		{
+			get
+			{
+				return _flags;
+			}
+		}
+		#endregion
+
 		#region Members
 		private string _command;
 		private string _description;
@@ -341,35 +1033,7 @@ namespace idTech4
 			_flags = flags;
 		}
 		#endregion
-	}
-
-	/// <summary>
-	/// Command arguments.
-	/// </summary>
-	public sealed class CommandEventArgs : EventArgs
-	{
-		#region Properties
-		public CommandArguments Args
-		{
-			get
-			{
-				return _args;
-			}
-		}
-		#endregion
-
-		#region Members
-		private CommandArguments _args;
-		#endregion
-
-		#region Constructor
-		public CommandEventArgs(CommandArguments args)
-			: base()
-		{
-			_args = args;
-		}
-		#endregion
-	}
+	}	
 
 	public delegate void CommandCompletionHandler(string str);
 	

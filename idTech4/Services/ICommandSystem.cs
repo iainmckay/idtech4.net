@@ -57,6 +57,8 @@ namespace idTech4.Services
 		string[] CommandCompletion(Predicate<string> filter);
 
 		void ListByFlags(string[] args, CommandFlags flags);
+
+		void Scan();
 	}
 
 	/// <summary>
@@ -213,6 +215,7 @@ namespace idTech4.Services
 			int len = 0, totalLength = 0;
 
 			string tokenValue;
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
 
 			while(true)
 			{
@@ -240,16 +243,7 @@ namespace idTech4.Services
 						break;
 					}
 
-					idLog.WriteLine("TODO: cvar expansion");
-
-					/*if(idE.CvarSystem.IsInitialized == true)
-					{
-						token.Set(idE.CvarSystem.GetString(token.ToString()));
-					}
-					else*/
-					{
-						token.Set("<unknown>");
-					}
+					token.Set(cvarSystem.GetString(token.ToString()));
 				}
 
 				tokenValue = token.ToString();
@@ -277,6 +271,30 @@ namespace idTech4.Services
 
 				_args = args.ToArray();
 			}
+		}
+
+		public string[] ToArray()
+		{
+			return (string[]) _args.Clone();
+		}
+
+		public string[] ToArray(int index, int length)
+		{
+			if(length > (_args.Length - index))
+			{
+				length = _args.Length - index;
+			}
+
+			if(index > (_args.Length - 1))
+			{
+				return null;
+			}
+
+			string[] list = new string[length];
+
+			Array.Copy(_args, index, list, 0, length);
+
+			return list;
 		}
 
 		public override string ToString()

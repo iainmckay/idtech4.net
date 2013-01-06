@@ -128,7 +128,9 @@ namespace idTech4
 		/// <param name="args"></param>
 		public static void DeveloperWrite(string format, params object[] args)
 		{
-			if(idEngine.Instance.GetService<ICVarSystem>().GetBool("developer") == false)
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+
+			if((cvarSystem == null) || (cvarSystem.GetBool("developer") == false))
 			{
 				return; // don't confuse non-developers with techie stuff...
 			}
