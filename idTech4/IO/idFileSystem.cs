@@ -386,7 +386,7 @@ namespace idTech4.IO
 
 					if(cvarSystem.GetInt("fs_debug") > 0)
 					{
-						idLog.WriteLine("idFileSystem::OpenFileRead: {0} (found in '{1}/{2}')", relativePath, searchPath.Path, searchPath.GameDirectory);
+						idLog.WriteLine("idFileSystem::OpenFileRead: {0} (found in '{1}')", relativePath, Path.GetDirectoryName(filePath));
 					}
 
 					// if fs_copyfiles is set
