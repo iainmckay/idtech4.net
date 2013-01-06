@@ -32,14 +32,6 @@ namespace idTech4.Services
 {
 	public interface IFileSystem
 	{
-		#region Properties
-		#region Paths
-		string DefaultBasePath { get; }
-		string DefaultSavePath { get; }
-		#endregion
-		#endregion
-
-		#region Methods
 		#region Checks
 		/// <summary>
 		/// Checks if the given physical file exists.
@@ -56,8 +48,28 @@ namespace idTech4.Services
 		bool ResourceFileExists(string path);
 		#endregion
 
+		#region Resource Tracking
+		#region Properties
+		bool BackgroundCacheEnabled { get; set; }
+		#endregion
+
+		#region Methods
+		void BeginLevelLoad(string name /*TODO: , char *_blockBuffer, int _blockBufferSize*/);
+		void EndLevelLoad();
+		#endregion
+		#endregion
+
 		#region Paths
+		#region Properties
+		string DefaultBasePath { get; }
+		string DefaultSavePath { get; }
+		#endregion
+
+		#region Methods
 		string GetAbsolutePath(string baseDirectory, string gameDirectory, string relativePath);
+		string[] GetExtensionList(string extension);
+		idFileList ListFiles(string relativePath, string extension, bool sort = false, bool fullRelativePath = false, string gameDirectory = null);
+		#endregion
 		#endregion
 
 		#region Reading
@@ -79,7 +91,18 @@ namespace idTech4.Services
 		#region Writing
 		Stream OpenFileWrite(string relativePath, string basePath = "fs_savepath");
 		#endregion
-		#endregion
+	}
+
+	public sealed class idFileList
+	{
+		public string BaseDirectory;
+		public string[] Files;
+
+		public idFileList(string baseDirectory, string[] files)
+		{
+			this.BaseDirectory = baseDirectory;
+			this.Files = files;
+		}
 	}
 	
 	[Flags]

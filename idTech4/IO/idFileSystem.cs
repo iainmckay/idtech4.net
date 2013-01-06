@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Runtime.InteropServices;
 
 using idTech4.Services;
@@ -57,7 +58,13 @@ namespace idTech4.IO
 		#region Members
 		private string _gameFolder;	// this will be a single name without separators
 		private List<SearchPath> _searchPaths = new List<SearchPath>();
-		private List<idResourceContainer> _resourceContainers = new List<idResourceContainer>();		
+		private List<idResourceContainer> _resourceContainers = new List<idResourceContainer>();
+
+		private string _manifestName;
+		private List<string> _fileManifest = new List<string>();
+		// TODO: private idPreloadManifest _preloadList = new idPreloadManifest();
+
+		private int _filesOpenedAsCachedCount;
 		#endregion
 
 		#region Constructor
@@ -108,7 +115,8 @@ namespace idTech4.IO
 			ICommandSystem cmdSystem = idEngine.Instance.GetService<ICommandSystem>();
 
 			idLog.WriteLine("------ Initializing File System ------");
-			
+
+			InitPrecache();
 			SetupGameDirectories(idLicensee.BaseGameDirectory);			
 
 			// fs_game_base override
@@ -204,10 +212,63 @@ namespace idTech4.IO
 				}
 			}
 		}
+
+		private void InitPrecache()
+		{
+			if(idEngine.Instance.GetService<ICVarSystem>().GetBool("fs_enableBackgroundCaching") == false)
+			{
+				return;
+			}
+
+			_filesOpenedAsCachedCount = 0;
+		}
+		#endregion
+
+		#region Resource Tracking
+		private void ReOpenCacheFiles()
+		{
+			if(idEngine.Instance.GetService<ICVarSystem>().GetBool("fs_enableBackgroundCaching") == false)
+			{
+				return;
+			}
+		}
 		#endregion
 		#endregion
 
 		#region IFileSystem implementation
+		#region Checks
+		/// <summary>
+		/// Checks if the given physical file exists.
+		/// </summary>
+		/// <param name="path">Path on the underlying filesystem.</param>
+		/// <returns>True if the file exists, false if not.</returns>
+		public bool FileExists(string path)
+		{
+			Stream file = OpenFileRead(path, FileFlags.SearchDirectories);
+
+			if(file == null)
+			{
+				return false;
+			}
+
+			file.Dispose();
+
+			return true;
+		}
+
+		/// <summary>
+		/// Checks if the given file exists in a resource container.
+		/// </summary>
+		/// <param name="path">Path inside a resource container.</param>
+		/// <returns>True if the file exists, false if not.</returns>
+		public bool ResourceFileExists(string path)
+		{
+			idLog.WriteLine("TODO: ResourceFileExists");
+			return false;
+		}
+		#endregion
+
+		#region Paths
 		#region Properties
 		public string DefaultBasePath
 		{
@@ -250,39 +311,6 @@ namespace idTech4.IO
 		#endregion
 
 		#region Methods
-		#region Checks
-		/// <summary>
-		/// Checks if the given physical file exists.
-		/// </summary>
-		/// <param name="path">Path on the underlying filesystem.</param>
-		/// <returns>True if the file exists, false if not.</returns>
-		public bool FileExists(string path)
-		{
-			Stream file = OpenFileRead(path, FileFlags.SearchDirectories);
-
-			if(file == null)
-			{
-				return false;
-			}
-
-			file.Dispose();
-
-			return true;
-		}
-
-		/// <summary>
-		/// Checks if the given file exists in a resource container.
-		/// </summary>
-		/// <param name="path">Path inside a resource container.</param>
-		/// <returns>True if the file exists, false if not.</returns>
-		public bool ResourceFileExists(string path)
-		{
-			idLog.WriteLine("TODO: ResourceFileExists");
-			return false;
-		}
-		#endregion
-
-		#region Paths
 		public string GetAbsolutePath(string baseDirectory, string gameDirectory, string relativePath)
 		{
 			// handle case of this already being an absolute path
@@ -293,6 +321,166 @@ namespace idTech4.IO
 
 			return Path.GetFullPath(Path.Combine(baseDirectory, gameDirectory, relativePath));
 		}
+
+		public idFileList ListFiles(string relativePath, string extension, bool sort = false, bool fullRelativePath = false, string gameDirectory = null)
+		{
+			string[] extensionList = GetExtensionList(extension);
+			string[] fileList = GetFileList(relativePath, extensionList, fullRelativePath, gameDirectory);
+
+			if(sort == true)
+			{
+				fileList = fileList.OrderBy(x => x).ToArray();
+			}
+
+			return new idFileList(relativePath, fileList);
+
+		}
+
+		public string[] GetExtensionList(string extension)
+		{
+			string[] parts = extension.Split('|');
+			List<string> list = new List<string>();
+
+			foreach(string part in parts)
+			{
+				if(part != string.Empty)
+				{
+					list.Add(part);
+				}
+			}
+
+			return list.ToArray();
+		}
+
+		private string[] GetFileList(string relativePath, string[] extensions, bool fullRelativePath, string gameDirectory)
+		{
+			if(extensions.Length == 0)
+			{
+				return new string[] { };
+			}
+
+			if(string.IsNullOrEmpty(relativePath) == true)
+			{
+				return new string[] { };
+			}
+
+			List<string> fileList = new List<string>();
+
+			if(_resourceContainers.Count > 0)
+			{
+				idLog.Warning("TODO: important! GetFileList from resource container");
+
+				/*int idx = resourceFiles.Num() - 1;
+				while ( idx >= 0 ) {
+					for ( int i = 0; i < resourceFiles[ idx ]->cacheTable.Num(); i++ ) {
+						idResourceCacheEntry & rt = resourceFiles[ idx ]->cacheTable[ i ];
+						// if the name is not long anough to at least contain the path
+
+						if ( rt.filename.Length() <= pathLength ) {
+							continue;
+						}
+
+						// check for a path match without the trailing '/'
+						if ( pathLength && idStr::Icmpn( rt.filename, relativePath, pathLength - 1 ) != 0 ) {
+							continue;
+						}
+ 
+						// ensure we have a path, and not just a filename containing the path
+						if ( rt.filename[ pathLength ] == '\0' || rt.filename[pathLength - 1] != '/' ) {
+							continue;
+						}
+ 
+						// make sure the file is not in a subdirectory
+						int j = pathLength;
+						for ( ; rt.filename[j+1] != '\0'; j++ ) {
+							if ( rt.filename[ j ] == '/' ) {
+								break;
+							}
+						}
+						if ( rt.filename[ j + 1 ] ) {
+							continue;
+						}
+
+						// check for extension match
+						for ( j = 0; j < extensions.Num(); j++ ) {
+							if ( rt.filename.Length() >= extensions[j].Length() && extensions[j].Icmp( rt.filename.c_str() +   rt.filename.Length() - extensions[j].Length() ) == 0 ) {
+								break;
+							}
+						}
+						if ( j >= extensions.Num() ) {
+							continue;
+						}
+
+						// unique the match
+						if ( fullRelativePath ) {
+							idStr work = relativePath;
+							work += "/";
+							work += rt.filename.c_str() + pathLength;
+							work.StripTrailing( '/' );
+							AddUnique( work, list, hashIndex );
+						} else {
+							idStr work = rt.filename.c_str() + pathLength;
+							work.StripTrailing( '/' );
+							AddUnique( work, list, hashIndex );
+						}
+					}
+					idx--;
+				}*/
+			}
+
+			// search through the path, one element at a time, adding to list
+			foreach(SearchPath searchPath in _searchPaths)
+			{
+				if(string.IsNullOrEmpty(gameDirectory) == false)
+				{
+					if(searchPath.GameDirectory != gameDirectory)
+					{
+						continue;
+					}
+				}
+
+				string path = GetAbsolutePath(searchPath.Path, searchPath.GameDirectory, relativePath);
+
+				// scan for files in the filesystem
+				if(Directory.Exists(path) == false)
+				{
+					continue;
+				}
+
+				string[] tmp;
+
+				try
+				{
+					tmp = Directory.GetFiles(path, string.Join("|", extensions), SearchOption.TopDirectoryOnly);
+				}
+				catch(Exception)
+				{
+					tmp = new string[] { };
+				}
+
+				List<string> sysFiles = new List<string>(tmp);
+				sysFiles.Remove(".");
+				sysFiles.Remove("..");
+
+				// if we are searching for directories, remove . and ..					
+				int count = sysFiles.Count;
+
+				for(int j = 0; j < count; j++)
+				{
+					sysFiles[j] = sysFiles[j].Substring(path.Length + 1);
+
+					if(fullRelativePath == true)
+					{
+						sysFiles[j] = Path.Combine(relativePath, sysFiles[j]);
+					}
+				}
+
+				fileList.AddRange(sysFiles);
+			}
+
+			return fileList.ToArray();
+		}
+		#endregion
 		#endregion
 
 		#region Reading
@@ -483,7 +671,7 @@ namespace idTech4.IO
 
 			if(cvarSystem.GetInt("fs_debug") > 0)
 			{
-				idLog.WriteLine("Can't find {0}", relativePath);
+				idLog.WriteLine("FILE DEBUG: Can't find {0}", relativePath);
 			}
 
 			return null;
@@ -515,6 +703,99 @@ namespace idTech4.IO
 		}
 		#endregion
 
+		#region Resource Tracking
+		#region Properties
+		public bool BackgroundCacheEnabled
+		{
+			get
+			{
+				return idEngine.Instance.GetService<ICVarSystem>().GetBool("fs_enableBackgroundCaching");
+			}
+			set
+			{
+				if(idEngine.Instance.GetService<ICVarSystem>().GetBool("fs_enableBackgroundCaching") == false)
+				{
+					return;
+				}
+			}
+		}
+		#endregion
+
+		#region Methods
+		public void BeginLevelLoad(string name /*TODO: , char *_blockBuffer, int _blockBufferSize*/)
+		{
+			if(string.IsNullOrEmpty(name) == true)
+			{
+				return;
+			}
+
+			/* TODO: resource buffer
+			resourceBufferPtr = ( byte* )_blockBuffer;
+			resourceBufferAvailable = _blockBufferSize;
+			resourceBufferSize = _blockBufferSize;*/
+
+			_manifestName = Path.GetFileName(name);
+
+			_fileManifest.Clear();
+			// TODO: _preloadList.Clear();
+
+			this.BackgroundCacheEnabled = false;
+
+			ReOpenCacheFiles();
+
+			if(_resourceContainers.Count > 0)
+			{
+				idLog.Warning("TODO: AddResourceFile(string.Format(\"{0}.resources\", _manifestName));");
+			}
+		}
+
+		public void EndLevelLoad()
+		{
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+
+			if(cvarSystem.GetBool("fs_buildResources") == true)
+			{
+				idLog.Warning("TODO: fs_buildResources");
+
+				/*int saveCopyFiles = fs_copyfiles.GetInteger();
+				fs_copyfiles.SetInteger(0);
+
+				idStr manifestFileName = manifestName;
+				manifestFileName.StripPath();
+				manifestFileName.SetFileExtension("manifest");
+				manifestFileName.Insert("maps/", 0);
+				idFile* outFile = fileSystem->OpenFileWrite(manifestFileName);
+				if(outFile != NULL)
+				{
+					int num = fileManifest.Num();
+					outFile->WriteBig(num);
+					for(int i = 0; i < num; i++)
+					{
+						outFile->WriteString(fileManifest[i]);
+					}
+					delete outFile;
+				}
+
+				idStrStatic<MAX_OSPATH> preloadName = manifestName;
+				preloadName.Insert("maps/", 0);
+				preloadName += ".preload";
+				idFile* fileOut = fileSystem->OpenFileWrite(preloadName, "fs_savepath");
+				preloadList.WriteManifestToFile(fileOut);
+				delete fileOut;
+
+				fs_copyfiles.SetInteger(saveCopyFiles);*/
+			}
+
+			this.BackgroundCacheEnabled = true;
+
+			// TODO: resource buffer
+			/*resourceBufferPtr = NULL;
+			resourceBufferAvailable = 0;
+			resourceBufferSize = 0;*/
+		}
+		#endregion
+		#endregion
+
 		#region Writing
 		public Stream OpenFileWrite(string relativePath, string basePath = "fs_savepath")
 		{
@@ -539,7 +820,6 @@ namespace idTech4.IO
 
 			return File.OpenWrite(path);
 		}
-		#endregion
 		#endregion
 		#endregion
 

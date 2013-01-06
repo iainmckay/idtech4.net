@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Reflection;
+using System.Threading;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -112,6 +113,9 @@ namespace idTech4
 		private float _engineHzLatched = 60.0f; // latched version of cvar, updated between map loads
 		private long _engineHzNumerator = 100 * 1000;
 		private long _engineHzDenominator = 100 * 60;
+
+		private Mutex _appMutex; // for enforcing one instance
+		private bool _isJapaneseSKU;
 		#endregion
 
 		#region Constructor
@@ -472,13 +476,17 @@ namespace idTech4
 
 				// init some systems
 				ICVarSystem cvarSystem = new idCVarSystem();
-				ICommandSystem cmdSystem = new idCommandSystem();				
+				ICommandSystem cmdSystem = new idCommandSystem();	
 				IPlatformService platform = FindPlatform();
 							
 				this.Services.AddService(typeof(ICVarSystem), cvarSystem);
 				this.Services.AddService(typeof(ICommandSystem), cmdSystem);
-				this.Services.AddService(typeof(IFileSystem), new idFileSystem());
 				this.Services.AddService(typeof(IPlatformService), platform);
+
+				IFileSystem fileSystem = new idFileSystem();
+
+				this.Services.AddService(typeof(IFileSystem), fileSystem);
+				
 
 				// register all static CVars
 				CVars.Register();
@@ -498,7 +506,7 @@ namespace idTech4
 				this.Services.AddService(typeof(IConsole), new idConsole());
 
 				// get architecture info
-				idLog.WriteLine("TODO: Sys_Init();");
+				Sys_Init();
 
 				// initialize networking
 				idLog.WriteLine("TODO: Sys_InitNetworking();");
@@ -508,19 +516,19 @@ namespace idTech4
 
 				_consoleUsed = cvarSystem.GetBool("com_allowConsole");
 
-				idLog.WriteLine("TODO: Sys_AlreadyRunning");
-				/*if ( Sys_AlreadyRunning() ) {
+				if(Sys_AlreadyRunning() == true) 
+				{
 					Sys_Quit();
-				}*/
+				}
 
 				// initialize processor specific SIMD implementation
 				idLog.WriteLine("TODO: InitSIMD();");
-				
-				/*const char * defaultLang = Sys_DefaultLanguage();
-				com_isJapaneseSKU = ( idStr::Icmp( defaultLang, ID_LANG_JAPANESE ) == 0 );
+
+				string defaultLang = Sys_DefaultLanguage();
+				_isJapaneseSKU = defaultLang.Equals(idLanguage.Japanese, StringComparison.OrdinalIgnoreCase);
 
 				// Allow the system to set a default lanugage
-				Sys_SetLanguageFromSystem();*/
+				Sys_SetLanguageFromSystem();
 
 				// pre-allocate our 20 MB save buffer here on time, instead of on-demand for each save....
 				idLog.WriteLine("TOOD: savefile pre-allocation");
@@ -530,10 +538,10 @@ namespace idTech4
 				stringsFile.SetNameAndType( SAVEGAME_STRINGS_FILENAME, SAVEGAMEFILE_BINARY );
 				stringsFile.PreAllocate( MAX_SAVEGAME_STRING_TABLE_SIZE );*/
 
-				/*fileSystem->BeginLevelLoad( "_startup", saveFile.GetDataPtr(), saveFile.GetAllocated() );
+				fileSystem.BeginLevelLoad("_startup"/* TODO: , saveFile.GetDataPtr(), saveFile.GetAllocated()*/);
 
 				// initialize the declaration manager
-				declManager->Init();
+				/*declManager->Init();
 
 				// init journalling, etc
 				eventLoop->Init();
@@ -697,11 +705,11 @@ namespace idTech4
 					manifest.LoadManifest( "_common.preload" );
 					globalImages->Preload( manifest, false );
 					soundSystem->Preload( manifest );
-				}
+				}*/
 
-				fileSystem->EndLevelLoad();
+				fileSystem.EndLevelLoad();
 
-				// Initialize support for Doom classic.
+				/*// Initialize support for Doom classic.
 				doomClassicMaterial = declManager->FindMaterial( "_doomClassic" );
 				idImage *image = globalImages->GetImage( "_doomClassic" );
 				if ( image != NULL ) {
@@ -865,6 +873,43 @@ namespace idTech4
 		}
 
 		/// <summary>
+		/// Checks if a copy of D3 is running already.
+		/// </summary>
+		/// <returns></returns>
+		private bool Sys_AlreadyRunning()
+		{
+#if !DEBUG
+			if(GetService<ICVarSystem>().GetBool("win_allowMultipleInstances") == false)
+			{
+				bool created;
+				_appMutex = new Mutex(false, "DOOM3", out created);
+
+				if(created == false)
+				{
+					return true;
+				}
+			}
+#endif
+
+			return false;
+		}
+
+		private string Sys_DefaultLanguage()
+		{
+			// sku breakdowns are as follows
+			//  EFIGS	Digital
+			//  EF  S	North America
+			//   FIGS	EU
+			//  E		UK
+			// JE    	Japan
+
+			// If japanese exists, default to japanese
+			// else if english exists, defaults to english
+			// otherwise, french
+			return idLanguage.English;
+		}
+
+		/// <summary>
 		/// Show the early console as an error dialog.
 		/// </summary>
 		/// <param name="format"></param>
@@ -901,6 +946,123 @@ namespace idTech4
 			// TODO: Sys_DestroyConsole();
 
 			Environment.Exit(1);
+		}
+
+		private void Sys_Init()
+		{
+			ICVarSystem cvarSystem = GetService<ICVarSystem>();
+			IPlatformService platform = GetService<IPlatformService>();
+
+			// not bothering with fetching the windows username.
+			cvarSystem.Set("win_username", Environment.UserName);
+
+			//
+			// Windows version
+			//
+			OperatingSystem osInfo = Environment.OSVersion;
+
+			if((osInfo.Version.Major < 4)
+				|| (osInfo.Platform == PlatformID.Win32S)
+				|| (osInfo.Platform == PlatformID.Win32Windows))
+			{
+				Error("{0} requires Windows XP or above", idLicensee.GameName);
+			}
+			else if(osInfo.Platform == PlatformID.Win32NT)
+			{
+				if(osInfo.Version.Major <= 4)
+				{
+					cvarSystem.Set("sys_arch", "WinNT (NT)");
+				}
+				else if((osInfo.Version.Major == 5) && (osInfo.Version.Minor == 0))
+				{
+					cvarSystem.Set("sys_arch", "Win2K (NT)");
+				}
+				else if((osInfo.Version.Major == 5) && (osInfo.Version.Minor == 1))
+				{
+					cvarSystem.Set("sys_arch", "WinXP (NT)");
+				}
+				else if((osInfo.Version.Major == 6) && (osInfo.Version.Minor == 0))
+				{
+					cvarSystem.Set("sys_arch", "Vista");
+				}
+				else if((osInfo.Version.Major == 6) && (osInfo.Version.Minor == 1))
+				{
+					cvarSystem.Set("sys_arch", "Windows 7");
+				}
+				else
+				{
+					cvarSystem.Set("sys_arch", "Unknown NT variant");
+				}
+			}
+			
+			//
+			// CPU type
+			//			
+			if(cvarSystem.GetString("sys_cpustring").Equals("detect", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				if(Environment.OSVersion.Version.Major >= 6)
+				{
+					idLog.WriteLine("{0} MHz, {1} cores, {2} threads", platform.ClockSpeed, platform.CoreCount, platform.ThreadCount);
+				}
+				else
+				{
+					idLog.WriteLine("{0} MHz", platform.ClockSpeed);
+				}
+
+				CpuCapabilities caps = platform.CpuCapabilities;
+				string capabilities = string.Empty;				
+
+				if((caps & CpuCapabilities.AMD) == CpuCapabilities.AMD)
+				{
+					capabilities += "AMD CPU";
+				}
+				else if((caps & CpuCapabilities.Intel) == CpuCapabilities.Intel)
+				{
+					capabilities += "Intel CPU";
+				}
+				else if((caps & CpuCapabilities.Unsupported) == CpuCapabilities.Unsupported)
+				{
+					capabilities += "unsupported CPU";
+				}
+				else
+				{
+					capabilities += "generic CPU";
+				}
+
+				// TODO: can't make use of any of these features but nice to identify them anyway.
+				/*string += " with ";
+				if ( win32.cpuid & CPUID_MMX ) {
+					string += "MMX & ";
+				}
+				if ( win32.cpuid & CPUID_3DNOW ) {
+					string += "3DNow! & ";
+				}
+				if ( win32.cpuid & CPUID_SSE ) {
+					string += "SSE & ";
+				}
+				if ( win32.cpuid & CPUID_SSE2 ) {
+					string += "SSE2 & ";
+				}
+				if ( win32.cpuid & CPUID_SSE3 ) {
+					string += "SSE3 & ";
+				}
+				if ( win32.cpuid & CPUID_HTT ) {
+					string += "HTT & ";
+				}
+				string.StripTrailing( " & " );
+				string.StripTrailing( " with " );*/
+
+				cvarSystem.Set("sys_cpustring", capabilities);
+			}
+
+			idLog.WriteLine(cvarSystem.GetString("sys_cpustring"));
+			idLog.WriteLine("{0} MB system memory", platform.TotalPhysicalMemory);
+			idLog.WriteLine("{0} MB video memory", platform.TotalVideoMemory);
+		}
+
+		private void Sys_SetLanguageFromSystem()
+		{
+			GetService<ICVarSystem>().Set("sys_lang", Sys_DefaultLanguage());
 		}
 
 		private void Sys_Quit()

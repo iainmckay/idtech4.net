@@ -399,6 +399,12 @@ namespace idTech4
 		{
 			idLog.WriteLine("TODO: listbinds");
 		}
+
+		[Command("in_restart", "restarts the input system", CommandFlags.System)]
+		private static void Input_Restart(idEngine engine)
+		{
+			idLog.WriteLine("TODO: in_restart");
+		}
 		#endregion
 	}
 }
