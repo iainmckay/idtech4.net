@@ -39,6 +39,7 @@ using Microsoft.Xna.Framework.Input;
 using idTech4.Input;
 using idTech4.IO;
 using idTech4.Services;
+using idTech4.Text;
 
 namespace idTech4
 {
@@ -96,6 +97,7 @@ namespace idTech4
 		private GraphicsDeviceManager _graphics;
 		private string[] _rawCommandLineArguments;
 		private CommandArguments[] _commandLineArguments = new CommandArguments[] { };
+		private idEventLoop _eventLoop;
 
 		// this is set if the player enables the console, which disables achievements
 		private bool _consoleUsed;
@@ -121,10 +123,11 @@ namespace idTech4
 		#region Constructor
 		private idEngine()
 		{
-			_gameTimer = Stopwatch.StartNew();
-			_graphics = new GraphicsDeviceManager(this);
+			this.IsFixedTimeStep = false;
+			this.Content.RootDirectory = idLicensee.BaseGameDirectory;
 
-			Content.RootDirectory = idLicensee.BaseGameDirectory;
+			_gameTimer = Stopwatch.StartNew();
+			_graphics = new GraphicsDeviceManager(this);		
 		}
 		#endregion
 		
@@ -263,6 +266,99 @@ namespace idTech4
 
 			// TODO: Sys_SetFatalError( errorMessage );
 			Sys_Error(format, args);
+		}
+		#endregion
+
+		#region Events
+		public bool ProcessEvent(SystemEvent ev)
+		{
+			idLog.Warning("TODO: ProcessEvent");
+
+			// hitting escape anywhere brings up the menu
+			/*if ( game && game->IsInGame() ) {
+				if ( event->evType == SE_KEY && event->evValue2 == 1 && ( event->evValue == K_ESCAPE || event->evValue == K_JOY9 ) ) {
+					if ( !game->Shell_IsActive() ) {
+
+						// menus / etc
+						if ( MenuEvent( event ) ) {
+							return true;
+						}
+
+						console->Close();
+
+						StartMenu();
+						return true;
+					} else {
+						console->Close();
+
+						// menus / etc
+						if ( MenuEvent( event ) ) {
+							return true;
+						}
+
+						game->Shell_ClosePause();
+					}
+				} 
+			}
+
+			// let the pull-down console take it if desired
+			if ( console->ProcessEvent( event, false ) ) {
+				return true;
+			}
+			if ( session->ProcessInputEvent( event ) ) {
+				return true;
+			}
+	
+			if ( Dialog().IsDialogActive() ) {
+				Dialog().HandleDialogEvent( event );
+				return true;
+			}
+
+			// Let Doom classic run events.
+			if ( IsPlayingDoomClassic() ) {
+				// Translate the event to Doom classic format.
+				event_t classicEvent;
+				if ( event->evType == SE_KEY ) {
+
+					if( event->evValue2 == 1 ) {
+						classicEvent.type = ev_keydown;
+					} else if( event->evValue2 == 0 ) {
+						classicEvent.type = ev_keyup;
+					}
+
+					DoomLib::SetPlayer( 0 );
+			
+					extern Globals * g;
+					if ( g != NULL ) {
+						classicEvent.data1 =  DoomLib::RemapControl( event->GetKey() );
+											
+						D_PostEvent( &classicEvent );
+					}
+					DoomLib::SetPlayer( -1 );
+				}
+
+				// Let the classics eat all events.
+				return true;
+			}
+
+			// menus / etc
+			if ( MenuEvent( event ) ) {
+				return true;
+			}
+
+			// if we aren't in a game, force the console to take it
+			if ( !mapSpawned ) {
+				console->ProcessEvent( event, true );
+				return true;
+			}
+
+			// in game, exec bindings for all key downs
+			if ( event->evType == SE_KEY && event->evValue2 == 1 ) {
+				idKeyInput::ExecKeyBinding( event->evValue );
+				return true;
+			}*/
+
+			return false;
 		}
 		#endregion
 
@@ -487,7 +583,6 @@ namespace idTech4
 
 				this.Services.AddService(typeof(IFileSystem), fileSystem);
 				
-
 				// register all static CVars
 				CVars.Register();
 
@@ -541,13 +636,13 @@ namespace idTech4
 				fileSystem.BeginLevelLoad("_startup"/* TODO: , saveFile.GetDataPtr(), saveFile.GetAllocated()*/);
 
 				// initialize the declaration manager
-				/*declManager->Init();
-
+				this.Services.AddService(typeof(IDeclManager), new idDeclManager());
+				
 				// init journalling, etc
-				eventLoop->Init();
+				_eventLoop = new idEventLoop();
 
 				// init the parallel job manager
-				parallelJobManager->Init();*/
+				idLog.WriteLine("WARNING: parallelJobManager->Init();");
 
 				// exec the startup scripts
 				cmdSystem.BufferCommandText("exec default.cfg");

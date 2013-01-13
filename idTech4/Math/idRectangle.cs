@@ -25,7 +25,10 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-namespace idTech4
+using System;
+using System.Diagnostics;
+
+namespace idTech4.Math
 {
 	public struct idRectangle
 	{
@@ -104,6 +107,38 @@ namespace idTech4
 		public static bool operator !=(idRectangle r1, idRectangle r2)
 		{
 			return ((r1.X != r2.X) || (r1.Y != r2.Y) || (r1.Width != r2.Width) || (r1.Height != r2.Height));
+		}
+
+		public static idRectangle Parse(string str)
+		{
+			try
+			{
+				string[] parts = null;
+
+				if(str.Contains(",") == true)
+				{
+					parts = str.Replace(" ", "").Split(',');
+				}
+				else
+				{
+					parts = str.Split(' ');
+				}
+
+				if(parts.Length == 4)
+				{
+					return new idRectangle(
+						float.Parse(parts[0]),
+						float.Parse(parts[1]),
+						float.Parse(parts[2]),
+						float.Parse(parts[3]));
+				}
+			}
+			catch(Exception x)
+			{
+				Debug.Write(x.ToString());
+			}
+
+			return idRectangle.Empty;
 		}
 	}
 }

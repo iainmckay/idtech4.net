@@ -31,6 +31,8 @@ using System.Linq;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Math;
+
 namespace idTech4
 {
 	/// <summary>
@@ -218,7 +220,7 @@ namespace idTech4
 
 			if(_dict.TryGetValue(key, out str) == true)
 			{
-				return idUtil.ParseRectangle(str);
+				return idRectangle.Parse(str);
 			}
 
 			return defaultValue;

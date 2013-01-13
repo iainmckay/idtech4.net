@@ -28,6 +28,9 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.Management;
 
+using Microsoft.Xna.Framework;
+
+using idTech4.Renderer;
 using idTech4.Services;
 
 namespace idTech4.Platform.Win32
@@ -248,6 +251,13 @@ namespace idTech4.Platform.Win32
 			{
 				return "win";
 			}
+		}
+		#endregion
+
+		#region Methods
+		public IRenderBackend CreateRenderBackend(GraphicsDeviceManager deviceManager)
+		{
+			return new Renderer.Backend.XNARenderBackend(deviceManager);
 		}
 		#endregion
 		#endregion

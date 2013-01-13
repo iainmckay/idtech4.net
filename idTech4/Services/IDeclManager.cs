@@ -25,6 +25,7 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using idTech4.Renderer;
 using idTech4.Text;
 using idTech4.Text.Decls;
 

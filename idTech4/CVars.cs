@@ -76,6 +76,10 @@ namespace idTech4
 #endif
 			#endregion
 
+			#region Decl
+			cvarSystem.Register("decl_show", "0", 0, 2, "set to 1 to print parses, 2 to also print references", CVarFlags.System, new ArgCompletion_Integer(0, 2));
+			#endregion
+
 			#region Filesystem
 			cvarSystem.Register("fs_basepath",					"", "",												CVarFlags.System | CVarFlags.Init);
 			cvarSystem.Register("fs_buildresources",			"0", "copy every file touched to a resource file",	CVarFlags.System | CVarFlags.Init | CVarFlags.Bool);
@@ -92,7 +96,88 @@ namespace idTech4
 			#endregion
 
 			#region Game
-			cvarSystem.Register("g_demoMode", "0", "this is a demo", CVarFlags.Integer);
+			cvarSystem.Register("g_demoMode",			"0", "this is a demo", CVarFlags.Integer);
+			cvarSystem.Register("g_useOldPDAStrings",	"0", "read strings from the .pda files rather than from the .lang file", CVarFlags.Bool);
+			#endregion
+
+			#region Renderer
+			cvarSystem.Register("r_clear",						"2",		"force screen clear every frame, 1 = purple, 2 = black, 'r g b' = custom", CVarFlags.Renderer);
+			cvarSystem.Register("r_customHeight",				"720",		"custom screen height. set r_vidMode to -1 to activate",	CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			cvarSystem.Register("r_customWidth",				"1280",		"custom screen width. set r_vidMode to -1 to activate",		CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			cvarSystem.Register("r_displayRefresh",				"0", 0.0f, 240.0f, "optional display refresh rate option for vid mode", CVarFlags.Renderer | CVarFlags.NoCheat | CVarFlags.Integer);
+			cvarSystem.Register("r_fullscreen",					"1",		"0 = windowed, 1 = full screen on monitor 1, 2 = full screen on monitor 2, etc", CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			cvarSystem.Register("r_logFile",					"0",		"number of frames to emit GL logs",							CVarFlags.Renderer | CVarFlags.Integer);
+			cvarSystem.Register("r_multiSamples",				"0",		"number of antialiasing samples",							CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+				
+			// visual debugging info
+			cvarSystem.Register("r_showAddModel",				"0",		"report stats from tr_addModel",							CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showCull",					"0",		"report sphere and box culling stats",						CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showDemo",					"0",		"report reads and writes to the demo file",					CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showDepth",					"0",		"display the contents of the depth buffer and the depth range", CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showDominantTri",			"0",		"draw lines from vertexes to center of dominant triangles", CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showDynamic",				"0",		"report stats on dynamic surface generation",				CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showEdges",					"0",		"draw the sil edges",										CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showIntensity",				"0",		"draw the screen colors based on intensity, red = 0, green = 128, blue = 255", CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showLightCount",				"0", 0, 3,	"1 = colors surfaces based on light count, 2 = also count everything through walls, 3 = also print overdraw", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
+			cvarSystem.Register("r_showLights",					"0", 0, 3,	"1 = just print volumes numbers, highlighting ones covering the view, 2 = also draw planes of each volume, 3 = also draw edges of each volume", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
+			cvarSystem.Register("r_showLightScissors",			"0",		"show light scissor rectangles",							CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showMemory",					"0",		"print frame memory utilization",							CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showNormals",				"0",		"draws wireframe normals",									CVarFlags.Renderer | CVarFlags.Float);
+			cvarSystem.Register("r_showOverDraw",				"0", 0, 3,	"1 = geometry overdraw, 2 = light interaction overdraw, 3 = geometry and light interaction overdraw", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
+			cvarSystem.Register("r_showPortals",				"0",		"draw portal outlines in color based on passed / not passed", CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showPrimitives",				"0",		"report drawsurf/index/vertex counts",						CVarFlags.Renderer | CVarFlags.Integer);
+			cvarSystem.Register("r_showShadows",				"0", 0, 3,	"1 = visualize the stencil shadow volumes, 2 = draw filled in", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
+			cvarSystem.Register("r_showSilhouette",				"0",		"highlight edges that are casting shadow planes",			CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showSurfaces",				"0",		"report surface/light/shadow counts",						CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showSurfaceInfo",			"0",		"show surface material name under crosshair",				CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showTangentSpace",			"0", 0, 3,	"shade triangles by tangent space, 1 = use 1st tangent vector, 2 = use 2nd tangent vector, 3 = use normal vector", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
+			cvarSystem.Register("r_showTexturePolarity",		"0",		"shade triangles by texture area polarity",					CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showTextureVectors",			"0",		"if > 0 draw each triangles texture (tangent) vectors",		CVarFlags.Renderer | CVarFlags.Float);
+			cvarSystem.Register("r_showTrace",					"0", 0, 2,	"show the intersection of an eye trace with the world",		CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
+			cvarSystem.Register("r_showTris",					"0", 0, 4,	"enables wireframe rendering of the world, 1 = only draw visible ones, 2 = draw all front facing, 3 = draw all, 4 = draw with alpha", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 4));
+			cvarSystem.Register("r_showUnsmoothedTangents",		"0",		"if 1, put all nvidia register combiner programming in display lists", CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showUpdates",				"0",		"report entity and light updates and ref counts",			CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showVertexColor",			"0",		"draws all triangles with the solid vertex color",			CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showViewEntitys",			"0", 0, 2,	"1 = displays the bounding boxes of all view models, 2 = print index numbers", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 2));
+
+			cvarSystem.Register("r_skipAmbient",				"0",		"bypasses all non-interaction drawing",						CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipBackEnd",				"0",		"don't draw anything",										CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipBlendLights",			"0",		"skip all blend lights",									CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipBump",					"0",		"uses a flat surface instead of the bump map",				CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("r_skipCopyTexture",			"0",		"do all rendering, but don't actually copyTexSubImage2D",	CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipDecals",					"0",		"skip decal surfaces",										CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipDeforms",				"0",		"leave all deform materials in their original state",		CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipDiffuse",				"0",		"use black for diffuse",									CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipDynamicInteractions",	"0",		"skip interactions created after level load",				CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipDynamicTextures",		"0",		"don't dynamically create textures",						CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipFogLights",				"0",		"skip all fog lights",										CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipFrontEnd",				"0",		"bypasses all front end work, but 2D gui rendering still draws", CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipGuiShaders",				"0", 0, 3,	"1 = skip all gui elements on surfaces, 2 = skip drawing but still handle events, 3 = draw but skip events", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
+			cvarSystem.Register("r_skipInteractions",			"0",		"skip all light/surface interaction drawing",				CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipNewAmbient",				"0",		"bypasses all vertex/fragment program ambient drawing",		CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("r_skipOverlays",				"0",		"skip overlay surfaces",									CVarFlags.Renderer | CVarFlags.Bool);			
+			cvarSystem.Register("r_skipParticles",				"0", 0, 1,	"1 = skip all particle systems",							CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 1));
+			cvarSystem.Register("r_skipPostProcess",			"0",		"skip all post-process renderings",							CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipRender",					"0",		"skip 3D rendering, but pass 2D",							CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipRenderContext",			"0",		"NULL the rendering context during backend 3D rendering",	CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipShadows",				"0",		"disable shadows",											CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("r_skipSpecular",				"0",		"use black for specular1",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Cheat | CVarFlags.Bool);
+			cvarSystem.Register("r_skipStaticInteractions",		"0",		"skip interactions created at level load",					CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipSubviews",				"0",		"1 = don't render any gui elements on surfaces",			CVarFlags.Renderer | CVarFlags.Integer);
+			cvarSystem.Register("r_skipSuppress",				"0",		"ignore the per-view suppressions",							CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipTranslucent",			"0",		"skip the translucent interaction rendering",				CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipUpdates",				"0",		"1 = don't accept any entity or light updates, making everything static", CVarFlags.Renderer | CVarFlags.Bool);
+
+			cvarSystem.Register("r_useEntityPortalCulling",		"1", 0, 2,	"0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 2));
+			cvarSystem.Register("r_useLightAreaCulling",		"1",		"0 = off, 1 = on",											CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_useLightPortalCulling",		"1", 0, 2,	"0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 2));
+			cvarSystem.Register("r_useLightScissors",			"3", 0, 3,	"0 = no scissor, 1 = non-clipped scissor, 2 = near-clipped scissor, 3 = fully-clipped scissor", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
+
+			cvarSystem.Register("r_vidMode",					"0",		"fullscreen video mode number",								CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			cvarSystem.Register("r_windowHeight",				"720",		"Non-fullscreen parameter",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			cvarSystem.Register("r_windowWidth",				"1280",		"Non-fullscreen parameter",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			cvarSystem.Register("r_windowX",					"0",		"Non-fullscreen parameter",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			cvarSystem.Register("r_windowY",					"0",		"Non-fullscreen parameter",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
 			#endregion
 
 			#region System
@@ -144,11 +229,11 @@ static idCVar cm_testAngle(			"cm_testAngle",			"60",					CVAR_GAME | CVAR_FLOAT
 
 			idCVar preLoad_Collision( "preLoad_Collision", "1", CVAR_SYSTEM | CVAR_BOOL, "preload collision beginlevelload" );
 
-			idCVar idDeclManagerLocal::decl_show( "decl_show", "0", CVAR_SYSTEM, "set to 1 to print parses, 2 to also print references", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
+			
 
 			idCVar binaryLoadParticles( "binaryLoadParticles", "1", 0, "enable binary load/write of particle decls" );
 
-			idCVar g_useOldPDAStrings( "g_useOldPDAStrings", "0", CVAR_BOOL, "Read strings from the .pda files rather than from the .lang file" );
+			
 
 			#ifdef ID_RETAIL
 idCVar net_allowCheats( "net_allowCheats", "0", CVAR_BOOL | CVAR_ROM, "Allow cheats in multiplayer" );
@@ -342,16 +427,7 @@ idCVar r_useUniformArrays( "r_useUniformArrays", "1", CVAR_BOOL, "" );
 idCVar r_debugContext( "r_debugContext", "0", CVAR_RENDERER, "Enable various levels of context debug." );
 idCVar r_glDriver( "r_glDriver", "", CVAR_RENDERER, "\"opengl32\", etc." );
 idCVar r_skipIntelWorkarounds( "r_skipIntelWorkarounds", "0", CVAR_RENDERER | CVAR_BOOL, "skip workarounds for Intel driver bugs" );
-idCVar r_multiSamples( "r_multiSamples", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "number of antialiasing samples" );
-idCVar r_vidMode( "r_vidMode", "0", CVAR_ARCHIVE | CVAR_RENDERER | CVAR_INTEGER, "fullscreen video mode number" );
-idCVar r_displayRefresh( "r_displayRefresh", "0", CVAR_RENDERER | CVAR_INTEGER | CVAR_NOCHEAT, "optional display refresh rate option for vid mode", 0.0f, 240.0f );
-idCVar r_fullscreen( "r_fullscreen", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "0 = windowed, 1 = full screen on monitor 1, 2 = full screen on monitor 2, etc" );
-idCVar r_customWidth( "r_customWidth", "1280", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "custom screen width. set r_vidMode to -1 to activate" );
-idCVar r_customHeight( "r_customHeight", "720", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "custom screen height. set r_vidMode to -1 to activate" );
-idCVar r_windowX( "r_windowX", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "Non-fullscreen parameter" );
-idCVar r_windowY( "r_windowY", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "Non-fullscreen parameter" );
-idCVar r_windowWidth( "r_windowWidth", "1280", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "Non-fullscreen parameter" );
-idCVar r_windowHeight( "r_windowHeight", "720", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "Non-fullscreen parameter" );
+
 
 idCVar r_useViewBypass( "r_useViewBypass", "1", CVAR_RENDERER | CVAR_INTEGER, "bypass a frame of latency to the view" );
 idCVar r_useLightPortalFlow( "r_useLightPortalFlow", "1", CVAR_RENDERER | CVAR_BOOL, "use a more precise area reference determination" );
@@ -380,40 +456,7 @@ idCVar r_brightness( "r_brightness", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FL
 
 idCVar r_jitter( "r_jitter", "0", CVAR_RENDERER | CVAR_BOOL, "randomly subpixel jitter the projection matrix" );
 
-idCVar r_skipStaticInteractions( "r_skipStaticInteractions", "0", CVAR_RENDERER | CVAR_BOOL, "skip interactions created at level load" );
-idCVar r_skipDynamicInteractions( "r_skipDynamicInteractions", "0", CVAR_RENDERER | CVAR_BOOL, "skip interactions created after level load" );
-idCVar r_skipSuppress( "r_skipSuppress", "0", CVAR_RENDERER | CVAR_BOOL, "ignore the per-view suppressions" );
-idCVar r_skipPostProcess( "r_skipPostProcess", "0", CVAR_RENDERER | CVAR_BOOL, "skip all post-process renderings" );
-idCVar r_skipInteractions( "r_skipInteractions", "0", CVAR_RENDERER | CVAR_BOOL, "skip all light/surface interaction drawing" );
-idCVar r_skipDynamicTextures( "r_skipDynamicTextures", "0", CVAR_RENDERER | CVAR_BOOL, "don't dynamically create textures" );
-idCVar r_skipCopyTexture( "r_skipCopyTexture", "0", CVAR_RENDERER | CVAR_BOOL, "do all rendering, but don't actually copyTexSubImage2D" );
-idCVar r_skipBackEnd( "r_skipBackEnd", "0", CVAR_RENDERER | CVAR_BOOL, "don't draw anything" );
-idCVar r_skipRender( "r_skipRender", "0", CVAR_RENDERER | CVAR_BOOL, "skip 3D rendering, but pass 2D" );
-idCVar r_skipRenderContext( "r_skipRenderContext", "0", CVAR_RENDERER | CVAR_BOOL, "NULL the rendering context during backend 3D rendering" );
-idCVar r_skipTranslucent( "r_skipTranslucent", "0", CVAR_RENDERER | CVAR_BOOL, "skip the translucent interaction rendering" );
-idCVar r_skipAmbient( "r_skipAmbient", "0", CVAR_RENDERER | CVAR_BOOL, "bypasses all non-interaction drawing" );
-idCVar r_skipNewAmbient( "r_skipNewAmbient", "0", CVAR_RENDERER | CVAR_BOOL | CVAR_ARCHIVE, "bypasses all vertex/fragment program ambient drawing" );
-idCVar r_skipBlendLights( "r_skipBlendLights", "0", CVAR_RENDERER | CVAR_BOOL, "skip all blend lights" );
-idCVar r_skipFogLights( "r_skipFogLights", "0", CVAR_RENDERER | CVAR_BOOL, "skip all fog lights" );
-idCVar r_skipDeforms( "r_skipDeforms", "0", CVAR_RENDERER | CVAR_BOOL, "leave all deform materials in their original state" );
-idCVar r_skipFrontEnd( "r_skipFrontEnd", "0", CVAR_RENDERER | CVAR_BOOL, "bypasses all front end work, but 2D gui rendering still draws" );
-idCVar r_skipUpdates( "r_skipUpdates", "0", CVAR_RENDERER | CVAR_BOOL, "1 = don't accept any entity or light updates, making everything static" );
-idCVar r_skipDecals( "r_skipDecals", "0", CVAR_RENDERER | CVAR_BOOL, "skip decal surfaces" );
-idCVar r_skipOverlays( "r_skipOverlays", "0", CVAR_RENDERER | CVAR_BOOL, "skip overlay surfaces" );
-idCVar r_skipSpecular( "r_skipSpecular", "0", CVAR_RENDERER | CVAR_BOOL | CVAR_CHEAT | CVAR_ARCHIVE, "use black for specular1" );
-idCVar r_skipBump( "r_skipBump", "0", CVAR_RENDERER | CVAR_BOOL | CVAR_ARCHIVE, "uses a flat surface instead of the bump map" );
-idCVar r_skipDiffuse( "r_skipDiffuse", "0", CVAR_RENDERER | CVAR_BOOL, "use black for diffuse" );
-idCVar r_skipSubviews( "r_skipSubviews", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = don't render any gui elements on surfaces" );
-idCVar r_skipGuiShaders( "r_skipGuiShaders", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = skip all gui elements on surfaces, 2 = skip drawing but still handle events, 3 = draw but skip events", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
-idCVar r_skipParticles( "r_skipParticles", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = skip all particle systems", 0, 1, idCmdSystem::ArgCompletion_Integer<0,1> );
-idCVar r_skipShadows( "r_skipShadows", "0", CVAR_RENDERER | CVAR_BOOL  | CVAR_ARCHIVE, "disable shadows" );
 
-idCVar r_useLightPortalCulling( "r_useLightPortalCulling", "1", CVAR_RENDERER | CVAR_INTEGER, "0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
-idCVar r_useLightAreaCulling( "r_useLightAreaCulling", "1", CVAR_RENDERER | CVAR_BOOL, "0 = off, 1 = on" );
-idCVar r_useLightScissors( "r_useLightScissors", "3", CVAR_RENDERER | CVAR_INTEGER, "0 = no scissor, 1 = non-clipped scissor, 2 = near-clipped scissor, 3 = fully-clipped scissor", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
-idCVar r_useEntityPortalCulling( "r_useEntityPortalCulling", "1", CVAR_RENDERER | CVAR_INTEGER, "0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", 0, 2, idCmdSystem::ArgCompletion_Integer<0,2> );
-idCVar r_logFile( "r_logFile", "0", CVAR_RENDERER | CVAR_INTEGER, "number of frames to emit GL logs" );
-idCVar r_clear( "r_clear", "2", CVAR_RENDERER, "force screen clear every frame, 1 = purple, 2 = black, 'r g b' = custom" );
 
 idCVar r_offsetFactor( "r_offsetfactor", "0", CVAR_RENDERER | CVAR_FLOAT, "polygon offset parameter" );
 idCVar r_offsetUnits( "r_offsetunits", "-600", CVAR_RENDERER | CVAR_FLOAT, "polygon offset parameter" );
@@ -440,36 +483,6 @@ idCVar r_singleArea( "r_singleArea", "0", CVAR_RENDERER | CVAR_BOOL, "only draw 
 idCVar r_orderIndexes( "r_orderIndexes", "1", CVAR_RENDERER | CVAR_BOOL, "perform index reorganization to optimize vertex use" );
 idCVar r_lightAllBackFaces( "r_lightAllBackFaces", "0", CVAR_RENDERER | CVAR_BOOL, "light all the back faces, even when they would be shadowed" );
 
-// visual debugging info
-idCVar r_showPortals( "r_showPortals", "0", CVAR_RENDERER | CVAR_BOOL, "draw portal outlines in color based on passed / not passed" );
-idCVar r_showUnsmoothedTangents( "r_showUnsmoothedTangents", "0", CVAR_RENDERER | CVAR_BOOL, "if 1, put all nvidia register combiner programming in display lists" );
-idCVar r_showSilhouette( "r_showSilhouette", "0", CVAR_RENDERER | CVAR_BOOL, "highlight edges that are casting shadow planes" );
-idCVar r_showVertexColor( "r_showVertexColor", "0", CVAR_RENDERER | CVAR_BOOL, "draws all triangles with the solid vertex color" );
-idCVar r_showUpdates( "r_showUpdates", "0", CVAR_RENDERER | CVAR_BOOL, "report entity and light updates and ref counts" );
-idCVar r_showDemo( "r_showDemo", "0", CVAR_RENDERER | CVAR_BOOL, "report reads and writes to the demo file" );
-idCVar r_showDynamic( "r_showDynamic", "0", CVAR_RENDERER | CVAR_BOOL, "report stats on dynamic surface generation" );
-idCVar r_showTrace( "r_showTrace", "0", CVAR_RENDERER | CVAR_INTEGER, "show the intersection of an eye trace with the world", idCmdSystem::ArgCompletion_Integer<0,2> );
-idCVar r_showIntensity( "r_showIntensity", "0", CVAR_RENDERER | CVAR_BOOL, "draw the screen colors based on intensity, red = 0, green = 128, blue = 255" );
-idCVar r_showLights( "r_showLights", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = just print volumes numbers, highlighting ones covering the view, 2 = also draw planes of each volume, 3 = also draw edges of each volume", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
-idCVar r_showShadows( "r_showShadows", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = visualize the stencil shadow volumes, 2 = draw filled in", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
-idCVar r_showLightScissors( "r_showLightScissors", "0", CVAR_RENDERER | CVAR_BOOL, "show light scissor rectangles" );
-idCVar r_showLightCount( "r_showLightCount", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = colors surfaces based on light count, 2 = also count everything through walls, 3 = also print overdraw", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
-idCVar r_showViewEntitys( "r_showViewEntitys", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = displays the bounding boxes of all view models, 2 = print index numbers" );
-idCVar r_showTris( "r_showTris", "0", CVAR_RENDERER | CVAR_INTEGER, "enables wireframe rendering of the world, 1 = only draw visible ones, 2 = draw all front facing, 3 = draw all, 4 = draw with alpha", 0, 4, idCmdSystem::ArgCompletion_Integer<0,4> );
-idCVar r_showSurfaceInfo( "r_showSurfaceInfo", "0", CVAR_RENDERER | CVAR_BOOL, "show surface material name under crosshair" );
-idCVar r_showNormals( "r_showNormals", "0", CVAR_RENDERER | CVAR_FLOAT, "draws wireframe normals" );
-idCVar r_showMemory( "r_showMemory", "0", CVAR_RENDERER | CVAR_BOOL, "print frame memory utilization" );
-idCVar r_showCull( "r_showCull", "0", CVAR_RENDERER | CVAR_BOOL, "report sphere and box culling stats" );
-idCVar r_showAddModel( "r_showAddModel", "0", CVAR_RENDERER | CVAR_BOOL, "report stats from tr_addModel" );
-idCVar r_showDepth( "r_showDepth", "0", CVAR_RENDERER | CVAR_BOOL, "display the contents of the depth buffer and the depth range" );
-idCVar r_showSurfaces( "r_showSurfaces", "0", CVAR_RENDERER | CVAR_BOOL, "report surface/light/shadow counts" );
-idCVar r_showPrimitives( "r_showPrimitives", "0", CVAR_RENDERER | CVAR_INTEGER, "report drawsurf/index/vertex counts" );
-idCVar r_showEdges( "r_showEdges", "0", CVAR_RENDERER | CVAR_BOOL, "draw the sil edges" );
-idCVar r_showTexturePolarity( "r_showTexturePolarity", "0", CVAR_RENDERER | CVAR_BOOL, "shade triangles by texture area polarity" );
-idCVar r_showTangentSpace( "r_showTangentSpace", "0", CVAR_RENDERER | CVAR_INTEGER, "shade triangles by tangent space, 1 = use 1st tangent vector, 2 = use 2nd tangent vector, 3 = use normal vector", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
-idCVar r_showDominantTri( "r_showDominantTri", "0", CVAR_RENDERER | CVAR_BOOL, "draw lines from vertexes to center of dominant triangles" );
-idCVar r_showTextureVectors( "r_showTextureVectors", "0", CVAR_RENDERER | CVAR_FLOAT, " if > 0 draw each triangles texture (tangent) vectors" );
-idCVar r_showOverDraw( "r_showOverDraw", "0", CVAR_RENDERER | CVAR_INTEGER, "1 = geometry overdraw, 2 = light interaction overdraw, 3 = geometry and light interaction overdraw", 0, 3, idCmdSystem::ArgCompletion_Integer<0,3> );
 
 idCVar r_useEntityCallbacks( "r_useEntityCallbacks", "1", CVAR_RENDERER | CVAR_BOOL, "if 0, issue the callback immediately at update time, rather than defering" );
 

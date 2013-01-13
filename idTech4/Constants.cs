@@ -33,6 +33,7 @@ namespace idTech4
 	{
 		public const int ConsoleTextSize				= 0x30000;
 
+		public const int MaxExpressionRegisters			= 4096;
 		public const int MaxWarningList					= 256;
 
 		public const int SmallCharacterWidth			= 8;

@@ -30,6 +30,8 @@ using System.Diagnostics;
 
 using Microsoft.Xna.Framework;
 
+using idTech4.Math;
+
 namespace idTech4
 {
 	public class idUtil
@@ -47,38 +49,6 @@ namespace idTech4
 		#endregion
 
 		#region Parsing
-		public static idRectangle ParseRectangle(string str)
-		{
-			try
-			{
-				string[] parts = null;
-
-				if(str.Contains(",") == true)
-				{
-					parts = str.Replace(" ", "").Split(',');
-				}
-				else
-				{
-					parts = str.Split(' ');
-				}
-
-				if(parts.Length == 4)
-				{
-					return new idRectangle(
-						float.Parse(parts[0]),
-						float.Parse(parts[1]),
-						float.Parse(parts[2]),
-						float.Parse(parts[3]));
-				}
-			}
-			catch(Exception x)
-			{
-				Debug.Write(x.ToString());
-			}
-
-			return idRectangle.Empty;
-		}
-
 		public static Vector2 ParseVector2(string str)
 		{
 			try

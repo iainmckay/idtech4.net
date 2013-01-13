@@ -25,6 +25,10 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using Microsoft.Xna.Framework;
+
+using idTech4.Renderer;
+
 namespace idTech4.Services
 {
 	public enum CpuCapabilities
@@ -98,6 +102,10 @@ namespace idTech4.Services
 
 		string Name { get; }
 		string TagName { get; }
+		#endregion
+
+		#region Methods
+		IRenderBackend CreateRenderBackend(GraphicsDeviceManager deviceManager);
 		#endregion
 	}
 }
