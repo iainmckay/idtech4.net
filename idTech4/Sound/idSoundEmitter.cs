@@ -26,24 +26,13 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text;
 
-namespace idTech4
+namespace idTech4.Sound
 {
-	class Constants
+	public class idSoundEmitter
 	{
-		public const int ConsoleTextSize				= 0x30000;
-
-		public const int MaxEntityMaterialParameters	= 12;
-		public const int MaxExpressionRegisters			= 4096;
-		public const int MaxGlobalMaterialParameters	= 12;
-		public const int MaxVertexParameters			= 4;
-		public const int MaxWarningList					= 256;
-
-		public const int SmallCharacterWidth			= 8;
-		public const int SmallCharacterHeight			= 16;
-		public const int BigCharacterWidth				= 16;
-		public const int BigCharacterHeight				= 16;
-
-		public static Guid FolderID_SavedGames_IdTech5	= new Guid(0x4c5c32ff, 0xbb9d, 0x43b0, 0xb5, 0xb4, 0x2d, 0x72, 0xe5, 0x4e, 0xaa, 0xa4);
 	}
 }

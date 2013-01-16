@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.Collections.Generic;
 
+using idTech4.Renderer;
 using idTech4.Services;
 
 namespace idTech4.Text.Decls

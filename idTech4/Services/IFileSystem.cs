@@ -51,6 +51,8 @@ namespace idTech4.Services
 		#region Resource Tracking
 		#region Properties
 		bool BackgroundCacheEnabled { get; set; }
+
+		bool UsingResourceFiles { get; }
 		#endregion
 
 		#region Methods

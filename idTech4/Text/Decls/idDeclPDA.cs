@@ -128,7 +128,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_fullName = localization.GetString( baseStrID + "fullname");
+						_fullName = localization.Get( baseStrID + "fullname");
 					}
 				}
 				else if(tokenLower == "icon")
@@ -146,7 +146,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_id = localization.GetString(baseStrID + "id");
+						_id = localization.Get(baseStrID + "id");
 					}
 				}
 				else if(tokenLower == "name")
@@ -159,7 +159,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_pdaName = localization.GetString( baseStrID + "name");
+						_pdaName = localization.Get( baseStrID + "name");
 					}
 				}
 				else if(tokenLower == "pda_email")
@@ -190,7 +190,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_post = localization.GetString(baseStrID + "post");
+						_post = localization.Get(baseStrID + "post");
 					}
 				}
 				else if(tokenLower == "security")
@@ -203,7 +203,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_security = localization.GetString(baseStrID + "security");
+						_security = localization.Get(baseStrID + "security");
 					}
 				}
 				else if(tokenLower == "title")
@@ -216,7 +216,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_title = localization.GetString(baseStrID + "title");
+						_title = localization.Get(baseStrID + "title");
 					}
 				}
 			}

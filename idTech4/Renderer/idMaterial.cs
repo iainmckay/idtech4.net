@@ -30,6 +30,7 @@ using System.Collections.Generic;
 using System.Text;
 
 using idTech4.Services;
+using idTech4.Sound;
 using idTech4.Text;
 using idTech4.Text.Decls;
 
@@ -183,32 +184,12 @@ namespace idTech4.Renderer
 			}
 		}
 
-		/// <summary>
-		/// Just for image resource tracking.
-		/// </summary>
-		public int ImageClassification
-		{
-			set
-			{
-				idImage image;
-
-				foreach(MaterialStage stage in _stages)
-				{
-					image = stage.Texture.Image;
-
-					if(image != null)
-					{
-						image.Classification = value;
-					}
-				}
-			}
-		}
-
 		public int ImageHeight
 		{
 			get
 			{
-				return GetStage(0).Texture.Image.Height;
+				idLog.Warning("TODO: return GetStage(0).Texture.Image.Height;");
+				return 0;
 			}
 		}
 
@@ -216,7 +197,8 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return GetStage(0).Texture.Image.Width;
+				idLog.Warning("TODO: return GetStage(0).Texture.Image.Width;");
+				return 0;
 			}
 		}
 
@@ -232,7 +214,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				return ((_stageCount > 0) || (_entityGui != null) || (_userInterface != null));
+				return ((_stageCount > 0) || (_entityGui != 0) || (_userInterface != null));
 			}
 		}
 
@@ -264,14 +246,6 @@ namespace idTech4.Renderer
 			get
 			{
 				return _polygonOffset;
-			}
-		}
-
-		public int RegisterCount
-		{
-			get
-			{
-				return _registerCount;
 			}
 		}
 
@@ -309,15 +283,7 @@ namespace idTech4.Renderer
 				_sort = value;
 			}
 		}
-
-		public MaterialStage[] Stages
-		{
-			get
-			{
-				return _stages;
-			}
-		}
-
+		
 		/// <summary>
 		/// Gets the surface flags.
 		/// </summary>
@@ -352,7 +318,7 @@ namespace idTech4.Renderer
 
 		private int _entityGui;	// draw a gui with the idUserInterface from the renderEntity_t
 								// non zero will draw gui, gui2, or gui3 from renderEnitty_t
-		//private idUserInterface _userInterface;
+		private object /*idUserInterface*/ _userInterface;
 
 		private ContentFlags _contentFlags;
 		private SurfaceFlags _surfaceFlags;
@@ -423,12 +389,12 @@ namespace idTech4.Renderer
 			{
 				if(stage.Texture.Image != null)
 				{
-					stage.Texture.Image.AddReference();
+					idLog.WriteLine("TODO: stage.Texture.Image.AddReference();");
 				}
 			}
 		}
 
-		public void EvaluateRegisters(ref float[] registers, float[] localShaderParms, float[] globalShaderParameters, float floatTime, idSoundEmitter soundEmitter)
+		public void EvaluateRegisters(float[] registers, float[] localShaderParms, float[] globalShaderParameters, float floatTime, idSoundEmitter soundEmitter)
 		{
 			IDeclManager declManager = idEngine.Instance.GetService<IDeclManager>();
 
@@ -793,7 +759,7 @@ namespace idTech4.Renderer
 				// light volumes
 				else if(tokenLower == "lightfalloffimage")
 				{
-					_lightFalloffImage = ImageManager.ImageFromFile(ParsePastImageProgram(lexer), TextureFilter.Default, TextureRepeat.Clamp, TextureUsage.Default);
+					idLog.Warning("TODO: _lightFalloffImage = ImageManager.ImageFromFile(ParsePastImageProgram(lexer), TextureFilter.Default, TextureRepeat.Clamp, TextureUsage.Default);");
 				}
 				// guisurf <guifile> | guisurf entity
 				// an entity guisurf must have an idUserInterface
@@ -817,7 +783,7 @@ namespace idTech4.Renderer
 					}
 					else
 					{
-						_userInterface = UIManager.FindInterface(token.ToString(), true);
+						idLog.Warning("TODO: _userInterface = UIManager.FindInterface(token.ToString(), true);");
 					}
 				}
 				// sort.
@@ -1965,11 +1931,11 @@ namespace idTech4.Renderer
 				}				
 				else if(tokenLower == "vertexparm")
 				{
-					ParseVertexParameter(lexer, ref newStage);
+					ParseVertexParameter(lexer, newStage);
 				}
 				else if(tokenLower == "vertexparm2")
 				{
-					ParseVertexParameter2(lexer, ref newStage);
+					ParseVertexParameter2(lexer, newStage);
 				}
 				else if(tokenLower == "fragmentmap")
 				{
@@ -2015,7 +1981,7 @@ namespace idTech4.Renderer
 			if((textureDepth == TextureUsage.Diffuse) && (materialStage.HasAlphaTest == true))
 			{
 				// create new coverage stage
-				MaterialStage newCoverageStage = materialStage.Clone();
+				MaterialStage newCoverageStage = (MaterialStage) materialStage.Clone();
 				_parsingData.Stages.Add(newCoverageStage);
 
 				// toggle alphatest off for the current stage so it doesn't get called during the depth fill pass
@@ -2030,34 +1996,34 @@ namespace idTech4.Renderer
 				// now load the image with all the parms we parsed for the coverage stage
 				if(string.IsNullOrEmpty(imageName) == false)
 				{
-					coverageTextureStage.Image = globalImages->ImageFromFile(imageName, textureFilter, textureRepeat, TextureUsage.Coverage, cubeMap);
+					idLog.Warning("TODO: coverageTextureStage.Image = globalImages->ImageFromFile(imageName, textureFilter, textureRepeat, TextureUsage.Coverage, cubeMap);");
 
 					if(coverageTextureStage.Image == null)
 					{
-						coverageTextureStage = globalImages.DefaultImage;
+						idLog.Warning("TODO: coverageTextureStage = globalImages.DefaultImage;");
 					}
 				}
 				else if(/*TODO: (coverageTextureStage.Cinematic == false) && */ (coverageTextureStage.Dynamic == 0) && (materialStage.NewStage == null))
 				{
 					idLog.Warning("material '{0}' had stage with no image", this.Name);
-					coverageTextureStage.Image = globalImages->defaultImage;
+					idLog.Warning("TODO: coverageTextureStage.Image = globalImages->defaultImage;");
 				}
 			}
 
 			// now load the image with all the parms we parsed
 			if(string.IsNullOrEmpty(imageName) == false)
 			{
-				materialStage.Texture.Image = ImageManager.ImageFromFile(imageName, textureFilter, textureRepeat, textureDepth, cubeMap);
+				idLog.Warning("TODO: materialStage.Texture.Image = ImageManager.ImageFromFile(imageName, textureFilter, textureRepeat, textureDepth, cubeMap);");
 
 				if(materialStage.Texture.Image == null)
 				{
-					materialStage.Texture.Image = ImageManager.DefaultImage;
+					idLog.Warning("TODO: materialStage.Texture.Image = ImageManager.DefaultImage;");
 				}
 			}
 			else if(/*TODO: !ts->cinematic &&*/ (materialStage.Texture.Dynamic == 0) && (materialStage.NewStage.IsEmpty == true))
 			{
 				idLog.Warning("material '{0}' had stage with no image", this.Name);
-				materialStage.Texture.Image = ImageManager.DefaultImage;
+				idLog.Warning("TODO: materialStage.Texture.Image = ImageManager.DefaultImage;");
 			}
 
 			// successfully parsed a stage.
@@ -2135,7 +2101,7 @@ namespace idTech4.Renderer
 		/// </remarks>
 		/// <param name="lexer"></param>
 		/// <param name="newStage"></param>
-		private void ParseVertexParameter(idLexer lexer, ref NewMaterialStage newStage)
+		private void ParseVertexParameter(idLexer lexer, NewMaterialStage newStage)
 		{
 			idToken token = lexer.ReadTokenOnLine();
 			int parm = token.ToInt32();
@@ -2183,6 +2149,30 @@ namespace idTech4.Renderer
 					}
 				}
 			}
+		}
+
+		public void ParseVertexParameter2(idLexer lexer, NewMaterialStage newStage)
+		{
+			idToken token = lexer.ReadTokenOnLine();
+			int parameter = token.ToInt32();
+
+			if((token.IsNumeric == false) || (parameter < 0) || (parameter >= Constants.MaxVertexParameters))
+			{
+				idLog.Warning("bad vertexParm number");
+				this.MaterialFlag = MaterialFlags.Defaulted;
+				return;
+			}
+
+			newStage.VertexParameters[parameter, 0] = ParseExpression(lexer);
+			MatchToken(lexer, ",");
+
+			newStage.VertexParameters[parameter, 1] = ParseExpression(lexer);
+			MatchToken(lexer, ",");
+
+			newStage.VertexParameters[parameter, 2] = ParseExpression(lexer);
+			MatchToken(lexer, ",");
+
+			newStage.VertexParameters[parameter, 3] = ParseExpression(lexer);
 		}
 
 		private void ParseFragmentMap(idLexer lexer, ref NewMaterialStage newStage)
@@ -2287,10 +2277,14 @@ namespace idTech4.Renderer
 
 		private string ParsePastImageProgram(idLexer lexer)
 		{
-			idImageProgramParser parser = new idImageProgramParser();
+			idLog.Warning("TODO: ParsePastImageProgram");
+			
+			/*idImageProgramParser parser = new idImageProgramParser();
 			parser.ParseImageProgram(lexer);
 
-			return parser.Source;
+			return parser.Source;*/
+
+			return string.Empty;
 		}
 
 		private void AppendToken(StringBuilder b, idToken token)
@@ -2536,7 +2530,7 @@ namespace idTech4.Renderer
 			_constantRegisters = new float[_registerCount];
 			float[] materialParms = new float[Constants.MaxEntityMaterialParameters];
 
-			View viewDef = new View();
+			idViewDefinition viewDef = new idViewDefinition();
 			viewDef.RenderView.MaterialParameters = new float[Constants.MaxGlobalMaterialParameters];
 
 			EvaluateRegisters(_constantRegisters, materialParms, viewDef.RenderView.MaterialParameters, 0.0f, null);
@@ -2575,8 +2569,6 @@ namespace idTech4.Renderer
 
 				return true;
 			}
-
-			return false;
 		}
 
 		/// <summary>
@@ -2714,7 +2706,8 @@ namespace idTech4.Renderer
 			{
 				MaterialStage stage = _parsingData.Stages[i];
 
-				if(stage.Texture.Image == ImageManager.OriginalCurrentRenderImage)
+				idLog.Warning("TODO: if(stage.Texture.Image == ImageManager.OriginalCurrentRenderImage)");
+				/*if(stage.Texture.Image == ImageManager.OriginalCurrentRenderImage)
 				{
 					if(_sort != (float) MaterialSort.PortalSky)
 					{
@@ -2723,7 +2716,7 @@ namespace idTech4.Renderer
 					}
 
 					break;
-				}
+				}*/
 
 				if(stage.NewStage.IsEmpty == false)
 				{
@@ -2732,7 +2725,8 @@ namespace idTech4.Renderer
 
 					for(int j = 0; j < imageCount; j++)
 					{
-						if(newShaderStage.FragmentProgramImages[j] == ImageManager.OriginalCurrentRenderImage)
+						idLog.Warning("TODO: ImageManager.OriginalCurrentRenderImage)");
+						/*if(newShaderStage.FragmentProgramImages[j] == ImageManager.OriginalCurrentRenderImage)
 						{
 							if(_sort != (float) MaterialSort.PortalSky)
 							{
@@ -2742,7 +2736,7 @@ namespace idTech4.Renderer
 
 							i = _stageCount;
 							break;
-						}
+						}*/
 					}
 				}
 			}
@@ -2901,68 +2895,6 @@ namespace idTech4.Renderer
 			public int A, B, C;
 		}
 
-		private struct ColorStage
-		{
-			public int[] Registers;
-		}
-
-		private class NewMaterialStage
-		{
-			#region Properties
-			public bool IsEmpty
-			{
-				get
-				{
-					return ((VertexProgram == 0) && (VertexParameters == null) && (FragmentProgram == 0));
-				}
-			}
-			#endregion
-
-			#region Fields
-			public int VertexProgram;
-			public int[,] VertexParameters; // evaluated register indexes.
-
-			public int FragmentProgram;
-			public idImage[] FragmentProgramImages;
-			#endregion
-		}
-
-		public class TextureStage
-		{
-			// TODO
-			/*idCinematic *		cinematic;*/
-			public idImage Image;
-			public TextureCoordinateGeneration TextureCoordinates;
-
-			public bool HasMatrix;
-			public int[,] Matrix;	// we only allow a subset of the full projection matrix.
-
-			// dynamic image variables
-			public DynamicImageType Dynamic;
-			public int DynamicFrameCount;
-			public int Width;
-			public int Height;
-		}
-
-		private class MaterialStage
-		{
-			public int ConditionRegister;				// if registers[conditionRegister] == 0, skip stage.
-			public StageLighting Lighting;				// determines which passes interact with lights.
-
-			public MaterialStates DrawStateBits;
-			public ColorStage Color;
-			public bool HasAlphaTest;
-			public int AlphaTestRegister;
-
-			public TextureStage Texture;
-			public StageVertexColor VertexColor;
-
-			public bool IgnoreAlphaTest;				// this stage should act as translucent, even if the surface is alpha tested.
-			public float PrivatePolygonOffset;			// a per-stage polygon offset.
-
-			public NewMaterialStage NewStage;	// vertex / fragment program based stage.
-		}
-
 		private sealed class MaterialParsingData
 		{
 			public bool[] RegisterIsTemporary = new bool[Constants.MaxExpressionRegisters];
@@ -2973,6 +2905,29 @@ namespace idTech4.Renderer
 
 			public bool RegistersAreConstant;
 			public bool ForceOverlays;
+		}
+
+		private struct DecalInfo
+		{
+			/// <summary>
+			/// msec for no change.
+			/// </summary>
+			public int StayTime;
+
+			/// <summary>
+			/// msec to fade vertex colors over.
+			/// </summary>
+			public int FadeTime;
+
+			/// <summary>
+			/// Vertex color at spawn (possibly out of 0.0 - 1.0 range, will clamp after calc).
+			/// </summary>
+			public float[] Start;
+
+			/// <summary>
+			/// Vertex color at fade-out (possibly out of 0.0 - 1.0 range, will clamp after calc).
+			/// </summary>
+			public float[] End;
 		}
 		#endregion
 	}
@@ -3092,86 +3047,86 @@ namespace idTech4.Renderer
 	[Flags]
 	public enum ContentFlags
 	{
-		None = 0,
+		None				= 0,
 
 		/// <summary>An eye is never valid in a solid.</summary>
-		Solid = 1 << 0,
+		Solid				= 1 << 0,
 		/// <summary>Blocks visibility (for ai).</summary>
-		Opaque = 1 << 1,
+		Opaque				= 1 << 1,
 		/// <summary>Used for water.</summary>
-		Water = 1 << 2,
+		Water				= 1 << 2,
 		/// <summary>Solid to players.</summary>
-		PlayerClip = 1 << 3,
+		PlayerClip			= 1 << 3,
 		/// <summary>Solid to monsters.</summary>
-		MonsterClip = 1 << 4,
+		MonsterClip			= 1 << 4,
 		/// <summary>Solid to moveable entities.</summary>
-		MoveableClip = 1 << 5,
+		MoveableClip		= 1 << 5,
 		/// <summary>Solid to IK.</summary>
-		IkClip = 1 << 6,
+		IkClip				= 1 << 6,
 		/// <summary>Used to detect blood decals.</summary>
-		Blood = 1 << 7,
+		Blood				= 1 << 7,
 		/// <summary>sed for actors.</summary>
-		Body = 1 << 8,
+		Body				= 1 << 8,
 		/// <summary>Used for projectiles.</summary>
-		Projectile = 1 << 9,
+		Projectile			= 1 << 9,
 		/// <summary>Used for dead bodies.</summary>
-		Corpse = 1 << 10,
+		Corpse				= 1 << 10,
 		/// <summary>Used for render models for collision detection.</summary>
-		RenderModel = 1 << 11,
+		RenderModel			= 1 << 11,
 		/// <summary>Used for triggers.</summary>
-		Trigger = 1 << 12,
+		Trigger				= 1 << 12,
 		/// <summary>Solid for AAS.</summary>
-		AasSolid = 1 << 13,
+		AasSolid			= 1 << 13,
 		/// <summary>Used to compile an obstacle into AAS that can be enabled/disabled.</summary>
-		AasObstacle = 1 << 14,
+		AasObstacle			= 1 << 14,
 		/// <summary>Used for triggers that are activated by the flashlight.</summary>
-		FlashlightTrigger = 1 << 15,
+		FlashlightTrigger	= 1 << 15,
 
 		/// <summary>Portal separating renderer areas.</summary>
-		AreaPortal = 1 << 20,
+		AreaPortal			= 1 << 20,
 		/// <summary>Don't cut this brush with CSG operations in the editor.</summary>
-		NoCsg = 1 << 21,
+		NoCsg				= 1 << 21,
 
-		RemoveUtil = ~(AreaPortal | NoCsg),
+		RemoveUtil			= ~(AreaPortal | NoCsg),
 		
-		MaskSolid = Solid,
-		MaskMonsterSolid = Solid | MonsterClip | Body,
-		MaskPlayerSolid = Solid | PlayerClip | Body,
-		MaskDeadSolid = Solid | PlayerClip,
-		MaskWater = Water,
-		MaskOpaque = Opaque,
-		MaskShotRenderModel = Solid | RenderModel,
-		MaskShotBoundingBox = Solid | Body
+		MaskSolid			= Solid,
+		MaskMonsterSolid	= Solid | MonsterClip | Body,
+		MaskPlayerSolid		= Solid | PlayerClip | Body,
+		MaskDeadSolid		= Solid | PlayerClip,
+		MaskWater			= Water,
+		MaskOpaque			= Opaque,
+		MaskShotRenderModel	= Solid | RenderModel,
+		MaskShotBoundingBox	= Solid | Body
 	}
 
 	[Flags]
 	public enum SurfaceFlags
 	{
 		/// <summary>Encodes the material type (metal, flesh, concrete, etc.).</summary>
-		TypeBit0 = 1 << 0,
-		TypeBit1 = 1 << 1,
-		TypeBit2 = 1 << 2,
-		TypeBit3 = 1 << 3,
-		TypeMask = (1 << 4) - 1,
+		TypeBit0	= 1 << 0,
+		TypeBit1	= 1 << 1,
+		TypeBit2	= 1 << 2,
+		TypeBit3	= 1 << 3,
+		TypeMask	= (1 << 4) - 1,
 
 		/// <summary>Nver give falling damage.</summary>
-		NoDamage = 1 << 4,
+		NoDamage	= 1 << 4,
 		/// <summary>Effects game physics.</summary>
-		Slick = 1 << 5,
+		Slick		= 1 << 5,
 		/// <summary>Collision surface.</summary>
-		Collision = 1 << 6,
+		Collision	= 1 << 6,
 		/// <summary>Player can climb up this surface.</summary>
-		Ladder = 1 << 7,
+		Ladder		= 1 << 7,
 		/// <summary>Don't make missile explosions.</summary>
-		NoImpact = 1 << 8,
+		NoImpact	= 1 << 8,
 		/// <summary>No footstep sounds.</summary>
-		NoSteps = 1 << 9,
+		NoSteps		= 1 << 9,
 		/// <summary>Not clipped or merged by utilities.</summary>
-		Discrete = 1 << 10,
+		Discrete	= 1 << 10,
 		/// <summary>dmap won't cut surface at each bsp boundary.</summary>
-		NoFragment = 1 << 11,
+		NoFragment	= 1 << 11,
 		/// <summary>Renderbump will draw this surface as 0x80 0x80 0x80, which won't collect light from any angle</summary>
-		NullNormal = 1 << 12,
+		NullNormal	= 1 << 12,
 
 		None = 0,
 
@@ -3221,7 +3176,7 @@ namespace idTech4.Renderer
 		Extra6
 	}
 
-	public struct MaterialInfoParameter
+	public class MaterialInfoParameter
 	{
 		public string Name;
 		public bool ClearSolid;
@@ -3230,10 +3185,90 @@ namespace idTech4.Renderer
 
 		public MaterialInfoParameter(string name, bool clearSolid, SurfaceFlags surfaceFlags, ContentFlags contentFlags)
 		{
-			Name = name;
-			ClearSolid = clearSolid;
-			SurfaceFlags = surfaceFlags;
-			ContentFlags = contentFlags;
+			Name			= name;
+			ClearSolid		= clearSolid;
+			SurfaceFlags	= surfaceFlags;
+			ContentFlags	= contentFlags;
 		}
+	}
+
+	public class MaterialStage : ICloneable
+	{
+		public int ConditionRegister;				// if registers[conditionRegister] == 0, skip stage.
+		public StageLighting Lighting;				// determines which passes interact with lights.
+
+		public MaterialStates DrawStateBits;
+		public ColorStage Color;
+		public bool HasAlphaTest;
+		public int AlphaTestRegister;
+
+		public TextureStage Texture;
+		public StageVertexColor VertexColor;
+
+		public bool IgnoreAlphaTest;				// this stage should act as translucent, even if the surface is alpha tested.
+		public float PrivatePolygonOffset;			// a per-stage polygon offset.
+
+		public NewMaterialStage NewStage;	// vertex / fragment program based stage.
+
+		public object Clone()
+		{
+			MaterialStage clone = new MaterialStage();
+			clone.ConditionRegister		= this.ConditionRegister;
+			clone.Lighting				= this.Lighting;
+			clone.DrawStateBits			= this.DrawStateBits;
+			clone.Color					= this.Color;
+			clone.HasAlphaTest			= this.HasAlphaTest;
+			clone.AlphaTestRegister		= this.AlphaTestRegister;
+			clone.Texture				= this.Texture;
+			clone.VertexColor			= this.VertexColor;
+			clone.IgnoreAlphaTest		= this.IgnoreAlphaTest;
+			clone.PrivatePolygonOffset	= this.PrivatePolygonOffset;
+			clone.NewStage				= this.NewStage;
+
+			return clone;
+		}
+	}
+
+	public class TextureStage
+	{
+		// TODO
+		/*idCinematic *		cinematic;*/
+		public idImage Image;
+		public TextureCoordinateGeneration TextureCoordinates;
+
+		public bool HasMatrix;
+		public int[,] Matrix;	// we only allow a subset of the full projection matrix.
+
+		// dynamic image variables
+		public DynamicImageType Dynamic;
+		public int DynamicFrameCount;
+		public int Width;
+		public int Height;
+	}
+
+	public class NewMaterialStage
+	{
+		#region Properties
+		public bool IsEmpty
+		{
+			get
+			{
+				return ((VertexProgram == 0) && (VertexParameters == null) && (FragmentProgram == 0));
+			}
+		}
+		#endregion
+
+		#region Fields
+		public int VertexProgram;
+		public int[,] VertexParameters; // evaluated register indexes.
+
+		public int FragmentProgram;
+		public idImage[] FragmentProgramImages;
+		#endregion
+	}
+
+	public struct ColorStage
+	{
+		public int[] Registers;
 	}
 }

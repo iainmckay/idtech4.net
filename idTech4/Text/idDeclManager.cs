@@ -29,7 +29,9 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 
+using idTech4.Renderer;
 using idTech4.Services;
+using idTech4.Sound;
 using idTech4.Text.Decls;
 
 namespace idTech4.Text
@@ -125,6 +127,30 @@ namespace idTech4.Text
 			{
 				_indent = value;
 			}
+		}
+		#endregion
+
+		#region Decl
+		public idDecl DeclByIndex(DeclType type, int index, bool forceParse = true)
+		{
+			if(_declTypes.ContainsKey(type) == false)
+			{
+				idEngine.Instance.FatalError("DeclByIndex: bad type: {0}", type.ToString().ToLower());
+			}
+
+			if((index < 0) || (index >= _declsByType[type].Count))
+			{
+				idEngine.Instance.Error("DeclByIndex: out of range [{0}: {1} < {2}]", type, index, _declsByType[type].Count);
+			}
+
+			idDecl decl = _declsByType[type][index];
+
+			if((forceParse == true) && (decl.State == DeclState.Unparsed))
+			{
+				decl.ParseLocal();
+			}
+
+			return decl;
 		}
 		#endregion
 

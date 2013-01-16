@@ -27,12 +27,23 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 
+using Microsoft.Xna.Framework;
+
+using idTech4.Renderer;
 using idTech4.Services;
 
 namespace idTech4.Platform
 {
 	public abstract class BasePlatform : IPlatformService
 	{
+		#region Constructor
+		public BasePlatform()
+		{
+
+		}
+		#endregion
+
+		#region IPlatformService implementation
 		#region Properties
 		public abstract CpuCapabilities CpuCapabilities { get; }
 
@@ -103,12 +114,12 @@ namespace idTech4.Platform
 		public abstract string TagName { get; }
 		#endregion
 
-
-		#region Constructor
-		public BasePlatform()
+		#region Methods
+		public IRenderBackend CreateRenderBackend(GraphicsDeviceManager deviceManager)
 		{
-
+			return null;
 		}
+		#endregion
 		#endregion
 	}
 }

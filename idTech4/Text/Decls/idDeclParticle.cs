@@ -31,6 +31,7 @@ using System.Collections.Generic;
 using Microsoft.Xna.Framework;
 
 using idTech4.Math;
+using idTech4.Renderer;
 using idTech4.Services;
 
 namespace idTech4.Text.Decls

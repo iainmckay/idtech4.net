@@ -719,6 +719,14 @@ namespace idTech4.IO
 				}
 			}
 		}
+
+		public bool UsingResourceFiles
+		{
+			get
+			{
+				return (_resourceContainers.Count > 0);
+			}
+		}
 		#endregion
 
 		#region Methods

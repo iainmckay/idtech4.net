@@ -27,7 +27,9 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 
+using idTech4.Renderer;
 using idTech4.Services;
+using idTech4.Sound;
 
 namespace idTech4.Text.Decls
 {
@@ -189,7 +191,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_info = localization.GetString(baseStrID + "info");
+						_info = localization.Get(baseStrID + "info");
 					}
 				}
 				else if(tokenValue == "name")
@@ -202,7 +204,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_videoName = localization.GetString(baseStrID + "name");
+						_videoName = localization.Get(baseStrID + "name");
 					}
 				}
 				else if(tokenValue == "preview")
@@ -215,7 +217,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_preview = localization.GetString(baseStrID + "preview");
+						_preview = localization.Get(baseStrID + "preview");
 					}
 				}
 				else if(tokenValue == "video")

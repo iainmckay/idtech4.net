@@ -28,13 +28,14 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 
 using idTech4.Services;
+using idTech4.Sound;
 
 namespace idTech4.Text.Decls
 {
 	public class idDeclAudio : idDecl
 	{
 		#region Properties
-		public string Audio
+		public idSoundMaterial Audio
 		{
 			get
 			{
@@ -163,7 +164,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_info = localization.GetString(baseStrID + "info");
+						_info = localization.Get(baseStrID + "info");
 					}
 				}
 				else if(tokenValue == "name")
@@ -176,7 +177,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_audioName = localization.GetString(baseStrID + "name");
+						_audioName = localization.Get(baseStrID + "name");
 					}
 				}
 			}

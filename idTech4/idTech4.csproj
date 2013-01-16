@@ -148,8 +148,11 @@
     <Compile Include="Services\IDeclManager.cs" />
     <Compile Include="Services\IFileSystem.cs" />
     <Compile Include="Services\IInputSystem.cs" />
+    <Compile Include="Services\ILocalization.cs" />
     <Compile Include="Services\IPlatformService.cs" />
     <Compile Include="Services\IRenderSystem.cs" />
+    <Compile Include="Sound\idSoundEmitter.cs" />
+    <Compile Include="Sound\idSoundMaterial.cs" />
     <Compile Include="Text\Decls\idDeclAudio.cs" />
     <Compile Include="Text\Decls\idDeclEmail.cs" />
     <Compile Include="Text\Decls\idDeclEntity.cs" />
@@ -162,7 +165,9 @@
     <Compile Include="Text\idDecl.cs" />
     <Compile Include="Text\idDeclFile.cs" />
     <Compile Include="Text\idDeclManager.cs" />
+    <Compile Include="Text\idLangDict.cs" />
     <Compile Include="Text\idLexer.cs" />
+    <Compile Include="Text\idLocalization.cs" />
     <Compile Include="Text\idToken.cs" />
     <Compile Include="Threading\idThread.cs" />
   </ItemGroup>

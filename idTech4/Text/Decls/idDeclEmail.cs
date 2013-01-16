@@ -204,7 +204,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_date = localization.GetString(baseStrID + "from");
+						_date = localization.Get(baseStrID + "from");
 					}
 				}
 				else if(tokenLower == "from")
@@ -217,7 +217,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_from = localization.GetString(baseStrID + "from");
+						_from = localization.Get(baseStrID + "from");
 					}
 				}
 				else if(tokenLower == "subject")
@@ -230,7 +230,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_to = localization.GetString(baseStrID + "subject");
+						_to = localization.Get(baseStrID + "subject");
 					}
 				}
 				else if(tokenLower == "text")
@@ -251,7 +251,7 @@ namespace idTech4.Text.Decls
 
 					if(useOldStrings == false)
 					{
-						_text = localization.GetString(baseStrID + "text");
+						_text = localization.Get(baseStrID + "text");
 					}
 				}
 				else if(tokenLower == "to")
@@ -264,7 +264,7 @@ namespace idTech4.Text.Decls
 					}
 					else
 					{
-						_to = localization.GetString(baseStrID + "subject");
+						_to = localization.Get(baseStrID + "subject");
 					}
 				}				
 			}

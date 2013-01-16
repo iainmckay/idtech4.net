@@ -110,7 +110,7 @@ namespace idTech4.Renderer
 			// make sure the tr.testImageTriangles data is current in the vertex / index cache
 			idLog.Warning("TODO: if ( testImageTriangles == NULL )  { testImageTriangles = R_MakeTestImageTriangles(); }");
 
-			frontEndJobList = parallelJobManager->AllocJobList( JOBLIST_RENDERER_FRONTEND, JOBLIST_PRIORITY_MEDIUM, 2048, 0, null);
+			idLog.Warning("TODO: frontEndJobList = parallelJobManager->AllocJobList( JOBLIST_RENDERER_FRONTEND, JOBLIST_PRIORITY_MEDIUM, 2048, 0, null);");
 
 			// make sure the command buffers are ready to accept the first screen update
 			SwapCommandBuffers();
@@ -479,6 +479,92 @@ namespace idTech4.Renderer
 		BackRight
 	}
 
+	public class idViewDefinition
+	{
+		public idRenderView RenderView = new idRenderView();
+
+		public Matrix ProjectionMatrix = Matrix.Identity;
+		//idRenderMatrix projectionRenderMatrix;	// tech5 version of projectionMatrix
+		public idViewEntity WorldSpace = new idViewEntity();
+		//public idRenderWorld RenderWorld;
+		
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// Used to find the portalArea that view flooding will take place from.
+		/// for a normal view, the initialViewOrigin will be renderView.viewOrg,
+		/// but a mirror may put the projection origin outside
+		/// of any valid area, or in an unconnected area of the map, so the view
+		/// area must be based on a point just off the surface of the mirror/subview.
+		/// <para/>
+		/// It may be possible to get a failed portal pass if the plane of the
+		/// mirror intersects a portal, and the initialViewAreaOrigin is on
+		/// a different side than the renderView.viewOrg is.
+		/// </remarks>
+		public Vector3 InitialViewAreaOrigin;
+
+		/// <summary>
+		/// True if this view is not the main view.
+		/// </summary>
+		public bool IsSubview;
+
+		/// <summary>
+		/// True if the portal is a mirror, invert the face culling.
+		/// </summary>
+		public bool IsMirror;
+		public bool IsXraySubview;
+		public bool IsEditor;
+		public bool Is2DGui;
+
+		/*int					numClipPlanes;			// mirrors will often use a single clip plane
+		idPlane				clipPlanes[MAX_CLIP_PLANES];		// in world space, the positive side
+													// of the plane is the visible side
+		 * */
+
+		/// <summary>
+		/// In real pixels and proper Y flip.
+		/// </summary>
+		//public idScreenRect ViewPort;
+
+		/// <summary>
+		/// For scissor clipping, local inside renderView viewport.
+		/// </summary>
+		/// <remarks>
+		/// Subviews may only be rendering part of the main view
+		/// these are real physical pixel values, possibly scaled and offset from the
+		/// renderView x/y/width/height
+		/// </remarks>
+		//public idScreenRect Scissor;
+
+		/*struct viewDef_s *	superView;				// never go into an infinite subview loop 
+		struct drawSurf_s *	subviewSurface;*/
+
+		/// <summary>
+		/// DrawSurfs are the visible surfaces of the viewEntities, sorted
+		/// by the material sort parameter
+		/// </summary>
+		/*drawSurf_t **		drawSurfs;				// we don't use an idList for this, because
+	int					numDrawSurfs;			// it is allocated in frame temporary memory
+	int					maxDrawSurfs;			// may be resized*/
+
+		/*struct viewLight_s	*viewLights;		// chain of all viewLights effecting view*/
+		//viewEntity_t* viewEntitys;			// chain of all viewEntities effecting view, including off screen ones casting shadows
+		// chain of all viewEntities effecting view, including off screen ones casting shadows
+		// we use viewEntities as a check to see if a given view consists solely
+		// of 2D rendering, which we can optimize in certain ways.  A 2D view will
+		// not have any viewEntities
+		
+		public Plane[] Frustum = new Plane[6];		// positive sides face outward, [4] is the front clip plane
+
+		public int AreaNumber = -1; // -1 = not in a valid area
+
+		// An array in frame temporary memory that lists if an area can be reached without
+		// crossing a closed door.  This is used to avoid drawing interactions
+		// when the light is behind a closed door.
+		public bool[] ConnectedAreas;		
+	}
+
 	/// <summary>
 	/// A viewEntity is created whenever a idRenderEntityLocal is considered for inclusion
 	/// in the current view, but it may still turn out to be culled.
@@ -523,5 +609,103 @@ namespace idTech4.Renderer
 		// R_AddSingleModel will build a chain of parameters here to setup shadow volumes
 		staticShadowVolumeParms_t *		staticShadowVolumes;
 		dynamicShadowVolumeParms_t *	dynamicShadowVolumes;*/
+	}
+
+	public class idRenderView
+	{
+		/// <summary>
+		/// Model/Subview suppression.
+		/// </summary>
+		/// <remarks>
+		/// Player views will set this to a non-zero integer for model suppress/allow.
+		/// <para/>
+		/// Subviews (mirrors, cameras, etc) will always clear it to zero.
+		/// </remarks>
+		public int ViewID;
+
+		public float FovX;
+		public float FovY;
+
+		public Vector3 ViewOrigin;
+
+		/// <summary>
+		/// Transformation matrix, view looks down the positive X axis.
+		/// </summary>
+		public Matrix ViewAxis;
+
+		/// <summary>
+		/// For cinematics, we want to set ZNear much lower.
+		/// </summary>
+		public bool CramZNear;
+
+		/// <summary>
+		/// Force an update.
+		/// </summary>
+		public bool ForceUpdate;
+
+		/// <summary>
+		/// Time in milliseconds for material effects and other time dependent rendering issues.
+		/// </summary>
+		public int[] Time = new int[2];
+
+		/// <summary>
+		/// Can be used in any way by the material.
+		/// </summary>
+		public float[] MaterialParameters = new float[Constants.MaxGlobalMaterialParameters];
+
+		/// <summary>
+		/// Override everything when drawing.
+		/// </summary>
+		/// 
+		public idMaterial GlobalMaterial;
+
+		public idRenderView()
+		{
+			Clear();
+		}
+
+		public void Clear()
+		{
+			this.ViewID = 0;
+			this.FovX = 0;
+			this.FovY = 0;
+
+			this.ViewOrigin = Vector3.Zero;
+			this.ViewAxis = Matrix.Identity;
+
+			this.CramZNear = false;
+			this.ForceUpdate = false;
+			this.Time[0] = this.Time[1] = 0;
+
+			for(int i = 0; i < Constants.MaxGlobalMaterialParameters; i++)
+			{
+				this.MaterialParameters[i] = 0;
+			}
+
+			this.GlobalMaterial = null;
+		}
+
+		/// <summary>
+		/// Creates a shallow copy of this instance.
+		/// </summary>
+		public idRenderView Copy()
+		{
+			idRenderView view = new idRenderView();
+			view.ViewID = this.ViewID;
+			view.FovX = this.FovX;
+			view.FovY = this.FovY;
+
+			view.ViewOrigin = this.ViewOrigin;
+			view.ViewAxis = this.ViewAxis;
+
+			view.CramZNear = this.CramZNear;
+			view.ForceUpdate = this.ForceUpdate;
+			view.Time = (int[]) this.Time.Clone(); ;
+
+			view.MaterialParameters = (float[]) this.MaterialParameters;
+			view.GlobalMaterial = this.GlobalMaterial;
+
+			return view;
+		}
 	}
 }

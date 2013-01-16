@@ -26,6 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using idTech4.Renderer;
+using idTech4.Sound;
 using idTech4.Text;
 using idTech4.Text.Decls;
 
@@ -63,6 +64,10 @@ namespace idTech4.Services
 		#region Properties
 		idDeclFile ImplicitDeclFile { get; }
 		int MediaPrintIndent { get; set; }
+		#endregion
+
+		#region Decl
+		idDecl DeclByIndex(DeclType type, int index, bool forceParse = true);
 		#endregion
 
 		#region Find

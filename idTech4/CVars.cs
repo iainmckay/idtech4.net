@@ -168,6 +168,7 @@ namespace idTech4
 			cvarSystem.Register("r_skipTranslucent",			"0",		"skip the translucent interaction rendering",				CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_skipUpdates",				"0",		"1 = don't accept any entity or light updates, making everything static", CVarFlags.Renderer | CVarFlags.Bool);
 
+			cvarSystem.Register("r_useConstantMaterials",		"1",		"use pre-calculated material registers if possible",		CVarFlags.ReadOnly | CVarFlags.Bool);
 			cvarSystem.Register("r_useEntityPortalCulling",		"1", 0, 2,	"0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 2));
 			cvarSystem.Register("r_useLightAreaCulling",		"1",		"0 = off, 1 = on",											CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_useLightPortalCulling",		"1", 0, 2,	"0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 2));
@@ -181,8 +182,9 @@ namespace idTech4
 			#endregion
 
 			#region System
-			cvarSystem.Register("sys_arch",			"",			"", CVarFlags.System | CVarFlags.Init);
-			cvarSystem.Register("sys_cpustring",	"detect",	"", CVarFlags.System | CVarFlags.Init);
+			cvarSystem.Register("sys_arch",			"",					"", CVarFlags.System | CVarFlags.Init);
+			cvarSystem.Register("sys_cpustring",	"detect",			"", CVarFlags.System | CVarFlags.Init);
+			cvarSystem.Register("sys_lang",			idLanguage.English, "", CVarFlags.System | CVarFlags.Init/* TODO: sysLanguageNames, idCmdSystem::ArgCompletion_String<sysLanguageNames>*/);
 			#endregion
 
 			#region Windows
@@ -198,8 +200,6 @@ namespace idTech4
 			static idCVar lcp_showFailures( "lcp_showFailures", "0", CVAR_BOOL, "show LCP solver failures" );
 
 			idCVar com_assertOutOfDebugger( "com_assertOutOfDebugger", "0", CVAR_BOOL, "by default, do not assert while not running under the debugger" );
-
-			idCVar lang_maskLocalizedStrings( "lang_maskLocalizedStrings", "0", CVAR_BOOL, "Masks all localized strings to help debugging.  When set will replace strings with an equal length of W's and ending in an X.  Note: The masking occurs at string table load time." );
 
 			static idCVar jobs_longJobMicroSec( "jobs_longJobMicroSec", "10000", CVAR_INTEGER, "print a warning for jobs that take more than this number of microseconds" );
 			static idCVar jobs_prioritize( "jobs_prioritize", "1", CVAR_BOOL | CVAR_NOCHEAT, "prioritize job lists" );
@@ -433,7 +433,7 @@ idCVar r_useViewBypass( "r_useViewBypass", "1", CVAR_RENDERER | CVAR_INTEGER, "b
 idCVar r_useLightPortalFlow( "r_useLightPortalFlow", "1", CVAR_RENDERER | CVAR_BOOL, "use a more precise area reference determination" );
 idCVar r_singleTriangle( "r_singleTriangle", "0", CVAR_RENDERER | CVAR_BOOL, "only draw a single triangle per primitive" );
 idCVar r_checkBounds( "r_checkBounds", "0", CVAR_RENDERER | CVAR_BOOL, "compare all surface bounds with precalculated ones" );
-idCVar r_useConstantMaterials( "r_useConstantMaterials", "1", CVAR_RENDERER | CVAR_BOOL, "use pre-calculated material registers if possible" );
+
 idCVar r_useSilRemap( "r_useSilRemap", "1", CVAR_RENDERER | CVAR_BOOL, "consider verts with the same XYZ, but different ST the same for shadows" );
 idCVar r_useNodeCommonChildren( "r_useNodeCommonChildren", "1", CVAR_RENDERER | CVAR_BOOL, "stop pushing reference bounds early when possible" );
 idCVar r_useShadowSurfaceScissor( "r_useShadowSurfaceScissor", "1", CVAR_RENDERER | CVAR_BOOL, "scissor shadows by the scissor rect of the interaction surfaces" );
@@ -704,7 +704,7 @@ idCVar net_peer_timeout_loading( "net_peer_timeout_loading", "90000", CVAR_INTEG
 
 			idCVar net_forceDropSnap( "net_forceDropSnap", "0", CVAR_BOOL, "wait on snaps" );
 
-			idCVar sys_lang( "sys_lang", ID_LANG_ENGLISH, CVAR_SYSTEM | CVAR_INIT, "", sysLanguageNames, idCmdSystem::ArgCompletion_String<sysLanguageNames> );
+			
 			idCVar profile_verbose( "profile_verbose", "0", CVAR_BOOL, "Turns on debug spam for profiles" );
 			idCVar saveGame_verbose( "saveGame_verbose", "0", CVAR_BOOL | CVAR_ARCHIVE, "debug spam" );
 idCVar saveGame_checksum( "saveGame_checksum", "1", CVAR_BOOL, "data integrity check" );

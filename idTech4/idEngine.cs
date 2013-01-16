@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
+using System.Linq;
 using System.Reflection;
 using System.Threading;
 
@@ -38,6 +39,7 @@ using Microsoft.Xna.Framework.Input;
 
 using idTech4.Input;
 using idTech4.IO;
+using idTech4.Renderer;
 using idTech4.Services;
 using idTech4.Text;
 
@@ -98,6 +100,9 @@ namespace idTech4
 		private string[] _rawCommandLineArguments;
 		private CommandArguments[] _commandLineArguments = new CommandArguments[] { };
 		private idEventLoop _eventLoop;
+
+		private idMaterial _splashScreen;
+		private idMaterial _whiteMaterial;
 
 		// this is set if the player enables the console, which disables achievements
 		private bool _consoleUsed;
@@ -636,7 +641,9 @@ namespace idTech4
 				fileSystem.BeginLevelLoad("_startup"/* TODO: , saveFile.GetDataPtr(), saveFile.GetAllocated()*/);
 
 				// initialize the declaration manager
-				this.Services.AddService(typeof(IDeclManager), new idDeclManager());
+				IDeclManager declManager = new idDeclManager();
+
+				this.Services.AddService(typeof(IDeclManager), declManager);
 				
 				// init journalling, etc
 				_eventLoop = new idEventLoop();
@@ -677,42 +684,56 @@ namespace idTech4
 				idLog.WriteLine("TODO: REST OF INIT");
 
 				/*// initialize the renderSystem data structures
-				renderSystem->Init();
+				renderSystem->Init();*/
 
-				whiteMaterial = declManager->FindMaterial( "_white" );
+				_whiteMaterial = declManager.FindMaterial( "_white" );
 
-				if ( idStr::Icmp( sys_lang.GetString(), ID_LANG_FRENCH ) == 0 ) {
-					// If the user specified french, we show french no matter what SKU
-					splashScreen = declManager->FindMaterial( "guis/assets/splash/legal_french" );
-				} else if ( idStr::Icmp( defaultLang, ID_LANG_FRENCH ) == 0 ) {
-					// If the lead sku is french (ie: europe), display figs
-					splashScreen = declManager->FindMaterial( "guis/assets/splash/legal_figs" );
-				} else {
-					// Otherwise show it in english
-					splashScreen = declManager->FindMaterial( "guis/assets/splash/legal_english" );
+				string sysLang = cvarSystem.GetString("sys_lang");
+
+				if(sysLang.Equals(idLanguage.French, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					// if the user specified french, we show french no matter what SKU
+					_splashScreen = declManager.FindMaterial("guis/assets/splash/legal_french");
+				}
+				else if(defaultLang.Equals(idLanguage.French, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					// if the lead sku is french (ie: europe), display figs
+					_splashScreen = declManager.FindMaterial("guis/assets/splash/legal_figs");
+				} 
+				else 
+				{
+					// otherwise show it in english
+					_splashScreen = declManager.FindMaterial("guis/assets/splash/legal_english");
 				}
 
-				const int legalMinTime = 4000;
-				const bool showVideo = ( !com_skipIntroVideos.GetBool () && fileSystem->UsingResourceFiles() );
-				if ( showVideo ) {
-					RenderBink( "video\\loadvideo.bik" );
-					RenderSplash();
-					RenderSplash();
-				} else {
-					idLib::Printf( "Skipping Intro Videos!\n" );
+				int legalMinTime = 4000;
+				bool showVideo = ((cvarSystem.GetBool("com_skipIntroVideos") == false) && (fileSystem.UsingResourceFiles == true));
+
+				if(showVideo == true)
+				{
+					idLog.Warning("TODO: RenderBink( \"video\\loadvideo.bik\" );");
+					idLog.WriteLine("TODO: RenderSplash();");
+					idLog.WriteLine("TODO: RenderSplash();");
+				} 
+				else 
+				{
+					idLog.WriteLine("Skipping Intro Videos!");
 					// display the legal splash screen
 					// No clue why we have to render this twice to show up...
-					RenderSplash();
-					RenderSplash();
+					idLog.WriteLine("TODO: RenderSplash();");
+					idLog.WriteLine("TODO: RenderSplash();");
 				}
+				
+				long legalStartTime = this.ElapsedTime;
 
-
-				int legalStartTime = Sys_Milliseconds();
-				declManager->Init2();
+				declManager.RegisterDeclFolder("skins", ".skin", DeclType.Skin);
+				declManager.RegisterDeclFolder("sound", ".sndshd", DeclType.Sound);
 
 				// initialize string database so we can use it for loading messages
 				InitLanguageDict();
 
+				idLog.Warning("TODO: REST OF INIT");
+				/*
 				// spawn the game thread, even if we are going to run without SMP
 				// one meg stack, because it can parse decls from gui surfaces (unfortunately)
 				// use a lower priority so job threads can run on the same core
@@ -828,12 +849,12 @@ namespace idTech4
 							image->PurgeImage();
 						}
 					}
-				}
+				}*/
 
 				idLog.WriteLine("--- Common Initialization Complete ---");
 				idLog.WriteLine("QA Timing IIS: {0:000000}ms", _gameTimer.ElapsedMilliseconds);
 						
-				if(win32.win_notaskkeys.GetInteger())
+				/*if(win32.win_notaskkeys.GetInteger())
 				{
 					DisableTaskKeys(TRUE, FALSE, /*( win32.win_notaskkeys.GetInteger() == 2 )*/ /*FALSE);
 				}*/
@@ -874,6 +895,45 @@ namespace idTech4
 			}
 
 			return false;
+		}
+
+		private void InitLanguageDict()
+		{
+			ICommandSystem cmdSystem = GetService<ICommandSystem>();
+			ICVarSystem cvarSystem = GetService<ICVarSystem>();
+			IFileSystem fileSystem = GetService<IFileSystem>();
+			ILocalization loc = GetService<ILocalization>();
+
+			// D3XP: Instead of just loading a single lang file for each language
+			// we are going to load all files that begin with the language name
+			// similar to the way pak files work. So you can place english001.lang
+			// to add new strings to the english language dictionary
+			idFileList files = fileSystem.ListFiles("strings", ".lang", true);
+			string[] langFiles = files.Files;
+			string langName = cvarSystem.GetString("sys_lang");
+
+			// loop through the list and filter
+			string[] currentLanguageList = langFiles.Where(c => c.StartsWith(langName)).ToArray();
+
+			if(currentLanguageList.Length == 0)
+			{
+				// reset to english and try to load again
+				cvarSystem.Set("sys_lang", idLanguage.English);
+				langName = cvarSystem.GetString("sys_lang");
+				currentLanguageList = langFiles.Where(c => c.StartsWith(langName)).ToArray();
+			}
+
+			loc.Clear();
+
+			foreach(string lang in currentLanguageList)
+			{
+				byte[] buffer = fileSystem.ReadFile(lang);
+
+				if(buffer != null)
+				{
+					loc.Load(BitConverter.ToString(buffer), lang);
+				}
+			}
 		}
 
 		protected override void OnExiting(object sender, EventArgs args)

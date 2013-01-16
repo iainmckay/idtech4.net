@@ -27,7 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 namespace idTech4.Renderer
 {
-	class idImage
+	public class idImage
 	{
 	}
 
