@@ -34,5 +34,14 @@ namespace idTech4.Services
 {
 	public interface IConsole
 	{
+		#region Initialization
+		#region Properties
+		bool IsInitialized { get; }
+		#endregion
+
+		#region Methods
+		void Initialize();
+		#endregion
+		#endregion
 	}
 }

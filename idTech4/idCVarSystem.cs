@@ -82,6 +82,7 @@ namespace idTech4
 	public sealed class idCVarSystem : ICVarSystem
 	{		
 		#region Members
+		private bool _initialized;
 		private CVarFlags _modifiedFlags;
 		private Dictionary<string, idCVar> _cvarList = new Dictionary<string, idCVar>(StringComparer.OrdinalIgnoreCase);
 		#endregion
@@ -168,6 +169,30 @@ namespace idTech4
 
 			return null;
 		}
+		#endregion
+
+		#region Initialization
+		#region Properties
+		public bool IsInitialized
+		{
+			get
+			{
+				return _initialized;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public void Initialize()
+		{
+			if(this.IsInitialized == true)
+			{
+				throw new Exception("idCVarSystem has already been initialized.");
+			}
+
+			_initialized = true;
+		}
+		#endregion
 		#endregion
 
 		#region Misc

@@ -37,6 +37,7 @@ namespace idTech4.Text
 	public class idLocalization : ILocalization
 	{
 		#region Members
+		private bool _initialized;
 		private idLangDict _languageDict = new idLangDict();
 		#endregion
 
@@ -52,6 +53,30 @@ namespace idTech4.Text
 		{
 			_languageDict.Clear();
 		}
+
+		#region Initialization
+		#region Properties
+		public bool IsInitialized
+		{
+			get
+			{
+				return _initialized;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public void Initialize()
+		{
+			if(this.IsInitialized == true)
+			{
+				throw new Exception("idLocalization has already been initialized.");
+			}
+
+			_initialized = true;
+		}
+		#endregion
+		#endregion
 
 		public bool Load(string buffer, string name)
 		{

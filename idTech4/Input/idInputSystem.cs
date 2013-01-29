@@ -36,5 +36,27 @@ namespace idTech4.Input
 {
 	public class idInputSystem : IInputSystem
 	{
+		#region Members
+		private bool _initialized;
+		#endregion
+
+		#region Initialization
+		#region Properties
+		public bool IsInitialized
+		{
+			get
+			{
+				return _initialized;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public void Initialize()
+		{
+			_initialized = true;
+		}
+		#endregion
+		#endregion
 	}
 }

@@ -103,6 +103,16 @@ namespace idTech4.Services
 		DeclType GetDeclTypeFromName(string name);
 		#endregion
 
+		#region Initialization
+		#region Properties
+		bool IsInitialized { get; }
+		#endregion
+
+		#region Methods
+		void Initialize();
+		#endregion
+		#endregion
+
 		#region Misc.
 		void MediaPrint(string format, params object[] args);
 		#endregion

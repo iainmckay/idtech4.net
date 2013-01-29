@@ -40,7 +40,6 @@ namespace idTech4.Platform.Xbox360
 		#endregion
 
 		#region BasePlatform implementation
-
 		#region Properties
 		public override CpuCapabilities CpuCapabilities
 		{

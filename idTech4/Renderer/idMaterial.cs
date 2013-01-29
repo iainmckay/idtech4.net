@@ -2277,14 +2277,10 @@ namespace idTech4.Renderer
 
 		private string ParsePastImageProgram(idLexer lexer)
 		{
-			idLog.Warning("TODO: ParsePastImageProgram");
-			
-			/*idImageProgramParser parser = new idImageProgramParser();
+			idImageProgramParser parser = new idImageProgramParser();
 			parser.ParseImageProgram(lexer);
 
-			return parser.Source;*/
-
-			return string.Empty;
+			return parser.Source;
 		}
 
 		private void AppendToken(StringBuilder b, idToken token)
@@ -3202,13 +3198,13 @@ namespace idTech4.Renderer
 		public bool HasAlphaTest;
 		public int AlphaTestRegister;
 
-		public TextureStage Texture;
+		public TextureStage Texture = new TextureStage();
 		public StageVertexColor VertexColor;
 
 		public bool IgnoreAlphaTest;				// this stage should act as translucent, even if the surface is alpha tested.
 		public float PrivatePolygonOffset;			// a per-stage polygon offset.
 
-		public NewMaterialStage NewStage;	// vertex / fragment program based stage.
+		public NewMaterialStage NewStage = new NewMaterialStage();	// vertex / fragment program based stage.
 
 		public object Clone()
 		{

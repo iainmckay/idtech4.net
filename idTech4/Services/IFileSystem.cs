@@ -48,6 +48,16 @@ namespace idTech4.Services
 		bool ResourceFileExists(string path);
 		#endregion
 
+		#region Initialization
+		#region Properties
+		bool IsInitialized { get; }
+		#endregion
+
+		#region Methods
+		void Initialize();
+		#endregion
+		#endregion
+
 		#region Resource Tracking
 		#region Properties
 		bool BackgroundCacheEnabled { get; set; }

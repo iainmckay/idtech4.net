@@ -25,6 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using idTech4.Input;
 using idTech4.Services;
 
@@ -33,6 +35,8 @@ namespace idTech4
 	public class idConsole : IConsole
 	{
 		#region Members
+		private bool _initialized;
+
 		// allow these constants to be adjusted for HMD
 		private int _localSafeLeft;
 		private int _localSafeRight;
@@ -50,6 +54,30 @@ namespace idTech4
 		#region Constructor
 		public idConsole()
 		{
+
+		}
+		#endregion
+
+		#region IConsole implementation
+		#region Initialization
+		#region Properties
+		public bool IsInitialized
+		{
+			get
+			{
+				return _initialized;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public void Initialize()
+		{
+			if(this.IsInitialized == true)
+			{
+				throw new Exception("idConsole has already been initialized.");
+			}
+
 			_localSafeLeft = 32;
 			_localSafeRight = 608;
 			_localSafeTop = 24;
@@ -62,7 +90,11 @@ namespace idTech4
 
 			_consoleField = new idInputField();
 			_consoleField.WidthInCharacters = _lineWidth;
+
+			_initialized = true;
 		}
+		#endregion
+		#endregion
 		#endregion
 	}
 }

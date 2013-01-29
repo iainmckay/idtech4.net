@@ -96,7 +96,6 @@ namespace idTech4
 		#endregion
 
 		#region Members
-		private GraphicsDeviceManager _graphics;
 		private string[] _rawCommandLineArguments;
 		private CommandArguments[] _commandLineArguments = new CommandArguments[] { };
 		private idEventLoop _eventLoop;
@@ -131,8 +130,7 @@ namespace idTech4
 			this.IsFixedTimeStep = false;
 			this.Content.RootDirectory = idLicensee.BaseGameDirectory;
 
-			_gameTimer = Stopwatch.StartNew();
-			_graphics = new GraphicsDeviceManager(this);		
+			_gameTimer = Stopwatch.StartNew();	
 		}
 		#endregion
 		
@@ -579,15 +577,29 @@ namespace idTech4
 				ICVarSystem cvarSystem = new idCVarSystem();
 				ICommandSystem cmdSystem = new idCommandSystem();	
 				IPlatformService platform = FindPlatform();
-							
+				IFileSystem fileSystem = new idFileSystem();
+				ILocalization localization = new idLocalization();
+				IInputSystem inputSystem = new idInputSystem();
+				IConsole console = new idConsole();
+				IDeclManager declManager = new idDeclManager();
+				IRenderSystem renderSystem = new idRenderSystem();
+																			
 				this.Services.AddService(typeof(ICVarSystem), cvarSystem);
 				this.Services.AddService(typeof(ICommandSystem), cmdSystem);
 				this.Services.AddService(typeof(IPlatformService), platform);
-
-				IFileSystem fileSystem = new idFileSystem();
-
+				this.Services.AddService(typeof(ILocalization), localization);
 				this.Services.AddService(typeof(IFileSystem), fileSystem);
-				
+				this.Services.AddService(typeof(IInputSystem), inputSystem);
+				this.Services.AddService(typeof(IConsole), console);
+				this.Services.AddService(typeof(IDeclManager), declManager);
+				this.Services.AddService(typeof(IRenderSystem), renderSystem);
+
+				cvarSystem.Initialize();
+				cmdSystem.Initialize();
+				platform.Initialize();
+				localization.Initialize();
+				fileSystem.Initialize();
+
 				// register all static CVars
 				CVars.Register();
 
@@ -600,10 +612,9 @@ namespace idTech4
 				idLog.WriteLine(idVersion.ToString(platform));
 
 				// initialize key input/binding, done early so bind command exists
-				this.Services.AddService(typeof(IInputSystem), new idInputSystem());
-
 				// init the console so we can take prints
-				this.Services.AddService(typeof(IConsole), new idConsole());
+				inputSystem.Initialize();
+				console.Initialize();
 
 				// get architecture info
 				Sys_Init();
@@ -641,10 +652,8 @@ namespace idTech4
 				fileSystem.BeginLevelLoad("_startup"/* TODO: , saveFile.GetDataPtr(), saveFile.GetAllocated()*/);
 
 				// initialize the declaration manager
-				IDeclManager declManager = new idDeclManager();
-
-				this.Services.AddService(typeof(IDeclManager), declManager);
-				
+				declManager.Initialize();
+												
 				// init journalling, etc
 				_eventLoop = new idEventLoop();
 
@@ -669,23 +678,20 @@ namespace idTech4
 				StartupVariable(null);
 
 				// if any archived cvars are modified after this, we will trigger a writing of the config file
-				cvarSystem.ClearModifiedFlags(CVarFlags.Archive);
-		
-				// init OpenGL, which will open a window and connect sound and input hardware
-				idLog.WriteLine("TODO: renderSystem->InitOpenGL();");
+				cvarSystem.ClearModifiedFlags(CVarFlags.Archive);		
 
 				// support up to 2 digits after the decimal point
 				_engineHzDenominator = 100 * cvarSystem.GetInt64("com_engineHz");
 				_engineHzLatched = cvarSystem.GetFloat("com_engineHz");
 
+				// init renderer
+				renderSystem.Initialize();
+
 				// start the sound system, but don't do any hardware operations yet
 				idLog.WriteLine("TODO: soundSystem->Init();");
 
 				idLog.WriteLine("TODO: REST OF INIT");
-
-				/*// initialize the renderSystem data structures
-				renderSystem->Init();*/
-
+				
 				_whiteMaterial = declManager.FindMaterial( "_white" );
 
 				string sysLang = cvarSystem.GetString("sys_lang");

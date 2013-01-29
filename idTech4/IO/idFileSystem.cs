@@ -56,6 +56,8 @@ namespace idTech4.IO
 	public class idFileSystem : IFileSystem
 	{
 		#region Members
+		private bool _initialized;
+
 		private string _gameFolder;	// this will be a single name without separators
 		private List<SearchPath> _searchPaths = new List<SearchPath>();
 		private List<idResourceContainer> _resourceContainers = new List<idResourceContainer>();
@@ -70,41 +72,8 @@ namespace idTech4.IO
 		#region Constructor
 		public idFileSystem()
 		{
-			// allow command line parms to override our defaults
-			// we have to specially handle this, because normal command
-			// line variable sets don't happen until after the filesystem
-			// has already been initialized
-			idEngine engine = idEngine.Instance;
 
-			engine.StartupVariable("fs_basepath");
-			engine.StartupVariable("fs_savepath");
-			engine.StartupVariable("fs_game");
-			engine.StartupVariable("fs_game_base");
-
-			ICVarSystem cvarSystem = engine.GetService<ICVarSystem>();
-
-			if(cvarSystem.GetString("fs_basepath") == string.Empty)
-			{
-				cvarSystem.Set("fs_basepath", this.DefaultBasePath);
-			}
-
-			if(cvarSystem.GetString("fs_savepath") == string.Empty)
-			{
-				cvarSystem.Set("fs_savepath", this.DefaultSavePath);
-			}
-
-			// try to start up normally
-			Startup();
-
-			// if we can't find default.cfg, assume that the paths are
-			// busted and error out now, rather than getting an unreadable
-			// graphics screen when the font fails to load
-			// Dedicated servers can run with no outside files at all
-			if(FileExists("default.cfg") == false)
-			{
-				engine.FatalError("Couldn't load default.cfg");
-			}
-		}
+		}		
 		#endregion
 
 		#region Methods
@@ -268,6 +237,65 @@ namespace idTech4.IO
 		}
 		#endregion
 
+		#region Initialization
+		#region Properties
+		public bool IsInitialized
+		{
+			get
+			{
+				return _initialized;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public void Initialize()
+		{
+			if(this.IsInitialized == true)
+			{
+				throw new Exception("idFileSystem has already been initialized.");
+			}
+
+			// allow command line parms to override our defaults
+			// we have to specially handle this, because normal command
+			// line variable sets don't happen until after the filesystem
+			// has already been initialized
+			idEngine engine = idEngine.Instance;
+
+			engine.StartupVariable("fs_basepath");
+			engine.StartupVariable("fs_savepath");
+			engine.StartupVariable("fs_game");
+			engine.StartupVariable("fs_game_base");
+
+			ICVarSystem cvarSystem = engine.GetService<ICVarSystem>();
+
+			if(cvarSystem.GetString("fs_basepath") == string.Empty)
+			{
+				cvarSystem.Set("fs_basepath", this.DefaultBasePath);
+			}
+
+			if(cvarSystem.GetString("fs_savepath") == string.Empty)
+			{
+				cvarSystem.Set("fs_savepath", this.DefaultSavePath);
+			}
+
+			// try to start up normally
+			Startup();
+
+			// if we can't find default.cfg, assume that the paths are
+			// busted and error out now, rather than getting an unreadable
+			// graphics screen when the font fails to load
+			// Dedicated servers can run with no outside files at all
+			if(FileExists("default.cfg") == false)
+			{
+				engine.FatalError("Couldn't load default.cfg");
+			}
+
+			_initialized = true;
+		}
+		#endregion
+		#endregion
+
 		#region Paths
 		#region Properties
 		public string DefaultBasePath
@@ -345,7 +373,7 @@ namespace idTech4.IO
 			{
 				if(part != string.Empty)
 				{
-					list.Add(part);
+					list.Add("*" + part);
 				}
 			}
 
@@ -826,7 +854,7 @@ namespace idTech4.IO
 
 			idLog.DeveloperWriteLine("writing to: {0}", path);
 
-			return File.OpenWrite(path);
+			return File.Open(path, FileMode.Create, FileAccess.Write, FileShare.Read);
 		}
 		#endregion
 		#endregion

@@ -36,6 +36,10 @@ namespace idTech4.Platform
 {
 	public abstract class BasePlatform : IPlatformService
 	{
+		#region Members
+		private bool _initialized;
+		#endregion
+
 		#region Constructor
 		public BasePlatform()
 		{
@@ -115,10 +119,34 @@ namespace idTech4.Platform
 		#endregion
 
 		#region Methods
-		public IRenderBackend CreateRenderBackend(GraphicsDeviceManager deviceManager)
+		public virtual IRenderBackend CreateRenderBackend()
 		{
 			return null;
 		}
+
+		#region Initialization
+		#region Properties
+		public bool IsInitialized
+		{
+			get
+			{
+				return _initialized;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public virtual void Initialize()
+		{
+			if(this.IsInitialized == true)
+			{
+				throw new Exception("BasePlatform has already been initialized.");
+			}
+
+			_initialized = true;
+		}
+		#endregion
+		#endregion
 		#endregion
 		#endregion
 	}

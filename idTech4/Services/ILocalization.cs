@@ -29,6 +29,16 @@ namespace idTech4.Services
 {
 	public interface ILocalization
 	{
+		#region Initialization
+		#region Properties
+		bool IsInitialized { get; }
+		#endregion
+
+		#region Methods
+		void Initialize();
+		#endregion
+		#endregion
+
 		void Clear();
 		string Get(string key);
 		bool Load(string buffer, string name);

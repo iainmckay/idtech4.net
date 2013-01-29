@@ -49,6 +49,8 @@ namespace idTech4
 	public sealed class idCommandSystem : ICommandSystem
 	{
 		#region Members
+		private bool _initialized;
+
 		private int _wait;
 		private StringBuilder _cmdBuffer = new StringBuilder();
 		private Dictionary<string, List<CommandSignature>> _commands = new Dictionary<string, List<CommandSignature>>(StringComparer.OrdinalIgnoreCase);
@@ -63,26 +65,7 @@ namespace idTech4
 		#region Constructor
 		public idCommandSystem()
 		{
-			_acceptedParameterTypes.Add(typeof(Int16),		typeof(Int16CommandParameter));
-			_acceptedParameterTypes.Add(typeof(Int32),		typeof(Int32CommandParameter));
-			_acceptedParameterTypes.Add(typeof(Int64),		typeof(Int64CommandParameter));
- 			_acceptedParameterTypes.Add(typeof(UInt16),		typeof(UInt16CommandParameter));
-			_acceptedParameterTypes.Add(typeof(UInt32),		typeof(UInt32CommandParameter));
-			_acceptedParameterTypes.Add(typeof(UInt64),		typeof(UInt64CommandParameter));
-			_acceptedParameterTypes.Add(typeof(Single),		typeof(SingleCommandParameter));
-			_acceptedParameterTypes.Add(typeof(Double),		typeof(DoubleCommandParameter));
-
-			_acceptedParameterTypes.Add(typeof(String),		typeof(StringCommandParameter));
-			_acceptedParameterTypes.Add(typeof(String[]),	typeof(StringListCommandParameter));
-			_acceptedParameterTypes.Add(typeof(Boolean),	typeof(BoolCommandParameter));
-			_acceptedParameterTypes.Add(typeof(Char),		typeof(CharCommandParameter));
-			_acceptedParameterTypes.Add(typeof(Decimal),	typeof(DecimalCommandParameter));
-			_acceptedParameterTypes.Add(typeof(Byte),		typeof(ByteCommandParameter));
-			_acceptedParameterTypes.Add(typeof(SByte),		typeof(SByteCommandParameter));
-						
-			_acceptedParameterTypes.Add(typeof(Enum),		typeof(EnumCommandParameter));
-		
-			AppDomain.CurrentDomain.AssemblyLoad += new AssemblyLoadEventHandler(OnAssemblyLoad);
+			
 		}
 		#endregion
 
@@ -466,6 +449,51 @@ namespace idTech4
 		{
 			Scan(this.GetType().Assembly);
 		}
+		#endregion
+
+		#region Initialization
+		#region Properties
+		public bool IsInitialized
+		{
+			get
+			{
+				return _initialized;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public void Initialize()
+		{
+			if(this.IsInitialized == true)
+			{
+				throw new Exception("idCommandSystem has already been initialized.");
+			}
+
+			_acceptedParameterTypes.Add(typeof(Int16),		typeof(Int16CommandParameter));
+			_acceptedParameterTypes.Add(typeof(Int32),		typeof(Int32CommandParameter));
+			_acceptedParameterTypes.Add(typeof(Int64),		typeof(Int64CommandParameter));
+ 			_acceptedParameterTypes.Add(typeof(UInt16),		typeof(UInt16CommandParameter));
+			_acceptedParameterTypes.Add(typeof(UInt32),		typeof(UInt32CommandParameter));
+			_acceptedParameterTypes.Add(typeof(UInt64),		typeof(UInt64CommandParameter));
+			_acceptedParameterTypes.Add(typeof(Single),		typeof(SingleCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Double),		typeof(DoubleCommandParameter));
+
+			_acceptedParameterTypes.Add(typeof(String),		typeof(StringCommandParameter));
+			_acceptedParameterTypes.Add(typeof(String[]),	typeof(StringListCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Boolean),	typeof(BoolCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Char),		typeof(CharCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Decimal),	typeof(DecimalCommandParameter));
+			_acceptedParameterTypes.Add(typeof(Byte),		typeof(ByteCommandParameter));
+			_acceptedParameterTypes.Add(typeof(SByte),		typeof(SByteCommandParameter));
+						
+			_acceptedParameterTypes.Add(typeof(Enum),		typeof(EnumCommandParameter));
+		
+			AppDomain.CurrentDomain.AssemblyLoad += new AssemblyLoadEventHandler(OnAssemblyLoad);
+
+			_initialized = true;
+		}
+		#endregion
 		#endregion
 		#endregion
 		#endregion

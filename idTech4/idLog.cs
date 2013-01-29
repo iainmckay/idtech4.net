@@ -237,7 +237,7 @@ namespace idTech4
 			IFileSystem fileSystem = idEngine.Instance.GetService<IFileSystem>();
 
 			// logFile
-			if((cvarSystem != null) && (fileSystem != null)
+			if((cvarSystem.IsInitialized == true) && (fileSystem.IsInitialized == true)
 				&& (cvarSystem.GetInt("logFile") != 0) && (_logFileFailed == false))
 			{
 				if((_logFile == null) && (_recursingLogFileOpen == false))
@@ -336,7 +336,7 @@ namespace idTech4
 		{
 			string msg = string.Format(format, args);
 
-			Debug.WriteLine(msg);;
+			Debug.WriteLine(msg);
 
 			// TODO: IMPORTANT! conbuf_appendtext
 			/*if ( win32.win_outputEditString.GetBool() && idLib::IsMainThread() ) {

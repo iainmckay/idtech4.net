@@ -66,6 +66,7 @@ namespace idTech4.Text
 	public class idDeclManager : IDeclManager
 	{
 		#region Members
+		private bool _initialized;
 		private int _checksum; // checksum of all loaded decl text.
 		private int _indent; // for MediaPrint.
 		private bool _insideLevelLoad;
@@ -83,28 +84,8 @@ namespace idTech4.Text
 		#region Constructor
 		public idDeclManager()
 		{
-			idLog.WriteLine("----- Initializing Decls -----");
 
-			_checksum = 0;
-
-			// decls used throughout the engine
-			RegisterDeclType("table",				DeclType.Table,				new idDeclAllocator<idDeclTable>());
-			RegisterDeclType("material",			DeclType.Material,			new idDeclAllocator<idMaterial>());
-			RegisterDeclType("skin",				DeclType.Skin,				new idDeclAllocator<idDeclSkin>());
-			RegisterDeclType("sound",				DeclType.Sound,				new idDeclAllocator<idSoundMaterial>());
-
-			RegisterDeclType("entityDef",			DeclType.EntityDef,			new idDeclAllocator<idDeclEntity>());
-			RegisterDeclType("mapDef",				DeclType.MapDef,			new idDeclAllocator<idDeclEntity>());
-			RegisterDeclType("fx",					DeclType.Fx,				new idDeclAllocator<idDeclFX>());
-			RegisterDeclType("particle",			DeclType.Particle,			new idDeclAllocator<idDeclParticle>());
-			/*RegisterDeclType("articulatedFigure",	DeclType.ArticulatedFigure,	new idDeclAllocator<idDeclAF>());*/
-			RegisterDeclType("pda",					DeclType.Pda,				new idDeclAllocator<idDeclPDA>());
-			RegisterDeclType("email",				DeclType.Email,				new idDeclAllocator<idDeclEmail>());
-			RegisterDeclType("video",				DeclType.Video,				new idDeclAllocator<idDeclVideo>());
-			RegisterDeclType("audio",				DeclType.Audio,				new idDeclAllocator<idDeclAudio>());
-
-			RegisterDeclFolder("materials", ".mtr", DeclType.Material);
-		}
+		}			
 		#endregion
 
 		#region IDeclManager implementation
@@ -283,6 +264,52 @@ namespace idTech4.Text
 
 			return DeclType.Unknown;
 		}
+		#endregion
+
+		#region Initialization
+		#region Properties
+		public bool IsInitialized
+		{
+			get
+			{
+				return _initialized;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public void Initialize()
+		{
+			if(this.IsInitialized == true)
+			{
+				throw new Exception("idDeclManager has already been initialized.");
+			}
+
+			idLog.WriteLine("----- Initializing Decls -----");
+
+			_checksum = 0;
+
+			// decls used throughout the engine
+			RegisterDeclType("table", DeclType.Table, new idDeclAllocator<idDeclTable>());
+			RegisterDeclType("material", DeclType.Material, new idDeclAllocator<idMaterial>());
+			RegisterDeclType("skin", DeclType.Skin, new idDeclAllocator<idDeclSkin>());
+			RegisterDeclType("sound", DeclType.Sound, new idDeclAllocator<idSoundMaterial>());
+
+			RegisterDeclType("entityDef", DeclType.EntityDef, new idDeclAllocator<idDeclEntity>());
+			RegisterDeclType("mapDef", DeclType.MapDef, new idDeclAllocator<idDeclEntity>());
+			RegisterDeclType("fx", DeclType.Fx, new idDeclAllocator<idDeclFX>());
+			RegisterDeclType("particle", DeclType.Particle, new idDeclAllocator<idDeclParticle>());
+			/*RegisterDeclType("articulatedFigure",	DeclType.ArticulatedFigure,	new idDeclAllocator<idDeclAF>());*/
+			RegisterDeclType("pda", DeclType.Pda, new idDeclAllocator<idDeclPDA>());
+			RegisterDeclType("email", DeclType.Email, new idDeclAllocator<idDeclEmail>());
+			RegisterDeclType("video", DeclType.Video, new idDeclAllocator<idDeclVideo>());
+			RegisterDeclType("audio", DeclType.Audio, new idDeclAllocator<idDeclAudio>());
+
+			RegisterDeclFolder("materials", ".mtr", DeclType.Material);
+
+			_initialized = true;
+		}
+		#endregion
 		#endregion
 
 		#region Misc.

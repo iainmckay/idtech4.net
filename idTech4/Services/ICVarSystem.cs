@@ -41,6 +41,16 @@ namespace idTech4.Services
 		idCVar Find(string name, bool ignoreMissing = false);
 		#endregion
 
+		#region Initialization
+		#region Properties
+		bool IsInitialized { get; }
+		#endregion
+
+		#region Methods
+		void Initialize();
+		#endregion
+		#endregion
+
 		#region Misc.
 		bool Command(CommandArguments args);
 		void ListByFlags(string[] args, CVarFlags flags);

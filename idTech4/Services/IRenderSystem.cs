@@ -10,5 +10,14 @@ namespace idTech4.Services
 	/// </summary>
 	public interface IRenderSystem
 	{
+		#region Initialization
+		#region Properties
+		bool IsInitialized { get; }
+		#endregion
+
+		#region Methods
+		void Initialize();
+		#endregion
+		#endregion
 	}
 }

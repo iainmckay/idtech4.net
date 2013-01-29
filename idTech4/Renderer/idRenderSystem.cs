@@ -31,6 +31,7 @@ using System.Linq;
 using System.Text;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
 
 using idTech4.Services;
 
@@ -71,52 +72,9 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Constructor
-		public idRenderSystem(GraphicsDeviceManager deviceManager)
+		public idRenderSystem()
 		{
-			Clear();
-
-			idLog.WriteLine("------- Initializing renderSystem --------\n");
-
-			// clear all our internal state
-			_viewCount = 1;		// so cleared structures never match viewCount
-								// we used to memset tr, but now that it is a class, we can't, so
-								// there may be other state we need to reset
-
-			_ambientLightVector = new Vector4(0.5f, 0.5f - 0.385f, 0.8925f, 1.0f);
-			_backend = FindBackend(deviceManager);
-
-			idLog.Warning("TODO: _guiModel = new idGuiModel();");
-
-			idLog.Warning("TODO: globalImages->Init();");
-
-			idLog.Warning("TODO: idCinematic::InitCinematic( );");
-
-			// build brightness translation tables
-			idLog.Warning("TODO: R_SetColorMappings();");
-
-			InitMaterials();
-
-			idLog.Warning("TODO: renderModelManager->Init();");
-
-			// set the identity space
-			_identitySpace = new idViewEntity();
-
-			// make sure the tr.unitSquareTriangles data is current in the vertex / index cache
-			idLog.Warning("TODO: if ( unitSquareTriangles == NULL ) { unitSquareTriangles = R_MakeFullScreenTris(); }");
-
-			// make sure the tr.zeroOneCubeTriangles data is current in the vertex / index cache
-			idLog.Warning("TODO: if ( zeroOneCubeTriangles == NULL ) { zeroOneCubeTriangles = R_MakeZeroOneCubeTris(); }");
-
-			// make sure the tr.testImageTriangles data is current in the vertex / index cache
-			idLog.Warning("TODO: if ( testImageTriangles == NULL )  { testImageTriangles = R_MakeTestImageTriangles(); }");
-
-			idLog.Warning("TODO: frontEndJobList = parallelJobManager->AllocJobList( JOBLIST_RENDERER_FRONTEND, JOBLIST_PRIORITY_MEDIUM, 2048, 0, null);");
-
-			// make sure the command buffers are ready to accept the first screen update
-			SwapCommandBuffers();
-
-			idLog.WriteLine("renderSystem initialized.");
-			idLog.WriteLine("--------------------------------------");
+					
 		}
 		#endregion
 
@@ -135,9 +93,79 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Methods
-		private IRenderBackend FindBackend(GraphicsDeviceManager deviceManager)
+		private IRenderBackend FindBackend()
 		{
-			return idEngine.Instance.GetService<IPlatformService>().CreateRenderBackend(deviceManager);
+			return idEngine.Instance.GetService<IPlatformService>().CreateRenderBackend();
+		}
+
+		private void Init()
+		{
+			idLog.WriteLine("------- Initializing renderSystem --------");
+
+			// clear all our internal state
+			_viewCount = 1;		// so cleared structures never match viewCount
+			// we used to memset tr, but now that it is a class, we can't, so
+			// there may be other state we need to reset
+
+			_ambientLightVector = new Vector4(0.5f, 0.5f - 0.385f, 0.8925f, 1.0f);
+			
+			idLog.Warning("TODO: _guiModel = new idGuiModel();");
+
+			idLog.Warning("TODO: globalImages->Init();");
+
+			idLog.Warning("TODO: idCinematic::InitCinematic( );");
+
+			// build brightness translation tables
+			idLog.Warning("TODO: R_SetColorMappings();");
+
+			// allocate the frame data, which may be more if smp is enabled
+			InitFrameData();
+			InitMaterials();
+
+			idLog.Warning("TODO: renderModelManager->Init();");
+
+			// set the identity space
+			_identitySpace = new idViewEntity();
+
+			// make sure the tr.unitSquareTriangles data is current in the vertex / index cache
+			idLog.Warning("TODO: if ( unitSquareTriangles == NULL ) "); //{ unitSquareTriangles = R_MakeFullScreenTris(); }");
+
+			// make sure the tr.zeroOneCubeTriangles data is current in the vertex / index cache
+			idLog.Warning("TODO: if ( zeroOneCubeTriangles == NULL ) "); //{ zeroOneCubeTriangles = R_MakeZeroOneCubeTris(); }");
+
+			// make sure the tr.testImageTriangles data is current in the vertex / index cache
+			idLog.Warning("TODO: if ( testImageTriangles == NULL ) "); // { testImageTriangles = R_MakeTestImageTriangles(); }");
+
+			idLog.Warning("TODO: frontEndJobList = parallelJobManager->AllocJobList( JOBLIST_RENDERER_FRONTEND, JOBLIST_PRIORITY_MEDIUM, 2048, 0, null);");
+
+			// make sure the command buffers are ready to accept the first screen update
+			SwapCommandBuffers();
+
+			idLog.WriteLine("renderSystem initialized.");
+			idLog.WriteLine("--------------------------------------");
+		}
+
+		private void InitBackend()
+		{
+			_initialized = true;
+
+			_backend = FindBackend();
+			_backend.Init();
+		}
+
+		private void InitFrameData()
+		{
+			idLog.Warning("TODO: R_ShutdownFrameData();");
+
+			for(int i = 0; i < _smpFrameData.Length; i++)
+			{
+				_smpFrameData[i] = new idFrameData();
+			}
+			
+			// must be set before calling R_ToggleSmpFrame()
+			_frameData = _smpFrameData[0];
+
+			ToggleSmpFrame();
 		}
 
 		private void InitMaterials()
@@ -423,6 +451,23 @@ namespace idTech4.Renderer
 			_frameData.AddLast(new idEmptyRenderCommand());
 		}
 		#endregion
+
+		#region IRenderSystem implementation
+		#region Initialization
+		public void Initialize()
+		{
+			if(this.IsInitialized == true)
+			{
+				throw new Exception("idRenderSystem has already been initialized.");
+			}
+
+			Clear();
+
+			InitBackend();
+			Init();
+		}
+		#endregion
+		#endregion
 	}
 
 	/// <summary>
@@ -707,5 +752,44 @@ namespace idTech4.Renderer
 
 			return view;
 		}
+	}
+
+	public class idRenderCapabilities
+	{
+		public float ShaderModel;
+
+		public int MaxTextureSize;
+		public int MaxTextureCoords;
+		public int MaxTextureImageUnits;
+		public int MaxTextureAnisotropy;
+
+		public bool AnisotropicAvailable;
+		public bool MultiTextureAvailable;
+		public bool	OcclusionQueryAvailable;
+		public bool TextureCompressionAvailable;
+		public bool TextureNonPowerOfTwoAvailable;
+		
+		public int UniformBufferOffsetAlignment;
+		
+		public int ColorBits;
+		public int DepthBits;
+		public int StencilBits;
+
+		//stereo3DMode_t		stereo3Dmode;
+		public int NativeScreenWidth; // this is the native screen width resolution of the renderer
+		public int NativeScreenHeight; // this is the native screen height resolution of the renderer
+
+		public int DisplayFrequency;
+
+		public int IsFullscreen;					// monitor number
+		public bool	IsStereoPixelFormat;
+		public bool	IstereoPixelFormatAvailable;
+		public int Multisamples;
+
+		// Screen separation for stereoscopic rendering is set based on this.
+		// PC vid code sets this, converting from diagonals / inches / whatever as needed.
+		// If the value can't be determined, set something reasonable, like 50cm.
+		public float PhysicalScreenWidthInCentimeters;	
+		public float PixelAspect;
 	}
 }

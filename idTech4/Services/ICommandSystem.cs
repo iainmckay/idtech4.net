@@ -35,6 +35,16 @@ namespace idTech4.Services
 {
 	interface ICommandSystem
 	{
+		#region Initialization
+		#region Properties
+		bool IsInitialized { get; }
+		#endregion
+
+		#region Methods
+		void Initialize();
+		#endregion
+		#endregion
+
 		/// <summary>
 		/// Get/set the number of frames to wait before processing more commands.
 		/// </summary>
