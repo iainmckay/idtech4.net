@@ -748,6 +748,14 @@ namespace idTech4.IO
 			}
 		}
 
+		public bool InProductionMode 
+		{ 
+			get
+			{
+				return ((this.UsingResourceFiles == true) | (idEngine.Instance.GetService<ICVarSystem>().GetInt("com_productionMode") != 0));
+			}
+		}
+
 		public bool UsingResourceFiles
 		{
 			get

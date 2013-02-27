@@ -62,6 +62,7 @@ namespace idTech4.Services
 		#region Properties
 		bool BackgroundCacheEnabled { get; set; }
 
+		bool InProductionMode { get; }
 		bool UsingResourceFiles { get; }
 		#endregion
 

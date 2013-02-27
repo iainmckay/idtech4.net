@@ -111,7 +111,11 @@ namespace idTech4.Renderer
 			
 			idLog.Warning("TODO: _guiModel = new idGuiModel();");
 
-			idLog.Warning("TODO: globalImages->Init();");
+			idImageManager imageManager = new idImageManager();
+
+			idEngine.Instance.Services.AddService(typeof(IImageManager), imageManager);
+
+			imageManager.Init();
 
 			idLog.Warning("TODO: idCinematic::InitCinematic( );");
 
@@ -279,14 +283,14 @@ namespace idTech4.Renderer
 			return SwapCommandBuffers_FinishCommandBuffers();
 		}
 
-		private void SwapCommandBuffers_FinishRendering(out ulong frontEnd, out ulong backEnd, out ulong shadow, out ulong gpu)
+		public void SwapCommandBuffers_FinishRendering(out ulong frontEnd, out ulong backEnd, out ulong shadow, out ulong gpu)
 		{
 			// TODO: SCOPED_PROFILE_EVENT( "SwapCommandBuffers" );
 
-			gpu = 0;		// until shown otherwise
+			gpu      = 0;		// until shown otherwise
 			frontEnd = 0;
-			backEnd = 0;
-			shadow = 0;
+			backEnd  = 0;
+			shadow   = 0;
 		
 			if(this.IsInitialized == false)
 			{
@@ -318,8 +322,8 @@ namespace idTech4.Renderer
 			// save out timing information
 			// TODO: timing information
 			frontEnd = 0;
-			backEnd = 0;
-			shadow = 0;
+			backEnd  = 0;
+			shadow   = 0;
 
 			/**frontEndMicroSec = pc.frontEndMicroSec;
 			*backEndMicroSec = backEnd.pc.totalMicroSec;

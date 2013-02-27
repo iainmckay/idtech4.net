@@ -10,7 +10,7 @@
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <XnaFrameworkVersion>v4.0</XnaFrameworkVersion>
     <OutputPath>bin\$(Platform)\$(Configuration)</OutputPath>
-    <ContentRootDirectory>Content</ContentRootDirectory>
+    <ContentRootDirectory>base</ContentRootDirectory>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
     <PlatformTarget>x86</PlatformTarget>
@@ -40,6 +40,589 @@
     <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.VideoImporters, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=MSIL">
       <Private>False</Private>
     </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="materials\aaduffytest.mtr">
+      <Name>aaduffytest</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\adam.mtr">
+      <Name>adam</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\alphalabs.mtr">
+      <Name>alphalabs</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\andy.mtr">
+      <Name>andy</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\atest.mtr">
+      <Name>atest</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\base_door.mtr">
+      <Name>base_door</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\base_floor.mtr">
+      <Name>base_floor</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\base_light.mtr">
+      <Name>base_light</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\base_trim.mtr">
+      <Name>base_trim</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\base_wall.mtr">
+      <Name>base_wall</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\bfgedition.mtr">
+      <Name>bfgedition</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\bjames.mtr">
+      <Name>bjames</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\bloodstone.mtr">
+      <Name>bloodstone</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\bmatt.mtr">
+      <Name>bmatt</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\brett.mtr">
+      <Name>brett</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\caves.mtr">
+      <Name>caves</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\cavesd3xp.mtr">
+      <Name>cavesd3xp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\characters.mtr">
+      <Name>characters</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\char_common.mtr">
+      <Name>char_common</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\char_common2.mtr">
+      <Name>char_common2</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\ctf.mtr">
+      <Name>ctf</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\c_bmatt.mtr">
+      <Name>c_bmatt</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3le.mtr">
+      <Name>d3le</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xp-decals.mtr">
+      <Name>d3xp-decals</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xp.mtr">
+      <Name>d3xp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xpchang.mtr">
+      <Name>d3xpchang</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xpmp.mtr">
+      <Name>d3xpmp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xpobject.mtr">
+      <Name>d3xpobject</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xppatrick.mtr">
+      <Name>d3xppatrick</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xpsteve.mtr">
+      <Name>d3xpsteve</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xp_artifact.mtr">
+      <Name>d3xp_artifact</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xp_baselight.mtr">
+      <Name>d3xp_baselight</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xp_lights.mtr">
+      <Name>d3xp_lights</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\d3xp_loading.mtr">
+      <Name>d3xp_loading</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\david.mtr">
+      <Name>david</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\decals.mtr">
+      <Name>decals</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\decals2.mtr">
+      <Name>decals2</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\decalsd3xp.mtr">
+      <Name>decalsd3xp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\door.mtr">
+      <Name>door</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\duffytest.mtr">
+      <Name>duffytest</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\fogs.mtr">
+      <Name>fogs</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\forgotten.mtr">
+      <Name>forgotten</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\gamebearshoot.mtr">
+      <Name>gamebearshoot</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\gamessd.mtr">
+      <Name>gamessd</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\gfx.mtr">
+      <Name>gfx</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\glass.mtr">
+      <Name>glass</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\glass_d3ex.mtr">
+      <Name>glass_d3ex</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\grabber.mtr">
+      <Name>grabber</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\guis.mtr">
+      <Name>guis</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\hell.mtr">
+      <Name>hell</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\helld3xp.mtr">
+      <Name>helld3xp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\hud.mtr">
+      <Name>hud</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\invisible.mtr">
+      <Name>invisible</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\jake.mtr">
+      <Name>jake</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\jerry.mtr">
+      <Name>jerry</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\kentest.mtr">
+      <Name>kentest</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\kevin.mtr">
+      <Name>kevin</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\ktest.mtr">
+      <Name>ktest</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\lab.mtr">
+      <Name>lab</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\lab_floor.mtr">
+      <Name>lab_floor</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\lights.mtr">
+      <Name>lights</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\mal.mtr">
+      <Name>mal</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\male_npc_hazmat2.mtr">
+      <Name>male_npc_hazmat2</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\mapobjects.mtr">
+      <Name>mapobjects</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\mapobjects_le.mtr">
+      <Name>mapobjects_le</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\maxtextures.mtr">
+      <Name>maxtextures</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\models_characters.mtr">
+      <Name>models_characters</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\monsters.mtr">
+      <Name>monsters</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\monster_bruiser.mtr">
+      <Name>monster_bruiser</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\monster_hunter_berzerker.mtr">
+      <Name>monster_hunter_berzerker</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\monster_hunter_helltime.mtr">
+      <Name>monster_hunter_helltime</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\monster_hunter_invun.mtr">
+      <Name>monster_hunter_invun</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\monster_vulgar.mtr">
+      <Name>monster_vulgar</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\morgue.mtr">
+      <Name>morgue</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\mp.mtr">
+      <Name>mp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\mp_gui.mtr">
+      <Name>mp_gui</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\mp_lights.mtr">
+      <Name>mp_lights</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\mre.mtr">
+      <Name>mre</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\object.mtr">
+      <Name>object</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\object_d3xp.mtr">
+      <Name>object_d3xp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\outside.mtr">
+      <Name>outside</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\pat.mtr">
+      <Name>pat</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\patd.mtr">
+      <Name>patd</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\patricktest.mtr">
+      <Name>patricktest</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\patrick_d3ex.mtr">
+      <Name>patrick_d3ex</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\pdtest.mtr">
+      <Name>pdtest</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\phobos_mapobjects.mtr">
+      <Name>phobos_mapobjects</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\phook.mtr">
+      <Name>phook</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\phookyou.mtr">
+      <Name>phookyou</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\recyc_door.mtr">
+      <Name>recyc_door</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\recyc_floor.mtr">
+      <Name>recyc_floor</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\recyc_light.mtr">
+      <Name>recyc_light</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\recyc_trim.mtr">
+      <Name>recyc_trim</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\recyc_wall.mtr">
+      <Name>recyc_wall</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\rock.mtr">
+      <Name>rock</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\rockd3xp.mtr">
+      <Name>rockd3xp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\scabby.mtr">
+      <Name>scabby</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\senetemp.mtr">
+      <Name>senetemp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\sfx.mtr">
+      <Name>sfx</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\sfxd3xp.mtr">
+      <Name>sfxd3xp</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\sfx_multiplayer.mtr">
+      <Name>sfx_multiplayer</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\shaderdemo.mtr">
+      <Name>shaderdemo</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\shwood.mtr">
+      <Name>shwood</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\skies.mtr">
+      <Name>skies</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\smf.mtr">
+      <Name>smf</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\sound.mtr">
+      <Name>sound</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\specialcase.mtr">
+      <Name>specialcase</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\stevetest.mtr">
+      <Name>stevetest</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\stone.mtr">
+      <Name>stone</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\ted.mtr">
+      <Name>ted</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\ted_artifacts.mtr">
+      <Name>ted_artifacts</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\ted_autopsy.mtr">
+      <Name>ted_autopsy</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\testinteractions.mtr">
+      <Name>testinteractions</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\tim.mtr">
+      <Name>tim</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\tools.mtr">
+      <Name>tools</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\tw_r.mtr">
+      <Name>tw_r</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\tw_scan.mtr">
+      <Name>tw_scan</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\vehicles.mtr">
+      <Name>vehicles</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\video.mtr">
+      <Name>video</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\view_models.mtr">
+      <Name>view_models</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\vp_d3ex.mtr">
+      <Name>vp_d3ex</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\vp_materials.mtr">
+      <Name>vp_materials</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\washroom.mtr">
+      <Name>washroom</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\weapons.mtr">
+      <Name>weapons</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\woodd.mtr">
+      <Name>woodd</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\xp_cin_marines.mtr">
+      <Name>xp_cin_marines</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\xsky.mtr">
+      <Name>xsky</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="materials\zgraeme.mtr">
+      <Name>zgraeme</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\textures\black#__0200.bimage">
+      <Name>black#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4.ContentPipeline.BImage\idTech4.ContentPipeline.BImage.csproj">
+      <Project>{F1194E87-8160-4253-8465-E6416B44FA06}</Project>
+      <Name>idTech4.ContentPipeline.BImage</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="default.cfg">
+      <Name>default</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\guis\assets\white#__0000.bimage">
+      <Name>white#__0000</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\white#__0200.bimage">
+      <Name>white#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\guis\assets\dot#__0200.bimage">
+      <Name>dot#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\_black#__0200.bimage">
+      <Name>_black#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\_white#__0200.bimage">
+      <Name>_white#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\textures\loadingicon2#__0200.bimage">
+      <Name>loadingicon2#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\textures\loadingicon3#__0200.bimage">
+      <Name>loadingicon3#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\textures\bigchars#__0200.bimage">
+      <Name>bigchars#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
   <!--  To modify your build process, add your task inside one of the targets below and uncomment it. 

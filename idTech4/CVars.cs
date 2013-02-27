@@ -52,14 +52,17 @@ namespace idTech4
 			cvarSystem.Register("com_compressDemos",		"1", "Compression scheme for demo files\n0: None    (Fast, large files)\n1: LZW     (Fast to compress, Fast to decompress, medium/small files)\n2: LZSS    (Slow to compress, Fast to decompress, small files)\n3: Huffman (Fast to compress, Slow to decompress, medium files)\nSee also: The 'CompressDemo' command", CVarFlags.System | CVarFlags.Integer | CVarFlags.Archive);
 			cvarSystem.Register("com_deltaTimeClamp",		"50", "don't process more than this time in a single frame",	CVarFlags.Integer);
 			cvarSystem.Register("com_engineHz",				"60", 10.0f, 1024.0f, "Frames per second the engine runs at",	CVarFlags.Float | CVarFlags.Archive);
+			cvarSystem.Register("com_fixedTic",				"0", "run a single game frame per render frame",			CVarFlags.Bool);
 			cvarSystem.Register("com_japaneseCensorship",	"0", "Enable Japanese censorship",								CVarFlags.NoCheat);
 			cvarSystem.Register("com_journal",				"0", 0, 2, "1 = record journal, 2 = play back journal",			CVarFlags.Init | CVarFlags.System, new ArgCompletion_Integer(0, 2));
 			cvarSystem.Register("com_logDemos",				"0", "Write demo.log with debug information in it",				CVarFlags.System | CVarFlags.Bool);
+			cvarSystem.Register("com_noSleep",				"0", "don't sleep if the game is running too fast",				CVarFlags.Bool);
 			cvarSystem.Register("com_preloadDemos",			"0", "Load the whole demo in to RAM before running it",			CVarFlags.System| CVarFlags.Bool | CVarFlags.Archive);
 			cvarSystem.Register("com_productionMode",		"0", "0 - no special behavior, 1 - building a production build, 2 - running a production build", CVarFlags.System | CVarFlags.Bool);
 			cvarSystem.Register("com_showFPS",				"0", "show frames rendered per second",							CVarFlags.Bool | CVarFlags.System | CVarFlags.Archive | CVarFlags.NoCheat);
 			cvarSystem.Register("com_showMemoryUsage",		"0", "show total and per frame memory usage",					CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);
 			cvarSystem.Register("com_skipIntroVideos",		"0", "skips intro videos",										CVarFlags.Bool);
+			cvarSystem.Register("com_smp",					"1", "run the game and draw code in a separate thread",			CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);
 			cvarSystem.Register("com_speeds",				"0", "show engine timings",										CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);			
 			cvarSystem.Register("com_timestampPrints",		"0", 0, 2, "print time with each console print, 1 = msec, 2 = sec", CVarFlags.System, new ArgCompletion_Integer(0, 2));
 			cvarSystem.Register("com_updateLoadSize",		"0", "update the load size after loading a map",				CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);
@@ -130,6 +133,7 @@ namespace idTech4
 			cvarSystem.Register("r_showSilhouette",				"0",		"highlight edges that are casting shadow planes",			CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_showSurfaces",				"0",		"report surface/light/shadow counts",						CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_showSurfaceInfo",			"0",		"show surface material name under crosshair",				CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_showSwapBuffers",			"0",		"Show timings from GL_BlockingSwapBuffers",					CVarFlags.Bool); 
 			cvarSystem.Register("r_showTangentSpace",			"0", 0, 3,	"shade triangles by tangent space, 1 = use 1st tangent vector, 2 = use 2nd tangent vector, 3 = use normal vector", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
 			cvarSystem.Register("r_showTexturePolarity",		"0",		"shade triangles by texture area polarity",					CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_showTextureVectors",			"0",		"if > 0 draw each triangles texture (tangent) vectors",		CVarFlags.Renderer | CVarFlags.Float);
@@ -167,6 +171,8 @@ namespace idTech4
 			cvarSystem.Register("r_skipSuppress",				"0",		"ignore the per-view suppressions",							CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_skipTranslucent",			"0",		"skip the translucent interaction rendering",				CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_skipUpdates",				"0",		"1 = don't accept any entity or light updates, making everything static", CVarFlags.Renderer | CVarFlags.Bool);
+
+			cvarSystem.Register("r_swapInterval",				"1",		"0 = tear, 1 = swap-tear where available, 2 = always v-sync", CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
 
 			cvarSystem.Register("r_useConstantMaterials",		"1",		"use pre-calculated material registers if possible",		CVarFlags.ReadOnly | CVarFlags.Bool);
 			cvarSystem.Register("r_useEntityPortalCulling",		"1", 0, 2,	"0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 2));
@@ -258,9 +264,7 @@ idCVar net_inviteOnly( "net_inviteOnly", "1", CVAR_BOOL | CVAR_ARCHIVE, "whether
 
 			
 
-idCVar com_fixedTic( "com_fixedTic", DEFAULT_FIXED_TIC, CVAR_BOOL, "run a single game frame per render frame" );
-idCVar com_noSleep( "com_noSleep", DEFAULT_NO_SLEEP, CVAR_BOOL, "don't sleep if the game is running too fast" );
-idCVar com_smp( "com_smp", "1", CVAR_BOOL|CVAR_SYSTEM|CVAR_NOCHEAT, "run the game and draw code in a separate thread" );
+
 idCVar com_aviDemoSamples( "com_aviDemoSamples", "16", CVAR_SYSTEM, "" );
 idCVar com_aviDemoWidth( "com_aviDemoWidth", "256", CVAR_SYSTEM, "" );
 idCVar com_aviDemoHeight( "com_aviDemoHeight", "256", CVAR_SYSTEM, "" );
@@ -388,7 +392,7 @@ idCVar stereoRender_warpParmZ( "stereoRender_warpParmZ", "0", CVAR_RENDERER | CV
 idCVar stereoRender_warpParmW( "stereoRender_warpParmW", "0", CVAR_RENDERER | CVAR_FLOAT | CVAR_ARCHIVE, "development parm" );
 idCVar stereoRender_warpTargetFraction( "stereoRender_warpTargetFraction", "1.0", CVAR_RENDERER | CVAR_FLOAT | CVAR_ARCHIVE, "fraction of half-width the through-lens view covers" );
 
-idCVar r_showSwapBuffers( "r_showSwapBuffers", "0", CVAR_BOOL, "Show timings from GL_BlockingSwapBuffers" ); 
+
 idCVar r_syncEveryFrame( "r_syncEveryFrame", "1", CVAR_BOOL, "Don't let the GPU buffer execution past swapbuffers" ); 
 
 
@@ -448,10 +452,9 @@ idCVar r_useStateCaching( "r_useStateCaching", "1", CVAR_RENDERER | CVAR_BOOL, "
 
 idCVar r_znear( "r_znear", "3", CVAR_RENDERER | CVAR_FLOAT, "near Z clip plane distance", 0.001f, 200.0f );
 
-idCVar r_ignoreGLErrors( "r_ignoreGLErrors", "1", CVAR_RENDERER | CVAR_BOOL, "ignore GL errors" );
-idCVar r_swapInterval( "r_swapInterval", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_INTEGER, "0 = tear, 1 = swap-tear where available, 2 = always v-sync" );
+idCVar r_ignoreGLErrors( "r_ignoreGLErrors", "1", CVAR_RENDERER | CVAR_BOOL, "ignore GL errors" );*/
 
-idCVar r_gamma( "r_gamma", "1.0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT, "changes gamma tables", 0.5f, 3.0f );
+/*idCVar r_gamma( "r_gamma", "1.0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT, "changes gamma tables", 0.5f, 3.0f );
 idCVar r_brightness( "r_brightness", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT, "changes gamma tables", 0.5f, 2.0f );
 
 idCVar r_jitter( "r_jitter", "0", CVAR_RENDERER | CVAR_BOOL, "randomly subpixel jitter the projection matrix" );

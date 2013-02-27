@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
+﻿using System.Collections.Generic;
+
+using idTech4.Renderer;
 
 namespace idTech4.Services
 {
@@ -17,6 +16,8 @@ namespace idTech4.Services
 
 		#region Methods
 		void Initialize();
+		LinkedListNode<idRenderCommand> SwapCommandBuffers(out ulong frontEnd, out ulong backEnd, out ulong shadow, out ulong gpu);
+		void SwapCommandBuffers_FinishRendering(out ulong frontEnd, out ulong backEnd, out ulong shadow, out ulong gpu);
 		#endregion
 		#endregion
 	}

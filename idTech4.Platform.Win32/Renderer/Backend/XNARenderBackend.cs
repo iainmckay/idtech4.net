@@ -103,9 +103,9 @@ namespace idTech4.Platform.Win32.Renderer.Backend
 		/// </summary>
 		public void BlockingSwapBuffers()
 		{
-			idLog.Warning("TODO: RENDERLOG_PRINTF( \"***************** GL_BlockingSwapBuffers *****************\n\n\n\" );");
+			idLog.Warning("TODO: RENDERLOG_PRINTF( \"***************** GL_BlockingSwapBuffers *****************\n\n\n\n" );
 
-			idEngine engine = idEngine.Instance;
+			idEngine engine        = idEngine.Instance;
 			ICVarSystem cvarSystem = engine.GetService<ICVarSystem>();
 
 			long beforeFinish = engine.ElapsedTime;
@@ -353,7 +353,7 @@ safeMode:
 		{
 			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
 
-			idLog.WriteLine("Initializing render subsystem with multisamples:{0} stereo:{1} fullscreen:{2}", multiSamples, fullScreen, stereo);
+			idLog.WriteLine("Initializing render subsystem with multisamples:{0} stereo:{1} fullscreen:{2}", multiSamples, stereo ? 1 : 0, fullScreen);
 
 			// save the hardware gamma so it can be restored on exit
 			idLog.Warning("TODO: GLimp_SaveGamma");

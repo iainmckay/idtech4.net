@@ -30,6 +30,7 @@ using System.Text;
 
 using Microsoft.Xna.Framework.Graphics;
 
+using idTech4.Services;
 using idTech4.Renderer;
 
 namespace idTech4.Text
@@ -116,7 +117,7 @@ namespace idTech4.Text
 			idToken token = _lexer.ReadToken();			
 			string tokenLower = token.ToString().ToLower();
 
-			// Since all interaction shaders now assume YCoCG diffuse textures.  We replace all entries for the intrinsic 
+			// ince all interaction shaders now assume YCoCG diffuse textures.  We replace all entries for the intrinsic 
 			// _black texture to the black texture on disk.  Doing this will cause a YCoCG compliant texture to be generated.
 			// Without a YCoCG compliant black texture we will get color artifacts for any interaction
 			// material that specifies the _black texture.
@@ -369,9 +370,7 @@ namespace idTech4.Text
 			}
 
 			// load it as an image
-			idLog.Warning("TODO: return idE.ImageManager.LoadImage(token.ToString(), ref timeStamp, true);");
-
-			return null;
+			return idEngine.Instance.GetService<IImageManager>().LoadImage(token.ToString(), ref timeStamp);
 		}
 		#endregion
 		#endregion

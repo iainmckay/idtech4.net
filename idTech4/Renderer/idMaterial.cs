@@ -584,6 +584,8 @@ namespace idTech4.Renderer
 		/// <param name="lexer"></param>
 		private void ParseMaterial(idLexer lexer)
 		{
+			IImageManager imageManager = idEngine.Instance.GetService<IImageManager>();
+
 			_registerCount = PredefinedRegisterCount; // leave space for the parms to be copied in.
 			_parsingData.RegistersAreConstant = true;
 
@@ -640,7 +642,7 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "polygonoffset")
 				{
-					this.MaterialFlag = Renderer.MaterialFlags.PolygonOffset;
+					this.MaterialFlag = MaterialFlags.PolygonOffset;
 
 					if((token = lexer.ReadTokenOnLine()) == null)
 					{
@@ -666,11 +668,11 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "noselfshadow")
 				{
-					this.MaterialFlag = Renderer.MaterialFlags.NoSelfShadow;
+					this.MaterialFlag = MaterialFlags.NoSelfShadow;
 				}
 				else if(tokenLower == "noportalfog")
 				{
-					this.MaterialFlag = Renderer.MaterialFlags.NoPortalFog;
+					this.MaterialFlag = MaterialFlags.NoPortalFog;
 				}
 				// forceShadows allows nodraw surfaces to cast shadows
 				else if(tokenLower == "forceshadows")
@@ -759,7 +761,7 @@ namespace idTech4.Renderer
 				// light volumes
 				else if(tokenLower == "lightfalloffimage")
 				{
-					idLog.Warning("TODO: _lightFalloffImage = ImageManager.ImageFromFile(ParsePastImageProgram(lexer), TextureFilter.Default, TextureRepeat.Clamp, TextureUsage.Default);");
+					_lightFalloffImage = imageManager.ImageFromFile(ParsePastImageProgram(lexer), TextureFilter.Default, TextureRepeat.Clamp, TextureUsage.Default);
 				}
 				// guisurf <guifile> | guisurf entity
 				// an entity guisurf must have an idUserInterface
@@ -1453,7 +1455,8 @@ namespace idTech4.Renderer
 
 		private void ParseStage(idLexer lexer, TextureRepeat textureRepeatDefault)
 		{
-			IDeclManager declManager = idEngine.Instance.GetService<IDeclManager>();
+			IDeclManager declManager   = idEngine.Instance.GetService<IDeclManager>();
+			IImageManager imageManager = idEngine.Instance.GetService<IImageManager>();
 
 			TextureFilter textureFilter = TextureFilter.Default;
 			TextureRepeat textureRepeat = textureRepeatDefault;
@@ -2013,17 +2016,17 @@ namespace idTech4.Renderer
 			// now load the image with all the parms we parsed
 			if(string.IsNullOrEmpty(imageName) == false)
 			{
-				idLog.Warning("TODO: materialStage.Texture.Image = ImageManager.ImageFromFile(imageName, textureFilter, textureRepeat, textureDepth, cubeMap);");
+				materialStage.Texture.Image = imageManager.ImageFromFile(imageName, textureFilter, textureRepeat, textureDepth, cubeMap);
 
 				if(materialStage.Texture.Image == null)
 				{
-					idLog.Warning("TODO: materialStage.Texture.Image = ImageManager.DefaultImage;");
+					materialStage.Texture.Image = imageManager.DefaultImage;
 				}
 			}
 			else if(/*TODO: !ts->cinematic &&*/ (materialStage.Texture.Dynamic == 0) && (materialStage.NewStage.IsEmpty == true))
 			{
 				idLog.Warning("material '{0}' had stage with no image", this.Name);
-				idLog.Warning("TODO: materialStage.Texture.Image = ImageManager.DefaultImage;");
+				materialStage.Texture.Image = imageManager.DefaultImage;
 			}
 
 			// successfully parsed a stage.

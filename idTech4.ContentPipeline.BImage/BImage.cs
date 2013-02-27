@@ -191,13 +191,13 @@ namespace idTech4.ContentPipeline.BImage
 			public bool LoadFrom(BinaryReader r)
 			{
 				this.SourceFileTime = IPAddress.NetworkToHostOrder(r.ReadInt64());
-				this.HeaderMagic = IPAddress.NetworkToHostOrder(r.ReadInt32());
-				this.TextureType = (BImageType) IPAddress.NetworkToHostOrder(r.ReadInt32());
-				this.Format = (BImageFormat) IPAddress.NetworkToHostOrder(r.ReadInt32());
-				this.ColorFormat = (BImageColorFormat) IPAddress.NetworkToHostOrder(r.ReadInt32());
-				this.Width = IPAddress.NetworkToHostOrder(r.ReadInt32());
-				this.Height = IPAddress.NetworkToHostOrder(r.ReadInt32());
-				this.LevelCount = IPAddress.NetworkToHostOrder(r.ReadInt32());
+				this.HeaderMagic    = IPAddress.NetworkToHostOrder(r.ReadInt32());
+				this.TextureType    = (BImageType) IPAddress.NetworkToHostOrder(r.ReadInt32());
+				this.Format         = (BImageFormat) IPAddress.NetworkToHostOrder(r.ReadInt32());
+				this.ColorFormat    = (BImageColorFormat) IPAddress.NetworkToHostOrder(r.ReadInt32());
+				this.Width          = IPAddress.NetworkToHostOrder(r.ReadInt32());
+				this.Height         = IPAddress.NetworkToHostOrder(r.ReadInt32());
+				this.LevelCount     = IPAddress.NetworkToHostOrder(r.ReadInt32());
 
 				return true;
 			}
@@ -269,10 +269,10 @@ namespace idTech4.ContentPipeline.BImage
 		#region Loading
 		public bool LoadFrom(BinaryReader r, BImageFormat format)
 		{
-			_level = IPAddress.NetworkToHostOrder(r.ReadInt32());
-			_destZ = IPAddress.NetworkToHostOrder(r.ReadInt32());
-			_width = IPAddress.NetworkToHostOrder(r.ReadInt32());
-			_height = IPAddress.NetworkToHostOrder(r.ReadInt32());
+			_level    = IPAddress.NetworkToHostOrder(r.ReadInt32());
+			_destZ    = IPAddress.NetworkToHostOrder(r.ReadInt32());
+			_width    = IPAddress.NetworkToHostOrder(r.ReadInt32());
+			_height   = IPAddress.NetworkToHostOrder(r.ReadInt32());
 			_dataSize = IPAddress.NetworkToHostOrder(r.ReadInt32());
 
 			Debug.Assert(_dataSize > 0);
@@ -293,19 +293,19 @@ namespace idTech4.ContentPipeline.BImage
 		{
 			switch(format)
 			{
-				case BImageFormat.None: return 0;
-				case BImageFormat.RGBA8: return 32;
-				case BImageFormat.XRGB8: return 32;
-				case BImageFormat.RGB565: return 16;
-				case BImageFormat.L8A8: return 16;
-				case BImageFormat.Alpha: return 8;
+				case BImageFormat.None:       return 0;
+				case BImageFormat.RGBA8:      return 32;
+				case BImageFormat.XRGB8:      return 32;
+				case BImageFormat.RGB565:     return 16;
+				case BImageFormat.L8A8:       return 16;
+				case BImageFormat.Alpha:      return 8;
 				case BImageFormat.Luminance8: return 8;
 				case BImageFormat.Intensity8: return 8;
-				case BImageFormat.Dxt1: return 4;
-				case BImageFormat.Dxt5: return 8;
-				case BImageFormat.Depth: return 32;
-				case BImageFormat.X16: return 16;
-				case BImageFormat.Y16X16: return 32;
+				case BImageFormat.Dxt1:       return 4;
+				case BImageFormat.Dxt5:       return 8;
+				case BImageFormat.Depth:      return 32;
+				case BImageFormat.X16:        return 16;
+				case BImageFormat.Y16X16:     return 32;
 
 				default:
 					return 0;
