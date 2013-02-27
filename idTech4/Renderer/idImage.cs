@@ -345,7 +345,13 @@ namespace idTech4.Renderer
 			name = Path.Combine(Path.GetDirectoryName(name), Path.GetFileNameWithoutExtension(name));
 			name += string.Format("#__{0:00}{1:00}", (int) usage, (int) cubeFiles);
 			
-			return "generated/images/" + name;
+			name = "generated/images/" + name;
+			name = name.Replace("(", "/")
+					.Replace(",", "/")
+					.Replace(")", "")
+					.Replace(" ", "");
+
+			return name;
 		}
 		#endregion
 		#endregion
