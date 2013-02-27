@@ -105,6 +105,19 @@ namespace idTech4.ContentPipeline.BImage
 					}
 					break;
 
+				case BImageFormat.RGB565:
+					switch(image.ColorFormat)
+					{
+						case BImageColorFormat.Default:
+							content = new PixelBitmapContent<Bgr565>(imageData.Width, imageData.Height);
+							content.SetPixelData(imageData.Data);
+							break;
+
+						default:
+							throw new NotSupportedException(string.Format("{0} color format is not supported", image.ColorFormat));
+					}
+					break;
+
 				default:
 					throw new NotSupportedException(string.Format("{0} format is not supported", image.Format));
 			}
