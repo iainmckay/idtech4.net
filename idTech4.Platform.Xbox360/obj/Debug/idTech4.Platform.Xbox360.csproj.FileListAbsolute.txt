@@ -1,8 +1,0 @@
-E:\Projects2\idtech4.net\idTech4.Platform.Xbox360\obj\Debug\ResolveAssemblyReference.cache
-E:\Projects2\idtech4.net\idTech4.Platform.Xbox360\bin\Debug\idTech4.Platform.Xbox360.dll
-E:\Projects2\idtech4.net\idTech4.Platform.Xbox360\bin\Debug\idTech4.Platform.Xbox360.pdb
-E:\Projects2\idtech4.net\idTech4.Platform.Xbox360\bin\Debug\idTech4.exe
-E:\Projects2\idtech4.net\idTech4.Platform.Xbox360\bin\Debug\ICSharpCode.SharpZipLib.dll
-E:\Projects2\idtech4.net\idTech4.Platform.Xbox360\bin\Debug\idTech4.pdb
-E:\Projects2\idtech4.net\idTech4.Platform.Xbox360\obj\Debug\idTech4.Platform.Xbox360.dll
-E:\Projects2\idtech4.net\idTech4.Platform.Xbox360\obj\Debug\idTech4.Platform.Xbox360.pdb

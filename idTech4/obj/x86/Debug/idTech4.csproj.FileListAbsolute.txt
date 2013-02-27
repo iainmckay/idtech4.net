@@ -1,7 +1,0 @@
-E:\Projects2\idtech4.net\idTech4\obj\x86\Debug\ResolveAssemblyReference.cache
-E:\Projects2\idtech4.net\idTech4\obj\x86\Debug\Microsoft.Xna.Framework.RuntimeProfile.txt
-E:\Projects2\idtech4.net\idTech4\bin\x86\Debug\idTech4.exe
-E:\Projects2\idtech4.net\idTech4\bin\x86\Debug\idTech4.pdb
-E:\Projects2\idtech4.net\idTech4\bin\x86\Debug\ICSharpCode.SharpZipLib.dll
-E:\Projects2\idtech4.net\idTech4\obj\x86\Debug\idTech4.exe
-E:\Projects2\idtech4.net\idTech4\obj\x86\Debug\idTech4.pdb
