@@ -66,7 +66,7 @@ namespace idTech4.ContentPipeline.BImage
 
 			if(image.LevelCount > 1)
 			{
-				outContent.GenerateMipmaps(true);
+				//outContent.GenerateMipmaps(true);
 			}
 	
 			return outContent;
