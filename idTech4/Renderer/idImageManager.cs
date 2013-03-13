@@ -45,6 +45,8 @@ namespace idTech4.Renderer
 		private idImage _defaultImage;
 		private idImage _blackImage;					// full of 0x00
 		private idImage _whiteImage;					// full of 0xff
+		private idImage _noFalloffImage;				// all 255, but zero clamped
+
 		private idImage _loadingIconImage;				// loading icon must exist always
 		private idImage _hellLoadingIconImage;			// loading icon must exist always
 
@@ -61,12 +63,82 @@ namespace idTech4.Renderer
 
 		#region IImageManager implementation
 		#region Fetching
+		public void BindNullTexture()
+		{
+			// TODO: RENDERLOG_PRINTF( "BindNull()\n" );
+		}
+
 		public idImage DefaultImage
 		{
 			get
 			{
 				return _defaultImage;
 			}
+		}
+		#endregion
+
+		#region Image Generators
+		private void GenerateDefaultImage(idImage image)
+		{
+			image.MakeDefault();
+		}
+
+		private void GenerateBlackImage(idImage image)
+		{
+			byte[,,] data = new byte[Constants.DefaultImageSize, Constants.DefaultImageSize, 4];
+
+			for(int x = 0; x < data.GetUpperBound(0) + 1; x++)
+			{
+				for(int y = 0; y < data.GetUpperBound(1) + 1; y++)
+				{
+					data[x, y, 0] =
+						data[x, y, 1] =
+						data[x, y, 2] = 0;
+					data[x, y, 3] = 255;
+				}
+			}
+
+			image.Generate(idHelper.Flatten(data), Constants.DefaultImageSize, Constants.DefaultImageSize, TextureFilter.Default, TextureRepeat.Repeat, TextureUsage.Default);
+		}
+
+		private void GenerateWhiteImage(idImage image)
+		{
+			byte[,,] data = new byte[Constants.DefaultImageSize, Constants.DefaultImageSize, 4];
+
+			for(int x = 0; x < data.GetUpperBound(0) + 1; x++)
+			{
+				for(int y = 0; y < data.GetUpperBound(1) + 1; y++)
+				{
+					data[x, y, 0] = 
+						data[x, y, 1] =
+						data[x, y, 2] =
+						data[x, y, 3] = 255;
+				}
+			}
+
+			image.Generate(idHelper.Flatten(data), Constants.DefaultImageSize, Constants.DefaultImageSize, TextureFilter.Default, TextureRepeat.Repeat, TextureUsage.Default);
+		}
+
+		/// <summary>
+		/// This is a solid white texture that is zero clamped.
+		/// </summary>
+		/// <param name="image"></param>
+		private void GenerateNoFallOffImage(idImage image)
+		{
+			byte[,,] data = new byte[16, Constants.FallOffTextureSize, 4];
+
+			for(int x = 1; x < Constants.FallOffTextureSize; x++)
+			{
+				for(int y = 1; y < 15; y++)
+				{
+					data[y, x, 0] = 
+						data[y, x, 1] =
+						data[y, x, 2] =
+						data[y, x, 3] = 255;
+				}
+			}
+
+			image.Generate(idHelper.Flatten(data), Constants.FallOffTextureSize, 16, TextureFilter.Default, TextureRepeat.ClampToZero, TextureUsage.LookupTableMono);
 		}
 		#endregion
 
@@ -79,14 +151,14 @@ namespace idTech4.Renderer
 		private void CreateIntrinsicImages()
 		{
 			// create built in images
-			_defaultImage                = ImageFromFile("_default",   TextureFilter.Default, TextureRepeat.Repeat, TextureUsage.Default);
-			_whiteImage                  = ImageFromFile("_white",     TextureFilter.Default, TextureRepeat.Repeat, TextureUsage.Default);
-			_blackImage                  = ImageFromFile("_black",     TextureFilter.Default, TextureRepeat.Repeat, TextureUsage.Default);
-			/*_flatNormalMap             = ImageFromFile("_flat",      TextureFilter.Default, false, TextureRepeat.Repeat, TextureUsage.Bump);
-			// TODO: _alphaNotchImage    = LoadFromCallback("_alphaNotch", GenerateAlphaNotchImage);
-			_fogImage                    = ImageFromFile("_fog",       TextureFilter.Linear,  false, TextureRepeat.Clamp, TextureUsage.LookupTableAlpha);
-			_fogEnterImage               = ImageFromFile("_fogEnter",  TextureFilter.Linear,  false, TextureRepeat.Clamp, TextureUsage.LookupTableAlpha);
-			_noFalloffImage              = ImageFromFile("_noFalloff", TextureFilter.Default, false, TextureRepeat.ClampToZero, TextureUsage.LookupTableMono);*/
+			_defaultImage                  = LoadFromGenerator("_default", GenerateDefaultImage);
+			_whiteImage                    = LoadFromGenerator("_white",   GenerateWhiteImage);
+			_blackImage                    = LoadFromGenerator("_black",   GenerateBlackImage);
+			/*_flatNormalMap               = ImageFromFile("_flat",      TextureFilter.Default, false, TextureRepeat.Repeat, TextureUsage.Bump);
+			// TODO: _alphaNotchImage      = LoadFromCallback("_alphaNotch", GenerateAlphaNotchImage);
+			_fogImage                      = ImageFromFile("_fog",       TextureFilter.Linear,  TextureRepeat.Clamp, TextureUsage.LookupTableAlpha);
+			_fogEnterImage                 = ImageFromFile("_fogEnter",  TextureFilter.Linear,  TextureRepeat.Clamp, TextureUsage.LookupTableAlpha);*/
+			_noFalloffImage                = LoadFromGenerator("_noFalloff",   GenerateNoFallOffImage);
 
 			//ImageFromFile("_quadratic", TextureFilter.Default, false, TextureRepeat.Clamp, TextureDepth.HighQuality);
 
@@ -101,8 +173,8 @@ namespace idTech4.Renderer
 			// reassigned during stereo rendering
 			// TODO: originalCurrentRenderImage = currentRenderImage;
 
-			_loadingIconImage     = ImageFromFile("textures/loadingicon2", TextureFilter.Default, TextureRepeat.Clamp, TextureUsage.Default, CubeFiles.TwoD);
-			_hellLoadingIconImage = ImageFromFile("textures/loadingicon3", TextureFilter.Default, TextureRepeat.Clamp, TextureUsage.Default, CubeFiles.TwoD);
+			_loadingIconImage     = LoadFromFile("textures/loadingicon2", TextureFilter.Default, TextureRepeat.Clamp, TextureUsage.Default, CubeFiles.TwoD);
+			_hellLoadingIconImage = LoadFromFile("textures/loadingicon3", TextureFilter.Default, TextureRepeat.Clamp, TextureUsage.Default, CubeFiles.TwoD);
 
 			// TODO: release_assert( loadingIconImage->referencedOutsideLevelLoad );
 			// TODO: release_assert( hellLoadingIconImage->referencedOutsideLevelLoad );			
@@ -121,7 +193,7 @@ namespace idTech4.Renderer
 		/// <param name="depth"></param>
 		/// <param name="cubeMap"></param>
 		/// <returns></returns>
-		public idImage ImageFromFile(string name, TextureFilter filter, TextureRepeat repeat, TextureUsage usage, CubeFiles cubeMap = CubeFiles.TwoD)
+		public idImage LoadFromFile(string name, TextureFilter filter, TextureRepeat repeat, TextureUsage usage, CubeFiles cubeMap = CubeFiles.TwoD)
 		{
 			IDeclManager declManager = idEngine.Instance.GetService<IDeclManager>();
 
@@ -186,7 +258,7 @@ namespace idTech4.Renderer
 						image.ReferencedOutsideLevelLoad = ((_insideLevelLoad == false) && (_preloadingMapImages == false));
 						image.ActuallyLoadImage(false);	// load is from front end
 
-						declManager.MediaPrint("{0}x{1} {2} (reload for mixed refere ces)\n", image.Width, image.Height, image.Name);
+						declManager.MediaPrint("{0}x{1} {2} (reload for mixed references)", image.Width, image.Height, image.Name);
 					}
 					return image;
 				}
@@ -210,6 +282,42 @@ namespace idTech4.Renderer
 			{
 				declManager.MediaPrint(image.Name);
 			}
+
+			return image;
+		}
+
+		/// <summary>
+		/// Images that are procedurally generated are allways specified
+		/// with a callback which must work at any time, allowing the render
+		/// system to be completely regenerated if needed.
+		/// </summary>
+		/// <param name="name"></param>
+		/// <returns></returns>
+		public idImage LoadFromGenerator(string name, ImageLoadCallback generator)
+		{
+			if(name == null)
+			{
+				throw new ArgumentNullException("name");
+			}
+
+			// strip any .tga file extensions from anywhere in the _name
+			name = name.Replace(".tga", "");
+			name = name.Replace("\\", "/");
+
+			idImage image;
+
+			// see if the image already exists
+			if(_imageDictionary.TryGetValue(name, out image) == true)
+			{
+				return image;
+			}
+
+			// create the image and issue the callback
+			image = CreateImage(name, generator);
+
+			// check for precompressed, load is from the front end
+			image.ReferencedOutsideLevelLoad = true;
+			image.ActuallyLoadImage(false);
 
 			return image;
 		}
@@ -245,6 +353,16 @@ namespace idTech4.Renderer
 			return new idImageProgramParser().ParseImageProgram(source, ref timeStamp, ref usage);
 		}
 
+		private idImage CreateImage(string name, ImageLoadCallback generator)
+		{
+			idImage image = new idImage(name, generator);
+
+			_images.Add(image);
+			_imageDictionary.Add(name, image);
+
+			return image;
+		}
+
 		private idImage CreateImage(string name, TextureFilter filter, TextureRepeat repeat, TextureUsage usage, CubeFiles cubeMap)
 		{
 			idImage image = new idImage(name, filter, repeat, usage, cubeMap);
@@ -257,4 +375,6 @@ namespace idTech4.Renderer
 		#endregion
 		#endregion
 	}
+
+	public delegate void ImageLoadCallback(idImage image);
 }

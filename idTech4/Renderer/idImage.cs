@@ -100,6 +100,22 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public Texture2D Texture
+		{
+			get
+			{
+				return _texture;
+			}
+		}
+
+		public TextureType Type
+		{
+			get
+			{
+				return _type;
+			}
+		}
+
 		public TextureUsage Usage
 		{
 			get
@@ -138,6 +154,8 @@ namespace idTech4.Renderer
 		private TextureUsage _usage;
 		private CubeFiles _cubeFiles;			// determines the naming and flipping conventions for the six images
 
+		private ImageLoadCallback _generator;
+
 		private Texture2D _texture;
 		private int _width;
 		private int _height;
@@ -147,16 +165,36 @@ namespace idTech4.Renderer
 		private bool _defaulted;				// true if the default image was generated because a file couldn't be loaded
 		private DateTime _sourceFileTime;		// the most recent of all images used in creation, for reloadImages command
 		private DateTime _binaryFileTime;		// the time stamp of the binary file
+		
+		// only used for generating images
+		private TextureFormat _format;
+		private TextureColorFormat _colorFormat;
+		private int _levelCount;
+		private bool _gammaMips;
 		#endregion
 
 		#region Constructor
 		public idImage(string name, TextureFilter filter, TextureRepeat repeat, TextureUsage usage, CubeFiles cubeMap)
 		{
-			_name = name;
-			_filter = filter;
-			_repeat = repeat;
-			_usage = usage;
+			_name      = name;
+			_filter    = filter;
+			_repeat    = repeat;
+			_usage     = usage;
 			_cubeFiles = cubeMap;
+
+			_sourceFileTime = DateTime.MinValue;
+			_binaryFileTime = DateTime.MinValue;
+		}
+
+		public idImage(string name, ImageLoadCallback generator)
+		{
+			_name      = name;
+			_generator = generator;
+
+			_filter    = TextureFilter.Default;
+			_repeat    = TextureRepeat.Repeat;
+			_usage     = TextureUsage.Default;
+			_cubeFiles = CubeFiles.TwoD;
 
 			_sourceFileTime = DateTime.MinValue;
 			_binaryFileTime = DateTime.MinValue;
@@ -164,6 +202,70 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Methods
+		#region Generating
+		public void Generate(byte[] data, int width, int height, TextureFilter filter, TextureRepeat repeat, TextureUsage usage)
+		{
+			IRenderSystem renderSystem = idEngine.Instance.GetService<IRenderSystem>();
+
+			Purge();
+
+			_filter    = filter;
+			_repeat    = repeat;
+			_usage     = usage;
+			_cubeFiles = CubeFiles.TwoD;
+
+			_type       = TextureType.TwoD;
+			_width      = width;
+			_height     = height;
+
+			DeriveOptions();
+
+			if(_gammaMips == true)
+			{
+				idLog.WriteLine("TODO: gamma mips");
+			}
+
+			SurfaceFormat surfaceFormat = SurfaceFormat.Color;
+
+			switch(_format)
+			{
+				case TextureFormat.RGBA8:
+				case TextureFormat.XRGB8:
+				case TextureFormat.L8A8:
+				case TextureFormat.Luminance8:
+				case TextureFormat.Depth:
+				case TextureFormat.X16:
+				case TextureFormat.Y16X16:
+					idEngine.Instance.Error("unsupported texture format: {0}", _format);
+					break;
+
+				case TextureFormat.Alpha:
+					surfaceFormat = SurfaceFormat.Alpha8;
+					break;
+
+				case TextureFormat.Dxt1:
+					surfaceFormat = SurfaceFormat.Dxt1;
+					break;
+
+				case TextureFormat.Dxt5:
+					//surfaceFormat = SurfaceFormat.Dxt5;
+					surfaceFormat = SurfaceFormat.Color;
+					break;
+
+				case TextureFormat.RGB565:
+					surfaceFormat = SurfaceFormat.Bgr565;
+					break;
+
+				case TextureFormat.Intensity8:
+					surfaceFormat = SurfaceFormat.Color;
+					break;
+			}
+
+			_texture = renderSystem.CreateTexture(width, height, false, surfaceFormat);
+			_texture.SetData<byte>(data);
+		}
+		#endregion
+
 		#region Loading
 		/// <summary>
 		/// Absolutely every image goes through this path.  On exit, the idImage will have a valid texture that can be bound.
@@ -173,12 +275,11 @@ namespace idTech4.Renderer
 		public void ActuallyLoadImage(bool fromBackEnd)
 		{
 			// this is the ONLY place generatorFunction will ever be called
-			// TODO: generator
-			/*if(_generator != null)
+			if(_generator != null)
 			{
 				_generator(this);
 				return;
-			}*/
+			}
 
 			ICVarSystem cvarSystem     = idEngine.Instance.GetService<ICVarSystem>();
 			IImageManager imageManager = idEngine.Instance.GetService<IImageManager>();
@@ -210,7 +311,7 @@ namespace idTech4.Renderer
 				else
 				{
 					_type = TextureType.TwoD;
-					idLog.WriteLine("TODO: imageManager.LoadImageProgram(this.Name, ref _sourceFileTime, ref _usage);");
+					//idLog.WriteLine("TODO: imageManager.LoadImageProgram(this.Name, ref _sourceFileTime, ref _usage);");
 				}
 			}
 
@@ -263,7 +364,7 @@ namespace idTech4.Renderer
 
 			_texture = imageManager.LoadImage(generatedName, ref _binaryFileTime);
 
-			if(/*(fileSystem.InProductionMode == true) && */(_texture != null))
+			if(_texture != null)
 			{
 				_width = _texture.Width;
 				_height = _texture.Height;
@@ -274,72 +375,195 @@ namespace idTech4.Renderer
 					idLog.WriteLine("TODO: fileSystem->AddImagePreload( GetName(), filter, repeat, usage, cubeFiles );");
 				}
 			}
-
-			// TODO: we don't support bimage generation
-			/* else {
-				if ( cubeFiles != CF_2D ) {
-					int size;
-					byte * pics[6];
-
-					if ( !R_LoadCubeImages( GetName(), cubeFiles, pics, &size, &sourceFileTime ) || size == 0 ) {
-						idLib::Warning( "Couldn't load cube image: %s", GetName() );
-						return;
-					}
-
-					opts.textureType = TT_CUBIC;
-					repeat = TR_CLAMP;
-					opts.width = size;
-					opts.height = size;
-					opts.numLevels = 0;
-					DeriveOpts();
-					im.LoadCubeFromMemory( size, (const byte **)pics, opts.numLevels, opts.format, opts.gammaMips );
-					repeat = TR_CLAMP;
-
-					for ( int i = 0; i < 6; i++ ) {
-						if ( pics[i] ) {
-							Mem_Free( pics[i] );
-						}
-					}
-				} else {
-					int width, height;
-					byte * pic;
-
-					// load the full specification, and perform any image program calculations
-					R_LoadImageProgram( GetName(), &pic, &width, &height, &sourceFileTime, &usage );
-
-					if ( pic == NULL ) {
-						idLib::Warning( "Couldn't load image: %s : %s", GetName(), generatedName.c_str() );
-						// create a default so it doesn't get continuously reloaded
-						opts.width = 8;
-						opts.height = 8;
-						opts.numLevels = 1;
-						DeriveOpts();
-						AllocImage();
-				
-						// clear the data so it's not left uninitialized
-						idTempArray<byte> clear( opts.width * opts.height * 4 );
-						memset( clear.Ptr(), 0, clear.Size() );
-						for ( int level = 0; level < opts.numLevels; level++ ) {
-							SubImageUpload( level, 0, 0, 0, opts.width >> level, opts.height >> level, clear.Ptr() );
-						}
-
-						return;
-					}
-
-					opts.width = width;
-					opts.height = height;
-					opts.numLevels = 0;
-					DeriveOpts();
-					im.Load2DFromMemory( opts.width, opts.height, pic, opts.numLevels, opts.format, opts.colorFormat, opts.gammaMips );
-
-					Mem_Free( pic );
-				}
-				binaryFileTime = im.WriteGeneratedFile( sourceFileTime );
-			}*/
 		}
 		#endregion
 
 		#region Misc
+		/// <summary>
+		/// The default image will be grey with a white box outline
+		/// to allow you to see the mapping coordinates on a surface.
+		/// </summary>
+		public void MakeDefault()
+		{
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+			byte[,,] data          = new byte[Constants.DefaultImageSize, Constants.DefaultImageSize, 4];
+
+			if(cvarSystem.GetBool("developer") == true)
+			{
+				// grey center
+				for(int x = 0; x < data.GetUpperBound(0) + 1; x++)
+				{
+					for(int y = 0; y < data.GetUpperBound(1) + 1; y++)
+					{
+						data[x, y, 0] =
+							data[x, y, 1] =
+							data[x, y, 2] = 32;
+						data[x, y, 3] = 255;
+					}
+				}
+				
+				// white border
+				for(int x = 0; x < Constants.DefaultImageSize; x++)
+				{
+					data[0, x, 0] =
+						data[0, x, 1] =
+						data[0, x, 2] =
+						data[0, x, 3] = 255;
+
+					data[x, 0, 0] =
+						data[x, 0, 1] =
+						data[x, 0, 2] =
+						data[x, 0, 3] = 255;
+
+					data[Constants.DefaultImageSize - 1, x, 0] =
+						data[Constants.DefaultImageSize - 1, x, 1] =
+						data[Constants.DefaultImageSize - 1, x, 2] =
+						data[Constants.DefaultImageSize - 1, x, 3] = 255;
+
+					data[x, Constants.DefaultImageSize - 1, 0] =
+						data[x, Constants.DefaultImageSize - 1, 1] =
+						data[x, Constants.DefaultImageSize - 1, 2] =
+						data[x, Constants.DefaultImageSize - 1, 3] = 255;
+				}
+			} 
+			else 
+			{
+				for(int x = 0; x < data.GetUpperBound(0) + 1; x++)
+				{
+					for(int y = 0; y < data.GetUpperBound(1) + 1; y++)
+					{
+						data[x, y, 0] =
+							data[x, y, 1] =
+							data[x, y, 2] = 0;
+						data[x, y, 3] = 255;
+					}
+				}
+			}
+
+			Generate(idHelper.Flatten(data), Constants.DefaultImageSize, Constants.DefaultImageSize, TextureFilter.Default, TextureRepeat.Repeat, TextureUsage.Default);
+
+			_defaulted = true;
+		}
+
+		private void DeriveOptions()
+		{
+			_colorFormat = TextureColorFormat.Default;
+
+			switch(_usage)
+			{
+				case TextureUsage.Coverage:
+					_format      = TextureFormat.Dxt1;
+					_colorFormat = TextureColorFormat.GreenAlpha;
+					break;
+
+				case TextureUsage.Depth:
+					_format = TextureFormat.Depth;
+					break;
+
+				case TextureUsage.Diffuse:
+					// TD_DIFFUSE gets only set to when its a diffuse texture for an interaction
+					_gammaMips   = true;
+					_format      = TextureFormat.Dxt5;
+					_colorFormat = TextureColorFormat.YCoCgDxt5;
+					break;
+
+				case TextureUsage.Specular:
+					_gammaMips   = true;
+					_format      = TextureFormat.Dxt1;
+					_colorFormat = TextureColorFormat.Default;
+					break;
+
+				case TextureUsage.Default:
+					_gammaMips   = true;
+					_format      = TextureFormat.Dxt5;
+					_colorFormat = TextureColorFormat.Default;
+					break;
+
+				case TextureUsage.Bump:
+					_format = TextureFormat.Dxt5;
+					_colorFormat = TextureColorFormat.NormalDxt5;
+					break;
+
+				case TextureUsage.Font:
+					_format      = TextureFormat.Dxt1;
+					_colorFormat = TextureColorFormat.GreenAlpha;
+					_levelCount  = 4; // we only support 4 levels because we align to 16 in the exporter
+					_gammaMips   = true;
+					break;
+
+				case TextureUsage.Light:
+					_format    = TextureFormat.RGB565;
+					_gammaMips = true;
+					break;
+
+				case TextureUsage.LookupTableMono:
+					_format = TextureFormat.Intensity8;
+					break;
+
+				case TextureUsage.LookupTableAlpha:
+					_format = TextureFormat.Alpha;
+					break;
+
+				case TextureUsage.LookupTableRGB1:
+				case TextureUsage.LookupTableRGBA:
+					_format = TextureFormat.RGBA8;
+					break;
+
+				default:
+					_format = TextureFormat.RGBA8;
+					break;
+			}
+			
+			if(_levelCount == 0)
+			{
+				_levelCount = 1;
+
+				if((_filter == TextureFilter.Linear) || (_filter == TextureFilter.Nearest))
+				{
+					// don't create mip maps if we aren't going to be using them
+				}
+				else
+				{
+					int tempWidth  = _width;
+					int tempHeight = _height;
+
+					while((tempWidth > 1) || (tempHeight > 1))
+					{
+						tempWidth  >>= 1;
+						tempHeight >>= 1;
+
+						if(((_format == TextureFormat.Dxt1) || (_format == TextureFormat.Dxt5))
+							&& (((tempWidth & 0x3) != 0) || ((tempHeight & 0x3) != 0)))
+						{
+							break;
+						}
+
+						_levelCount++;
+					}
+				}
+			}
+		}
+
+		private void Purge()
+		{
+			idLog.Warning("TODO: image.purge");
+
+			if(_texture != null)
+			{
+				// TODO: because the content manager doesn't actually remove the texture, we don't support
+				// purging/reloading right now.
+				//idConsole.Warning("TODO: _texture.Dispose();");
+				_texture = null;
+			}
+
+			// clear all the current binding caches, so the next bind will do a real one
+			/*for(int i = 0; i < MAX_MULTITEXTURE_UNITS; i++)
+			{
+				backEnd.glState.tmu[i].current2DMap = TEXTURE_NOT_LOADED;
+				backEnd.glState.tmu[i].currentCubeMap = TEXTURE_NOT_LOADED;
+			}*/
+		}
+
 		private string GetGeneratedName(string name, TextureUsage usage, CubeFiles cubeFiles)
 		{
 			name = Path.Combine(Path.GetDirectoryName(name), Path.GetFileNameWithoutExtension(name));
@@ -355,6 +579,79 @@ namespace idTech4.Renderer
 		}
 		#endregion
 		#endregion
+	}
+
+	public enum TextureFormat : int
+	{
+		None,
+
+		//------------------------
+		// Standard color image formats
+		//------------------------
+
+		RGBA8,			// 32 bpp
+		XRGB8,			// 32 bpp
+
+		//------------------------
+		// Alpha channel only
+		//------------------------
+
+		// Alpha ends up being the same as L8A8 in our current implementation, because straight 
+		// alpha gives 0 for color, but we want 1.
+		Alpha,
+
+		//------------------------
+		// Luminance replicates the value across RGB with a constant A of 255
+		// Intensity replicates the value across RGBA
+		//------------------------
+
+		L8A8,			// 16 bpp
+		Luminance8,		//  8 bpp
+		Intensity8,		//  8 bpp
+
+		//------------------------
+		// Compressed texture formats
+		//------------------------
+
+		Dxt1,			// 4 bpp
+		Dxt5,			// 8 bpp
+
+		//------------------------
+		// Depth buffer formats
+		//------------------------
+
+		Depth,			// 24 bpp
+
+		//------------------------
+		//
+		//------------------------
+
+		X16,			// 16 bpp
+		Y16X16,			// 32 bpp
+		RGB565			// 16 bpp
+	}
+
+	public enum TextureColorFormat : int
+	{
+		/// <summary>
+		/// RGBA.
+		/// </summary>
+		Default,
+
+		/// <summary>
+		/// XY format and use the fast DXT5 compressor.
+		/// </summary>
+		NormalDxt5,
+
+		/// <summary>
+		/// Convert RGBA to CoCg_Y format.
+		/// </summary>
+		YCoCgDxt5,
+
+		/// <summary>
+		/// Copy the alpha channel to green.
+		/// </summary>
+		GreenAlpha
 	}
 
 	public enum TextureType

@@ -39,6 +39,7 @@ using Microsoft.Xna.Framework.Input;
 
 using idTech4.Input;
 using idTech4.IO;
+using idTech4.Math;
 using idTech4.Renderer;
 using idTech4.Services;
 using idTech4.Text;
@@ -110,6 +111,12 @@ namespace idTech4
 		#endregion
 
 		#region Members
+		private bool _firstTick = true;
+		private bool _initialized;
+
+		private int _frameNumber;
+		private long _lastFrameTime;
+
 		private string[] _rawCommandLineArguments;
 		private CommandArguments[] _commandLineArguments = new CommandArguments[] { };
 		private idEventLoop _eventLoop;
@@ -119,6 +126,10 @@ namespace idTech4
 
 		// this is set if the player enables the console, which disables achievements
 		private bool _consoleUsed;
+
+		private int	_gameFrame;				// frame number of the local game
+		private double _gameTimeResidual;	// left over msec from the last game frame
+		private bool _syncNextGameFrame;
 
 		// for tracking errors
 		private ErrorType _errorEntered;
@@ -160,7 +171,7 @@ namespace idTech4
 			ICVarSystem cvarSystem     = this.GetService<ICVarSystem>();
 			ICommandSystem cmdSystem   = this.GetService<ICommandSystem>();
 			IRenderSystem renderSystem = this.GetService<IRenderSystem>();
-
+			
 			if(cvarSystem.GetInt("com_productionMode") == 3)
 			{
 				Sys_Quit();
@@ -588,25 +599,27 @@ namespace idTech4
 				ParseCommandLine(_rawCommandLineArguments);
 
 				// init some systems
-				ICVarSystem cvarSystem     = new idCVarSystem();
-				ICommandSystem cmdSystem   = new idCommandSystem();	
-				IPlatformService platform  = FindPlatform();
-				IFileSystem fileSystem     = new idFileSystem();
-				ILocalization localization = new idLocalization();
-				IInputSystem inputSystem   = new idInputSystem();
-				IConsole console           = new idConsole();
-				IDeclManager declManager   = new idDeclManager();
-				IRenderSystem renderSystem = new idRenderSystem();
+				ICVarSystem cvarSystem           = new idCVarSystem();
+				ICommandSystem cmdSystem         = new idCommandSystem();	
+				IPlatformService platform        = FindPlatform();
+				IFileSystem fileSystem           = new idFileSystem();
+				ILocalization localization       = new idLocalization();
+				IInputSystem inputSystem         = new idInputSystem();
+				IConsole console                 = new idConsole();
+				IDeclManager declManager         = new idDeclManager();
+				IRenderSystem renderSystem       = new idRenderSystem();
+				IResolutionScale resolutionScale = new idResolutionScale();
 																			
-				this.Services.AddService(typeof(ICVarSystem), cvarSystem);
-				this.Services.AddService(typeof(ICommandSystem), cmdSystem);
+				this.Services.AddService(typeof(ICVarSystem),      cvarSystem);
+				this.Services.AddService(typeof(ICommandSystem),   cmdSystem);
 				this.Services.AddService(typeof(IPlatformService), platform);
-				this.Services.AddService(typeof(ILocalization), localization);
-				this.Services.AddService(typeof(IFileSystem), fileSystem);
-				this.Services.AddService(typeof(IInputSystem), inputSystem);
-				this.Services.AddService(typeof(IConsole), console);
-				this.Services.AddService(typeof(IDeclManager), declManager);
-				this.Services.AddService(typeof(IRenderSystem), renderSystem);
+				this.Services.AddService(typeof(ILocalization),    localization);
+				this.Services.AddService(typeof(IFileSystem),      fileSystem);
+				this.Services.AddService(typeof(IInputSystem),     inputSystem);
+				this.Services.AddService(typeof(IConsole),         console);
+				this.Services.AddService(typeof(IDeclManager),     declManager);
+				this.Services.AddService(typeof(IRenderSystem),    renderSystem);
+				this.Services.AddService(typeof(IResolutionScale), resolutionScale);
 
 				cvarSystem.Initialize();
 				cmdSystem.Initialize();
@@ -703,9 +716,7 @@ namespace idTech4
 
 				// start the sound system, but don't do any hardware operations yet
 				idLog.WriteLine("TODO: soundSystem->Init();");
-
-				idLog.WriteLine("TODO: REST OF INIT");
-				
+								
 				_whiteMaterial = declManager.FindMaterial( "_white" );
 
 				string sysLang = cvarSystem.GetString("sys_lang");
@@ -724,26 +735,44 @@ namespace idTech4
 				{
 					// otherwise show it in english
 					_splashScreen = declManager.FindMaterial("guis/assets/splash/legal_english");
-				}
+				}			
+			} 
+			catch(Exception ex) 
+			{
+				throw new Exception("Uh oh!", ex);
+				Sys_Error("Error during initialization");
+			}
+			
+			base.Initialize();
+		}
+
+		private void Initialize2()
+		{
+			try
+			{
+				ICVarSystem cvarSystem   = this.GetService<ICVarSystem>();
+				IDeclManager declManager = this.GetService<IDeclManager>();
+				IFileSystem fileSystem   = this.GetService<IFileSystem>();
 
 				int legalMinTime = 4000;
-				bool showVideo = ((cvarSystem.GetBool("com_skipIntroVideos") == false) && (fileSystem.UsingResourceFiles == true));
+				bool showVideo   = ((cvarSystem.GetBool("com_skipIntroVideos") == false) && (fileSystem.UsingResourceFiles == true));
 
 				if(showVideo == true)
 				{
 					idLog.Warning("TODO: RenderBink( \"video\\loadvideo.bik\" );");
-					idLog.WriteLine("TODO: RenderSplash();");
-					idLog.WriteLine("TODO: RenderSplash();");
-				} 
-				else 
+					RenderSplash();
+					RenderSplash();
+				}
+				else
 				{
 					idLog.WriteLine("Skipping Intro Videos!");
+
 					// display the legal splash screen
 					// No clue why we have to render this twice to show up...
-					idLog.WriteLine("TODO: RenderSplash();");
-					idLog.WriteLine("TODO: RenderSplash();");
+					RenderSplash();
+					RenderSplash();
 				}
-				
+
 				long legalStartTime = this.ElapsedTime;
 
 				declManager.RegisterDeclFolder("skins", ".skin", DeclType.Skin);
@@ -873,11 +902,12 @@ namespace idTech4
 
 				idLog.WriteLine("--- Common Initialization Complete ---");
 				idLog.WriteLine("QA Timing IIS: {0:000000}ms", _gameTimer.ElapsedMilliseconds);
-						
+
 				/*if(win32.win_notaskkeys.GetInteger())
 				{
-					DisableTaskKeys(TRUE, FALSE, /*( win32.win_notaskkeys.GetInteger() == 2 )*/ /*FALSE);
-				}*/
+					DisableTaskKeys(TRUE, FALSE, /*( win32.win_notaskkeys.GetInteger() == 2 )*/
+				/*FALSE);
+	}*/
 
 				// hide or show the early console as necessary
 				/*if(win32.win_viewlog.GetInteger())
@@ -888,14 +918,14 @@ namespace idTech4
 				{
 					Sys_ShowConsole(0, false);
 				}*/
-			} 
-			catch(Exception ex) 
+
+				_initialized = true;
+			}
+			catch(Exception ex)
 			{
 				throw new Exception("Uh oh!", ex);
 				Sys_Error("Error during initialization");
 			}
-			
-			base.Initialize();
 		}
 
 		/// <summary>
@@ -1009,6 +1039,42 @@ namespace idTech4
 			}
 
 			_commandLineArguments = argList.ToArray();
+		}
+
+		private void RenderSplash()
+		{
+			IRenderSystem renderSystem = GetService<IRenderSystem>();
+			
+			float sysWidth     = renderSystem.Width * renderSystem.PixelAspect;
+			float sysHeight    = renderSystem.Height;
+			float sysAspect    = sysWidth / sysHeight;
+			float splashAspect = 16.0f / 9.0f;
+			float adjustment   = sysAspect / splashAspect;
+			float barHeight    = (adjustment >= 1.0f) ? 0.0f : (1.0f - adjustment) * (float) Constants.ScreenHeight * 0.25f;
+			float barWidth     = (adjustment <= 1.0f) ? 0.0f : (adjustment - 1.0f) * (float) Constants.ScreenWidth * 0.25f;
+			
+			if(barHeight > 0.0f)
+			{
+				renderSystem.Color = idColor.Black;
+				renderSystem.DrawStretchPicture(0, 0, Constants.ScreenWidth, barHeight, 0, 0, 1, 1, _whiteMaterial);
+				renderSystem.DrawStretchPicture(0, Constants.ScreenHeight - barHeight, Constants.ScreenWidth, barHeight, 0, 0, 1, 1, _whiteMaterial);
+			}
+
+			if(barWidth > 0.0f)
+			{
+				renderSystem.Color = idColor.Black;
+				renderSystem.DrawStretchPicture(0, 0, barWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
+				renderSystem.DrawStretchPicture(Constants.ScreenWidth - barWidth, 0, barWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
+			}
+
+			renderSystem.Color = new Color(1, 1, 1, 1);
+			renderSystem.DrawStretchPicture(barWidth, barHeight, Constants.ScreenWidth - barWidth * 2.0f, Constants.ScreenHeight - barHeight * 2.0f, 0, 0, 1, 1, _splashScreen);
+
+			// TODO: time_*
+			ulong time_frontend, time_backend, time_shadows, time_gpu;
+
+			//LinkedListNode<idRenderCommand> cmd = renderSystem.SwapCommandBuffers(out time_frontend, out time_backend, out time_shadows, out time_gpu);
+			//renderSystem.RenderCommandBuffers(cmd);
 		}
 
 		/// <summary>
@@ -1260,17 +1326,34 @@ namespace idTech4
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Update(GameTime gameTime)
 		{
+			// FIXME: this is a hack to get the render window up so we can show the loading messages.
+			// it doesn't usually come up until all initialization has been completed and one tick has been run.
+			// this causes none of the loading messages to appear and it looks like the program isn't loading!
+			if(_firstTick == true)
+			{
+				_firstTick     = false;
+				_lastFrameTime = this.ElapsedTime;
+
+				base.Update(gameTime);
+			}
+			else if(_initialized == false)
+			{
+				Initialize2();
+				base.Update(gameTime);
+				return;
+			}
+
 			IRenderSystem renderSystem = this.GetService<IRenderSystem>();
 			ICVarSystem cvarSystem     = this.GetService<ICVarSystem>();
 
-			LinkedListNode<idRenderCommand> renderCommands;
+			LinkedListNode<idRenderCommand> renderCommands = null;
 
 			try
 			{
 				// TODO: SCOPED_PROFILE_EVENT( "Common::Frame" );
 
 				// This is the only place this is incremented
-				/*_frameNumber++;
+				_frameNumber++;
 
 				// allow changing SIMD usage on the fly
 				/*if ( com_forceGenericSIMD.IsModified() ) {
@@ -1308,7 +1391,9 @@ namespace idTech4
 				}
 
 				const bool pauseGame = ( !mapSpawned || ( !IsMultiplayer() && ( Dialog().IsDialogPausing() || session->IsSystemUIShowing() || ( game && game->Shell_IsActive() ) ) ) ) && !IsPlayingDoomClassic();
-
+				*/
+				bool pauseGame = false;
+				/*
 				// save the screenshot and audio from the last draw if needed
 				if ( aviCaptureMode ) {
 					idStr name = va("demos/%s/%s_%05i.tga", aviDemoShortName.c_str(), aviDemoShortName.c_str(), aviDemoFrameCount++ );
@@ -1334,7 +1419,7 @@ namespace idTech4
 				/*frameTiming.startSyncTime = Sys_Microseconds();*/
 
 				ulong timeFrontend, timeBackend, timeShadows, timeGPU;
-
+				
 				if(cvarSystem.GetBool("com_smp") == true)
 				{
 					// TODO: time_*
@@ -1347,6 +1432,7 @@ namespace idTech4
 					// the GPU will stay idle through command generation for minimal input latency
 					renderSystem.SwapCommandBuffers_FinishRendering(out timeFrontend, out timeBackend, out timeShadows, out timeGPU);
 				}
+				
 				/*frameTiming.finishSyncTime = Sys_Microseconds();	*/
 
 				//--------------------------------------------
@@ -1376,58 +1462,70 @@ namespace idTech4
 				// numGameFrames
 
 				// How many game frames to run
-				/*int numGameFrames = 0;
+				int gameFrameCount = 0;
 
-				for(;;) {
-					const int thisFrameTime = Sys_Milliseconds();
-					static int lastFrameTime = thisFrameTime;	// initialized only the first time
-					const int deltaMilliseconds = thisFrameTime - lastFrameTime;
-					lastFrameTime = thisFrameTime;
+				for(;;)
+				{
+					long thisFrameTime = this.ElapsedTime;					
+					long deltaMilliseconds = thisFrameTime - _lastFrameTime;
+					_lastFrameTime = thisFrameTime;
 
 					// if there was a large gap in time since the last frame, or the frame
 					// rate is very very low, limit the number of frames we will run
-					const int clampedDeltaMilliseconds = Min( deltaMilliseconds, com_deltaTimeClamp.GetInteger() );
+					int clampedDeltaMilliseconds = (int) idMath.Min((float) deltaMilliseconds, cvarSystem.GetFloat("com_deltaTimeClamp"));
 
-					gameTimeResidual += clampedDeltaMilliseconds * timescale.GetFloat();
+					_gameTimeResidual += clampedDeltaMilliseconds * cvarSystem.GetFloat("timescale");
 
 					// don't run any frames when paused
-					if ( pauseGame ) {
-						gameFrame++;
-						gameTimeResidual = 0;
+					if ( pauseGame ) 
+					{
+						_gameFrame++;
+						_gameTimeResidual = 0;
+
 						break;
 					}
 
 					// debug cvar to force multiple game tics
-					if ( com_fixedTic.GetInteger() > 0 ) {
-						numGameFrames = com_fixedTic.GetInteger();
-						gameFrame += numGameFrames;
-						gameTimeResidual = 0;
+					if(cvarSystem.GetInt("com_fixedTic") > 0 ) 
+					{
+						gameFrameCount = cvarSystem.GetInt("com_fixedTic");
+						
+						_gameFrame       += gameFrameCount;
+						_gameTimeResidual = 0;
+
 						break;
 					}
 
-					if ( syncNextGameFrame ) {
+					if(_syncNextGameFrame == true) 
+					{
 						// don't sleep at all
-						syncNextGameFrame = false;
-						gameFrame++;
-						numGameFrames++;
-						gameTimeResidual = 0;
+						_syncNextGameFrame = false;
+						_gameTimeResidual  = 0;
+						_gameFrame++;						
+						gameFrameCount++;
+						
 						break;
 					}
 
-					for ( ;; ) {
-						// How much time to wait before running the next frame,
-						// based on com_engineHz
-						const int frameDelay = FRAME_TO_MSEC( gameFrame + 1 ) - FRAME_TO_MSEC( gameFrame );
-						if ( gameTimeResidual < frameDelay ) {
+					for(;;) 
+					{
+						// how much time to wait before running the next frame, based on com_engineHz
+						int frameDelay = idHelper.FrameToMillsecond(_gameFrame + 1) - idHelper.FrameToMillsecond(_gameFrame);
+					
+						if(_gameTimeResidual < frameDelay) 
+						{
 							break;
 						}
-						gameTimeResidual -= frameDelay;
-						gameFrame++;
-						numGameFrames++;
+
+						_gameTimeResidual -= frameDelay;
+						_gameFrame++;
+						gameFrameCount++;
+
 						// if there is enough residual left, we may run additional frames
 					}
 
-					if ( numGameFrames > 0 ) {
+					if(gameFrameCount > 0)
+					{
 						// ready to actually run them
 						break;
 					}
@@ -1435,17 +1533,19 @@ namespace idTech4
 					// if we are vsyncing, we always want to run at least one game
 					// frame and never sleep, which might happen due to scheduling issues
 					// if we were just looking at real time.
-					if ( com_noSleep.GetBool() ) {
-						numGameFrames = 1;
-						gameFrame += numGameFrames;
-						gameTimeResidual = 0;
+					if(cvarSystem.GetBool("com_noSleep") == true)
+					{
+						gameFrameCount = 1;
+						_gameFrame += gameFrameCount;
+						_gameTimeResidual = 0;
+
 						break;
 					}
 
 					// not enough time has passed to run a frame, as might happen if
 					// we don't have vsync on, or the monitor is running at 120hz while
 					// com_engineHz is 60, so sleep a bit and check again
-					Sys_Sleep( 0 );
+					Thread.Sleep(0);
 				}
 
 				//--------------------------------------------
@@ -1455,11 +1555,11 @@ namespace idTech4
 				//--------------------------------------------
 
 				// Update session and syncronize to the new session state after sleeping
-				session->UpdateSignInManager();
+				/*session->UpdateSignInManager();
 				session->Pump();
-				session->ProcessSnapAckQueue();
+				session->ProcessSnapAckQueue();*/
 
-				if ( session->GetState() == idSession::LOADING ) {
+				/*if ( session->GetState() == idSession::LOADING ) {
 					// If the session reports we should be loading a map, load it!
 					ExecuteMapChange();
 					mapSpawnData.savegameFile = NULL;
@@ -1529,29 +1629,34 @@ namespace idTech4
 				}
 		
 				// start the game / draw command generation thread going in the background
-				gameReturn_t ret = gameThread.RunGameAndDraw( numGameFrames, userCmdMgr, IsClient(), gameFrame - numGameFrames );
-
-				if ( !com_smp.GetBool() ) {
+				gameReturn_t ret = gameThread.RunGameAndDraw( numGameFrames, userCmdMgr, IsClient(), gameFrame - numGameFrames );*/
+				RenderSplash();
+				if(cvarSystem.GetBool("com_smp") == false)
+				{
 					// in non-smp mode, run the commands we just generated, instead of
 					// frame-delayed ones from a background thread
-					renderCommands = renderSystem->SwapCommandBuffers_FinishCommandBuffers();
+					renderCommands = renderSystem.SwapCommandBuffers_FinishCommandBuffers();
 				}
 
 				//----------------------------------------
 				// Run the render back end, getting the GPU busy with new commands
 				// ASAP to minimize the pipeline bubble.
 				//----------------------------------------
-				frameTiming.startRenderTime = Sys_Microseconds();
-				renderSystem->RenderCommandBuffers( renderCommands );
-				if ( com_sleepRender.GetInteger() > 0 ) {
+				//frameTiming.startRenderTime = Sys_Microseconds();
+
+				renderSystem.RenderCommandBuffers(renderCommands);
+
+				if(cvarSystem.GetInt("com_sleepRender") > 0)
+				{
 					// debug tool to test frame adaption
-					Sys_Sleep( com_sleepRender.GetInteger() );
+					Thread.Sleep(cvarSystem.GetInt("com_sleepRender"));
 				}
-				frameTiming.finishRenderTime = Sys_Microseconds();
+
+				// frameTiming.finishRenderTime = Sys_Microseconds();
 
 				// make sure the game / draw thread has completed
 				// This may block if the game is taking longer than the render back end
-				gameThread.WaitForThread();
+				/*gameThread.WaitForThread();
 
 				// Send local usermds to the server.
 				// This happens after the game frame has run so that prediction data is up to date.
@@ -1605,8 +1710,6 @@ namespace idTech4
 				mainFrameTiming = frameTiming;
 
 				session->GetSaveGameManager().Pump();*/
-
-				base.Update(gameTime);
 			}
 			catch
 			{
@@ -1620,7 +1723,7 @@ namespace idTech4
 		/// <param name="gameTime">Provides a snapshot of timing values.</param>
 		protected override void Draw(GameTime gameTime)
 		{
-						
+			//base.Draw(gameTime);		
 		}
 	}
 

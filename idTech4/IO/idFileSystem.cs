@@ -604,75 +604,7 @@ namespace idTech4.IO
 					{
 						idLog.WriteLine("idFileSystem::OpenFileRead: {0} (found in '{1}')", relativePath, Path.GetDirectoryName(filePath));
 					}
-
-					// if fs_copyfiles is set
-					if(allowCopyFiles == true)
-					{
-						idLog.WriteLine("TODO: allowCopyFiles");
-
-						/*idStr copypath;
-						idStr name;
-						copypath = BuildOSPath( fs_savepath.GetString(), searchPaths[sp].gamedir, relativePath );
-						netpath.ExtractFileName( name );
-						copypath.StripFilename();
-						copypath += PATHSEPARATOR_STR;
-						copypath += name;
-
-						if ( fs_buildResources.GetBool() ) {
-							idStrStatic< MAX_OSPATH > relativePath = OSPathToRelativePath( copypath );
-							relativePath.BackSlashesToSlashes();
-							relativePath.ToLower();
-
-							if ( IsSoundSample( relativePath ) ) {
-								idStrStatic< MAX_OSPATH > samplePath = relativePath;
-								samplePath.SetFileExtension( "idwav" );
-								if ( samplePath.Find( "generated/" ) == -1 ) {
-									samplePath.Insert( "generated/", 0 );
-								}
-								fileManifest.AddUnique( samplePath );
-								if ( relativePath.Find( "/vo/", false ) >= 0 ) {
-									// this is vo so add the language variants
-									for ( int i = 0; i < Sys_NumLangs(); i++ ) {
-										const char *lang = Sys_Lang( i );
-										if ( idStr::Icmp( lang, ID_LANG_ENGLISH ) == 0 ) {
-											continue;
-										}
-										samplePath = relativePath;
-										samplePath.Replace( "/vo/", va( "/vo/%s/", lang ) );
-										samplePath.SetFileExtension( "idwav" );
-										if ( samplePath.Find( "generated/" ) == -1 ) {
-											samplePath.Insert( "generated/", 0 );
-										}
-										fileManifest.AddUnique( samplePath );
-
-									}
-								}
-							} else if ( relativePath.Icmpn( "guis/", 5 ) == 0 ) {
-								// this is a gui so add the language variants
-								for ( int i = 0; i < Sys_NumLangs(); i++ ) {
-									const char *lang = Sys_Lang( i );
-									if ( idStr::Icmp( lang, ID_LANG_ENGLISH ) == 0 ) {
-										fileManifest.Append( relativePath );
-										continue;
-									}
-									idStrStatic< MAX_OSPATH > guiPath = relativePath;
-									guiPath.Replace( "guis/", va( "guis/%s/", lang ) );
-									fileManifest.Append( guiPath );
-								}
-							} else {
-								// never add .amp files
-								if ( strstr( relativePath, ".amp" ) == NULL ) {
-									fileManifest.Append( relativePath );
-								}
-							}
-
-						}
-
-						if ( fs_copyfiles.GetBool() ) {
-							CopyFile( netpath, copypath );
-						}*/
-					}
-
+					
 					if((searchFlags & FileFlags.ReturnMemoryFile) != 0)
 					{
 						MemoryStream memoryStream = new MemoryStream((int) stream.Length);

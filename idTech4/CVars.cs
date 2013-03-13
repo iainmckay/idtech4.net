@@ -61,6 +61,9 @@ namespace idTech4
 			cvarSystem.Register("com_productionMode",		"0", "0 - no special behavior, 1 - building a production build, 2 - running a production build", CVarFlags.System | CVarFlags.Bool);
 			cvarSystem.Register("com_showFPS",				"0", "show frames rendered per second",							CVarFlags.Bool | CVarFlags.System | CVarFlags.Archive | CVarFlags.NoCheat);
 			cvarSystem.Register("com_showMemoryUsage",		"0", "show total and per frame memory usage",					CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);
+			cvarSystem.Register("com_sleepGame",			"0", "intentionally add a sleep in the game time",				CVarFlags.System | CVarFlags.Integer);
+			cvarSystem.Register("com_sleepDraw",			"0", "intentionally add a sleep in the draw time",				CVarFlags.System | CVarFlags.Integer);
+			cvarSystem.Register("com_sleepRender",			"0", "intentionally add a sleep in the render time",			CVarFlags.System | CVarFlags.Integer);
 			cvarSystem.Register("com_skipIntroVideos",		"0", "skips intro videos",										CVarFlags.Bool);
 			cvarSystem.Register("com_smp",					"1", "run the game and draw code in a separate thread",			CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);
 			cvarSystem.Register("com_speeds",				"0", "show engine timings",										CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);			
@@ -103,15 +106,23 @@ namespace idTech4
 			cvarSystem.Register("g_useOldPDAStrings",	"0", "read strings from the .pda files rather than from the .lang file", CVarFlags.Bool);
 			#endregion
 
+			#region Misc.
+			cvarSystem.Register("timescale",					"1", 0.001f, 100.0f, "Number of game frames to run per render frame",	CVarFlags.System | CVarFlags.Float);
+			#endregion
+
 			#region Renderer
 			cvarSystem.Register("r_clear",						"2",		"force screen clear every frame, 1 = purple, 2 = black, 'r g b' = custom", CVarFlags.Renderer);
 			cvarSystem.Register("r_customHeight",				"720",		"custom screen height. set r_vidMode to -1 to activate",	CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
 			cvarSystem.Register("r_customWidth",				"1280",		"custom screen width. set r_vidMode to -1 to activate",		CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			cvarSystem.Register("r_debugRenderToTexture",		"0",		"",															CVarFlags.Renderer | CVarFlags.Integer);
 			cvarSystem.Register("r_displayRefresh",				"0", 0.0f, 240.0f, "optional display refresh rate option for vid mode", CVarFlags.Renderer | CVarFlags.NoCheat | CVarFlags.Integer);
+			cvarSystem.Register("r_drawEyeColor",				"0",		"Draw a colored box, red = left eye, blue = right eye, grey = non-stereo", CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_drawFlickerBox",				"0",		"visual test for dropping frames",							CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_fullscreen",					"1",		"0 = windowed, 1 = full screen on monitor 1, 2 = full screen on monitor 2, etc", CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
 			cvarSystem.Register("r_logFile",					"0",		"number of frames to emit GL logs",							CVarFlags.Renderer | CVarFlags.Integer);
+			cvarSystem.Register("r_motionBlur",					"0",		 "1 - 5, log2 of the number of motion blur samples",		CVarFlags.Renderer | CVarFlags.Integer | CVarFlags.Archive);
 			cvarSystem.Register("r_multiSamples",				"0",		"number of antialiasing samples",							CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
-				
+							
 			// visual debugging info
 			cvarSystem.Register("r_showAddModel",				"0",		"report stats from tr_addModel",							CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_showCull",					"0",		"report sphere and box culling stats",						CVarFlags.Renderer | CVarFlags.Bool);
@@ -164,6 +175,7 @@ namespace idTech4
 			cvarSystem.Register("r_skipPostProcess",			"0",		"skip all post-process renderings",							CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_skipRender",					"0",		"skip 3D rendering, but pass 2D",							CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_skipRenderContext",			"0",		"NULL the rendering context during backend 3D rendering",	CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_skipShaderPasses",			"0",		"",															CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_skipShadows",				"0",		"disable shadows",											CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Bool);
 			cvarSystem.Register("r_skipSpecular",				"0",		"use black for specular1",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Cheat | CVarFlags.Bool);
 			cvarSystem.Register("r_skipStaticInteractions",		"0",		"skip interactions created at level load",					CVarFlags.Renderer | CVarFlags.Bool);
@@ -179,12 +191,31 @@ namespace idTech4
 			cvarSystem.Register("r_useLightAreaCulling",		"1",		"0 = off, 1 = on",											CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_useLightPortalCulling",		"1", 0, 2,	"0 = none, 1 = cull frustum corners to plane, 2 = exact clip the frustum faces", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 2));
 			cvarSystem.Register("r_useLightScissors",			"3", 0, 3,	"0 = no scissor, 1 = non-clipped scissor, 2 = near-clipped scissor, 3 = fully-clipped scissor", CVarFlags.Renderer | CVarFlags.Integer, new ArgCompletion_Integer(0, 3));
+			cvarSystem.Register("r_useScissor",					"1",		"scissor clip as portals and lights are processed",			CVarFlags.Renderer | CVarFlags.Bool);
+			cvarSystem.Register("r_useStateCaching",			"1",         "avoid redundant state changes",                           CVarFlags.Renderer | CVarFlags.Bool);
 
 			cvarSystem.Register("r_vidMode",					"0",		"fullscreen video mode number",								CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
 			cvarSystem.Register("r_windowHeight",				"720",		"Non-fullscreen parameter",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
 			cvarSystem.Register("r_windowWidth",				"1280",		"Non-fullscreen parameter",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
 			cvarSystem.Register("r_windowX",					"0",		"Non-fullscreen parameter",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
 			cvarSystem.Register("r_windowY",					"0",		"Non-fullscreen parameter",									CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			#endregion
+
+			#region Resolution Scale
+			cvarSystem.Register("rs_display",					"0",		"0 - percentages, 1 - pixels per frame",					CVarFlags.Integer);
+			cvarSystem.Register("rs_dropFraction",				"0.11",		"Drop the resolution in increments of this",				CVarFlags.Float);
+			cvarSystem.Register("rs_dropMilliseconds",			"15.0",		"Drop the resolution when GPU time exceeds this",			CVarFlags.Float);
+			cvarSystem.Register("rs_enable",					"1",		"Enable dynamic resolution scaling, 0 - off, 1 - horz only, 2 - vert only, 3 - both", CVarFlags.Integer);
+			cvarSystem.Register("rs_forceFractionX",			"0",		"Force a specific 0.0 to 1.0 horizontal resolution scale",	CVarFlags.Float);
+			cvarSystem.Register("rs_forceFractionY",			"0",		"Force a specific 0.0 to 1.0 vertical resolution scale",	CVarFlags.Float);
+			cvarSystem.Register("rs_raiseFraction",				"0.06",		"Raise the resolution in increments of this",				CVarFlags.Float);
+			cvarSystem.Register("rs_raiseFrames",				"5",		"Require this many frames below rs_raiseMilliseconds",		CVarFlags.Integer);
+			cvarSystem.Register("rs_raiseMilliseconds",			"13.0",		"Raise the resolution when GPU time is below this for several frames", CVarFlags.Float);
+			cvarSystem.Register("rs_showResolutionChanges",		"0",		"1 = Print whenever the resolution scale changes, 2 = always",	CVarFlags.Integer);
+			#endregion
+
+			#region Stereo
+			cvarSystem.Register("stereoRender_defaultGuiDepth", "0", "Fraction of separation when not specified",						CVarFlags.Renderer);
 			#endregion
 
 			#region System
@@ -270,13 +301,11 @@ idCVar com_aviDemoWidth( "com_aviDemoWidth", "256", CVAR_SYSTEM, "" );
 idCVar com_aviDemoHeight( "com_aviDemoHeight", "256", CVAR_SYSTEM, "" );
 idCVar com_skipGameDraw( "com_skipGameDraw", "0", CVAR_SYSTEM | CVAR_BOOL, "" );
 
-idCVar com_sleepGame( "com_sleepGame", "0", CVAR_SYSTEM | CVAR_INTEGER, "intentionally add a sleep in the game time" );
-idCVar com_sleepDraw( "com_sleepDraw", "0", CVAR_SYSTEM | CVAR_INTEGER, "intentionally add a sleep in the draw time" );
-idCVar com_sleepRender( "com_sleepRender", "0", CVAR_SYSTEM | CVAR_INTEGER, "intentionally add a sleep in the render time" );
+
 
 idCVar net_drawDebugHud( "net_drawDebugHud", "0", CVAR_SYSTEM | CVAR_INTEGER, "0 = None, 1 = Hud 1, 2 = Hud 2, 3 = Snapshots" );
 
-idCVar timescale( "timescale", "1", CVAR_SYSTEM | CVAR_FLOAT, "Number of game frames to run per render frame", 0.001f, 100.0f );
+
 
 idCVar com_wipeSeconds( "com_wipeSeconds", "1", CVAR_SYSTEM, "" );
 idCVar com_disableAutoSaves( "com_disableAutoSaves", "0", CVAR_SYSTEM | CVAR_BOOL, "" );
@@ -382,7 +411,7 @@ idCVar idUsercmdGenLocal::m_showMouseRate( "m_showMouseRate", "0", CVAR_SYSTEM |
 
 			idCVar zip_verbosity( "zip_verbosity", "0", CVAR_BOOL, "1 = verbose logging when building zip files" );
 
-			idCVar r_drawFlickerBox( "r_drawFlickerBox", "0", CVAR_RENDERER | CVAR_BOOL, "visual test for dropping frames" );
+			
 idCVar stereoRender_warp( "stereoRender_warp", "0", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "use the optical warping renderprog instead of stereoDeGhost" );
 idCVar stereoRender_warpStrength( "stereoRender_warpStrength", "1.45", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_FLOAT, "amount of pre-distortion" );
 
@@ -404,7 +433,7 @@ idCVar r_syncEveryFrame( "r_syncEveryFrame", "1", CVAR_BOOL, "Don't let the GPU 
 idCVar r_centerY( "r_centerY", "0", CVAR_FLOAT, "projection matrix center adjust" );
 
 
-			idCVar	stereoRender_defaultGuiDepth( "stereoRender_defaultGuiDepth", "0", CVAR_RENDERER, "Fraction of separation when not specified" );
+			
 
 			idCVar preLoad_Images( "preLoad_Images", "1", CVAR_SYSTEM | CVAR_BOOL, "preload images during beginlevelload" );
 
@@ -448,7 +477,7 @@ idCVar r_maxAnisotropicFiltering( "r_maxAnisotropicFiltering", "8", CVAR_RENDERE
 idCVar r_useTrilinearFiltering( "r_useTrilinearFiltering", "1", CVAR_RENDERER | CVAR_ARCHIVE | CVAR_BOOL, "Extra quality filtering" );
 idCVar r_lodBias( "r_lodBias", "0.5", CVAR_RENDERER | CVAR_ARCHIVE, "image lod bias" );
 
-idCVar r_useStateCaching( "r_useStateCaching", "1", CVAR_RENDERER | CVAR_BOOL, "avoid redundant state changes in GL_*() calls" );
+
 
 idCVar r_znear( "r_znear", "3", CVAR_RENDERER | CVAR_FLOAT, "near Z clip plane distance", 0.001f, 200.0f );
 
@@ -473,7 +502,7 @@ idCVar r_lightScale( "r_lightScale", "3", CVAR_ARCHIVE | CVAR_RENDERER | CVAR_FL
 idCVar r_flareSize( "r_flareSize", "1", CVAR_RENDERER | CVAR_FLOAT, "scale the flare deforms from the material def" ); 
 
 idCVar r_skipPrelightShadows( "r_skipPrelightShadows", "0", CVAR_RENDERER | CVAR_BOOL, "skip the dmap generated static shadow volumes" );
-idCVar r_useScissor( "r_useScissor", "1", CVAR_RENDERER | CVAR_BOOL, "scissor clip as portals and lights are processed" );
+
 idCVar r_useLightDepthBounds( "r_useLightDepthBounds", "1", CVAR_RENDERER | CVAR_BOOL, "use depth bounds test on lights to reduce both shadow and interaction fill" );
 idCVar r_useShadowDepthBounds( "r_useShadowDepthBounds", "1", CVAR_RENDERER | CVAR_BOOL, "use depth bounds test on individual shadow volumes to reduce shadow fill" );
 
@@ -500,7 +529,7 @@ idCVar r_debugPolygonFilled( "r_debugPolygonFilled", "1", CVAR_RENDERER | CVAR_B
 
 idCVar r_materialOverride( "r_materialOverride", "", CVAR_RENDERER, "overrides all materials", idCmdSystem::ArgCompletion_Decl<DECL_MATERIAL> );
 
-idCVar r_debugRenderToTexture( "r_debugRenderToTexture", "0", CVAR_RENDERER | CVAR_INTEGER, "" );
+
 
 idCVar stereoRender_enable( "stereoRender_enable", "0", CVAR_INTEGER | CVAR_ARCHIVE, "1 = side-by-side compressed, 2 = top and bottom compressed, 3 = side-by-side, 4 = 720 frame packed, 5 = interlaced, 6 = OpenGL quad buffer" );
 idCVar stereoRender_swapEyes( "stereoRender_swapEyes", "0", CVAR_BOOL | CVAR_ARCHIVE, "reverse eye adjustments" );
@@ -509,22 +538,11 @@ idCVar stereoRender_deGhost( "stereoRender_deGhost", "0.05", CVAR_FLOAT | CVAR_A
 
 		idCVar	r_forceScreenWidthCentimeters( "r_forceScreenWidthCentimeters", "0", CVAR_RENDERER | CVAR_ARCHIVE, "Override screen width returned by hardware" );
 
-			idCVar rs_enable( "rs_enable", "1", CVAR_INTEGER, "Enable dynamic resolution scaling, 0 - off, 1 - horz only, 2 - vert only, 3 - both" );
-idCVar rs_forceFractionX( "rs_forceFractionX", "0", CVAR_FLOAT, "Force a specific 0.0 to 1.0 horizontal resolution scale" );
-idCVar rs_forceFractionY( "rs_forceFractionY", "0", CVAR_FLOAT, "Force a specific 0.0 to 1.0 vertical resolution scale" );
-idCVar rs_showResolutionChanges( "rs_showResolutionChanges", "0", CVAR_INTEGER, "1 = Print whenever the resolution scale changes, 2 = always" );
-idCVar rs_dropMilliseconds( "rs_dropMilliseconds", "15.0", CVAR_FLOAT, "Drop the resolution when GPU time exceeds this" );
-idCVar rs_raiseMilliseconds( "rs_raiseMilliseconds", "13.0", CVAR_FLOAT, "Raise the resolution when GPU time is below this for several frames" );
-idCVar rs_dropFraction( "rs_dropFraction", "0.11", CVAR_FLOAT, "Drop the resolution in increments of this" );
-idCVar rs_raiseFraction( "rs_raiseFraction", "0.06", CVAR_FLOAT, "Raise the resolution in increments of this" );
-idCVar rs_raiseFrames( "rs_raiseFrames", "5", CVAR_INTEGER, "Require this many frames below rs_raiseMilliseconds" );
-idCVar rs_display( "rs_display", "0", CVAR_INTEGER, "0 - percentages, 1 - pixels per frame" );
 
-			idCVar r_drawEyeColor( "r_drawEyeColor", "0", CVAR_RENDERER | CVAR_BOOL, "Draw a colored box, red = left eye, blue = right eye, grey = non-stereo" );
-idCVar r_motionBlur( "r_motionBlur", "0", CVAR_RENDERER | CVAR_INTEGER | CVAR_ARCHIVE, "1 - 5, log2 of the number of motion blur samples" );
+
 idCVar r_forceZPassStencilShadows( "r_forceZPassStencilShadows", "0", CVAR_RENDERER | CVAR_BOOL, "force Z-pass rendering for performance testing" );
 idCVar r_useStencilShadowPreload( "r_useStencilShadowPreload", "1", CVAR_RENDERER | CVAR_BOOL, "use stencil shadow preload algorithm instead of Z-fail" );
-idCVar r_skipShaderPasses( "r_skipShaderPasses", "0", CVAR_RENDERER | CVAR_BOOL, "" );
+
 idCVar r_skipInteractionFastPath( "r_skipInteractionFastPath", "1", CVAR_RENDERER | CVAR_BOOL, "" );
 idCVar r_useLightStencilSelect( "r_useLightStencilSelect", "0", CVAR_RENDERER | CVAR_BOOL, "use stencil select pass" );
 

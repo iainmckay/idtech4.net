@@ -10,9 +10,10 @@ using TextureFilter = idTech4.Renderer.TextureFilter;
 
 namespace idTech4.Services
 {
-	interface IImageManager
+	public interface IImageManager
 	{
 		#region Fetching
+		void BindNullTexture();
 		idImage DefaultImage { get; }
 		#endregion
 
@@ -21,7 +22,7 @@ namespace idTech4.Services
 		#endregion
 
 		#region Loading
-		idImage ImageFromFile(string name, TextureFilter filter, TextureRepeat repeat, TextureUsage usage, CubeFiles cubeMap = CubeFiles.TwoD);
+		idImage LoadFromFile(string name, TextureFilter filter, TextureRepeat repeat, TextureUsage usage, CubeFiles cubeMap = CubeFiles.TwoD);
 		Texture2D LoadImage(string name, ref DateTime timeStamp);
 		Texture2D LoadImageProgram(string name, ref DateTime timeStamp, ref TextureUsage usage);
 		#endregion

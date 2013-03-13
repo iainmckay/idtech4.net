@@ -594,18 +594,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="generated\images\_black#__0200.bimage">
-      <Name>_black#__0200</Name>
-      <Importer>BImageImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="generated\images\_white#__0200.bimage">
-      <Name>_white#__0200</Name>
-      <Importer>BImageImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="generated\images\textures\loadingicon2#__0200.bimage">
       <Name>loadingicon2#__0200</Name>
       <Importer>BImageImporter</Importer>
@@ -620,6 +608,212 @@
   <ItemGroup>
     <Compile Include="generated\images\textures\bigchars#__0200.bimage">
       <Name>bigchars#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\makeintensity\lights\flashoff#__0200.bimage">
+      <Name>flashoff#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\makeintensity\lights\roundfire#__0200.bimage">
+      <Name>roundfire#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\makeintensity\lights\squarelight1a#__0200.bimage">
+      <Name>squarelight1a#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\makeintensity\lights\xfalloff#__0200.bimage">
+      <Name>xfalloff#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\lights\baronflash#__0500.bimage">
+      <Name>baronflash#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\biground1#__0500.bimage">
+      <Name>biground1#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\blamplight#__0500.bimage">
+      <Name>blamplight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\blamplight_cv#__0500.bimage">
+      <Name>blamplight_cv#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\desertlight#__0500.bimage">
+      <Name>desertlight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\duolight02grey#__0500.bimage">
+      <Name>duolight02grey#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\fanblade3#__0500.bimage">
+      <Name>fanblade3#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\flashlight5#__0500.bimage">
+      <Name>flashlight5#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\floorpgrate#__0500.bimage">
+      <Name>floorpgrate#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\floorvent01x#__0500.bimage">
+      <Name>floorvent01x#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\grate5#__0500.bimage">
+      <Name>grate5#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\grate7#__0500.bimage">
+      <Name>grate7#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\grate8sqr#__0500.bimage">
+      <Name>grate8sqr#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\impflash#__0500.bimage">
+      <Name>impflash#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\lightgratelight#__0500.bimage">
+      <Name>lightgratelight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\lightgratelight2#__0500.bimage">
+      <Name>lightgratelight2#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\newalphagrate3#__0500.bimage">
+      <Name>newalphagrate3#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\newalphagrate3b#__0500.bimage">
+      <Name>newalphagrate3b#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\newalphagrate4#__0500.bimage">
+      <Name>newalphagrate4#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\newalphagrate5#__0500.bimage">
+      <Name>newalphagrate5#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\rotate3#__0500.bimage">
+      <Name>rotate3#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\rotate3_blue#__0500.bimage">
+      <Name>rotate3_blue#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\rotate3_blue_full#__0500.bimage">
+      <Name>rotate3_blue_full#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\rotate3_red_full#__0500.bimage">
+      <Name>rotate3_red_full#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\round#__0500.bimage">
+      <Name>round#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\roundfire#__0500.bimage">
+      <Name>roundfire#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\spot01#__0500.bimage">
+      <Name>spot01#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squareblast#__0500.bimage">
+      <Name>squareblast#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squareishlight#__0500.bimage">
+      <Name>squareishlight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squarelight#__0500.bimage">
+      <Name>squarelight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squarelight1#__0500.bimage">
+      <Name>squarelight1#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squarelight1a#__0500.bimage">
+      <Name>squarelight1a#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\triangle1#__0500.bimage">
+      <Name>triangle1#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\guis\assets\splash\legal_english#__0200.bimage">
+      <Name>legal_english#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\splash\legal_figs#__0200.bimage">
+      <Name>legal_figs#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\splash\legal_french#__0200.bimage">
+      <Name>legal_french#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

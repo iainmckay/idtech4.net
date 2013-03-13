@@ -25,46 +25,55 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
+using idTech4.Services;
 
 namespace idTech4
 {
-	public class Constants
+	public class idHelper
 	{
-		public const int ConsoleTextSize				= 0x30000;
+		public static T[] Flatten<T>(T[,] source)
+		{
+			int d1 = source.GetUpperBound(0) + 1;
+			int d2 = source.GetUpperBound(1) + 1;
 
-		public const int MaxEntityMaterialParameters	= 12;
-		public const int MaxExpressionRegisters			= 4096;
-		public const int MaxGlobalMaterialParameters	= 12;
-		public const int MaxRenderCrops					= 8;
-		public const int MaxVertexParameters			= 4;
-		public const int MaxWarningList					= 256;
+			T[] flat = new T[d1 * d2];
 
-		// if we exceed these limits we stop rendering GUI surfaces
-		public const int MaxGuiIndexes                  = 20000 * 6;
-		public const int MaxGuiVertices                 = 20000 * 4;
+			for(int y = 0; y < d1; y++)
+			{
+				for(int x = 0; x < d2; x++)
+				{
+					flat[(y * d2) + x] = source[y, x];
+				}
+			}
 
-		public const int SmallCharacterWidth			= 8;
-		public const int SmallCharacterHeight			= 16;
-		public const int BigCharacterWidth				= 16;
-		public const int BigCharacterHeight				= 16;
+			return flat;
+		}
 
-		public const int DefaultImageSize				= 16;
-		public const int FallOffTextureSize				= 64;
+		public static T[] Flatten<T>(T[, ,] source)
+		{
+			int d1 = source.GetUpperBound(0) + 1;
+			int d2 = source.GetUpperBound(1) + 1;
+			int d3 = source.GetUpperBound(2) + 1;
 
-		// all drawing is done to a 640 x 480 virtual screen size
-		// and will be automatically scaled to the real resolution
-		public const int ScreenWidth                    = 640;
-		public const int ScreenHeight                   = 480;
+			T[] flat = new T[d1 * d2 * d3];
 
-		public const float MinimumResolutionScale       = 0.5f;
-		public const float MaximumResolutionScale       = 1.0f;
+			for(int x = 0; x < d1; x++)
+			{
+				for(int y = 0; y < d2; y++)
+				{
+					for(int z = 0; z < d3; z++)
+					{
+						flat[x * d2 * d3 + y * d3 + z] = source[x, y, z];
+					}
+				}
+			}
 
-		/// Latched version of cvar, updated between map loads
-		public const float EngineHzLatched              = 60.0f;
-		public const long EngineHzNumerator             = 100L * 1000L;
-		public const long EngineHzDenominator           = 100L * 60L;
+			return flat;
+		}
 
-		public static Guid FolderID_SavedGames_IdTech5	= new Guid(0x4c5c32ff, 0xbb9d, 0x43b0, 0xb5, 0xb4, 0x2d, 0x72, 0xe5, 0x4e, 0xaa, 0xa4);
+		public static int FrameToMillsecond(long frame)
+		{
+			return (int) ((frame * Constants.EngineHzNumerator) / Constants.EngineHzDenominator);
+		}
 	}
 }

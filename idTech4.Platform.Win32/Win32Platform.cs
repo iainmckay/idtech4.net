@@ -254,6 +254,7 @@ namespace idTech4.Platform.Win32
 				foreach(ManagementObject mosObj in mosInfo.Get())
 				{
 					_totalPhysicalMemory = (uint) ((ulong) mosObj["TotalPhysicalMemory"] / 1024 / 1024);
+					break;
 				}
 			}
 
@@ -262,7 +263,9 @@ namespace idTech4.Platform.Win32
 				// we only check one graphics card.
 				foreach(ManagementObject mosObj in mosInfo.Get())
 				{
-					_totalVideoMemory = (uint) mosObj["AdapterRAM"] / 1024 / 1024;
+					// FIXME: broken on win8
+				//	_totalVideoMemory = (uint) mosObj["AdapterRAM"] / 1024 / 1024;
+					break;
 				}
 			}
 		}

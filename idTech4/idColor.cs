@@ -33,22 +33,22 @@ namespace idTech4
 {
 	public class idColor
 	{
-		public static readonly Vector4 Black		= new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
-		public static readonly Vector4 White		= new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
-		public static readonly Vector4 Red			= new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
-		public static readonly Vector4 Green		= new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
-		public static readonly Vector4 Blue			= new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
-		public static readonly Vector4 Yellow		= new Vector4(1.0f, 1.0f, 0.0f, 1.0f);
-		public static readonly Vector4 Magenta		= new Vector4(1.0f, 0.0f, 1.0f, 1.0f);
-		public static readonly Vector4 Cyan			= new Vector4(0.0f, 1.0f, 1.0f, 1.0f);
-		public static readonly Vector4 Orange		= new Vector4(1.0f, 0.5f, 0.0f, 1.0f);
-		public static readonly Vector4 Purple		= new Vector4(0.6f, 0.0f, 0.6f, 1.0f);
-		public static readonly Vector4 Pink			= new Vector4(0.73f, 0.4f, 0.48f, 1.0f);
-		public static readonly Vector4 Brown		= new Vector4(0.4f, 0.35f, 0.08f, 1.0f);
-		public static readonly Vector4 Grey			= new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
-		public static readonly Vector4 LightGrey	= new Vector4(0.75f, 0.75f, 0.75f, 1.0f);
-		public static readonly Vector4 MediumGrey	= new Vector4(0.0f, 0.5f, 0.5f, 1.0f);
-		public static readonly Vector4 DarkGrey		= new Vector4(0.25f, 0.25f, 0.25f, 1.0f);
+		public static readonly Color Black      = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+		public static readonly Color White      = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+		public static readonly Color Red        = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+		public static readonly Color Green      = new Color(0.0f, 1.0f, 0.0f, 1.0f);
+		public static readonly Color Blue       = new Color(0.0f, 0.0f, 1.0f, 1.0f);
+		public static readonly Color Yellow     = new Color(1.0f, 1.0f, 0.0f, 1.0f);
+		public static readonly Color Magenta    = new Color(1.0f, 0.0f, 1.0f, 1.0f);
+		public static readonly Color Cyan       = new Color(0.0f, 1.0f, 1.0f, 1.0f);
+		public static readonly Color Orange     = new Color(1.0f, 0.5f, 0.0f, 1.0f);
+		public static readonly Color Purple     = new Color(0.6f, 0.0f, 0.6f, 1.0f);
+		public static readonly Color Pink       = new Color(0.73f, 0.4f, 0.48f, 1.0f);
+		public static readonly Color Brown      = new Color(0.4f, 0.35f, 0.08f, 1.0f);
+		public static readonly Color Grey       = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+		public static readonly Color LightGrey  = new Color(0.75f, 0.75f, 0.75f, 1.0f);
+		public static readonly Color MediumGrey = new Color(0.0f, 0.5f, 0.5f, 1.0f);
+		public static readonly Color DarkGrey   = new Color(0.25f, 0.25f, 0.25f, 1.0f);
 
 		public static bool IsColor(string buffer, int index)
 		{
@@ -85,30 +85,30 @@ namespace idTech4
 
 	public enum idColorIndex
 	{
-		Escape		= '^',
-		Default		= '0',
-		Red			= '1',
-		Green		= '2',
-		Yellow		= '3',
-		Blue		= '4',
-		Cyan		= '5',
-		Magenta		= '6',
-		White		= '7',
-		Gray		= '8',
-		Black		= '9'
+		Escape  = '^',
+		Default = '0',
+		Red     = '1',
+		Green   = '2',
+		Yellow  = '3',
+		Blue    = '4',
+		Cyan    = '5',
+		Magenta = '6',
+		White   = '7',
+		Gray    = '8',
+		Black   = '9'
 	}
 
 	public static class idColorString
 	{
-		public const string Default	= "^0";
-		public const string Red		= "^1";
-		public const string Green	= "^2";
-		public const string Yellow	= "^3";
-		public const string Blue	= "^4";
-		public const string Cyan	= "^5";
-		public const string Magenta	= "^6";
-		public const string White	= "^7";
-		public const string Gray	= "^8";
-		public const string Black	= "^9";
+		public const string Default = "^0";
+		public const string Red     = "^1";
+		public const string Green   = "^2";
+		public const string Yellow  = "^3";
+		public const string Blue    = "^4";
+		public const string Cyan    = "^5";
+		public const string Magenta = "^6";
+		public const string White   = "^7";
+		public const string Gray    = "^8";
+		public const string Black   = "^9";
 	}
 }
