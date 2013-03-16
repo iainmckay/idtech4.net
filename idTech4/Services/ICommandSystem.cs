@@ -33,7 +33,7 @@ using idTech4.Text;
 
 namespace idTech4.Services
 {
-	interface ICommandSystem
+	public interface ICommandSystem
 	{
 		#region Initialization
 		#region Properties

@@ -313,6 +313,30 @@ namespace idTech4.Text
 		#endregion
 
 		#region Misc.
+		public void BeginLevelLoad()
+		{
+			_insideLevelLoad = true;
+
+
+			// clear all the referencedThisLevel flags and purge all the data
+			// so the next reference will cause a reparse
+			foreach(KeyValuePair<DeclType, List<idDecl>> kvp in _declsByType)
+			{
+				foreach(idDecl decl in kvp.Value)
+				{
+					decl.Purge();
+				}
+			}
+		}
+
+		public void EndLevelLoad()
+		{
+			_insideLevelLoad = false;
+
+			// we don't need to do anything here, but the image manager, model manager,
+			// and sound sample manager will need to free media that was not referenced
+		}
+
 		/// <summary>
 		/// This is just used to nicely indent media caching prints.
 		/// </summary>

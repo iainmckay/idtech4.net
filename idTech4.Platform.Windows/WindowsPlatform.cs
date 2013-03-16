@@ -33,9 +33,9 @@ using Microsoft.Xna.Framework;
 using idTech4.Renderer;
 using idTech4.Services;
 
-namespace idTech4.Platform.Win32
+namespace idTech4.Platform.Windows
 {
-	public sealed class Win32Platform : BasePlatform
+	public sealed class WindowsPlatform : BasePlatform
 	{
 		#region Members
 		private uint _currentClockSpeed;
@@ -49,7 +49,7 @@ namespace idTech4.Platform.Win32
 		#endregion
 
 		#region Constructor
-		public Win32Platform()
+		public WindowsPlatform()
 			: base()
 		{
 			
@@ -213,7 +213,7 @@ namespace idTech4.Platform.Win32
 		#region Methods
 		public override IRenderBackend CreateRenderBackend()
 		{
-			return new Renderer.Backend.XNARenderBackend();
+			return new XNARenderBackend();
 		}
 
 		public override void Initialize()

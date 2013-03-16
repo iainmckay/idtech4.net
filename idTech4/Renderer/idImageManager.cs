@@ -183,6 +183,84 @@ namespace idTech4.Renderer
 
 		#region Loading
 		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// Called only by renderSystem::BeginLevelLoad.
+		/// </remarks>
+		public void BeginLevelLoad()
+		{
+			_insideLevelLoad = true;
+
+			foreach(idImage image in _images)
+			{
+				// generator function images are always kept around
+				if(image.Generator != null)
+				{
+					continue;
+				}
+
+				if((image.ReferencedOutsideLevelLoad == false) && (image.IsLoaded == true))
+				{
+					image.Purge();
+				}
+
+				image.LevelLoadReferenced = false;
+			}
+		}
+
+		/// <summary>
+		/// Loads unloaded level images.
+		/// </summary>
+		/// <param name="pacifider"></param>
+		private int LoadLevelImages(bool pacifider)
+		{
+			int	loadCount = 0;
+
+			foreach(idImage image in _images)
+			{
+				if(pacifider == true)
+				{
+					idLog.Warning("TODO: common->UpdateLevelLoadPacifier();");
+				}
+
+				if(image.Generator != null)
+				{
+					continue;
+				}
+
+				if((image.LevelLoadReferenced == true) && (image.IsLoaded == false))
+				{
+					loadCount++;
+					image.ActuallyLoadImage(false);
+				}
+			}
+
+			return loadCount;
+		}
+
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// Called only by renderSystem::EndLevelLoad.
+		/// </remarks>
+		public void EndLevelLoad()
+		{
+			_insideLevelLoad = false;
+
+			idLog.WriteLine("----- idImageManager::EndLevelLoad -----");
+
+
+			long start = idEngine.Instance.ElapsedTime;
+			int loadCount = LoadLevelImages(true);
+			long end = idEngine.Instance.ElapsedTime;
+
+			idLog.WriteLine("{0:00000} images loaded in {0:00} seconds", loadCount, (end - start) * 0.001);
+			idLog.WriteLine("----------------------------------------");
+		}
+
+		/// <summary>
 		/// Finds or loads the given image, always returning a valid image pointer.
 		/// Loading of the image may be deferred for dynamic loading.
 		/// </summary>

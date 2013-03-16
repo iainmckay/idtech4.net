@@ -128,8 +128,8 @@ namespace idTech4.Renderer
 
 		public void BeginFrame()
 		{			
-			_vertexCount = 0;
-			_indexCount  = 0;
+			//_vertexCount = 0;
+			//_indexCount  = 0;
 
 			Clear();
 		}

@@ -27,6 +27,9 @@ namespace idTech4.Services
 		
 		#region Other
 		#region Methods
+		void BeginLevelLoad();
+		void EndLevelLoad();
+
 		/// <summary>
 		/// Returns the current cropped pixel coordinates.
 		/// </summary>

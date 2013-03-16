@@ -54,6 +54,22 @@ namespace idTech4.Renderer
 			}
 		}
 
+		public ImageLoadCallback Generator
+		{
+			get
+			{
+				return _generator;
+			}
+		}
+
+		public bool IsLoaded
+		{
+			get
+			{
+				return (_texture != null);
+			}
+		}
+
 		public bool LevelLoadReferenced
 		{
 			get
@@ -544,7 +560,7 @@ namespace idTech4.Renderer
 			}
 		}
 
-		private void Purge()
+		public void Purge()
 		{
 			idLog.Warning("TODO: image.purge");
 

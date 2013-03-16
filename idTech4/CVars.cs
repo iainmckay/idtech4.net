@@ -103,7 +103,13 @@ namespace idTech4
 
 			#region Game
 			cvarSystem.Register("g_demoMode",			"0", "this is a demo", CVarFlags.Integer);
+			cvarSystem.Register("g_useNewGuiCode",		"1", "use optimized device context code, 2 = toggle on/off every frame",	CVarFlags.Game | CVarFlags.Integer);
 			cvarSystem.Register("g_useOldPDAStrings",	"0", "read strings from the .pda files rather than from the .lang file", CVarFlags.Bool);
+			#endregion
+
+			#region GUI
+			cvarSystem.Register("gui_debug",			"0", "",															CVarFlags.Gui | CVarFlags.Bool);
+			cvarSystem.Register("gui_edit",				"0", "",															CVarFlags.Gui | CVarFlags.Bool);
 			#endregion
 
 			#region Misc.
@@ -783,11 +789,7 @@ idCVar mp_bot_input_override( "mp_bot_input_override", "-1", CVAR_INTEGER, "Over
 			idCVar bearTurretAngle( "bearTurretAngle", "0", CVAR_FLOAT, "" );
 idCVar bearTurretForce( "bearTurretForce", "200", CVAR_FLOAT, "" );
 
-			idCVar g_useNewGuiCode(	"g_useNewGuiCode",	"1", CVAR_GAME | CVAR_INTEGER, "use optimized device context code, 2 = toggle on/off every frame" );
-
-			idCVar idWindow::gui_debug( "gui_debug", "0", CVAR_GUI | CVAR_BOOL, "" );
-idCVar idWindow::gui_edit( "gui_edit", "0", CVAR_GUI | CVAR_BOOL, "" );
-
+			
 idCVar hud_titlesafe( "hud_titlesafe", "0.0", CVAR_GUI | CVAR_FLOAT, "fraction of the screen to leave around hud for titlesafe area" );
 
 			idCVar ai_think( "ai_think", "1", CVAR_BOOL, "for testing.." );

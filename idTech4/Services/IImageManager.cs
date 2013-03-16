@@ -22,6 +22,9 @@ namespace idTech4.Services
 		#endregion
 
 		#region Loading
+		void BeginLevelLoad();
+		void EndLevelLoad();
+
 		idImage LoadFromFile(string name, TextureFilter filter, TextureRepeat repeat, TextureUsage usage, CubeFiles cubeMap = CubeFiles.TwoD);
 		Texture2D LoadImage(string name, ref DateTime timeStamp);
 		Texture2D LoadImageProgram(string name, ref DateTime timeStamp, ref TextureUsage usage);

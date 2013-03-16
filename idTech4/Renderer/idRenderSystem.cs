@@ -482,6 +482,25 @@ namespace idTech4.Renderer
 
 		#region Other
 		#region Methods
+		public void BeginLevelLoad()
+		{
+			IImageManager imageManager = idEngine.Instance.GetService<IImageManager>();
+
+			imageManager.BeginLevelLoad();
+			// TODO: renderModelManager->BeginLevelLoad();
+
+			// re-Initialize the Default Materials if needed. 
+			InitMaterials();
+		}
+
+		public void EndLevelLoad()
+		{
+			IImageManager imageManager = idEngine.Instance.GetService<IImageManager>();
+
+			// TODO: renderModelManager->EndLevelLoad();
+			imageManager.EndLevelLoad();
+		}
+
 		/// <summary>
 		/// Returns the current cropped pixel coordinates.
 		/// </summary>

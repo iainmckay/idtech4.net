@@ -114,6 +114,9 @@ namespace idTech4.Services
 		#endregion
 
 		#region Misc.
+		void BeginLevelLoad();
+		void EndLevelLoad();
+
 		void MediaPrint(string format, params object[] args);
 		#endregion
 

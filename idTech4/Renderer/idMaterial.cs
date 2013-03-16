@@ -70,55 +70,55 @@ namespace idTech4.Renderer
 		private const int PredefinedRegisterCount               = 21;
 		private readonly MaterialInfoParameter[] InfoParameters = new MaterialInfoParameter[] {
 			// game relevant attributes
-			new MaterialInfoParameter("solid",			false, SurfaceFlags.None, ContentFlags.Solid),		// may need to override a clearSolid
-			new MaterialInfoParameter("water",			true,	SurfaceFlags.None, ContentFlags.Water),		// used for water
-			new MaterialInfoParameter("playerclip",		false,	SurfaceFlags.None, ContentFlags.PlayerClip ),	// solid to players
-			new MaterialInfoParameter("monsterclip",	false,	SurfaceFlags.None, ContentFlags.MonsterClip),	// solid to monsters
-			new MaterialInfoParameter("moveableclip",	false,	SurfaceFlags.None, ContentFlags.MoveableClip),// solid to moveable entities
-			new MaterialInfoParameter("ikclip",			false,	SurfaceFlags.None,	ContentFlags.IkClip),		// solid to IK
-			new MaterialInfoParameter("blood",			false,	SurfaceFlags.None,	ContentFlags.Blood),		// used to detect blood decals
-			new MaterialInfoParameter("trigger",		false,	SurfaceFlags.None, ContentFlags.Trigger),		// used for triggers
-			new MaterialInfoParameter("aassolid",		false,	SurfaceFlags.None,	ContentFlags.AasSolid),	// solid for AAS
-			new MaterialInfoParameter("aasobstacle",	false,	SurfaceFlags.None, ContentFlags.AasObstacle),// used to compile an obstacle into AAS that can be enabled/disabled
-			new MaterialInfoParameter("flashlight_trigger",	false,	SurfaceFlags.None,	ContentFlags.FlashlightTrigger), // used for triggers that are activated by the flashlight
-			new MaterialInfoParameter("nonsolid",		true,	SurfaceFlags.None,	ContentFlags.None ),					// clears the solid flag
-			new MaterialInfoParameter("nullNormal",		false,	SurfaceFlags.NullNormal, ContentFlags.None ),		// renderbump will draw as 0x80 0x80 0x80
+			new MaterialInfoParameter("solid",			false, SurfaceFlags.None,        ContentFlags.Solid),		// may need to override a clearSolid
+			new MaterialInfoParameter("water",			true,	SurfaceFlags.None,       ContentFlags.Water),		// used for water
+			new MaterialInfoParameter("playerclip",		false,	SurfaceFlags.None,       ContentFlags.PlayerClip ),	// solid to players
+			new MaterialInfoParameter("monsterclip",	false,	SurfaceFlags.None,       ContentFlags.MonsterClip),	// solid to monsters
+			new MaterialInfoParameter("moveableclip",	false,	SurfaceFlags.None,       ContentFlags.MoveableClip),// solid to moveable entities
+			new MaterialInfoParameter("ikclip",			false,	SurfaceFlags.None,	     ContentFlags.IkClip),		// solid to IK
+			new MaterialInfoParameter("blood",			false,	SurfaceFlags.None,	     ContentFlags.Blood),		// used to detect blood decals
+			new MaterialInfoParameter("trigger",		false,	SurfaceFlags.None,       ContentFlags.Trigger),		// used for triggers
+			new MaterialInfoParameter("aassolid",		false,	SurfaceFlags.None,	     ContentFlags.AasSolid),	// solid for AAS
+			new MaterialInfoParameter("aasobstacle",	false,	SurfaceFlags.None,       ContentFlags.AasObstacle),// used to compile an obstacle into AAS that can be enabled/disabled
+			new MaterialInfoParameter("flashlight_trigger",	false,	SurfaceFlags.None,	 ContentFlags.FlashlightTrigger), // used for triggers that are activated by the flashlight
+			new MaterialInfoParameter("nonsolid",		true,	SurfaceFlags.None,	     ContentFlags.None),					// clears the solid flag
+			new MaterialInfoParameter("nullNormal",		false,	SurfaceFlags.NullNormal, ContentFlags.None),		// renderbump will draw as 0x80 0x80 0x80
 
 			// utility relevant attributes
-			new MaterialInfoParameter("areaportal",		true,	SurfaceFlags.None,	ContentFlags.AreaPortal),	// divides areas
-			new MaterialInfoParameter("qer_nocarve",	true,	SurfaceFlags.None, ContentFlags.NoCsg),		// don't cut brushes in editor
+			new MaterialInfoParameter("areaportal",		true,	SurfaceFlags.None,	     ContentFlags.AreaPortal),	// divides areas
+			new MaterialInfoParameter("qer_nocarve",	true,	SurfaceFlags.None,       ContentFlags.NoCsg),		// don't cut brushes in editor
 
-			new MaterialInfoParameter("discrete",		true,	SurfaceFlags.Discrete,	ContentFlags.None ),		// surfaces should not be automatically merged together or
+			new MaterialInfoParameter("discrete",		true,	SurfaceFlags.Discrete,   ContentFlags.None),		// surfaces should not be automatically merged together or
 																													// clipped to the world,
 																													// because they represent discrete objects like gui shaders
 																													// mirrors, or autosprites
-			new MaterialInfoParameter("noFragment",		false,	SurfaceFlags.NoFragment,	ContentFlags.None ),
+			new MaterialInfoParameter("noFragment",		false,	SurfaceFlags.NoFragment, ContentFlags.None),
 
-			new MaterialInfoParameter("slick",			false,	SurfaceFlags.Slick,		ContentFlags.None ),
-			new MaterialInfoParameter("collision",		false,	SurfaceFlags.Collision,	ContentFlags.None ),
-			new MaterialInfoParameter("noimpact",		false,	SurfaceFlags.NoImpact,	ContentFlags.None ),		// don't make impact explosions or marks
-			new MaterialInfoParameter("nodamage",		false,	SurfaceFlags.NoDamage,	ContentFlags.None ),		// no falling damage when hitting
-			new MaterialInfoParameter("ladder",			false,	SurfaceFlags.Ladder,	ContentFlags.None ),		// climbable
-			new MaterialInfoParameter("nosteps",		false,	SurfaceFlags.NoSteps,	ContentFlags.None ),		// no footsteps
-
+			new MaterialInfoParameter("slick",			false,	SurfaceFlags.Slick,		 ContentFlags.None),
+			new MaterialInfoParameter("collision",		false,	SurfaceFlags.Collision,	 ContentFlags.None),
+			new MaterialInfoParameter("noimpact",		false,	SurfaceFlags.NoImpact,	 ContentFlags.None),		// don't make impact explosions or marks
+			new MaterialInfoParameter("nodamage",		false,	SurfaceFlags.NoDamage,	 ContentFlags.None),		// no falling damage when hitting
+			new MaterialInfoParameter("ladder",			false,	SurfaceFlags.Ladder,	 ContentFlags.None),		// climbable
+			new MaterialInfoParameter("nosteps",		false,	SurfaceFlags.NoSteps,	 ContentFlags.None),		// no footsteps
+ 
 			// material types for particle, sound, footstep feedback
-			new MaterialInfoParameter("metal",			false,  SurfaceFlags.Metal,		ContentFlags.None ),	// metal
-			new MaterialInfoParameter("stone",			false,  SurfaceFlags.Stone,		ContentFlags.None ),	// stone
-			new MaterialInfoParameter("flesh",			false,  SurfaceFlags.Flesh,		ContentFlags.None ),	// flesh
-			new MaterialInfoParameter("wood",			false,  SurfaceFlags.Wood,		ContentFlags.None ),	// wood
-			new MaterialInfoParameter("cardboard",		false,	SurfaceFlags.Cardboard,	ContentFlags.None ),	// cardboard
-			new MaterialInfoParameter("liquid",			false,	SurfaceFlags.Liquid,	ContentFlags.None ),	// liquid
-			new MaterialInfoParameter("glass",			false,	SurfaceFlags.Glass,		ContentFlags.None ),	// glass
-			new MaterialInfoParameter("plastic",		false,	SurfaceFlags.Plastic,	ContentFlags.None ),	// plastic
-			new MaterialInfoParameter("ricochet",		false,	SurfaceFlags.Ricochet,	ContentFlags.None ),	// behaves like metal but causes a ricochet sound
+			new MaterialInfoParameter("metal",			false,  SurfaceFlags.Metal,		ContentFlags.None),	// metal
+			new MaterialInfoParameter("stone",			false,  SurfaceFlags.Stone,		ContentFlags.None),	// stone
+			new MaterialInfoParameter("flesh",			false,  SurfaceFlags.Flesh,		ContentFlags.None),	// flesh
+			new MaterialInfoParameter("wood",			false,  SurfaceFlags.Wood,		ContentFlags.None),	// wood
+			new MaterialInfoParameter("cardboard",		false,	SurfaceFlags.Cardboard,	ContentFlags.None),	// cardboard
+			new MaterialInfoParameter("liquid",			false,	SurfaceFlags.Liquid,	ContentFlags.None),	// liquid
+			new MaterialInfoParameter("glass",			false,	SurfaceFlags.Glass,		ContentFlags.None),	// glass
+			new MaterialInfoParameter("plastic",		false,	SurfaceFlags.Plastic,	ContentFlags.None),	// plastic
+			new MaterialInfoParameter("ricochet",		false,	SurfaceFlags.Ricochet,	ContentFlags.None),	// behaves like metal but causes a ricochet sound
 
 			// unassigned surface types
-			new MaterialInfoParameter("surftype10",		false,	SurfaceFlags.T10,	ContentFlags.None ),
-			new MaterialInfoParameter("surftype11",		false,	SurfaceFlags.T11,	ContentFlags.None ),
-			new MaterialInfoParameter("surftype12",		false,	SurfaceFlags.T12,	ContentFlags.None ),
-			new MaterialInfoParameter("surftype13",		false,	SurfaceFlags.T13,	ContentFlags.None ),
-			new MaterialInfoParameter("surftype14",		false,	SurfaceFlags.T14,	ContentFlags.None ),
-			new MaterialInfoParameter("surftype15",		false,	SurfaceFlags.T15,	ContentFlags.None )
+			new MaterialInfoParameter("surftype10",		false,	SurfaceFlags.T10,	    ContentFlags.None),
+			new MaterialInfoParameter("surftype11",		false,	SurfaceFlags.T11,	    ContentFlags.None),
+			new MaterialInfoParameter("surftype12",		false,	SurfaceFlags.T12,	    ContentFlags.None),
+			new MaterialInfoParameter("surftype13",		false,	SurfaceFlags.T13,	    ContentFlags.None),
+			new MaterialInfoParameter("surftype14",		false,	SurfaceFlags.T14,	    ContentFlags.None),
+			new MaterialInfoParameter("surftype15",		false,	SurfaceFlags.T15,	    ContentFlags.None)
 		};
 		#endregion
 
@@ -189,8 +189,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				idLog.Warning("TODO: return GetStage(0).Texture.Image.Height;");
-				return 0;
+				return GetStage(0).Texture.Image.Height;
 			}
 		}
 
@@ -198,8 +197,7 @@ namespace idTech4.Renderer
 		{
 			get
 			{
-				idLog.Warning("TODO: return GetStage(0).Texture.Image.Width;");
-				return 0;
+				return GetStage(0).Texture.Image.Width;
 			}
 		}
 
@@ -292,7 +290,7 @@ namespace idTech4.Renderer
 				return _suppressInSubView;
 			}
 		}
-		
+
 		/// <summary>
 		/// Gets the surface flags.
 		/// </summary>
@@ -350,7 +348,7 @@ namespace idTech4.Renderer
 		private string _renderBump;				// renderbump command options, without the "renderbump" at the start
 
 		private int _entityGui;	// draw a gui with the idUserInterface from the renderEntity_t
-								// non zero will draw gui, gui2, or gui3 from renderEnitty_t
+		// non zero will draw gui, gui2, or gui3 from renderEnitty_t
 		private object /*idUserInterface*/ _userInterface;
 
 		private ContentFlags _contentFlags;
@@ -439,19 +437,19 @@ namespace idTech4.Renderer
 			}
 
 			// copy the local and global parameters
-			registers[(int) ExpressionRegister.Time]    = floatTime;
-			registers[(int) ExpressionRegister.Parm0]   = localShaderParms[0];
-			registers[(int) ExpressionRegister.Parm1]   = localShaderParms[1];
-			registers[(int) ExpressionRegister.Parm2]   = localShaderParms[2];
-			registers[(int) ExpressionRegister.Parm3]   = localShaderParms[3];
-			registers[(int) ExpressionRegister.Parm4]   = localShaderParms[4];
-			registers[(int) ExpressionRegister.Parm5]   = localShaderParms[5];
-			registers[(int) ExpressionRegister.Parm6]   = localShaderParms[6];
-			registers[(int) ExpressionRegister.Parm7]   = localShaderParms[7];
-			registers[(int) ExpressionRegister.Parm8]   = localShaderParms[8];
-			registers[(int) ExpressionRegister.Parm9]   = localShaderParms[9];
-			registers[(int) ExpressionRegister.Parm10]  = localShaderParms[10];
-			registers[(int) ExpressionRegister.Parm11]  = localShaderParms[11];
+			registers[(int) ExpressionRegister.Time] = floatTime;
+			registers[(int) ExpressionRegister.Parm0] = localShaderParms[0];
+			registers[(int) ExpressionRegister.Parm1] = localShaderParms[1];
+			registers[(int) ExpressionRegister.Parm2] = localShaderParms[2];
+			registers[(int) ExpressionRegister.Parm3] = localShaderParms[3];
+			registers[(int) ExpressionRegister.Parm4] = localShaderParms[4];
+			registers[(int) ExpressionRegister.Parm5] = localShaderParms[5];
+			registers[(int) ExpressionRegister.Parm6] = localShaderParms[6];
+			registers[(int) ExpressionRegister.Parm7] = localShaderParms[7];
+			registers[(int) ExpressionRegister.Parm8] = localShaderParms[8];
+			registers[(int) ExpressionRegister.Parm9] = localShaderParms[9];
+			registers[(int) ExpressionRegister.Parm10] = localShaderParms[10];
+			registers[(int) ExpressionRegister.Parm11] = localShaderParms[11];
 
 			registers[(int) ExpressionRegister.Global0] = globalShaderParameters[0];
 			registers[(int) ExpressionRegister.Global1] = globalShaderParameters[1];
@@ -461,7 +459,7 @@ namespace idTech4.Renderer
 			registers[(int) ExpressionRegister.Global5] = globalShaderParameters[5];
 			registers[(int) ExpressionRegister.Global6] = globalShaderParameters[6];
 			registers[(int) ExpressionRegister.Global7] = globalShaderParameters[7];
-			
+
 			ExpressionOperation op;
 			int b;
 			int opCount = (_ops != null) ? _ops.Length : 0;
@@ -600,7 +598,7 @@ namespace idTech4.Renderer
 			_userInterface         = null;
 			_referenceCount        = 0;
 
-			/*editorAlpha          = 1.0;*/
+			_editorAlpha           = 1.0f;
 			_spectrum              = 0;
 
 			_polygonOffset         = 0;
@@ -621,14 +619,14 @@ namespace idTech4.Renderer
 		{
 			IImageManager imageManager = idEngine.Instance.GetService<IImageManager>();
 
-			_registerCount                    = PredefinedRegisterCount; // leave space for the parms to be copied in.
+			_registerCount = PredefinedRegisterCount; // leave space for the parms to be copied in.
 			_parsingData.RegistersAreConstant = true;
 
 			for(int i = 0; i < _registerCount; i++)
 			{
 				_parsingData.RegisterIsTemporary[i] = true; // they aren't constants that can be folded
 			}
-			
+
 			TextureRepeat textureRepeatDefault = TextureRepeat.Repeat; // allow a global setting for repeat
 			idToken token = null;
 
@@ -660,14 +658,14 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "qer_editorimage")
 				{
-					token            = lexer.ReadTokenOnLine();
+					token = lexer.ReadTokenOnLine();
 					_editorImageName = (token != null) ? token.ToString() : string.Empty;
 
 					lexer.SkipRestOfLine();
 				}
 				else if(tokenLower == "description")
 				{
-					token        = lexer.ReadTokenOnLine();
+					token = lexer.ReadTokenOnLine();
 					_description = (token != null) ? token.ToString() : string.Empty;
 				}
 				// check for the surface / content bit flags
@@ -780,7 +778,7 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "mirror")
 				{
-					_sort     = (float) MaterialSort.Subview;
+					_sort = (float) MaterialSort.Subview;
 					_coverage = MaterialCoverage.Opaque;
 				}
 				else if(tokenLower == "nofog")
@@ -803,7 +801,7 @@ namespace idTech4.Renderer
 				// specified in the renderEntity.
 				else if(tokenLower == "guisurf")
 				{
-					token      = lexer.ReadTokenOnLine();
+					token = lexer.ReadTokenOnLine();
 					tokenLower = token.ToString().ToLower();
 
 					if(tokenLower == "entity")
@@ -881,7 +879,7 @@ namespace idTech4.Renderer
 				{
 					// polygonOffset
 					this.MaterialFlag = Renderer.MaterialFlags.PolygonOffset;
-					_polygonOffset    = -1;
+					_polygonOffset = -1;
 
 					// discrete
 					_surfaceFlags |= SurfaceFlags.Discrete;
@@ -928,7 +926,7 @@ namespace idTech4.Renderer
 					{
 						if(_cullType == CullType.Two)
 						{
-							_cullType              = CullType.Front;
+							_cullType = CullType.Front;
 							_shouldCreateBackSides = true;
 						}
 
@@ -1116,28 +1114,28 @@ namespace idTech4.Renderer
 			if(tokenLower == "sprite")
 			{
 				_deformType = DeformType.Sprite;
-				_cullType   = CullType.Two;
+				_cullType = CullType.Two;
 
 				this.MaterialFlag = MaterialFlags.NoShadows;
 			}
 			else if(tokenLower == "tube")
 			{
 				_deformType = DeformType.Tube;
-				_cullType   = CullType.Two;
+				_cullType = CullType.Two;
 
 				this.MaterialFlag = MaterialFlags.NoShadows;
 			}
 			else if(tokenLower == "flare")
 			{
-				_deformType         = DeformType.Flare;
-				_cullType           = CullType.Two;
+				_deformType = DeformType.Flare;
+				_cullType = CullType.Two;
 				_deformRegisters[0] = ParseExpression(lexer);
 
 				this.MaterialFlag = MaterialFlags.NoShadows;
 			}
 			else if(tokenLower == "expand")
 			{
-				_deformType         = DeformType.Expand;
+				_deformType = DeformType.Expand;
 				_deformRegisters[0] = ParseExpression(lexer);
 			}
 			else if(tokenLower == "move")
@@ -1206,8 +1204,8 @@ namespace idTech4.Renderer
 		{
 			_decalInfo.StayTime = (int) lexer.ParseFloat() * 1000;
 			_decalInfo.FadeTime = (int) lexer.ParseFloat() * 1000;
-			_decalInfo.Start    = lexer.Parse1DMatrix(4);
-			_decalInfo.End      = lexer.Parse1DMatrix(4);
+			_decalInfo.Start = lexer.Parse1DMatrix(4);
+			_decalInfo.End = lexer.Parse1DMatrix(4);
 		}
 
 		/// <summary>
@@ -1366,10 +1364,10 @@ namespace idTech4.Renderer
 			}
 
 			ExpressionOperation op = GetExpressionOperation();
-			op.OperationType       = opType;
-			op.A                   = a;
-			op.B                   = b;
-			op.C                   = GetExpressionTemporary();
+			op.OperationType = opType;
+			op.A = a;
+			op.B = b;
+			op.C = GetExpressionTemporary();
 
 			return op.C;
 		}
@@ -1501,17 +1499,17 @@ namespace idTech4.Renderer
 			string imageName                          = string.Empty;
 
 			NewMaterialStage newStage                 = new NewMaterialStage();
-			newStage.VertexParameters                 = new int[4, 4];
+			newStage.VertexParameters = new int[4, 4];
 			idLog.Warning("TODO: newStage.glslProgram = -1;");
 
 			MaterialStage materialStage               = new MaterialStage();
-			materialStage.ConditionRegister           = GetExpressionConstant(1);
-			materialStage.Color.Registers             = new int[4];
-			materialStage.Color.Registers[0] 
-				= materialStage.Color.Registers[1] 
-				= materialStage.Color.Registers[2] 
+			materialStage.ConditionRegister = GetExpressionConstant(1);
+			materialStage.Color.Registers = new int[4];
+			materialStage.Color.Registers[0]
+				= materialStage.Color.Registers[1]
+				= materialStage.Color.Registers[2]
 				= materialStage.Color.Registers[3] = GetExpressionConstant(1);
-			
+
 			int[,] matrix = new int[2, 3];
 
 			idToken token;
@@ -1558,21 +1556,21 @@ namespace idTech4.Renderer
 				else if(tokenLower == "remoterendermap")
 				{
 					materialStage.Texture.Dynamic = DynamicImageType.RemoteRender;
-					materialStage.Texture.Width   = lexer.ParseInt();
-					materialStage.Texture.Height  = lexer.ParseInt();
+					materialStage.Texture.Width = lexer.ParseInt();
+					materialStage.Texture.Height = lexer.ParseInt();
 				}
 				else if(tokenLower == "mirrorrendermap")
 				{
-					materialStage.Texture.Dynamic            = DynamicImageType.MirrorRender;
-					materialStage.Texture.Width              = lexer.ParseInt();
-					materialStage.Texture.Height             = lexer.ParseInt();
+					materialStage.Texture.Dynamic = DynamicImageType.MirrorRender;
+					materialStage.Texture.Width = lexer.ParseInt();
+					materialStage.Texture.Height = lexer.ParseInt();
 					materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
 				else if(tokenLower == "xrayrendermap")
 				{
-					materialStage.Texture.Dynamic            = DynamicImageType.XRayRender;
-					materialStage.Texture.Width              = lexer.ParseInt();
-					materialStage.Texture.Height             = lexer.ParseInt();
+					materialStage.Texture.Dynamic = DynamicImageType.XRayRender;
+					materialStage.Texture.Width = lexer.ParseInt();
+					materialStage.Texture.Height = lexer.ParseInt();
 					materialStage.Texture.TextureCoordinates = TextureCoordinateGeneration.Screen;
 				}
 				else if(tokenLower == "screen")
@@ -1635,12 +1633,12 @@ namespace idTech4.Renderer
 				else if(tokenLower == "cubemap")
 				{
 					imageName = ParsePastImageProgram(lexer);
-					cubeMap   = CubeFiles.Native;
+					cubeMap = CubeFiles.Native;
 				}
 				else if(tokenLower == "cameracubemap")
 				{
 					imageName = ParsePastImageProgram(lexer);
-					cubeMap   = CubeFiles.Camera;
+					cubeMap = CubeFiles.Camera;
 				}
 				else if(tokenLower == "ignorealphatest")
 				{
@@ -1711,7 +1709,7 @@ namespace idTech4.Renderer
 				// texture coordinate generation
 				else if(tokenLower == "texgen")
 				{
-					token      = lexer.ExpectAnyToken();
+					token = lexer.ExpectAnyToken();
 					tokenValue = token.ToString();
 					tokenLower = tokenValue.ToLower();
 
@@ -1883,7 +1881,7 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "alphatest")
 				{
-					materialStage.HasAlphaTest      = true;
+					materialStage.HasAlphaTest = true;
 					materialStage.AlphaTestRegister = ParseExpression(lexer);
 
 					_coverage = MaterialCoverage.Perforated;
@@ -1966,7 +1964,7 @@ namespace idTech4.Renderer
 						// TODO
 						//newStage.vertexProgram = renderProgManager.FindVertexShader(token.c_str());
 					}
-				}				
+				}
 				else if(tokenLower == "vertexparm")
 				{
 					ParseVertexParameter(lexer, newStage);
@@ -2024,7 +2022,7 @@ namespace idTech4.Renderer
 
 				// toggle alphatest off for the current stage so it doesn't get called during the depth fill pass
 				materialStage.HasAlphaTest = false;
-				
+
 				// toggle alpha test on for the coverage stage
 				newCoverageStage.HasAlphaTest = true;
 				newCoverageStage.Lighting     = StageLighting.Coverage;
@@ -2033,18 +2031,19 @@ namespace idTech4.Renderer
 
 				// now load the image with all the parms we parsed for the coverage stage
 				if(string.IsNullOrEmpty(imageName) == false)
-				{
-					idLog.Warning("TODO: coverageTextureStage.Image = globalImages->ImageFromFile(imageName, textureFilter, textureRepeat, TextureUsage.Coverage, cubeMap);");
+				{	
+					coverageTextureStage.Image = imageManager.LoadFromFile(imageName, textureFilter, textureRepeat, TextureUsage.Coverage, cubeMap);
 
 					if(coverageTextureStage.Image == null)
 					{
-						idLog.Warning("TODO: coverageTextureStage = globalImages.DefaultImage;");
+						coverageTextureStage.Image = imageManager.DefaultImage;
 					}
 				}
 				else if(/*TODO: (coverageTextureStage.Cinematic == false) && */ (coverageTextureStage.Dynamic == 0) && (materialStage.NewStage == null))
 				{
 					idLog.Warning("material '{0}' had stage with no image", this.Name);
-					idLog.Warning("TODO: coverageTextureStage.Image = globalImages->defaultImage;");
+
+					coverageTextureStage.Image = imageManager.DefaultImage;
 				}
 			}
 
@@ -2183,7 +2182,7 @@ namespace idTech4.Renderer
 			}
 
 			newStage.VertexParameters[parm, 0] = ParseExpression(lexer);
-			token                              = lexer.ReadTokenOnLine();
+			token = lexer.ReadTokenOnLine();
 
 			if((token == null) || (token.ToString() != ","))
 			{
@@ -2192,7 +2191,7 @@ namespace idTech4.Renderer
 			else
 			{
 				newStage.VertexParameters[parm, 1] = ParseExpression(lexer);
-				token                              = lexer.ReadTokenOnLine();
+				token = lexer.ReadTokenOnLine();
 
 				if((token == null) || (token.ToString() != ","))
 				{
@@ -2202,7 +2201,7 @@ namespace idTech4.Renderer
 				else
 				{
 					newStage.VertexParameters[parm, 2] = ParseExpression(lexer);
-					token                              = lexer.ReadTokenOnLine();
+					token = lexer.ReadTokenOnLine();
 
 					if((token == null) || (token.ToString() != ","))
 					{
@@ -2246,7 +2245,7 @@ namespace idTech4.Renderer
 			TextureRepeat textureRepeat = TextureRepeat.Repeat;
 			TextureUsage textureDepth   = TextureUsage.Default;
 			CubeFiles cubeMap           = CubeFiles.TwoD;
-			
+
 			idToken token               = lexer.ReadTokenOnLine();
 			int unit                    = token.ToInt32();
 			int tmp;
@@ -2270,7 +2269,7 @@ namespace idTech4.Renderer
 
 			while(true)
 			{
-				token      = lexer.ReadTokenOnLine();
+				token = lexer.ReadTokenOnLine();
 				tokenValue = token.ToString();
 				tokenLower = tokenValue.ToLower();
 
@@ -2316,7 +2315,7 @@ namespace idTech4.Renderer
 				}
 				else if(tokenLower == "nopicmip")
 				{
-					
+
 				}
 				else
 				{
@@ -2408,7 +2407,7 @@ namespace idTech4.Renderer
 			}
 
 			_parsingData.RegisterIsTemporary[i] = false;
-			_parsingData.ShaderRegisters[i]     = f;
+			_parsingData.ShaderRegisters[i] = f;
 			_registerCount++;
 
 			return i;
@@ -2443,7 +2442,7 @@ namespace idTech4.Renderer
 			if(textureStage.HasMatrix == false)
 			{
 				textureStage.HasMatrix = true;
-				textureStage.Matrix    = (int[,]) registers.Clone();
+				textureStage.Matrix = (int[,]) registers.Clone();
 
 				return;
 			}
@@ -2589,7 +2588,7 @@ namespace idTech4.Renderer
 			}
 
 			// evaluate the registers once and save them
-			_constantRegisters                    = new float[_registerCount];
+			_constantRegisters = new float[_registerCount];
 			float[] materialParms                 = new float[Constants.MaxEntityMaterialParameters];
 
 			idViewDefinition viewDef              = new idViewDefinition();
@@ -2614,10 +2613,10 @@ namespace idTech4.Renderer
 		#region Methods
 		protected override void ClearData()
 		{
-			_stages              = new MaterialStage[] { };
+			_stages = new MaterialStage[] { };
 			_expressionRegisters = null;
-			_constantRegisters   = null;
-			_ops                 = null;
+			_constantRegisters = null;
+			_ops = null;
 		}
 
 		protected override bool GenerateDefaultText()
@@ -2660,7 +2659,7 @@ namespace idTech4.Renderer
 
 			// count non-lit stages.
 			_ambientStageCount = 0;
-			_stageCount        = _parsingData.Stages.Count;
+			_stageCount = _parsingData.Stages.Count;
 
 			for(int i = 0; i < _stageCount; i++)
 			{
@@ -2993,7 +2992,7 @@ namespace idTech4.Renderer
 		}
 		#endregion
 	}
-		
+
 	public enum DeformType
 	{
 		None,
@@ -3022,13 +3021,13 @@ namespace idTech4.Renderer
 	[Flags]
 	public enum MaterialFlags
 	{
-		Defaulted     = 1 << 0,
+		Defaulted = 1 << 0,
 		PolygonOffset = 1 << 1,
-		NoShadows     = 1 << 2,
-		ForceShadows  = 1 << 3,
-		NoSelfShadow  = 1 << 4,
+		NoShadows = 1 << 2,
+		ForceShadows = 1 << 3,
+		NoSelfShadow = 1 << 4,
 		/// <summary>This fog volume won't ever consder a portal fogged out.</summary>
-		NoPortalFog   = 1 << 5,
+		NoPortalFog = 1 << 5,
 		/// <summary>In use (visible) per editor.</summary>
 		EditorVisible = 1 << 6
 	}
@@ -3036,101 +3035,101 @@ namespace idTech4.Renderer
 	[Flags]
 	public enum MaterialStates : ulong
 	{
-		None                                     = 0,
+		None = 0,
 
-		DepthMask                                = 1 << 6,
-		RedMask                                  = 1 << 7,
-		GreenMask                                = 1 << 8,
-		BlueMask                                 = 1 << 9,
-		AlphaMask                                = 1 << 10,
-		ColorMask                                = RedMask | GreenMask | BlueMask,
+		DepthMask = 1 << 6,
+		RedMask = 1 << 7,
+		GreenMask = 1 << 8,
+		BlueMask = 1 << 9,
+		AlphaMask = 1 << 10,
+		ColorMask = RedMask | GreenMask | BlueMask,
 
-		PolygonLineMode                          = 1 << 11,
-		PolygonOffset                            = 1 << 12,
+		PolygonLineMode = 1 << 11,
+		PolygonOffset = 1 << 12,
 
-		SourceBlendOne                           = 0 << 0,
-		SourceBlendZero                          = 1 << 0,
-		SourceBlendDestinationColor              = 2 << 0,
-		SourceBlendOneMinusDestinationColor      = 3 << 0,
-		SourceBlendSourceAlpha                   = 4 << 0,
-		SourceBlendOneMinusSourceAlpha           = 5 << 0,
-		SourceBlendDestinationAlpha              = 6 << 0,
-		SourceBlendOneMinusDestinationAlpha      = 7 << 0,
-		SourceBlendBits                          = 7 << 0,
+		SourceBlendOne = 0 << 0,
+		SourceBlendZero = 1 << 0,
+		SourceBlendDestinationColor = 2 << 0,
+		SourceBlendOneMinusDestinationColor = 3 << 0,
+		SourceBlendSourceAlpha = 4 << 0,
+		SourceBlendOneMinusSourceAlpha = 5 << 0,
+		SourceBlendDestinationAlpha = 6 << 0,
+		SourceBlendOneMinusDestinationAlpha = 7 << 0,
+		SourceBlendBits = 7 << 0,
 
-		DestinationBlendZero                     = 0 << 3,
-		DestinationBlendOne                      = 1 << 3,
-		DestinationBlendSourceColor              = 2 << 3,
-		DestinationBlendOneMinusSourceColor      = 3 << 3,
-		DestinationBlendSourceAlpha              = 4 << 3,
-		DestinationBlendOneMinusSourceAlpha      = 5 << 3,
-		DestinationBlendDestinationAlpha         = 6 << 3,
+		DestinationBlendZero = 0 << 3,
+		DestinationBlendOne = 1 << 3,
+		DestinationBlendSourceColor = 2 << 3,
+		DestinationBlendOneMinusSourceColor = 3 << 3,
+		DestinationBlendSourceAlpha = 4 << 3,
+		DestinationBlendOneMinusSourceAlpha = 5 << 3,
+		DestinationBlendDestinationAlpha = 6 << 3,
 		DestinationBlendOneMinusDestinationAlpha = 7 << 3,
-		DestinationBlendBits                     = 7 << 3,
+		DestinationBlendBits = 7 << 3,
 
-		DepthFunctionLess                        = 0 << 13,
-		DepthFunctionAlways                      = 1 << 13,
-		DepthFunctionGreater					 = 2 << 13,
-		DepthFunctionEqual                       = 3 << 13,
-		DepthFunctionBits                        = 3 << 13,
+		DepthFunctionLess = 0 << 13,
+		DepthFunctionAlways = 1 << 13,
+		DepthFunctionGreater = 2 << 13,
+		DepthFunctionEqual = 3 << 13,
+		DepthFunctionBits = 3 << 13,
 
-		StencilFunctionAlways                    = 0ul << 36,
-		StencilFunctionLess                      = 1ul << 36,
-		StencilFunctionLessEqual                 = 2ul << 36,
-		StencilFunctionGreater                   = 3ul << 36,
-		StencilFunctionGreaterEqual              = 4ul << 36,
-		StencilFunctionEqual                     = 5ul << 36,
-		StencilFunctionNotEqual                  = 6ul << 36,
-		StencilFunctionNever                     = 7ul << 36,
-		StencilFunctionBits                      = 7ul << 36,
+		StencilFunctionAlways = 0ul << 36,
+		StencilFunctionLess = 1ul << 36,
+		StencilFunctionLessEqual = 2ul << 36,
+		StencilFunctionGreater = 3ul << 36,
+		StencilFunctionGreaterEqual = 4ul << 36,
+		StencilFunctionEqual = 5ul << 36,
+		StencilFunctionNotEqual = 6ul << 36,
+		StencilFunctionNever = 7ul << 36,
+		StencilFunctionBits = 7ul << 36,
 
-		StencilOperationFailKeep                 = 0ul << 39,
-		StencilOperationFailZero                 = 1ul << 39,
-		StencilOperationFailReplace              = 2ul << 39,
-		StencilOperationFailIncrement            = 3ul << 39,
-		StencilOperationFailDecrement            = 4ul << 39,
-		StencilOperationFailInvert               = 5ul << 39,
-		StencilOperationFailIncrementWrap        = 6ul << 39,
-		StencilOperationFailDecrementWrap        = 7ul << 39,
-		StencilOperationFailBits                 = 7ul << 39,
+		StencilOperationFailKeep = 0ul << 39,
+		StencilOperationFailZero = 1ul << 39,
+		StencilOperationFailReplace = 2ul << 39,
+		StencilOperationFailIncrement = 3ul << 39,
+		StencilOperationFailDecrement = 4ul << 39,
+		StencilOperationFailInvert = 5ul << 39,
+		StencilOperationFailIncrementWrap = 6ul << 39,
+		StencilOperationFailDecrementWrap = 7ul << 39,
+		StencilOperationFailBits = 7ul << 39,
 
-		StencilOperationZFailKeep                = 0ul << 42,
-		StencilOperationZFailZero                = 1ul << 42,
-		StencilOperationZFailReplace             = 2ul << 42,
-		StencilOperationZFailIncrement           = 3ul << 42,
-		StencilOperationZFailDecrement           = 4ul << 42,
-		StencilOperationZFailInvert              = 5ul << 42,
-		StencilOperationZFailIncrementWrap       = 6ul << 42,
-		StencilOperationZFailDecrementWrap       = 7ul << 42,
-		StencilOperationZFailBits                = 7ul << 42,
+		StencilOperationZFailKeep = 0ul << 42,
+		StencilOperationZFailZero = 1ul << 42,
+		StencilOperationZFailReplace = 2ul << 42,
+		StencilOperationZFailIncrement = 3ul << 42,
+		StencilOperationZFailDecrement = 4ul << 42,
+		StencilOperationZFailInvert = 5ul << 42,
+		StencilOperationZFailIncrementWrap = 6ul << 42,
+		StencilOperationZFailDecrementWrap = 7ul << 42,
+		StencilOperationZFailBits = 7ul << 42,
 
-		StencilOperationPassKeep                 = 0ul << 45,
-		StencilOperationPassZero                 = 1ul << 45,
-		StencilOperationPassReplace              = 2ul << 45,
-		StencilOperationPassIncrement            = 3ul << 45,
-		StencilOperationPassDecrement            = 4ul << 45,
-		StencilOperationPassInvert               = 5ul << 45,
-		StencilOperationPassIncrementWrap        = 6ul << 42,
-		StencilOperationPassDecrementWrap        = 7ul << 45,
-		StencilOperationPassBits                 = 7ul << 45,
+		StencilOperationPassKeep = 0ul << 45,
+		StencilOperationPassZero = 1ul << 45,
+		StencilOperationPassReplace = 2ul << 45,
+		StencilOperationPassIncrement = 3ul << 45,
+		StencilOperationPassDecrement = 4ul << 45,
+		StencilOperationPassInvert = 5ul << 45,
+		StencilOperationPassIncrementWrap = 6ul << 42,
+		StencilOperationPassDecrementWrap = 7ul << 45,
+		StencilOperationPassBits = 7ul << 45,
 
-		StencilOperationBits                     = MaterialStates.StencilOperationFailBits | MaterialStates.StencilOperationZFailBits | MaterialStates.StencilOperationPassBits,
+		StencilOperationBits = MaterialStates.StencilOperationFailBits | MaterialStates.StencilOperationZFailBits | MaterialStates.StencilOperationPassBits,
 
-		StencilFunctionReferenceShift            = 20,
-		StencilFunctionReferenceBits             = 0xFFul << 20,
+		StencilFunctionReferenceShift = 20,
+		StencilFunctionReferenceBits = 0xFFul << 20,
 
-		StencilFunctionMaskShift                 = 28,
-		StencilFunctionMaskBits                  = 0xFFul << 28,
+		StencilFunctionMaskShift = 28,
+		StencilFunctionMaskBits = 0xFFul << 28,
 
-		Override                                 = 1ul << 63
+		Override = 1ul << 63
 	}
 
 	public enum MaterialSort
 	{
 		/// <summary>Mirrors, view screens, etc.</summary>
-		Subview        = -3,
-		Gui            = -2,
-		Bad            = -1,
+		Subview = -3,
+		Gui = -2,
+		Bad = -1,
 		Opaque,
 		PortalSky,
 		/// <summary>Scorch marks, etc.</summary>
@@ -3144,7 +3143,7 @@ namespace idTech4.Renderer
 		/// <summary>Screen blood blobs.</summary>
 		Nearest,
 		/// <summary>After a screen copy to texture.</summary>
-		PostProcess    = 100
+		PostProcess = 100
 	}
 
 	/// <summary>
@@ -3156,86 +3155,86 @@ namespace idTech4.Renderer
 	[Flags]
 	public enum ContentFlags
 	{
-		None				= 0,
+		None = 0,
 
 		/// <summary>An eye is never valid in a solid.</summary>
-		Solid				= 1 << 0,
+		Solid = 1 << 0,
 		/// <summary>Blocks visibility (for ai).</summary>
-		Opaque				= 1 << 1,
+		Opaque = 1 << 1,
 		/// <summary>Used for water.</summary>
-		Water				= 1 << 2,
+		Water = 1 << 2,
 		/// <summary>Solid to players.</summary>
-		PlayerClip			= 1 << 3,
+		PlayerClip = 1 << 3,
 		/// <summary>Solid to monsters.</summary>
-		MonsterClip			= 1 << 4,
+		MonsterClip = 1 << 4,
 		/// <summary>Solid to moveable entities.</summary>
-		MoveableClip		= 1 << 5,
+		MoveableClip = 1 << 5,
 		/// <summary>Solid to IK.</summary>
-		IkClip				= 1 << 6,
+		IkClip = 1 << 6,
 		/// <summary>Used to detect blood decals.</summary>
-		Blood				= 1 << 7,
+		Blood = 1 << 7,
 		/// <summary>sed for actors.</summary>
-		Body				= 1 << 8,
+		Body = 1 << 8,
 		/// <summary>Used for projectiles.</summary>
-		Projectile			= 1 << 9,
+		Projectile = 1 << 9,
 		/// <summary>Used for dead bodies.</summary>
-		Corpse				= 1 << 10,
+		Corpse = 1 << 10,
 		/// <summary>Used for render models for collision detection.</summary>
-		RenderModel			= 1 << 11,
+		RenderModel = 1 << 11,
 		/// <summary>Used for triggers.</summary>
-		Trigger				= 1 << 12,
+		Trigger = 1 << 12,
 		/// <summary>Solid for AAS.</summary>
-		AasSolid			= 1 << 13,
+		AasSolid = 1 << 13,
 		/// <summary>Used to compile an obstacle into AAS that can be enabled/disabled.</summary>
-		AasObstacle			= 1 << 14,
+		AasObstacle = 1 << 14,
 		/// <summary>Used for triggers that are activated by the flashlight.</summary>
-		FlashlightTrigger	= 1 << 15,
+		FlashlightTrigger = 1 << 15,
 
 		/// <summary>Portal separating renderer areas.</summary>
-		AreaPortal			= 1 << 20,
+		AreaPortal = 1 << 20,
 		/// <summary>Don't cut this brush with CSG operations in the editor.</summary>
-		NoCsg				= 1 << 21,
+		NoCsg = 1 << 21,
 
-		RemoveUtil			= ~(AreaPortal | NoCsg),
-		
-		MaskSolid			= Solid,
-		MaskMonsterSolid	= Solid | MonsterClip | Body,
-		MaskPlayerSolid		= Solid | PlayerClip | Body,
-		MaskDeadSolid		= Solid | PlayerClip,
-		MaskWater			= Water,
-		MaskOpaque			= Opaque,
-		MaskShotRenderModel	= Solid | RenderModel,
-		MaskShotBoundingBox	= Solid | Body
+		RemoveUtil = ~(AreaPortal | NoCsg),
+
+		MaskSolid = Solid,
+		MaskMonsterSolid = Solid | MonsterClip | Body,
+		MaskPlayerSolid = Solid | PlayerClip | Body,
+		MaskDeadSolid = Solid | PlayerClip,
+		MaskWater = Water,
+		MaskOpaque = Opaque,
+		MaskShotRenderModel = Solid | RenderModel,
+		MaskShotBoundingBox = Solid | Body
 	}
 
 	[Flags]
 	public enum SurfaceFlags
 	{
 		/// <summary>Encodes the material type (metal, flesh, concrete, etc.).</summary>
-		TypeBit0	= 1 << 0,
-		TypeBit1	= 1 << 1,
-		TypeBit2	= 1 << 2,
-		TypeBit3	= 1 << 3,
-		TypeMask	= (1 << 4) - 1,
+		TypeBit0 = 1 << 0,
+		TypeBit1 = 1 << 1,
+		TypeBit2 = 1 << 2,
+		TypeBit3 = 1 << 3,
+		TypeMask = (1 << 4) - 1,
 
 		/// <summary>Nver give falling damage.</summary>
-		NoDamage	= 1 << 4,
+		NoDamage = 1 << 4,
 		/// <summary>Effects game physics.</summary>
-		Slick		= 1 << 5,
+		Slick = 1 << 5,
 		/// <summary>Collision surface.</summary>
-		Collision	= 1 << 6,
+		Collision = 1 << 6,
 		/// <summary>Player can climb up this surface.</summary>
-		Ladder		= 1 << 7,
+		Ladder = 1 << 7,
 		/// <summary>Don't make missile explosions.</summary>
-		NoImpact	= 1 << 8,
+		NoImpact = 1 << 8,
 		/// <summary>No footstep sounds.</summary>
-		NoSteps		= 1 << 9,
+		NoSteps = 1 << 9,
 		/// <summary>Not clipped or merged by utilities.</summary>
-		Discrete	= 1 << 10,
+		Discrete = 1 << 10,
 		/// <summary>dmap won't cut surface at each bsp boundary.</summary>
-		NoFragment	= 1 << 11,
+		NoFragment = 1 << 11,
 		/// <summary>Renderbump will draw this surface as 0x80 0x80 0x80, which won't collect light from any angle</summary>
-		NullNormal	= 1 << 12,
+		NullNormal = 1 << 12,
 
 		None = 0,
 
@@ -3293,8 +3292,8 @@ namespace idTech4.Renderer
 
 		public MaterialInfoParameter(string name, bool clearSolid, SurfaceFlags surfaceFlags, ContentFlags contentFlags)
 		{
-			Name         = name;
-			ClearSolid   = clearSolid;
+			Name = name;
+			ClearSolid = clearSolid;
 			SurfaceFlags = surfaceFlags;
 			ContentFlags = contentFlags;
 		}
@@ -3321,7 +3320,7 @@ namespace idTech4.Renderer
 		public object Clone()
 		{
 			MaterialStage clone        = new MaterialStage();
-			clone.ConditionRegister	   = this.ConditionRegister;
+			clone.ConditionRegister    = this.ConditionRegister;
 			clone.Lighting             = this.Lighting;
 			clone.DrawStateBits        = this.DrawStateBits;
 			clone.Color                = this.Color;

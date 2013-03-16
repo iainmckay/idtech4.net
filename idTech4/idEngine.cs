@@ -43,6 +43,7 @@ using idTech4.Math;
 using idTech4.Renderer;
 using idTech4.Services;
 using idTech4.Text;
+using idTech4.UI;
 
 namespace idTech4
 {
@@ -599,27 +600,31 @@ namespace idTech4
 				ParseCommandLine(_rawCommandLineArguments);
 
 				// init some systems
-				ICVarSystem cvarSystem           = new idCVarSystem();
-				ICommandSystem cmdSystem         = new idCommandSystem();	
-				IPlatformService platform        = FindPlatform();
-				IFileSystem fileSystem           = new idFileSystem();
-				ILocalization localization       = new idLocalization();
-				IInputSystem inputSystem         = new idInputSystem();
-				IConsole console                 = new idConsole();
-				IDeclManager declManager         = new idDeclManager();
-				IRenderSystem renderSystem       = new idRenderSystem();
-				IResolutionScale resolutionScale = new idResolutionScale();
+				ICVarSystem cvarSystem                     = new idCVarSystem();
+				ICommandSystem cmdSystem                   = new idCommandSystem();	
+				IPlatformService platform                  = FindPlatform();
+				IFileSystem fileSystem                     = new idFileSystem();
+				ILocalization localization                 = new idLocalization();
+				IInputSystem inputSystem                   = new idInputSystem();
+				IConsole console                           = new idConsole();
+				IDeclManager declManager                   = new idDeclManager();
+				IRenderSystem renderSystem                 = new idRenderSystem();
+				IResolutionScale resolutionScale           = new idResolutionScale();
+				IUserInterfaceManager userInterfaceManager = new idUserInterfaceManager();
+				ISession session                           = FindSession();
 																			
-				this.Services.AddService(typeof(ICVarSystem),      cvarSystem);
-				this.Services.AddService(typeof(ICommandSystem),   cmdSystem);
-				this.Services.AddService(typeof(IPlatformService), platform);
-				this.Services.AddService(typeof(ILocalization),    localization);
-				this.Services.AddService(typeof(IFileSystem),      fileSystem);
-				this.Services.AddService(typeof(IInputSystem),     inputSystem);
-				this.Services.AddService(typeof(IConsole),         console);
-				this.Services.AddService(typeof(IDeclManager),     declManager);
-				this.Services.AddService(typeof(IRenderSystem),    renderSystem);
-				this.Services.AddService(typeof(IResolutionScale), resolutionScale);
+				this.Services.AddService(typeof(ICVarSystem),           cvarSystem);
+				this.Services.AddService(typeof(ICommandSystem),        cmdSystem);
+				this.Services.AddService(typeof(IPlatformService),      platform);
+				this.Services.AddService(typeof(ILocalization),         localization);
+				this.Services.AddService(typeof(IFileSystem),           fileSystem);
+				this.Services.AddService(typeof(IInputSystem),          inputSystem);
+				this.Services.AddService(typeof(IConsole),              console);
+				this.Services.AddService(typeof(IDeclManager),          declManager);
+				this.Services.AddService(typeof(IRenderSystem),         renderSystem);
+				this.Services.AddService(typeof(IResolutionScale),      resolutionScale);
+				this.Services.AddService(typeof(IUserInterfaceManager), userInterfaceManager);
+				this.Services.AddService(typeof(ISession),              session);
 
 				cvarSystem.Initialize();
 				cmdSystem.Initialize();
@@ -750,9 +755,11 @@ namespace idTech4
 		{
 			try
 			{
-				ICVarSystem cvarSystem   = this.GetService<ICVarSystem>();
-				IDeclManager declManager = this.GetService<IDeclManager>();
-				IFileSystem fileSystem   = this.GetService<IFileSystem>();
+				ICVarSystem cvarSystem                     = this.GetService<ICVarSystem>();
+				IDeclManager declManager                   = this.GetService<IDeclManager>();
+				IFileSystem fileSystem                     = this.GetService<IFileSystem>();
+				IUserInterfaceManager userInterfaceManager = this.GetService<IUserInterfaceManager>();
+				ISession session		                   = this.GetService<ISession>();
 
 				int legalMinTime = 4000;
 				bool showVideo   = ((cvarSystem.GetBool("com_skipIntroVideos") == false) && (fileSystem.UsingResourceFiles == true));
@@ -761,15 +768,12 @@ namespace idTech4
 				{
 					idLog.Warning("TODO: RenderBink( \"video\\loadvideo.bik\" );");
 					RenderSplash();
-					RenderSplash();
 				}
 				else
 				{
 					idLog.WriteLine("Skipping Intro Videos!");
 
 					// display the legal splash screen
-					// No clue why we have to render this twice to show up...
-					RenderSplash();
 					RenderSplash();
 				}
 
@@ -793,10 +797,11 @@ namespace idTech4
 				// init the user command input code
 				usercmdGen->Init();
 
-				Sys_SetRumble( 0, 0, 0 );
+				Sys_SetRumble( 0, 0, 0 );*/
 
 				// initialize the user interfaces
-				uiManager->Init();
+				userInterfaceManager.Init();
+
 
 				// startup the script debugger
 				// DebuggerServerInit();
@@ -805,7 +810,7 @@ namespace idTech4
 				LoadGameDLL();
 
 				// On the PC touch them all so they get included in the resource build
-				if ( !fileSystem->UsingResourceFiles() ) {
+				/*if ( !fileSystem->UsingResourceFiles() ) {
 					declManager->FindMaterial( "guis/assets/splash/legal_english" );
 					declManager->FindMaterial( "guis/assets/splash/legal_french" );
 					declManager->FindMaterial( "guis/assets/splash/legal_figs" );
@@ -826,38 +831,39 @@ namespace idTech4
 				soundWorld = soundSystem->AllocSoundWorld( renderWorld );
 
 				menuSoundWorld = soundSystem->AllocSoundWorld( NULL );
-				menuSoundWorld->PlaceListener( vec3_origin, mat3_identity, 0 );
+				menuSoundWorld->PlaceListener( vec3_origin, mat3_identity, 0 );*/
 
 				// init the session
-				session->Initialize();
-				session->InitializeSoundRelatedSystems();
+				session.Initialize();
+				/*session->InitializeSoundRelatedSystems();
 
 				InitializeMPMapsModes();
 
 				// leaderboards need to be initialized after InitializeMPMapsModes, which populates the MP Map list.
 				if( game != NULL ) {
 					game->Leaderboards_Init();
-				}
+				}*/
 
 				CreateMainMenu();
 
-				commonDialog.Init();
+				/*commonDialog.Init();
 
 				// load the console history file
-				consoleHistory.LoadHistoryFile();
+				consoleHistory.LoadHistoryFile();*/
 
 				AddStartupCommands();
 
-				StartMenu( true );
-
-				while ( Sys_Milliseconds() - legalStartTime < legalMinTime ) {
+				/*StartMenu( true );*/
+				while((this.ElapsedTime - legalStartTime) < legalMinTime)
+				{
 					RenderSplash();
-					Sys_GenerateEvents();
-					Sys_Sleep( 10 );
-				};
+
+					// TODO: Sys_GenerateEvents();
+					Thread.Sleep(10);
+				}
 
 				// print all warnings queued during initialization
-				PrintWarnings();
+			/*	PrintWarnings();
 
 				// remove any prints from the notify lines
 				console->ClearNotifyLines();
@@ -885,20 +891,21 @@ namespace idTech4
 					opts.height = DOOMCLASSIC_RENDERHEIGHT;
 					opts.numLevels = 1;
 					image->AllocImage( opts, TF_LINEAR, TR_REPEAT );
-				}
+				}*/
+				
+				// no longer need the splash screen
+				if(_splashScreen != null)
+				{
+					for(int i = 0; i < _splashScreen.StageCount; i++)
+					{
+						idImage image = _splashScreen.GetStage(i).Texture.Image;
 
-				com_fullyInitialized = true;
-
-
-				// No longer need the splash screen
-				if ( splashScreen != NULL ) {
-					for ( int i = 0; i < splashScreen->GetNumStages(); i++ ) {
-						idImage * image = splashScreen->GetStage( i )->texture.image;
-						if ( image != NULL ) {
-							image->PurgeImage();
+						if(image != null)
+						{
+							image.Purge();
 						}
 					}
-				}*/
+				}
 
 				idLog.WriteLine("--- Common Initialization Complete ---");
 				idLog.WriteLine("QA Timing IIS: {0:000000}ms", _gameTimer.ElapsedMilliseconds);
@@ -925,6 +932,37 @@ namespace idTech4
 			{
 				throw new Exception("Uh oh!", ex);
 				Sys_Error("Error during initialization");
+			}
+		}
+
+		private void CreateMainMenu()
+		{
+			IGame game = this.GetService<IGame>();
+
+			if(game != null)
+			{				
+				IDeclManager declManager = this.GetService<IDeclManager>();
+				IRenderSystem renderSystem = this.GetService<IRenderSystem>();
+				// TODO: soundSystem->BeginLevelLoad();
+				IUserInterfaceManager userInterfaceManager = this.GetService<IUserInterfaceManager>();
+
+				// note which media we are going to need to load
+				declManager.BeginLevelLoad();
+				renderSystem.BeginLevelLoad();
+				// TODO: soundSystem->BeginLevelLoad();
+				userInterfaceManager.BeginLevelLoad();
+
+				// create main inside an "empty" game level load - so assets get
+				// purged automagically when we transition to a "real" map
+				game.Shell_CreateMenu(false);
+				game.Shell_Show(true);
+				game.Shell_SyncWithSession();
+
+				// load
+				renderSystem.EndLevelLoad();
+				// TODO: soundSystem->EndLevelLoad();
+				declManager.EndLevelLoad();
+				userInterfaceManager.EndLevelLoad("");
 			}
 		}
 
@@ -987,6 +1025,38 @@ namespace idTech4
 			}
 		}
 
+		private void LoadGameDLL()
+		{
+			IFileSystem fileSystem = this.GetService<IFileSystem>();
+			ICVarSystem cvarSystem = this.GetService<ICVarSystem>();
+
+			// from executable directory first - this is handy for developement
+			string dllName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
+			dllName        = Path.Combine(dllName, "game.dll");
+
+			if(File.Exists(dllName) == false)
+			{
+				dllName = null;
+			}
+
+			if(dllName == null)
+			{
+				dllName = fileSystem.GetAbsolutePath(cvarSystem.GetString("fs_basedir"), idLicensee.BaseGameDirectory, "game.dll");
+			}
+
+			idLog.WriteLine("Loading game DLL: '{0}'", dllName);
+
+			Assembly asm = Assembly.LoadFile(Path.GetFullPath(dllName));
+			
+			IGame game         = (IGame) asm.CreateInstance("idTech4.Game.idGame");
+			IGameEdit gameEdit = (IGameEdit) asm.CreateInstance("idTech4.Game.idGameEdit");
+
+			this.Services.AddService(typeof(IGame),     game);
+			this.Services.AddService(typeof(IGameEdit), gameEdit);
+
+			game.Init();
+		}
+
 		protected override void OnExiting(object sender, EventArgs args)
 		{
 			base.OnExiting(sender, args);
@@ -998,8 +1068,8 @@ namespace idTech4
 		{
 			// TODO: clean this up
 #if WINDOWS
-			string assemblyName = "idTech4.Platform.Win32.dll";
-			string typeName     = "idTech4.Platform.Win32.Win32Platform";
+			string assemblyName = "idTech4.Platform.Windows.dll";
+			string typeName     = "idTech4.Platform.Windows.WindowsPlatform";
 #elif XBOX
 			string assemblyName = "idTech4.Platform.Xbox360.dll";
 			string typeName = "idTech4.Platform.Xbox360.Xbox360Platform";
@@ -1010,6 +1080,46 @@ namespace idTech4
 			assemblyName = Path.Combine(Environment.CurrentDirectory, assemblyName);
 
 			return Assembly.LoadFile(assemblyName).CreateInstance(typeName) as IPlatformService;
+		}
+
+		private ISession FindSession()
+		{
+			// TODO: clean this up
+#if WINDOWS
+			string assemblyName = "idTech4.Platform.Windows.dll";
+			string typeName     = "idTech4.Platform.Windows.WindowsSession";
+#elif XBOX
+			string assemblyName = "idTech4.Platform.Xbox360.dll";
+			string typeName = "idTech4.Platform.Xbox360.Xbox360Session";
+#else
+			return null;
+#endif
+
+			assemblyName = Path.Combine(Environment.CurrentDirectory, assemblyName);
+
+			return Assembly.LoadFile(assemblyName).CreateInstance(typeName) as ISession;
+		}
+
+		/// <summary>
+		/// Adds command line parameters as script statements commands are separated by + signs
+		/// </summary>
+		/// <remarks>
+		/// Returns true if any late commands were added, which will keep the demoloop from immediately starting.
+		/// </remarks>
+		private void AddStartupCommands()
+		{
+			ICommandSystem cmdSystem = this.GetService<ICommandSystem>();
+
+			foreach(CommandArguments args in _commandLineArguments)
+			{
+				if(args.Length == 0)
+				{
+					return;
+				}
+
+				// directly as tokenized so nothing gets screwed
+				cmdSystem.BufferCommandArgs(args, Execute.Append);
+			}
 		}
 
 		private void ParseCommandLine(string[] args)
@@ -1073,8 +1183,8 @@ namespace idTech4
 			// TODO: time_*
 			ulong time_frontend, time_backend, time_shadows, time_gpu;
 
-			//LinkedListNode<idRenderCommand> cmd = renderSystem.SwapCommandBuffers(out time_frontend, out time_backend, out time_shadows, out time_gpu);
-			//renderSystem.RenderCommandBuffers(cmd);
+			LinkedListNode<idRenderCommand> cmd = renderSystem.SwapCommandBuffers(out time_frontend, out time_backend, out time_shadows, out time_gpu);
+			renderSystem.RenderCommandBuffers(cmd);
 		}
 
 		/// <summary>
@@ -1253,7 +1363,7 @@ namespace idTech4
 				}
 
 				CpuCapabilities caps = platform.CpuCapabilities;
-				string capabilities = string.Empty;				
+				string capabilities  = string.Empty;				
 
 				if((caps & CpuCapabilities.AMD) == CpuCapabilities.AMD)
 				{
@@ -1371,10 +1481,10 @@ namespace idTech4
 				// write config file if anything changed
 				WriteConfiguration(); 
 
-				eventLoop->RunEventLoop();
+				eventLoop->RunEventLoop();*/
 
-				// Activate the shell if it's been requested
-				if ( showShellRequested && game ) {
+				// activate the shell if it's been requested
+				/*if ( showShellRequested && game ) {
 					game->Shell_Show( true );
 					showShellRequested = false;
 				}

@@ -341,6 +341,11 @@ namespace idTech4.IO
 		#region Methods
 		public string GetAbsolutePath(string baseDirectory, string gameDirectory, string relativePath)
 		{
+			if(string.IsNullOrEmpty(baseDirectory) == true)
+			{
+				baseDirectory = this.DefaultBasePath;
+			}
+
 			// handle case of this already being an absolute path
 			if(Path.IsPathRooted(relativePath) == true)
 			{
@@ -598,7 +603,7 @@ namespace idTech4.IO
 					}
 
 					FileStream stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.Read);
-					lastModified = File.GetLastWriteTime(filePath);
+					lastModified      = File.GetLastWriteTime(filePath);
 
 					if(cvarSystem.GetInt("fs_debug") > 0)
 					{

@@ -116,6 +116,7 @@
     <Compile Include="Extensions.cs" />
     <Compile Include="idEventLoop.cs" />
     <Compile Include="idHelper.cs" />
+    <Compile Include="idSession.cs" />
     <Compile Include="Math\idBounds.cs" />
     <Compile Include="idColor.cs" />
     <Compile Include="idCommandSystem.cs" />
@@ -152,12 +153,16 @@
     <Compile Include="Services\ICVarSystem.cs" />
     <Compile Include="Services\IDeclManager.cs" />
     <Compile Include="Services\IFileSystem.cs" />
+    <Compile Include="Services\IGame.cs" />
+    <Compile Include="Services\IGameEdit.cs" />
     <Compile Include="Services\IImageManager.cs" />
     <Compile Include="Services\IInputSystem.cs" />
     <Compile Include="Services\ILocalization.cs" />
     <Compile Include="Services\IPlatformService.cs" />
     <Compile Include="Services\IRenderSystem.cs" />
     <Compile Include="Services\IResolutionScale.cs" />
+    <Compile Include="Services\ISession.cs" />
+    <Compile Include="Services\IUserInterfaceManager.cs" />
     <Compile Include="Sound\idSoundEmitter.cs" />
     <Compile Include="Sound\idSoundMaterial.cs" />
     <Compile Include="Text\Decls\idDeclAudio.cs" />
@@ -178,6 +183,9 @@
     <Compile Include="Text\idLocalization.cs" />
     <Compile Include="Text\idToken.cs" />
     <Compile Include="Threading\idThread.cs" />
+    <Compile Include="UI\idDeviceContext.cs" />
+    <Compile Include="UI\idDeviceContextOptimized.cs" />
+    <Compile Include="UI\idUserInterfaceManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <Content Include="Game.ico" />
