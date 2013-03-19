@@ -146,20 +146,30 @@ namespace idTech4
 		private long _engineHzNumerator   = 100 * 1000;
 		private long _engineHzDenominator = 100 * 60;
 
-		private Mutex _appMutex; // for enforcing one instance
 		private bool _isJapaneseSKU;
+
+		// com_speeds times
+		private int	_speeds_GameFrameCount;	    // total number of game frames that were run
+		private int	_speeds_GameFrame;			// game logic time
+		private int	_speeds_MaxGameFrame;		// maximum single frame game logic time
+		private int	_speeds_GameDraw;			// game present time
+		private long _speeds_Frontend;			// renderer frontend time
+		private long _speeds_Backend;			// renderer backend time
+		private long _speeds_Shadows;			// renderer backend waiting for shadow volumes to be created
+		private long _speeds_Gpu;				// total gpu time, at least for PC
+		private long _speeds_LastTime;
 		#endregion
 
 		#region Constructor
 		private idEngine()
 		{
-			this.IsFixedTimeStep       = false;
+			this.IsFixedTimeStep = false;
 			this.Content.RootDirectory = idLicensee.BaseGameDirectory;
 
-			_gameTimer = Stopwatch.StartNew();	
+			_gameTimer = Stopwatch.StartNew();
 		}
 		#endregion
-		
+
 		#region Error Handling
 		public void Error(string format, params object[] args)
 		{
@@ -172,12 +182,12 @@ namespace idTech4
 			ICVarSystem cvarSystem     = this.GetService<ICVarSystem>();
 			ICommandSystem cmdSystem   = this.GetService<ICommandSystem>();
 			IRenderSystem renderSystem = this.GetService<IRenderSystem>();
-			
+
 			if(cvarSystem.GetInt("com_productionMode") == 3)
 			{
 				Sys_Quit();
 			}
-						
+
 			// if we don't have the renderer running, make it a fatal error
 			if(renderSystem.IsInitialized == false)
 			{
@@ -216,7 +226,7 @@ namespace idTech4
 			}
 
 			_lastErrorTime = currentTime;
-			_errorEntered  = code;
+			_errorEntered = code;
 
 			string errorMessage = string.Format(format, args);
 
@@ -395,7 +405,7 @@ namespace idTech4
 		public new void Exit()
 		{
 			base.Exit();
-		
+
 			// don't try to shutdown if we are in a recursive error
 			if(_errorEntered == ErrorType.None)
 			{
@@ -591,17 +601,17 @@ namespace idTech4
 
 			idLog.WriteLine("TODO: ClearWipe();");*/
 
-			try 
+			try
 			{
 				// clear warning buffer
-				idLog.ClearWarnings(idLicensee.GameName + " initialization");				
+				idLog.ClearWarnings(idLicensee.GameName + " initialization");
 
 				// parse command line options
 				ParseCommandLine(_rawCommandLineArguments);
 
 				// init some systems
 				ICVarSystem cvarSystem                     = new idCVarSystem();
-				ICommandSystem cmdSystem                   = new idCommandSystem();	
+				ICommandSystem cmdSystem                   = new idCommandSystem();
 				IPlatformService platform                  = FindPlatform();
 				IFileSystem fileSystem                     = new idFileSystem();
 				ILocalization localization                 = new idLocalization();
@@ -612,19 +622,19 @@ namespace idTech4
 				IResolutionScale resolutionScale           = new idResolutionScale();
 				IUserInterfaceManager userInterfaceManager = new idUserInterfaceManager();
 				ISession session                           = FindSession();
-																			
-				this.Services.AddService(typeof(ICVarSystem),           cvarSystem);
-				this.Services.AddService(typeof(ICommandSystem),        cmdSystem);
-				this.Services.AddService(typeof(IPlatformService),      platform);
-				this.Services.AddService(typeof(ILocalization),         localization);
-				this.Services.AddService(typeof(IFileSystem),           fileSystem);
-				this.Services.AddService(typeof(IInputSystem),          inputSystem);
-				this.Services.AddService(typeof(IConsole),              console);
-				this.Services.AddService(typeof(IDeclManager),          declManager);
-				this.Services.AddService(typeof(IRenderSystem),         renderSystem);
-				this.Services.AddService(typeof(IResolutionScale),      resolutionScale);
+
+				this.Services.AddService(typeof(ICVarSystem), cvarSystem);
+				this.Services.AddService(typeof(ICommandSystem), cmdSystem);
+				this.Services.AddService(typeof(IPlatformService), platform);
+				this.Services.AddService(typeof(ILocalization), localization);
+				this.Services.AddService(typeof(IFileSystem), fileSystem);
+				this.Services.AddService(typeof(IInputSystem), inputSystem);
+				this.Services.AddService(typeof(IConsole), console);
+				this.Services.AddService(typeof(IDeclManager), declManager);
+				this.Services.AddService(typeof(IRenderSystem), renderSystem);
+				this.Services.AddService(typeof(IResolutionScale), resolutionScale);
 				this.Services.AddService(typeof(IUserInterfaceManager), userInterfaceManager);
-				this.Services.AddService(typeof(ISession),              session);
+				this.Services.AddService(typeof(ISession), session);
 
 				cvarSystem.Initialize();
 				cmdSystem.Initialize();
@@ -639,7 +649,7 @@ namespace idTech4
 				cmdSystem.Scan();
 
 				idLog.WriteLine("Command line: {0}", String.Join(" ", _rawCommandLineArguments));
-												
+
 				idLog.WriteLine("QA Timing INIT");
 				idLog.WriteLine(idVersion.ToString(platform));
 
@@ -659,7 +669,7 @@ namespace idTech4
 
 				_consoleUsed = cvarSystem.GetBool("com_allowConsole");
 
-				if(Sys_AlreadyRunning() == true) 
+				if(Sys_AlreadyRunning() == true)
 				{
 					Sys_Quit();
 				}
@@ -668,7 +678,7 @@ namespace idTech4
 				idLog.WriteLine("TODO: InitSIMD();");
 
 				string defaultLang = Sys_DefaultLanguage();
-				_isJapaneseSKU     = defaultLang.Equals(idLanguage.Japanese, StringComparison.OrdinalIgnoreCase);
+				_isJapaneseSKU = defaultLang.Equals(idLanguage.Japanese, StringComparison.OrdinalIgnoreCase);
 
 				// Allow the system to set a default lanugage
 				Sys_SetLanguageFromSystem();
@@ -685,7 +695,7 @@ namespace idTech4
 
 				// initialize the declaration manager
 				declManager.Initialize();
-												
+
 				// init journalling, etc
 				_eventLoop = new idEventLoop();
 
@@ -710,19 +720,19 @@ namespace idTech4
 				StartupVariable(null);
 
 				// if any archived cvars are modified after this, we will trigger a writing of the config file
-				cvarSystem.ClearModifiedFlags(CVarFlags.Archive);		
+				cvarSystem.ClearModifiedFlags(CVarFlags.Archive);
 
 				// support up to 2 digits after the decimal point
 				_engineHzDenominator = 100 * cvarSystem.GetInt64("com_engineHz");
-				_engineHzLatched     = cvarSystem.GetFloat("com_engineHz");
+				_engineHzLatched = cvarSystem.GetFloat("com_engineHz");
 
 				// init renderer
 				renderSystem.Initialize();
 
 				// start the sound system, but don't do any hardware operations yet
 				idLog.WriteLine("TODO: soundSystem->Init();");
-								
-				_whiteMaterial = declManager.FindMaterial( "_white" );
+
+				_whiteMaterial = declManager.FindMaterial("_white");
 
 				string sysLang = cvarSystem.GetString("sys_lang");
 
@@ -735,19 +745,19 @@ namespace idTech4
 				{
 					// if the lead sku is french (ie: europe), display figs
 					_splashScreen = declManager.FindMaterial("guis/assets/splash/legal_figs");
-				} 
-				else 
+				}
+				else
 				{
 					// otherwise show it in english
 					_splashScreen = declManager.FindMaterial("guis/assets/splash/legal_english");
-				}			
-			} 
-			catch(Exception ex) 
+				}
+			}
+			catch(Exception ex)
 			{
 				throw new Exception("Uh oh!", ex);
 				Sys_Error("Error during initialization");
 			}
-			
+
 			base.Initialize();
 		}
 
@@ -852,8 +862,8 @@ namespace idTech4
 				consoleHistory.LoadHistoryFile();*/
 
 				AddStartupCommands();
+				StartMenu(true);
 
-				/*StartMenu( true );*/
 				while((this.ElapsedTime - legalStartTime) < legalMinTime)
 				{
 					RenderSplash();
@@ -863,20 +873,20 @@ namespace idTech4
 				}
 
 				// print all warnings queued during initialization
-			/*	PrintWarnings();
+				/*	PrintWarnings();
 
-				// remove any prints from the notify lines
-				console->ClearNotifyLines();
+					// remove any prints from the notify lines
+					console->ClearNotifyLines();
 
-				CheckStartupStorageRequirements();
+					CheckStartupStorageRequirements();
 
 
-				if ( preload_CommonAssets.GetBool() && fileSystem->UsingResourceFiles() ) {
-					idPreloadManifest manifest;
-					manifest.LoadManifest( "_common.preload" );
-					globalImages->Preload( manifest, false );
-					soundSystem->Preload( manifest );
-				}*/
+					if ( preload_CommonAssets.GetBool() && fileSystem->UsingResourceFiles() ) {
+						idPreloadManifest manifest;
+						manifest.LoadManifest( "_common.preload" );
+						globalImages->Preload( manifest, false );
+						soundSystem->Preload( manifest );
+					}*/
 
 				fileSystem.EndLevelLoad();
 
@@ -892,7 +902,7 @@ namespace idTech4
 					opts.numLevels = 1;
 					image->AllocImage( opts, TF_LINEAR, TR_REPEAT );
 				}*/
-				
+
 				// no longer need the splash screen
 				if(_splashScreen != null)
 				{
@@ -940,9 +950,9 @@ namespace idTech4
 			IGame game = this.GetService<IGame>();
 
 			if(game != null)
-			{				
-				IDeclManager declManager = this.GetService<IDeclManager>();
-				IRenderSystem renderSystem = this.GetService<IRenderSystem>();
+			{
+				IDeclManager declManager                   = this.GetService<IDeclManager>();
+				IRenderSystem renderSystem                 = this.GetService<IRenderSystem>();
 				// TODO: soundSystem->BeginLevelLoad();
 				IUserInterfaceManager userInterfaceManager = this.GetService<IUserInterfaceManager>();
 
@@ -964,6 +974,28 @@ namespace idTech4
 				declManager.EndLevelLoad();
 				userInterfaceManager.EndLevelLoad("");
 			}
+		}
+
+		private void StartMenu(bool playIntro)
+		{
+			IGame game       = this.GetService<IGame>();
+			IConsole console = this.GetService<IConsole>();
+
+			if((game != null) && (game.Shell_IsActive() == true))
+			{
+				return;
+			}
+			
+			// TODO: readDemo
+			/*if ( readDemo ) {
+				// if we're playing a demo, esc kills it
+				UnloadMap();
+			}*/
+
+			game.Shell_Show(true);
+			game.Shell_SyncWithSession();
+
+			console.Close();
 		}
 
 		/// <summary>
@@ -1008,7 +1040,7 @@ namespace idTech4
 				// reset to english and try to load again
 				cvarSystem.Set("sys_lang", idLanguage.English);
 
-				langName            = cvarSystem.GetString("sys_lang");
+				langName = cvarSystem.GetString("sys_lang");
 				currentLanguageList = langFiles.Where(c => c.StartsWith(langName)).ToArray();
 			}
 
@@ -1032,7 +1064,7 @@ namespace idTech4
 
 			// from executable directory first - this is handy for developement
 			string dllName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-			dllName        = Path.Combine(dllName, "game.dll");
+			dllName = Path.Combine(dllName, "game.dll");
 
 			if(File.Exists(dllName) == false)
 			{
@@ -1047,11 +1079,11 @@ namespace idTech4
 			idLog.WriteLine("Loading game DLL: '{0}'", dllName);
 
 			Assembly asm = Assembly.LoadFile(Path.GetFullPath(dllName));
-			
+
 			IGame game         = (IGame) asm.CreateInstance("idTech4.Game.idGame");
 			IGameEdit gameEdit = (IGameEdit) asm.CreateInstance("idTech4.Game.idGameEdit");
 
-			this.Services.AddService(typeof(IGame),     game);
+			this.Services.AddService(typeof(IGame), game);
 			this.Services.AddService(typeof(IGameEdit), gameEdit);
 
 			game.Init();
@@ -1154,7 +1186,7 @@ namespace idTech4
 		private void RenderSplash()
 		{
 			IRenderSystem renderSystem = GetService<IRenderSystem>();
-			
+
 			float sysWidth     = renderSystem.Width * renderSystem.PixelAspect;
 			float sysHeight    = renderSystem.Height;
 			float sysAspect    = sysWidth / sysHeight;
@@ -1162,7 +1194,7 @@ namespace idTech4
 			float adjustment   = sysAspect / splashAspect;
 			float barHeight    = (adjustment >= 1.0f) ? 0.0f : (1.0f - adjustment) * (float) Constants.ScreenHeight * 0.25f;
 			float barWidth     = (adjustment <= 1.0f) ? 0.0f : (adjustment - 1.0f) * (float) Constants.ScreenWidth * 0.25f;
-			
+
 			if(barHeight > 0.0f)
 			{
 				renderSystem.Color = idColor.Black;
@@ -1179,11 +1211,8 @@ namespace idTech4
 
 			renderSystem.Color = new Color(1, 1, 1, 1);
 			renderSystem.DrawStretchPicture(barWidth, barHeight, Constants.ScreenWidth - barWidth * 2.0f, Constants.ScreenHeight - barHeight * 2.0f, 0, 0, 1, 1, _splashScreen);
-
-			// TODO: time_*
-			ulong time_frontend, time_backend, time_shadows, time_gpu;
-
-			LinkedListNode<idRenderCommand> cmd = renderSystem.SwapCommandBuffers(out time_frontend, out time_backend, out time_shadows, out time_gpu);
+			
+			LinkedListNode<idRenderCommand> cmd = renderSystem.SwapCommandBuffers(out _speeds_Frontend, out _speeds_Backend, out _speeds_Shadows, out _speeds_Gpu);
 			renderSystem.RenderCommandBuffers(cmd);
 		}
 
@@ -1300,7 +1329,7 @@ namespace idTech4
 
 			Environment.Exit(1);
 		}
-		
+
 		private void Sys_Init()
 		{
 			ICVarSystem cvarSystem    = GetService<ICVarSystem>();
@@ -1347,7 +1376,7 @@ namespace idTech4
 					cvarSystem.Set("sys_arch", "Unknown NT variant");
 				}
 			}
-			
+
 			//
 			// CPU type
 			//			
@@ -1363,7 +1392,7 @@ namespace idTech4
 				}
 
 				CpuCapabilities caps = platform.CpuCapabilities;
-				string capabilities  = string.Empty;				
+				string capabilities  = string.Empty;
 
 				if((caps & CpuCapabilities.AMD) == CpuCapabilities.AMD)
 				{
@@ -1441,7 +1470,7 @@ namespace idTech4
 			// this causes none of the loading messages to appear and it looks like the program isn't loading!
 			if(_firstTick == true)
 			{
-				_firstTick     = false;
+				_firstTick = false;
 				_lastFrameTime = this.ElapsedTime;
 
 				base.Update(gameTime);
@@ -1455,6 +1484,7 @@ namespace idTech4
 
 			IRenderSystem renderSystem = this.GetService<IRenderSystem>();
 			ICVarSystem cvarSystem     = this.GetService<ICVarSystem>();
+			ISession session           = this.GetService<ISession>();
 
 			LinkedListNode<idRenderCommand> renderCommands = null;
 
@@ -1529,20 +1559,17 @@ namespace idTech4
 				/*frameTiming.startSyncTime = Sys_Microseconds();*/
 
 				ulong timeFrontend, timeBackend, timeShadows, timeGPU;
-				
+
 				if(cvarSystem.GetBool("com_smp") == true)
 				{
-					// TODO: time_*
-					// renderCommands = renderSystem->SwapCommandBuffers(&time_frontend, &time_backend, &time_shadows, &time_gpu);
-					
-					renderCommands = renderSystem.SwapCommandBuffers(out timeFrontend, out timeBackend, out timeShadows, out timeGPU);
+					renderCommands = renderSystem.SwapCommandBuffers(out _speeds_Frontend, out _speeds_Backend, out _speeds_Shadows, out _speeds_Gpu);
 				}
 				else
 				{
 					// the GPU will stay idle through command generation for minimal input latency
-					renderSystem.SwapCommandBuffers_FinishRendering(out timeFrontend, out timeBackend, out timeShadows, out timeGPU);
+					renderSystem.SwapCommandBuffers_FinishRendering(out _speeds_Frontend, out _speeds_Backend, out _speeds_Shadows, out _speeds_Gpu);
 				}
-				
+
 				/*frameTiming.finishSyncTime = Sys_Microseconds();	*/
 
 				//--------------------------------------------
@@ -1574,9 +1601,9 @@ namespace idTech4
 				// How many game frames to run
 				int gameFrameCount = 0;
 
-				for(;;)
+				for(; ; )
 				{
-					long thisFrameTime = this.ElapsedTime;					
+					long thisFrameTime = this.ElapsedTime;
 					long deltaMilliseconds = thisFrameTime - _lastFrameTime;
 					_lastFrameTime = thisFrameTime;
 
@@ -1587,7 +1614,7 @@ namespace idTech4
 					_gameTimeResidual += clampedDeltaMilliseconds * cvarSystem.GetFloat("timescale");
 
 					// don't run any frames when paused
-					if ( pauseGame ) 
+					if(pauseGame)
 					{
 						_gameFrame++;
 						_gameTimeResidual = 0;
@@ -1596,33 +1623,33 @@ namespace idTech4
 					}
 
 					// debug cvar to force multiple game tics
-					if(cvarSystem.GetInt("com_fixedTic") > 0 ) 
+					if(cvarSystem.GetInt("com_fixedTic") > 0)
 					{
 						gameFrameCount = cvarSystem.GetInt("com_fixedTic");
-						
-						_gameFrame       += gameFrameCount;
+
+						_gameFrame += gameFrameCount;
 						_gameTimeResidual = 0;
 
 						break;
 					}
 
-					if(_syncNextGameFrame == true) 
+					if(_syncNextGameFrame == true)
 					{
 						// don't sleep at all
 						_syncNextGameFrame = false;
-						_gameTimeResidual  = 0;
-						_gameFrame++;						
+						_gameTimeResidual = 0;
+						_gameFrame++;
 						gameFrameCount++;
-						
+
 						break;
 					}
 
-					for(;;) 
+					for(; ; )
 					{
 						// how much time to wait before running the next frame, based on com_engineHz
 						int frameDelay = idHelper.FrameToMillsecond(_gameFrame + 1) - idHelper.FrameToMillsecond(_gameFrame);
-					
-						if(_gameTimeResidual < frameDelay) 
+
+						if(_gameTimeResidual < frameDelay)
 						{
 							break;
 						}
@@ -1665,9 +1692,9 @@ namespace idTech4
 				//--------------------------------------------
 
 				// Update session and syncronize to the new session state after sleeping
-				/*session->UpdateSignInManager();
-				session->Pump();
-				session->ProcessSnapAckQueue();*/
+				session.UpdateSignInManager();
+				session.Pump();
+				session.ProcessSnapAckQueue();
 
 				/*if ( session->GetState() == idSession::LOADING ) {
 					// If the session reports we should be loading a map, load it!
@@ -1740,7 +1767,7 @@ namespace idTech4
 		
 				// start the game / draw command generation thread going in the background
 				gameReturn_t ret = gameThread.RunGameAndDraw( numGameFrames, userCmdMgr, IsClient(), gameFrame - numGameFrames );*/
-				RenderSplash();
+
 				if(cvarSystem.GetBool("com_smp") == false)
 				{
 					// in non-smp mode, run the commands we just generated, instead of
@@ -1770,11 +1797,11 @@ namespace idTech4
 
 				// Send local usermds to the server.
 				// This happens after the game frame has run so that prediction data is up to date.
-				SendUsercmds( Game()->GetLocalClientNum() );
+				SendUsercmds( Game()->GetLocalClientNum() );*/
 
 				// Now that we have an updated game frame, we can send out new snapshots to our clients
-				session->Pump(); // Pump to get updated usercmds to relay
-				SendSnapshots();
+				session.Pump(); // Pump to get updated usercmds to relay
+				/*SendSnapshots();
 
 				// Render the sound system using the latest commands from the game thread
 				if ( pauseGame ) {
@@ -1798,21 +1825,23 @@ namespace idTech4
 						lobby.DrawDebugNetworkHUD2();
 					}
 					lobby.DrawDebugNetworkHUD_ServerSnapshotMetrics( net_drawDebugHud.GetInteger() == 3 );
-				}
+				}*/
 
 				// report timing information
-				if ( com_speeds.GetBool() ) {
-					static int lastTime = Sys_Milliseconds();
-					int	nowTime = Sys_Milliseconds();
-					int	com_frameMsec = nowTime - lastTime;
-					lastTime = nowTime;
-					Printf( "frame:%d all:%3d gfr:%3d rf:%3lld bk:%3lld\n", idLib::frameNumber, com_frameMsec, time_gameFrame, time_frontend / 1000, time_backend / 1000 );
-					time_gameFrame = 0;
-					time_gameDraw = 0;
-				}
+				if(cvarSystem.GetBool("com_speeds") == true)
+				{
+					long nowTime     = this.ElapsedTime;
+					long frameMsec   = nowTime - _speeds_LastTime;
+					_speeds_LastTime = nowTime;
 
+					idLog.WriteLine("frame:{0} all:{1:000} gfr:{2} rf:{3:000} bk:{4:000}", _frameNumber, frameMsec, _speeds_GameFrame, (_speeds_Frontend / 1000), (_speeds_Backend / 1000));
+					
+					_speeds_GameFrame = 0;
+					_speeds_GameDraw  = 0;
+				}
+			
 				// the FPU stack better be empty at this point or some bad code or compiler bug left values on the stack
-				if ( !Sys_FPU_StackIsEmpty() ) {
+				/*if ( !Sys_FPU_StackIsEmpty() ) {
 					Printf( Sys_FPU_GetState() );
 					FatalError( "idCommon::Frame: the FPU stack is not empty at the end of the frame\n" );
 				}

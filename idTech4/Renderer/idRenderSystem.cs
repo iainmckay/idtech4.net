@@ -263,10 +263,10 @@ namespace idTech4.Renderer
 		/// </remarks>
 		public LinkedListNode<idRenderCommand> SwapCommandBuffers()
 		{
-			ulong frontEnd;
-			ulong backEnd;
-			ulong shadow;
-			ulong gpu;
+			long frontEnd;
+			long backEnd;
+			long shadow;
+			long gpu;
 
 			SwapCommandBuffers_FinishRendering(out frontEnd, out backEnd, out shadow, out gpu);
 
@@ -283,14 +283,14 @@ namespace idTech4.Renderer
 		/// After this is called, new command buffers can be built up in parallel
 		/// with the rendering of the closed off command buffers by RenderCommandBuffers()
 		/// </remarks>
-		public LinkedListNode<idRenderCommand> SwapCommandBuffers(out ulong frontEnd, out ulong backEnd, out ulong shadow, out ulong gpu)
+		public LinkedListNode<idRenderCommand> SwapCommandBuffers(out long frontEnd, out long backEnd, out long shadow, out long gpu)
 		{
 			SwapCommandBuffers_FinishRendering(out frontEnd, out backEnd, out shadow, out gpu);
 
 			return SwapCommandBuffers_FinishCommandBuffers();
 		}
 
-		public void SwapCommandBuffers_FinishRendering(out ulong frontEnd, out ulong backEnd, out ulong shadow, out ulong gpu)
+		public void SwapCommandBuffers_FinishRendering(out long frontEnd, out long backEnd, out long shadow, out long gpu)
 		{
 			// TODO: SCOPED_PROFILE_EVENT( "SwapCommandBuffers" );
 

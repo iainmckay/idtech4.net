@@ -25,25 +25,99 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace idTech4.Services
+namespace idTech4.Game.Menus
 {
-	public interface IConsole
+	public abstract class idMenuHandler
 	{
-		#region Initialization
 		#region Properties
-		bool IsInitialized { get; }
+		public bool IsActive
+		{
+			get
+			{
+				/*if(_gui != null)
+				{
+					return _gui.IsActive;
+				}*/
+
+				return false;
+			}
+		}
 		#endregion
 
-		#region Methods
-		void Initialize();
-		#endregion
+		#region Members
+		private bool _scrollingMenu;
+		private int _scrollCounter;
+
+		private int _activeScreen;
+		private int _nextScreen;
+		private int _transition;
+		private int _platform;
+
+		//private idSWF _gui;
+	
+		// TODO
+		/*actionRepeater_t			actionRepeater;
+		idMenuScreen *				menuScreens[MAX_SCREEN_AREAS];
+		idList< idMenuWidget *, TAG_IDLIB_LIST_MENU>	children;
+	
+		idStaticList< idStr, NUM_GUI_SOUNDS >		sounds;
+
+		idMenuWidget_CommandBar *	cmdBar;*/
 		#endregion
 
-		void Close();
+		#region Constructor
+		public idMenuHandler()
+		{
+			_activeScreen = -1;
+			_nextScreen   = -1;
+			_transition   = -1;
+
+			/*for(int index = 0; index < MAX_SCREEN_AREAS; ++index)
+			{
+				menuScreens[index] = NULL;
+			}*/
+
+			// TODO: sounds.SetNum(NUM_GUI_SOUNDS);
+		}
+
+		// TODO: cleanup
+		/*idMenuHandler::~idMenuHandler() {
+			Cleanup();	
+		}*/
+		#endregion
+
+		#region Initialization
+		public void Init(string swfFile /* TODO:, idSoundWorld * sw*/)
+		{
+			Cleanup();
+
+			//_gui      = new idSWF(swfFile/* TODO: , sw*/);
+			_platform = 2;
+		}
+		#endregion
+
+		#region State
+		private void Cleanup()
+		{
+			idLog.Warning("TODO: Cleanup");
+			/*for(int index = 0; index < children.Num(); ++index)
+			{
+				assert(children[index]->GetRefCount() > 0);
+				children[index]->Release();
+			}
+			children.Clear();
+
+			for(int index = 0; index < MAX_SCREEN_AREAS; ++index)
+			{
+				if(menuScreens[index] != NULL)
+				{
+					menuScreens[index]->Release();
+				}
+			}
+
+			delete gui;
+			gui = NULL;*/
+		}
+		#endregion
 	}
 }

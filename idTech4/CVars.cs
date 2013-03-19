@@ -116,6 +116,10 @@ namespace idTech4
 			cvarSystem.Register("timescale",					"1", 0.001f, 100.0f, "Number of game frames to run per render frame",	CVarFlags.System | CVarFlags.Float);
 			#endregion
 
+			#region Network
+			cvarSystem.Register("net_migrateHost",				"-1", "Become host of session (0 = party, 1 = game) for testing purposes", CVarFlags.Integer);
+			#endregion
+
 			#region Renderer
 			cvarSystem.Register("r_clear",						"2",		"force screen clear every frame, 1 = purple, 2 = black, 'r g b' = custom", CVarFlags.Renderer);
 			cvarSystem.Register("r_customHeight",				"720",		"custom screen height. set r_vidMode to -1 to activate",	CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
@@ -755,7 +759,7 @@ idCVar net_ignoreTitleStorage( "net_ignoreTitleStorage", "0", CVAR_BOOL, "Ignore
 #endif
 
 idCVar net_maxLoadResourcesTimeInSeconds( "net_maxLoadResourcesTimeInSeconds", "0", CVAR_INTEGER, "How long, in seconds, clients have to load resources. Used for loose asset builds." );
-idCVar net_migrateHost( "net_migrateHost", "-1", CVAR_INTEGER, "Become host of session (0 = party, 1 = game) for testing purposes" );
+
 extern idCVar net_debugBaseStates;
 
 idCVar net_testPartyMemberConnectFail( "net_testPartyMemberConnectFail", "-1", CVAR_INTEGER, "Force this party member index to fail to connect to games." );

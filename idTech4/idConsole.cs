@@ -93,6 +93,11 @@ namespace idTech4
 
 			_initialized = true;
 		}
+
+		public void Close()
+		{
+			idLog.Warning("TODO: console.close");
+		}
 		#endregion
 		#endregion
 		#endregion

@@ -34,6 +34,14 @@ namespace idTech4.Services
 {
 	public interface ISession
 	{
+		#region Initialization
 		void Initialize();
+		#endregion
+
+		#region Misc
+		void Pump();
+		void ProcessSnapAckQueue();
+		void UpdateSignInManager();
+		#endregion
 	}
 }

@@ -25,34 +25,68 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-namespace idTech4.Services
+using idTech4.Renderer;
+
+namespace idTech4.Game.Menus
 {
-	public interface IGame
+	public class idMenuHandler_Shell : idMenuHandler
 	{
-		#region Initialization
-		/// <summary>
-		/// Initialize the game for the first time.
-		/// </summary>
-		void Init();
+		#region Members
+		private ShellState _state;
+		private ShellState _nextState;
+		private bool _smallFrameShowing;
+		private bool _largeFrameShowing;
+		private bool _backgroundShowing;
+		private bool _waitForBinding;
+		private string _waitBind;
+		//idSysSignal				deviceRequestedSignal;
+		
+		// TODO:
+		/*idList<const char *, TAG_IDLIB_LIST_MENU>	mpGameModes;
+		idList<mpMap_t, TAG_IDLIB_LIST_MENU>			mpGameMaps;
+		idMenuWidget_MenuBar *	menuBar;
+		idMenuWidget *			pacifier;*/
+	
+		private int	_timeRemaining;
+		private int	_nextPeerUpdateMs;
+		private int	_newGameType;
+		private bool _inGame;
+		private bool _showingIntro;
+		private bool _continueWaitForEnumerate;
+		private bool _gameComplete;
+
+		//private idSWF _introGui;
+		// TODO: const idSoundShader *	typeSoundShader;
+		private idMaterial _doom3Intro;
+		private idMaterial _roeIntro;
+		private idMaterial _lmIntro;
+		private idMaterial _marsRotation;
+		// TODO: idList< idStr, TAG_IDLIB_LIST_MENU>			navOptions;
 		#endregion
 
-		#region Main Menu
-		/*bool InhibitControls() = 0;
-		void Shell_Init( const char * filename, idSoundWorld * sw ) = 0;
-		void Shell_Cleanup() = 0;*/
-		void Shell_CreateMenu(bool inGame);
-		/*void Shell_ClosePause() = 0;*/
-		void Shell_Show(bool show);
-		bool Shell_IsActive();
-		/*bool Shell_HandleGuiEvent( const sysEvent_t * sev ) = 0;
-		void Shell_Render() = 0;
-		void Shell_ResetMenu() = 0;*/
-		void Shell_SyncWithSession();
-		/*void Shell_UpdateSavedGames() = 0;
-		void Shell_SetCanContinue( bool valid ) = 0;
-		void Shell_UpdateClientCountdown( int countdown ) = 0;
-		void Shell_UpdateLeaderboard( const idLeaderboardCallback * callback ) = 0;
-		void Shell_SetGameComplete();*/
+		#region Constructor
+		public idMenuHandler_Shell()
+			: base()
+		{
+			_state             = ShellState.Invalid;
+			_nextState         = ShellState.Invalid;
+			_backgroundShowing = true;
+		}
 		#endregion
+	}
+
+	public enum ShellState
+	{
+		Invalid = -1,
+		PressStart,
+		Idle,
+		PartyLobby,
+		GameLobby,
+		Paused,
+		Connecting,
+		Searching,
+		Loading,
+		Busy,
+		InGame
 	}
 }

@@ -25,34 +25,11 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-namespace idTech4.Services
-{
-	public interface IGame
-	{
-		#region Initialization
-		/// <summary>
-		/// Initialize the game for the first time.
-		/// </summary>
-		void Init();
-		#endregion
+using idTech4.Services;
 
-		#region Main Menu
-		/*bool InhibitControls() = 0;
-		void Shell_Init( const char * filename, idSoundWorld * sw ) = 0;
-		void Shell_Cleanup() = 0;*/
-		void Shell_CreateMenu(bool inGame);
-		/*void Shell_ClosePause() = 0;*/
-		void Shell_Show(bool show);
-		bool Shell_IsActive();
-		/*bool Shell_HandleGuiEvent( const sysEvent_t * sev ) = 0;
-		void Shell_Render() = 0;
-		void Shell_ResetMenu() = 0;*/
-		void Shell_SyncWithSession();
-		/*void Shell_UpdateSavedGames() = 0;
-		void Shell_SetCanContinue( bool valid ) = 0;
-		void Shell_UpdateClientCountdown( int countdown ) = 0;
-		void Shell_UpdateLeaderboard( const idLeaderboardCallback * callback ) = 0;
-		void Shell_SetGameComplete();*/
-		#endregion
+namespace idTech4.Game
+{
+	public class idGameEdit : IGameEdit
+	{
 	}
 }

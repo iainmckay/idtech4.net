@@ -556,17 +556,71 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="generated\images\generated\swf\dialog#__0200.bimage">
+      <Name>dialog#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\doomintro#__0200.bimage">
+      <Name>doomintro#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\hud#__0200.bimage">
+      <Name>hud#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\leintro#__0200.bimage">
+      <Name>leintro#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\mp_messages#__0200.bimage">
+      <Name>mp_messages#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\pause#__0200.bimage">
+      <Name>pause#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\pda#__0200.bimage">
+      <Name>pda#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\roeintro#__0200.bimage">
+      <Name>roeintro#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\save_indicator#__0200.bimage">
+      <Name>save_indicator#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\scoreboard#__0200.bimage">
+      <Name>scoreboard#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\shell#__0200.bimage">
+      <Name>shell#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
     <Compile Include="generated\images\textures\black#__0200.bimage">
       <Name>black#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\idTech4.ContentPipeline.BImage\idTech4.ContentPipeline.BImage.csproj">
-      <Project>{F1194E87-8160-4253-8465-E6416B44FA06}</Project>
-      <Name>idTech4.ContentPipeline.BImage</Name>
-    </ProjectReference>
+    <Compile Include="generated\swf\loading\default.bswf">
+      <Name>default</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
   </ItemGroup>
   <ItemGroup>
     <Content Include="default.cfg">
@@ -816,6 +870,84 @@
       <Name>legal_french#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\generated\swf\loading\default#__0200.bimage">
+      <Name>default#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4.Content.Pipeline.BImageImporter\idTech4.Content.Pipeline.BImageImporter.csproj">
+      <Project>{F1194E87-8160-4253-8465-E6416B44FA06}</Project>
+      <Name>idTech4.Content.Pipeline.BImageImporter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\idTech4.Content.Pipeline.BSWFImporter\idTech4.Content.Pipeline.BSWFImporter.csproj">
+      <Project>{80C83BA7-1260-46F2-9E9E-BAA94A249A48}</Project>
+      <Name>idTech4.Content.Pipeline.BSWFImporter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\idTech4.Content.Pipeline.SWFImporter\idTech4.Content.Pipeline.SWFImporter.csproj">
+      <Project>{9037E97E-683A-45C3-95EC-BE641D252D69}</Project>
+      <Name>idTech4.Content.Pipeline.SWFImporter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\swf\dialog.bswf">
+      <Name>dialog</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\doomintro.bswf">
+      <Name>doomintro</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\hud.bswf">
+      <Name>hud</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\leintro.bswf">
+      <Name>leintro</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\mp_messages.bswf">
+      <Name>mp_messages</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\pause.bswf">
+      <Name>pause</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\pda.bswf">
+      <Name>pda</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\roeintro.bswf">
+      <Name>roeintro</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\save_indicator.bswf">
+      <Name>save_indicator</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\scoreboard.bswf">
+      <Name>scoreboard</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\shell.bswf">
+      <Name>shell</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
