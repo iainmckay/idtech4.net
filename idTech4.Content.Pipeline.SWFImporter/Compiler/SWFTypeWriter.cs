@@ -39,7 +39,7 @@ namespace idTech4.Content.Pipeline.Compiler
 		{
 			// TODO: change this to the name of your ContentTypeReader
 			// class which will be used to load this data.
-			return "MyNamespace.MyContentReader, MyGameAssembly";
+			return "idTech4.UI.SWF.SWFTypeReader, idTech4.UI.SWF";
 		}
 		#endregion
 	}

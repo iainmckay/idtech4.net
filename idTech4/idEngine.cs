@@ -1064,7 +1064,7 @@ namespace idTech4
 
 			// from executable directory first - this is handy for developement
 			string dllName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-			dllName = Path.Combine(dllName, "game.dll");
+			dllName = Path.Combine(dllName, "idTech4.Game.dll");
 
 			if(File.Exists(dllName) == false)
 			{
@@ -1073,9 +1073,26 @@ namespace idTech4
 
 			if(dllName == null)
 			{
-				dllName = fileSystem.GetAbsolutePath(cvarSystem.GetString("fs_basedir"), idLicensee.BaseGameDirectory, "game.dll");
+				dllName = fileSystem.GetAbsolutePath(cvarSystem.GetString("fs_basedir"), idLicensee.BaseGameDirectory, "idTech4.Game.dll");
 			}
 
+			// register some extra assembly paths
+			AppDomain.CurrentDomain.AssemblyResolve += (object sender, ResolveEventArgs e) => {
+				string name = e.Name;
+
+				if(name.IndexOf(",") != -1)
+				{
+					name = e.Name.Substring(0, e.Name.IndexOf(","));
+				}
+
+				if(name.EndsWith(".dll") == false)
+				{
+					name = name + ".dll";
+				}
+
+				return Assembly.LoadFile(fileSystem.GetAbsolutePath(fileSystem.BasePath, idLicensee.BaseGameDirectory, name));
+			};
+						
 			idLog.WriteLine("Loading game DLL: '{0}'", dllName);
 
 			Assembly asm = Assembly.LoadFile(Path.GetFullPath(dllName));
@@ -1298,6 +1315,10 @@ namespace idTech4
 		private void Sys_Error(string format, params object[] args)
 		{
 			string errorMessage = string.Format(format, args);
+
+			idLog.WriteLine("=========================================");
+			idLog.WriteLine("ERROR: {0}", errorMessage);
+			idLog.WriteLine("=========================================");
 
 			idLog.WriteLine("TODO: systemConsole");
 			// TODO: idE.SystemConsole.Append(errorMessage + Environment.NewLine);

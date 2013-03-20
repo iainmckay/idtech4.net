@@ -102,7 +102,7 @@
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\idTech4\idTech4.csproj">
-      <Project>{D138F2F1-40A8-4113-AEE6-761322D8C237}</Project>
+      <Project>{DA5EA878-8FEE-4E46-9FFE-4DD0D12C2D6E}</Project>
       <Name>idTech4</Name>
     </ProjectReference>
   </ItemGroup>

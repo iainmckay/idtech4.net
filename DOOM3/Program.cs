@@ -25,9 +25,9 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
+using idTech4;
 
-namespace idTech4
+namespace DOOM3
 {
 #if WINDOWS || XBOX
 	public static class Program

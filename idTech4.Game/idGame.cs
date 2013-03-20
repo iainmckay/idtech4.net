@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 using idTech4.Game.Menus;
 using idTech4.Services;
 using idTech4.Text;
+using idTech4.UI.SWF;
 
 namespace idTech4.Game
 {
@@ -142,6 +143,12 @@ namespace idTech4.Game
 			ICVarSystem cvarSystem   = idEngine.Instance.GetService<ICVarSystem>();
 			IDeclManager declManager = idEngine.Instance.GetService<IDeclManager>();
 			ICommandSystem cmdSystem = idEngine.Instance.GetService<ICommandSystem>();
+
+			// we're using SWF's for this game
+			idSWFManager swfManager  = new idSWFManager();
+			swfManager.Initialize();
+
+			idEngine.Instance.Services.AddService(typeof(idSWFManager), swfManager);
 
 			// initialize processor specific SIMD
 			idLog.Warning("TODO: idSIMD::InitProcessor( game, com_forceGenericSIMD.GetBool() );");

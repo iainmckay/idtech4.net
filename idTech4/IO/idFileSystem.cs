@@ -298,6 +298,26 @@ namespace idTech4.IO
 
 		#region Paths
 		#region Properties
+		public string BasePath
+		{
+			get
+			{
+				ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+
+				return cvarSystem.GetString("fs_basepath");
+			}
+		}
+
+		public string SavePath
+		{
+			get
+			{
+				ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+
+				return cvarSystem.GetString("fs_savepath");
+			}
+		}
+
 		public string DefaultBasePath
 		{
 			get
@@ -349,7 +369,7 @@ namespace idTech4.IO
 			// handle case of this already being an absolute path
 			if(Path.IsPathRooted(relativePath) == true)
 			{
-				return Path.GetFullPath(relativePath);
+				return relativePath;
 			}
 
 			return Path.GetFullPath(Path.Combine(baseDirectory, gameDirectory, relativePath));

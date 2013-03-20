@@ -74,6 +74,9 @@ namespace idTech4.Services
 
 		#region Paths
 		#region Properties
+		string BasePath { get; }
+		string SavePath { get; }
+
 		string DefaultBasePath { get; }
 		string DefaultSavePath { get; }
 		#endregion

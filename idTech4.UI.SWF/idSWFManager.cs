@@ -25,100 +25,49 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using idTech4.UI.SWF;
+using System.IO;
 
-namespace idTech4.Game.Menus
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
+
+using idTech4.Services;
+
+namespace idTech4.UI.SWF
 {
-	public abstract class idMenuHandler
+	public class idSWFManager
 	{
-		#region Properties
-		public bool IsActive
-		{
-			get
-			{
-				if(_gui != null)
-				{
-					return _gui.IsActive;
-				}
-
-				return false;
-			}
-		}
-		#endregion
-
 		#region Members
-		private bool _scrollingMenu;
-		private int _scrollCounter;
-
-		private int _activeScreen;
-		private int _nextScreen;
-		private int _transition;
-		private int _platform;
-
-		private idSWF _gui;
-	
-		// TODO
-		/*actionRepeater_t			actionRepeater;
-		idMenuScreen *				menuScreens[MAX_SCREEN_AREAS];
-		idList< idMenuWidget *, TAG_IDLIB_LIST_MENU>	children;
-	
-		idStaticList< idStr, NUM_GUI_SOUNDS >		sounds;
-
-		idMenuWidget_CommandBar *	cmdBar;*/
+		private ContentManager _contentManager;
 		#endregion
 
 		#region Constructor
-		public idMenuHandler()
+		public idSWFManager()
 		{
-			_activeScreen = -1;
-			_nextScreen   = -1;
-			_transition   = -1;
 
-			/*for(int index = 0; index < MAX_SCREEN_AREAS; ++index)
-			{
-				menuScreens[index] = NULL;
-			}*/
-
-			// TODO: sounds.SetNum(NUM_GUI_SOUNDS);
 		}
-
-		// TODO: cleanup
-		/*idMenuHandler::~idMenuHandler() {
-			Cleanup();	
-		}*/
 		#endregion
 
 		#region Initialization
-		public void Init(string swfFile /* TODO:, idSoundWorld * sw*/)
+		public void Initialize()
 		{
-			Cleanup();
-
-			_gui      = idEngine.Instance.GetService<idSWFManager>().Load(swfFile/* TODO: , sw*/);
-			_platform = 2;
+			// we load SWF's in to their own content manager
+			_contentManager = new ContentManager(idEngine.Instance.Services, idLicensee.BaseGameDirectory);
 		}
 		#endregion
 
-		#region State
-		private void Cleanup()
+		#region Loading
+		public idSWF Load(string assetName)
 		{
-			idLog.Warning("TODO: Cleanup");
-			/*for(int index = 0; index < children.Num(); ++index)
+			if(assetName.StartsWith("swf/") == false)
 			{
-				assert(children[index]->GetRefCount() > 0);
-				children[index]->Release();
-			}
-			children.Clear();
-
-			for(int index = 0; index < MAX_SCREEN_AREAS; ++index)
-			{
-				if(menuScreens[index] != NULL)
-				{
-					menuScreens[index]->Release();
-				}
+				// if it doesn't already have swf/ in front of it, add it
+				assetName = "swf/" + assetName;
 			}
 
-			delete gui;
-			gui = NULL;*/
+			assetName = assetName.ToLower();
+			assetName = Path.Combine("generated", Path.Combine(Path.GetDirectoryName(assetName), Path.GetFileNameWithoutExtension(assetName)));
+
+			return _contentManager.Load<idSWF>(assetName);
 		}
 		#endregion
 	}

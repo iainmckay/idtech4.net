@@ -1,0 +1,508 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <ProjectGuid>{09A8A674-478A-4D36-A02F-2B5B12102B17}</ProjectGuid>
+    <ProjectTypeGuids>{96E2B04D-8817-42c6-938A-82C39BA4D311};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <XnaFrameworkVersion>v4.0</XnaFrameworkVersion>
+    <OutputPath>bin\$(Platform)\$(Configuration)</OutputPath>
+    <ContentRootDirectory>base</ContentRootDirectory>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Debug|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)' == 'Release|x86'">
+    <PlatformTarget>x86</PlatformTarget>
+  </PropertyGroup>
+  <PropertyGroup>
+    <RootNamespace>DOOM3Content</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.EffectImporter, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.FBXImporter, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.TextureImporter, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.XImporter, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.AudioImporters, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline.VideoImporters, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=MSIL">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="default.cfg">
+      <Name>default</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="joy_360_0.cfg">
+      <Name>joy_360_0</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="joy_360_1.cfg">
+      <Name>joy_360_1</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="joy_lefty.cfg">
+      <Name>joy_lefty</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+    <Content Include="joy_righty.cfg">
+      <Name>joy_righty</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4.Content.Pipeline.BImageImporter\idTech4.Content.Pipeline.BImageImporter.csproj">
+      <Project>{F1194E87-8160-4253-8465-E6416B44FA06}</Project>
+      <Name>idTech4.Content.Pipeline.BImageImporter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\idTech4.Content.Pipeline.BSWFImporter\idTech4.Content.Pipeline.BSWFImporter.csproj">
+      <Project>{80C83BA7-1260-46F2-9E9E-BAA94A249A48}</Project>
+      <Name>idTech4.Content.Pipeline.BSWFImporter</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\idTech4.Content.Pipeline.SWFImporter\idTech4.Content.Pipeline.SWFImporter.csproj">
+      <Project>{9037E97E-683A-45C3-95EC-BE641D252D69}</Project>
+      <Name>idTech4.Content.Pipeline.SWFImporter</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\swf\dialog.bswf">
+      <Name>dialog</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\doomintro.bswf">
+      <Name>doomintro</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\hud.bswf">
+      <Name>hud</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\leintro.bswf">
+      <Name>leintro</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\loading\default.bswf">
+      <Name>default</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\mp_messages.bswf">
+      <Name>mp_messages</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\pause.bswf">
+      <Name>pause</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\pda.bswf">
+      <Name>pda</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\roeintro.bswf">
+      <Name>roeintro</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\save_indicator.bswf">
+      <Name>save_indicator</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\scoreboard.bswf">
+      <Name>scoreboard</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\swf\shell.bswf">
+      <Name>shell</Name>
+      <Importer>BSWFImporter</Importer>
+      <Processor>BSWFProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\generated\swf\dialog#__0200.bimage">
+      <Name>dialog#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\doomintro#__0200.bimage">
+      <Name>doomintro#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\hud#__0200.bimage">
+      <Name>hud#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\leintro#__0200.bimage">
+      <Name>leintro#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\loading\default#__0200.bimage">
+      <Name>default#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\mp_messages#__0200.bimage">
+      <Name>mp_messages#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\pause#__0200.bimage">
+      <Name>pause#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\pda#__0200.bimage">
+      <Name>pda#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\roeintro#__0200.bimage">
+      <Name>roeintro#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\save_indicator#__0200.bimage">
+      <Name>save_indicator#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\scoreboard#__0200.bimage">
+      <Name>scoreboard#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\generated\swf\shell#__0200.bimage">
+      <Name>shell#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\textures\bigchars#__0200.bimage">
+      <Name>bigchars#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\textures\black#__0200.bimage">
+      <Name>black#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\textures\loadingicon2#__0200.bimage">
+      <Name>loadingicon2#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\textures\loadingicon3#__0200.bimage">
+      <Name>loadingicon3#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="materials\shaderdemo.mtr">
+      <Name>shaderdemo</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\lights\baronflash#__0500.bimage">
+      <Name>baronflash#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\biground1#__0500.bimage">
+      <Name>biground1#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\blamplight#__0500.bimage">
+      <Name>blamplight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\blamplight_cv#__0500.bimage">
+      <Name>blamplight_cv#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\desertlight#__0500.bimage">
+      <Name>desertlight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\duolight02grey#__0500.bimage">
+      <Name>duolight02grey#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\fanblade3#__0500.bimage">
+      <Name>fanblade3#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\flashlight5#__0500.bimage">
+      <Name>flashlight5#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\floorpgrate#__0500.bimage">
+      <Name>floorpgrate#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\floorvent01x#__0500.bimage">
+      <Name>floorvent01x#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\grate5#__0500.bimage">
+      <Name>grate5#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\grate7#__0500.bimage">
+      <Name>grate7#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\grate8sqr#__0500.bimage">
+      <Name>grate8sqr#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\impflash#__0500.bimage">
+      <Name>impflash#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\lightgratelight#__0500.bimage">
+      <Name>lightgratelight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\lightgratelight2#__0500.bimage">
+      <Name>lightgratelight2#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\newalphagrate3#__0500.bimage">
+      <Name>newalphagrate3#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\newalphagrate3b#__0500.bimage">
+      <Name>newalphagrate3b#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\newalphagrate4#__0500.bimage">
+      <Name>newalphagrate4#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\newalphagrate5#__0500.bimage">
+      <Name>newalphagrate5#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\rotate3#__0500.bimage">
+      <Name>rotate3#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\rotate3_blue#__0500.bimage">
+      <Name>rotate3_blue#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\rotate3_blue_full#__0500.bimage">
+      <Name>rotate3_blue_full#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\rotate3_red_full#__0500.bimage">
+      <Name>rotate3_red_full#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\round#__0500.bimage">
+      <Name>round#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\roundfire#__0500.bimage">
+      <Name>roundfire#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\spot01#__0500.bimage">
+      <Name>spot01#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squareblast#__0500.bimage">
+      <Name>squareblast#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squareishlight#__0500.bimage">
+      <Name>squareishlight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squarelight#__0500.bimage">
+      <Name>squarelight#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squarelight1#__0500.bimage">
+      <Name>squarelight1#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\squarelight1a#__0500.bimage">
+      <Name>squarelight1a#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\lights\triangle1#__0500.bimage">
+      <Name>triangle1#__0500</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="materials\lights.mtr">
+      <Name>lights</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\makeintensity\lights\flashoff#__0200.bimage">
+      <Name>flashoff#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\makeintensity\lights\roundfire#__0200.bimage">
+      <Name>roundfire#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\makeintensity\lights\squarelight1a#__0200.bimage">
+      <Name>squarelight1a#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\makeintensity\lights\xfalloff#__0200.bimage">
+      <Name>xfalloff#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\guis\assets\dot#__0200.bimage">
+      <Name>dot#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\white#__0000.bimage">
+      <Name>white#__0000</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\white#__0200.bimage">
+      <Name>white#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\guis\assets\splash\legal_english#__0200.bimage">
+      <Name>legal_english#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\splash\legal_figs#__0200.bimage">
+      <Name>legal_figs#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\splash\legal_french#__0200.bimage">
+      <Name>legal_french#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />
+  <!--  To modify your build process, add your task inside one of the targets below and uncomment it. 
+       Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

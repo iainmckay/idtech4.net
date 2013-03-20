@@ -1,27 +1,44 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ProjectGuid>{2CB19EAF-16CA-49B2-B836-016BEEB7C276}</ProjectGuid>
+    <ProjectGuid>{DA50C914-2FA0-49BF-BFCE-0D69CF525911}</ProjectGuid>
     <ProjectTypeGuids>{6D335F3A-9D43-41b4-9D22-F6F17C4BE596};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
-    <OutputType>Library</OutputType>
+    <OutputType>WinExe</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>idTech4.Game</RootNamespace>
-    <AssemblyName>idTech4.Game</AssemblyName>
+    <RootNamespace>DOOM3</RootNamespace>
+    <AssemblyName>DOOM3</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <XnaFrameworkVersion>v4.0</XnaFrameworkVersion>
     <XnaPlatform>Windows</XnaPlatform>
     <XnaProfile>HiDef</XnaProfile>
-    <XnaCrossPlatformGroupID>831523db-9ccd-4970-ae66-b0d35912eb04</XnaCrossPlatformGroupID>
-    <XnaOutputType>Library</XnaOutputType>
+    <XnaCrossPlatformGroupID>7f306210-ab43-4c84-a3d3-3e2fea8058f1</XnaCrossPlatformGroupID>
+    <XnaOutputType>Game</XnaOutputType>
+    <ApplicationIcon>Game.ico</ApplicationIcon>
+    <Thumbnail>GameThumbnail.png</Thumbnail>
+    <PublishUrl>publish\</PublishUrl>
+    <Install>true</Install>
+    <InstallFrom>Disk</InstallFrom>
+    <UpdateEnabled>false</UpdateEnabled>
+    <UpdateMode>Foreground</UpdateMode>
+    <UpdateInterval>7</UpdateInterval>
+    <UpdateIntervalUnits>Days</UpdateIntervalUnits>
+    <UpdatePeriodically>false</UpdatePeriodically>
+    <UpdateRequired>false</UpdateRequired>
+    <MapFileExtensions>true</MapFileExtensions>
+    <ApplicationRevision>0</ApplicationRevision>
+    <ApplicationVersion>1.0.0.%2a</ApplicationVersion>
+    <IsWebBootstrapper>false</IsWebBootstrapper>
+    <UseApplicationTrust>false</UseApplicationTrust>
+    <BootstrapperEnabled>true</BootstrapperEnabled>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Build\base\</OutputPath>
+    <OutputPath>..\Build\</OutputPath>
     <DefineConstants>DEBUG;TRACE;WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -80,11 +97,9 @@
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Core">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Xml.Linq">
-      <RequiredTargetFramework>4.0</RequiredTargetFramework>
       <Private>False</Private>
     </Reference>
     <Reference Include="System.Net">
@@ -92,22 +107,53 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="idGame.cs" />
-    <Compile Include="idGameEdit.cs" />
-    <Compile Include="Menus\idMenuHandler.cs" />
-    <Compile Include="Menus\idMenuHandler_Shell.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Program.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\idTech4.UI.SWF\idTech4.UI.SWF.csproj">
-      <Project>{3F4F8444-C7F9-4B25-A2F2-B86F084941B5}</Project>
-      <Name>idTech4.UI.SWF</Name>
+    <Content Include="Game.ico" />
+    <Content Include="GameThumbnail.png" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\DOOM3Content\DOOM3Content.contentproj">
+      <Name>DOOM3Content</Name>
+      <XnaReferenceType>Content</XnaReferenceType>
+    </ProjectReference>
+    <ProjectReference Include="..\idTech4.Platform.Windows\idTech4.Platform.Windows.csproj">
+      <Project>{CAA53DFA-989F-4DDD-B36E-AF7564EC9290}</Project>
+      <Name>idTech4.Platform.Windows</Name>
     </ProjectReference>
     <ProjectReference Include="..\idTech4\idTech4.csproj">
       <Project>{DA5EA878-8FEE-4E46-9FFE-4DD0D12C2D6E}</Project>
       <Name>idTech4</Name>
-      <Private>False</Private>
     </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <BootstrapperPackage Include=".NETFramework,Version=v4.0,Profile=Client">
+      <Visible>False</Visible>
+      <ProductName>Microsoft .NET Framework 4 Client Profile %28x86 and x64%29</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Client.3.5">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1 Client Profile</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Net.Framework.3.5.SP1">
+      <Visible>False</Visible>
+      <ProductName>.NET Framework 3.5 SP1</ProductName>
+      <Install>false</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Windows.Installer.3.1">
+      <Visible>False</Visible>
+      <ProductName>Windows Installer 3.1</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
+    <BootstrapperPackage Include="Microsoft.Xna.Framework.4.0">
+      <Visible>False</Visible>
+      <ProductName>Microsoft XNA Framework Redistributable 4.0</ProductName>
+      <Install>true</Install>
+    </BootstrapperPackage>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\Microsoft.Xna.GameStudio.targets" />

@@ -1,6 +1,6 @@
 *.user
 *.cachefile
-/idTech4Content/obj/
+/idTech4Content/obj
 /idTech4/obj
 /idTech4/bin
 /idTech4.ContentPipeline.BImage/bin
@@ -11,3 +11,15 @@
 /idTech4.Platform.Xbox360/obj
 /idtech4.net.suo
 /idtech4.net.sln.docstates.suo
+/idTech4.Content.Pipeline.BImageImporter/bin
+/idTech4.Content.Pipeline.BImageImporter/obj
+/idTech4.Content.Pipeline.BSWFImporter/bin
+/idTech4.Content.Pipeline.BSWFImporter/obj
+/idTech4.Content.Pipeline.SWFImporter/bin
+/idTech4.Content.Pipeline.SWFImporter/obj
+/idTech4.Content.Pipeline/bin
+/idTech4.Content.Pipeline/obj
+/idTech4.Game/obj
+/idTech4.Platform.Windows/obj
+/idTech4.UI.SWF/bin
+/idTech4.UI.SWF/obj

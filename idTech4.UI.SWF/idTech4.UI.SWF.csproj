@@ -1,27 +1,27 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <PropertyGroup>
-    <ProjectGuid>{2CB19EAF-16CA-49B2-B836-016BEEB7C276}</ProjectGuid>
+    <ProjectGuid>{3F4F8444-C7F9-4B25-A2F2-B86F084941B5}</ProjectGuid>
     <ProjectTypeGuids>{6D335F3A-9D43-41b4-9D22-F6F17C4BE596};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>idTech4.Game</RootNamespace>
-    <AssemblyName>idTech4.Game</AssemblyName>
+    <RootNamespace>idTech4.UI.SWF</RootNamespace>
+    <AssemblyName>idTech4.UI.SWF</AssemblyName>
     <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
     <TargetFrameworkProfile>Client</TargetFrameworkProfile>
     <XnaFrameworkVersion>v4.0</XnaFrameworkVersion>
     <XnaPlatform>Windows</XnaPlatform>
     <XnaProfile>HiDef</XnaProfile>
-    <XnaCrossPlatformGroupID>831523db-9ccd-4970-ae66-b0d35912eb04</XnaCrossPlatformGroupID>
+    <XnaCrossPlatformGroupID>7ec82572-975c-41f3-93b4-5058a35a2c64</XnaCrossPlatformGroupID>
     <XnaOutputType>Library</XnaOutputType>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
     <Optimize>false</Optimize>
-    <OutputPath>..\Build\base\</OutputPath>
+    <OutputPath>bin\x86\Debug</OutputPath>
     <DefineConstants>DEBUG;TRACE;WINDOWS</DefineConstants>
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
@@ -92,21 +92,15 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="idGame.cs" />
-    <Compile Include="idGameEdit.cs" />
-    <Compile Include="Menus\idMenuHandler.cs" />
-    <Compile Include="Menus\idMenuHandler_Shell.cs" />
+    <Compile Include="idSWF.cs" />
+    <Compile Include="idSWFManager.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="SWFTypeReader.cs" />
   </ItemGroup>
   <ItemGroup>
-    <ProjectReference Include="..\idTech4.UI.SWF\idTech4.UI.SWF.csproj">
-      <Project>{3F4F8444-C7F9-4B25-A2F2-B86F084941B5}</Project>
-      <Name>idTech4.UI.SWF</Name>
-    </ProjectReference>
     <ProjectReference Include="..\idTech4\idTech4.csproj">
       <Project>{DA5EA878-8FEE-4E46-9FFE-4DD0D12C2D6E}</Project>
       <Name>idTech4</Name>
-      <Private>False</Private>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />

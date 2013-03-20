@@ -25,52 +25,15 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System.IO;
+using Microsoft.Xna.Framework.Content;
 
-using idTech4.Renderer;
-
-namespace idTech.Content.Swf.Dictionary
+namespace idTech4.UI.SWF
 {
-	/*public class idImageDictionaryEntry : idDictionaryEntry
+	internal class SWFTypeReader : ContentTypeReader<idSWF>
 	{
-		#region Members
-		private idMaterial _material;
-		#endregion
-
-		#region Constructor
-		public idImageDictionaryEntry()
-			: base()
+		protected override idSWF Read(ContentReader input, idSWF existingInstance)
 		{
-
+			return null;
 		}
-		#endregion
-
-		#region Loading
-		public static idImageDictionaryEntry LoadFrom(BinaryReader r)
-		{
-			idImageDictionaryEntry entry = new idImageDictionaryEntry();
-			string imageName             = r.ReadString();
-
-			if(imageName.StartsWith(".") == true)
-			{
-				// internal image in the atlas
-				entry._material = null;
-			}
-			else
-			{
-
-					dictionary[i].material = declManager->FindMaterial( imageName );
-				}
-				for ( int j = 0 ; j < 2 ; j++ ) {
-					f->ReadBig( dictionary[i].imageSize[j] );
-					f->ReadBig( dictionary[i].imageAtlasOffset[j] );
-				}
-				for ( int j = 0 ; j < 4 ; j++ ) {
-					f->ReadBig( dictionary[i].channelScale[j] );
-				}
-				break;
-			}
-		}
-		#endregion
-	}*/
+	}
 }

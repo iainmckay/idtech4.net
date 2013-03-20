@@ -3197,12 +3197,12 @@ namespace idTech4.Renderer
 
 		RemoveUtil = ~(AreaPortal | NoCsg),
 
-		MaskSolid = Solid,
-		MaskMonsterSolid = Solid | MonsterClip | Body,
-		MaskPlayerSolid = Solid | PlayerClip | Body,
-		MaskDeadSolid = Solid | PlayerClip,
-		MaskWater = Water,
-		MaskOpaque = Opaque,
+		MaskSolid           = Solid,
+		MaskMonsterSolid    = Solid | MonsterClip | Body,
+		MaskPlayerSolid     = Solid | PlayerClip | Body,
+		MaskDeadSolid       = Solid | PlayerClip,
+		MaskWater           = Water,
+		MaskOpaque          = Opaque,
 		MaskShotRenderModel = Solid | RenderModel,
 		MaskShotBoundingBox = Solid | Body
 	}
