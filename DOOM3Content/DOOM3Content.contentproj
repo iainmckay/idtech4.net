@@ -111,6 +111,10 @@
       <Project>{80C83BA7-1260-46F2-9E9E-BAA94A249A48}</Project>
       <Name>idTech4.Content.Pipeline.BSWFImporter</Name>
     </ProjectReference>
+    <ProjectReference Include="..\idTech4.Content.Pipeline.MaterialImporter\idTech4.Content.Pipeline.MaterialImporter.csproj">
+      <Project>{0EF75A2D-1E37-42C8-AD92-AF6F1AA1540A}</Project>
+      <Name>idTech4.Content.Pipeline.MaterialImporter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\idTech4.Content.Pipeline.SWFImporter\idTech4.Content.Pipeline.SWFImporter.csproj">
       <Project>{9037E97E-683A-45C3-95EC-BE641D252D69}</Project>
       <Name>idTech4.Content.Pipeline.SWFImporter</Name>

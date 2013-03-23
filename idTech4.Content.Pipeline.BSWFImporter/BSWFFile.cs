@@ -26,7 +26,6 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using System.IO;
-using System.Text;
 
 using Microsoft.Xna.Framework;
 

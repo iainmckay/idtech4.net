@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -25,19 +25,36 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework.Content.Pipeline;
 
-using TImport = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
+using idTech4.Content.Pipeline.Lexer;
+using idTech4.Renderer;
+using idTech4.Text;
 
-namespace idTech4.Content.Pipeline
+namespace idTech4.Content.Pipeline.Intermediate.Material.Keywords.Stage
 {
-	[ContentImporter(".bswf", DisplayName = "BSWF - idTech4", DefaultProcessor = "BSWFProcessor")]
-	public class BSWFImporter : ContentImporter<TImport>
+	[LexerKeyword("privatePolygonOffset")]
+	public class PrivatePolygonOffset : LexerKeyword<MaterialContent>
 	{
-		public override TImport Import(string filename, ContentImporterContext context)
+		public override bool Parse(idLexer lexer, ContentImporterContext context, MaterialContent content)
 		{
-			//System.Diagnostics.Debugger.Launch();
-			return BSWFFile.LoadFrom(filename);
+			MaterialStage stage = (MaterialStage) this.Tag;
+			idToken token;
+		
+			if((token = lexer.ReadTokenOnLine()) == null)
+			{
+				stage.PrivatePolygonOffset = 1;
+			}
+			else
+			{
+				// explict larger (or negative) offset
+				lexer.UnreadToken          = token;
+				stage.PrivatePolygonOffset = lexer.ParseFloat();
+			}
+				
+			return true;
 		}
 	}
 }

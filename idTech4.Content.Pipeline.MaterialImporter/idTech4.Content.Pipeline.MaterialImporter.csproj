@@ -1,0 +1,149 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
+  <PropertyGroup>
+    <ProjectGuid>{0EF75A2D-1E37-42C8-AD92-AF6F1AA1540A}</ProjectGuid>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
+    <OutputType>Library</OutputType>
+    <AppDesignerFolder>Properties</AppDesignerFolder>
+    <RootNamespace>idTech4.Content.Pipeline</RootNamespace>
+    <AssemblyName>idTech4.Content.Pipeline.MaterialImporter</AssemblyName>
+    <XnaFrameworkVersion>v4.0</XnaFrameworkVersion>
+    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|x86' ">
+    <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <OutputPath>bin\x86\Debug</OutputPath>
+    <DefineConstants>DEBUG;TRACE</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <PlatformTarget>x86</PlatformTarget>
+    <XnaPlatform>Windows</XnaPlatform>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <Private>False</Private>
+      <SpecificVersion>True</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Graphics, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <Private>False</Private>
+      <SpecificVersion>True</SpecificVersion>
+    </Reference>
+    <Reference Include="Microsoft.Xna.Framework.Content.Pipeline, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
+      <Private>False</Private>
+      <SpecificVersion>true</SpecificVersion>
+    </Reference>
+    <Reference Include="System">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Xml">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Core">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+    <Reference Include="System.Xml.Linq">
+      <RequiredTargetFramework>4.0</RequiredTargetFramework>
+    </Reference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="Intermediate\Keywords\General\AlphaZeroClamp.cs" />
+    <Compile Include="Intermediate\Keywords\General\AmbientLight.cs" />
+    <Compile Include="Intermediate\Keywords\General\BackSided.cs" />
+    <Compile Include="Intermediate\Keywords\General\BlendLight.cs" />
+    <Compile Include="Intermediate\Keywords\General\BumpMap.cs" />
+    <Compile Include="Intermediate\Keywords\General\Clamp.cs" />
+    <Compile Include="Intermediate\Keywords\General\DecalInfo.cs" />
+    <Compile Include="Intermediate\Keywords\General\DecalMacro.cs" />
+    <Compile Include="Intermediate\Keywords\General\Deform.cs" />
+    <Compile Include="Intermediate\Keywords\General\Description.cs" />
+    <Compile Include="Intermediate\Keywords\General\DiffuseMap.cs" />
+    <Compile Include="Intermediate\Keywords\General\FogLight.cs" />
+    <Compile Include="Intermediate\Keywords\General\ForceOpaque.cs" />
+    <Compile Include="Intermediate\Keywords\General\ForceOverlays.cs" />
+    <Compile Include="Intermediate\Keywords\General\ForceShadows.cs" />
+    <Compile Include="Intermediate\Keywords\General\GuiSurface.cs" />
+    <Compile Include="Intermediate\Keywords\General\LightFalloffImage.cs" />
+    <Compile Include="Intermediate\Keywords\General\Mirror.cs" />
+    <Compile Include="Intermediate\Keywords\General\NoFog.cs" />
+    <Compile Include="Intermediate\Keywords\General\NoOverlays.cs" />
+    <Compile Include="Intermediate\Keywords\General\NoPortalFog.cs" />
+    <Compile Include="Intermediate\Keywords\General\NoSelfShadows.cs" />
+    <Compile Include="Intermediate\Keywords\General\NoShadows.cs" />
+    <Compile Include="Intermediate\Keywords\General\PolygonOffset.cs" />
+    <Compile Include="Intermediate\Keywords\General\PortalSky.cs" />
+    <Compile Include="Intermediate\Keywords\General\RenderBump.cs" />
+    <Compile Include="Intermediate\Keywords\General\Sort.cs" />
+    <Compile Include="Intermediate\Keywords\General\Spectrum.cs" />
+    <Compile Include="Intermediate\Keywords\General\SpecularMap.cs" />
+    <Compile Include="Intermediate\Keywords\General\StereoEye.cs" />
+    <Compile Include="Intermediate\Keywords\General\SuppressInSubview.cs" />
+    <Compile Include="Intermediate\Keywords\General\Translucent.cs" />
+    <Compile Include="Intermediate\Keywords\General\TwoSided.cs" />
+    <Compile Include="Intermediate\Keywords\General\UnsmoothedTangents.cs" />
+    <Compile Include="Intermediate\Keywords\General\ZeroClamp.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\AlphaZeroClamp.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Blend.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\CameraCubeMap.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\CenterScale.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Clamp.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\CubeMap.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\ForceHighQuality.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\GlassWarp.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\HighQuality.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\IgnoreAlphaTest.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\InverseVertexColor.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Linear.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Map.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\MirrorRenderMap.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Name.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Nearest.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\NoClamp.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\NoPicMip.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\PrivatePolygonOffset.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\RemoteRenderMap.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Rotate.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Scale.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Screen.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Screen2.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Scroll.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Shear.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\SoundMap.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\TexGen.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Translate.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\Uncompressed.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\VertexColor.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\VideoMap.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\XRayRenderMap.cs" />
+    <Compile Include="Intermediate\Keywords\Stage\ZeroClamp.cs" />
+    <Compile Include="Intermediate\MaterialContent.cs" />
+    <Compile Include="Intermediate\Keywords\General\EditorImage.cs" />
+    <Compile Include="Material.cs" />
+    <Compile Include="MaterialHelper.cs" />
+    <Compile Include="MaterialImporter.cs" />
+    <Compile Include="MaterialProcessor.cs" />
+    <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4.Content.Pipeline\idTech4.Content.Pipeline.csproj">
+      <Project>{885EDF81-B727-4D39-BB0F-AAB689DAB016}</Project>
+      <Name>idTech4.Content.Pipeline</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\idTech4\idTech4.csproj">
+      <Project>{DA5EA878-8FEE-4E46-9FFE-4DD0D12C2D6E}</Project>
+      <Name>idTech4</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup />
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\Microsoft.Xna.GameStudio.ContentPipelineExtensions.targets" />
+  <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+     Other similar extension points exist, see Microsoft.Common.targets.
+  <Target Name="BeforeBuild">
+  </Target>
+  <Target Name="AfterBuild">
+  </Target>
+  -->
+</Project>

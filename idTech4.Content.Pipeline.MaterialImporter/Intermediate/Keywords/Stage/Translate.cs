@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -25,19 +25,19 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework.Content.Pipeline;
 
-using TImport = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
+using idTech4.Content.Pipeline.Lexer;
+using idTech4.Renderer;
+using idTech4.Text;
 
-namespace idTech4.Content.Pipeline
+namespace idTech4.Content.Pipeline.Intermediate.Material.Keywords.Stage
 {
-	[ContentImporter(".bswf", DisplayName = "BSWF - idTech4", DefaultProcessor = "BSWFProcessor")]
-	public class BSWFImporter : ContentImporter<TImport>
+	[LexerKeyword("translate")]
+	public class Translate : Scroll
 	{
-		public override TImport Import(string filename, ContentImporterContext context)
-		{
-			//System.Diagnostics.Debugger.Launch();
-			return BSWFFile.LoadFrom(filename);
-		}
+		
 	}
 }

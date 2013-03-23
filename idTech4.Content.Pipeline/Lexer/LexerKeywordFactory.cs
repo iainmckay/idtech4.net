@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -25,19 +25,63 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using Microsoft.Xna.Framework.Content.Pipeline;
+using System;
+using System.Collections.Generic;
+using System.Reflection;
 
-using TImport = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
-
-namespace idTech4.Content.Pipeline
+namespace idTech4.Content.Pipeline.Lexer
 {
-	[ContentImporter(".bswf", DisplayName = "BSWF - idTech4", DefaultProcessor = "BSWFProcessor")]
-	public class BSWFImporter : ContentImporter<TImport>
+	public class LexerKeywordFactory
 	{
-		public override TImport Import(string filename, ContentImporterContext context)
+		#region Members
+		private Dictionary<string, Type> _keywords = new Dictionary<string, Type>(StringComparer.OrdinalIgnoreCase);
+		#endregion
+
+		#region Constructor
+		public LexerKeywordFactory()
 		{
-			//System.Diagnostics.Debugger.Launch();
-			return BSWFFile.LoadFrom(filename);
+
 		}
+		#endregion
+
+		#region Methods
+		public void ScanAssembly(Assembly assembly, string ns = null)
+		{
+			foreach(Type type in assembly.GetTypes())
+			{
+				if((string.IsNullOrEmpty(ns) == false) && (ns != type.Namespace))
+				{
+					continue;
+				}
+
+				LexerKeywordAttribute[] lexerKeywordAttributes = (LexerKeywordAttribute[]) type.GetCustomAttributes(typeof(LexerKeywordAttribute), false);
+
+				if(lexerKeywordAttributes.Length > 0)
+				{
+					foreach(LexerKeywordAttribute lexerKeywordAttribute in lexerKeywordAttributes)
+					{
+						_keywords.Add(lexerKeywordAttribute.Name, type);
+					}
+				}
+			}
+		}
+
+		public void ScanNamespace(string ns)
+		{
+			ScanAssembly(Assembly.GetCallingAssembly(), ns);
+		}
+
+		public LexerKeyword<TContent> Create<TContent>(string keyword)
+		{
+			if(_keywords.ContainsKey(keyword) == true)
+			{
+				Type type = _keywords[keyword];
+
+				return (LexerKeyword<TContent>) type.Assembly.CreateInstance(type.FullName, false);
+			}
+
+			return null;
+		}
+		#endregion
 	}
 }

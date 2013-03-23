@@ -15,6 +15,8 @@
 /idTech4.Content.Pipeline.BImageImporter/obj
 /idTech4.Content.Pipeline.BSWFImporter/bin
 /idTech4.Content.Pipeline.BSWFImporter/obj
+/idTech4.Content.Pipeline.MaterialImporter/bin
+/idTech4.Content.Pipeline.MaterialImporter/obj
 /idTech4.Content.Pipeline.SWFImporter/bin
 /idTech4.Content.Pipeline.SWFImporter/obj
 /idTech4.Content.Pipeline/bin
@@ -23,3 +25,7 @@
 /idTech4.Platform.Windows/obj
 /idTech4.UI.SWF/bin
 /idTech4.UI.SWF/obj
+/DOOM3/obj
+/DOOM3/bin
+/DOOM3Content/bin
+/DOOM3Content/obj

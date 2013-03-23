@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -25,19 +25,53 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework.Content.Pipeline;
 
-using TImport = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
+using idTech4.Content.Pipeline.Lexer;
+using idTech4.Renderer;
+using idTech4.Text;
 
-namespace idTech4.Content.Pipeline
+namespace idTech4.Content.Pipeline.Intermediate.Material.Keywords.Stage
 {
-	[ContentImporter(".bswf", DisplayName = "BSWF - idTech4", DefaultProcessor = "BSWFProcessor")]
-	public class BSWFImporter : ContentImporter<TImport>
+	[LexerKeyword("videoMap")]
+	public class VideoMap : LexerKeyword<MaterialContent>
 	{
-		public override TImport Import(string filename, ContentImporterContext context)
+		public override bool Parse(idLexer lexer, ContentImporterContext context, MaterialContent content)
 		{
-			//System.Diagnostics.Debugger.Launch();
-			return BSWFFile.LoadFrom(filename);
+			idToken token;
+			MaterialStage stage = (MaterialStage) this.Tag;
+			
+			// note that videomaps will always be in clamp mode, so texture coordinates had better be in the 0 to 1 range
+			if((token = lexer.ReadToken()) == null)
+			{
+				context.Logger.LogWarning(null, null, "Missing parameter for 'videoMap' keyword.");
+				return false;
+			}
+			else
+			{
+				bool loop = false;
+
+				if(token.ToString().Equals("loop", StringComparison.OrdinalIgnoreCase) == true)
+				{
+					loop = true;
+
+					if((token = lexer.ReadToken()) == null)
+					{
+						context.Logger.LogWarning(null, null, "Missing parameter for 'videoMap' keyword.");
+						return false;
+					}
+				}
+
+				context.Logger.LogWarning(null, null, "TODO: material videoMap keyword");
+
+				// TODO: cinematic
+				/*ts->cinematic = idCinematic::Alloc();
+				ts->cinematic->InitFromFile( token.c_str(), loop );*/
+			}
+		
+			return true;
 		}
 	}
 }

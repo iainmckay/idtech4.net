@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -25,19 +25,39 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework.Content.Pipeline;
 
-using TImport = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
+using idTech4.Content.Pipeline.Lexer;
+using idTech4.Renderer;
+using idTech4.Text;
 
-namespace idTech4.Content.Pipeline
+namespace idTech4.Content.Pipeline.Intermediate.Material.Keywords.Stage
 {
-	[ContentImporter(".bswf", DisplayName = "BSWF - idTech4", DefaultProcessor = "BSWFProcessor")]
-	public class BSWFImporter : ContentImporter<TImport>
+	[LexerKeyword("soundMap")]
+	public class SoundMap : LexerKeyword<MaterialContent>
 	{
-		public override TImport Import(string filename, ContentImporterContext context)
+		public override bool Parse(idLexer lexer, ContentImporterContext context, MaterialContent content)
 		{
-			//System.Diagnostics.Debugger.Launch();
-			return BSWFFile.LoadFrom(filename);
+			idToken token;
+			MaterialStage stage = (MaterialStage) this.Tag;
+			
+			if((token = lexer.ReadToken()) == null)
+			{
+				context.Logger.LogWarning(null, null, "Missing parameter for 'soundMap' keyword.");
+				return false;
+			}
+			else
+			{
+				context.Logger.LogWarning(null, null, "TODO: material soundMap keyword");
+
+				// TODO
+				/*ts->cinematic = new idSndWindow();
+				ts->cinematic->InitFromFile( token.c_str(), true );*/
+			}
+						
+			return true;
 		}
 	}
 }

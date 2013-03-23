@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -25,19 +25,57 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework.Content.Pipeline;
 
-using TImport = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
+using idTech4.Content.Pipeline.Lexer;
+using idTech4.Renderer;
+using idTech4.Text;
 
-namespace idTech4.Content.Pipeline
+namespace idTech4.Content.Pipeline.Intermediate.Material.Keywords.Stage
 {
-	[ContentImporter(".bswf", DisplayName = "BSWF - idTech4", DefaultProcessor = "BSWFProcessor")]
-	public class BSWFImporter : ContentImporter<TImport>
+	[LexerKeyword("texGen")]
+	public class TexGen : LexerKeyword<MaterialContent>
 	{
-		public override TImport Import(string filename, ContentImporterContext context)
+		public override bool Parse(idLexer lexer, ContentImporterContext context, MaterialContent content)
 		{
-			//System.Diagnostics.Debugger.Launch();
-			return BSWFFile.LoadFrom(filename);
+			MaterialStage stage = (MaterialStage) this.Tag;
+			
+			idToken token = lexer.ExpectAnyToken();
+			string tokenValue = token.ToString();
+			string tokenLower = tokenValue.ToLower();
+
+			if(tokenLower == "normal")
+			{
+				stage.Texture.TextureCoordinates = TextureCoordinateGeneration.DiffuseCube;
+			}
+			else if(tokenLower == "reflect")
+			{
+				stage.Texture.TextureCoordinates = TextureCoordinateGeneration.ReflectCube;
+			}
+			else if(tokenLower == "skybox")
+			{
+				stage.Texture.TextureCoordinates = TextureCoordinateGeneration.SkyboxCube;
+			}
+			else if(tokenLower == "wobblesky")
+			{
+				stage.Texture.TextureCoordinates = TextureCoordinateGeneration.WobbleSkyCube;
+
+				content.TexGenRegisters = new int[] {
+					ParseExpression(lexer),
+					ParseExpression(lexer),
+					ParseExpression(lexer),
+					0
+				};
+			}
+			else
+			{
+				idLog.Warning("bad texGen '{0}'", tokenValue);
+				content.MaterialFlags |= MaterialFlags.Defaulted;
+			}
+
+			return true;
 		}
 	}
 }

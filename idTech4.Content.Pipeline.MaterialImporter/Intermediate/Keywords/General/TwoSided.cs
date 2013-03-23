@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -27,17 +27,26 @@ If you have questions concerning this license or the applicable additional terms
 */
 using Microsoft.Xna.Framework.Content.Pipeline;
 
-using TImport = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
+using idTech4.Content.Pipeline.Lexer;
+using idTech4.Renderer;
+using idTech4.Text;
 
-namespace idTech4.Content.Pipeline
+namespace idTech4.Content.Pipeline.Intermediate.Material.Keywords.General
 {
-	[ContentImporter(".bswf", DisplayName = "BSWF - idTech4", DefaultProcessor = "BSWFProcessor")]
-	public class BSWFImporter : ContentImporter<TImport>
+	[LexerKeyword("twoSided")]
+	public class TwoSided : LexerKeyword<MaterialContent>
 	{
-		public override TImport Import(string filename, ContentImporterContext context)
+		public override bool Parse(idLexer lexer, ContentImporterContext context, MaterialContent content)
 		{
-			//System.Diagnostics.Debugger.Launch();
-			return BSWFFile.LoadFrom(filename);
+			content.CullType = CullType.Two;
+			
+			// twoSided implies no-shadows, because the shadow
+			// volume would be coplanar with the surface, giving depth fighting
+			// we could make this no-self-shadows, but it may be more important
+			// to receive shadows from no-self-shadow monsters
+			content.MaterialFlag = MaterialFlags.NoShadows;
+	
+			return true;
 		}
 	}
 }
