@@ -61,7 +61,7 @@
       <Name>idTech4.Content.Pipeline.SWFImporter</Name>
     </ProjectReference>
     <ProjectReference Include="..\idTech4.Content.Pipeline\idTech4.Content.Pipeline.csproj">
-      <Project>{DB9B8BD7-65CE-4307-8638-F99D865FE9C1}</Project>
+      <Project>{885EDF81-B727-4D39-BB0F-AAB689DAB016}</Project>
       <Name>idTech4.Content.Pipeline</Name>
     </ProjectReference>
   </ItemGroup>

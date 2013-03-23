@@ -1,7 +1,7 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003" ToolsVersion="4.0">
   <PropertyGroup>
-    <ProjectGuid>6d65028b-2856-46dc-be7a-7627d9c51c79</ProjectGuid>
+    <ProjectGuid>{885EDF81-B727-4D39-BB0F-AAB689DAB016}</ProjectGuid>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">x86</Platform>
     <OutputType>Library</OutputType>
@@ -49,8 +49,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="ContentProcessor1.cs" />
+    <Compile Include="idBinaryReader.cs" />
+    <Compile Include="Lexer\LexerKeyword.cs" />
+    <Compile Include="Lexer\LexerKeywordAttribute.cs" />
+    <Compile Include="Lexer\LexerKeywordFactory.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4\idTech4.csproj">
+      <Project>{DA5EA878-8FEE-4E46-9FFE-4DD0D12C2D6E}</Project>
+      <Name>idTech4</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\Microsoft.Xna.GameStudio.ContentPipelineExtensions.targets" />

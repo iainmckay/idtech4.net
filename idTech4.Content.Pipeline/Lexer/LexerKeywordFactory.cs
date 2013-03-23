@@ -71,7 +71,7 @@ namespace idTech4.Content.Pipeline.Lexer
 			ScanAssembly(Assembly.GetCallingAssembly(), ns);
 		}
 
-		public LexerKeyword<TContent> Create<TContent>(string keyword)
+		public LexerKeyword<TContent> Create<TContent>(string keyword) where TContent : class
 		{
 			if(_keywords.ContainsKey(keyword) == true)
 			{
