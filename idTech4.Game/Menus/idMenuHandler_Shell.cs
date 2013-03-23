@@ -34,6 +34,7 @@ namespace idTech4.Game.Menus
 		#region Members
 		private ShellState _state;
 		private ShellState _nextState;
+
 		private bool _smallFrameShowing;
 		private bool _largeFrameShowing;
 		private bool _backgroundShowing;
@@ -72,6 +73,22 @@ namespace idTech4.Game.Menus
 			_nextState         = ShellState.Invalid;
 			_backgroundShowing = true;
 		}
+		#endregion
+
+		#region State
+		#region Properties
+		public ShellState State
+		{
+			get
+			{
+				return _state;
+			}
+			set
+			{
+				_nextState = value;
+			}
+		}
+		#endregion
 		#endregion
 	}
 

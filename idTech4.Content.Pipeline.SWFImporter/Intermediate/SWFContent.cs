@@ -84,6 +84,8 @@ namespace idTech4.Content.Pipeline.Intermediate.SWF
 				output.Write(data);
 			}
 
+			output.Write(this.DoInitActions.Length);
+
 			for(int i = 0; i < this.DoInitActions.Length; i++)
 			{
 				byte[] data = new byte[this.DoInitActions[i].Length];

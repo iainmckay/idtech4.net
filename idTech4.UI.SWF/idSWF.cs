@@ -42,9 +42,7 @@ namespace idTech4.UI.SWF
 		// mouse coords for all flash files
 		private static int _mouseX = -1;
 		private static int _mouseY = -1;
-
-		private string _fileName;
-
+		
 		private float _frameWidth;
 		private float _frameHeight;
 		private ushort _frameRate;
@@ -78,16 +76,16 @@ namespace idTech4.UI.SWF
 		private idMaterial _white;
 
 		private Random _random;
+
+		private idSWFSprite _mainSprite;
+		private idSWFSpriteInstance _mainSpriteInstance;
+
+		private idSWFDictionaryEntry[] _dictionary;
 		#endregion
 
 		#region Constructor
 		public idSWF()
-		{
-			
-		}
-
-		public idSWF(string fileName /*, idSoundWorld * soundWorld_*/)
-		{
+		{			
 			IDeclManager declManager = idEngine.Instance.GetService<IDeclManager>();
 			ICVarSystem cvarSystem   = idEngine.Instance.GetService<ICVarSystem>();
 
@@ -125,60 +123,13 @@ namespace idTech4.UI.SWF
 		   }*/
 
 			_useInhibtControl = true;
-			_useMouse = true;
-
-			if(_fileName.StartsWith("swf/") == false)
-			{
-				// if it doesn't already have swf/ in front of it, add it
-				_fileName = "swf/" + fileName;
-			}
-			else
-			{
-				_fileName = fileName;
-			}
-
-			_fileName = _fileName.ToLower();
-
-			if(_fileName.EndsWith(".swf") == false)
-			{
-				_fileName += ".swf";
-			}
-
-			// TODO: timestamp = fileSystem->GetTimestamp( filename );
-
-			// TODO
-			/*mainsprite = new (TAG_SWF) idSWFSprite( this );
-			mainspriteInstance = NULL;*/
-
-			string binaryFileName = Path.Combine("generated", Path.GetFileNameWithoutExtension(fileName));
-
-			if(cvarSystem.GetBool("swf_loadBinary") == true)
-			{
-				throw new Exception("HELLO");
-				/*ID_TIME_T sourceTime = fileSystem->GetTimestamp(filename);
-				if(!LoadBinary(binaryFileName, sourceTime))
-				{
-					if(LoadSWF(filename))
-					{
-						WriteBinary(binaryFileName);
-					}
-				}*/
-			}
-			else
-			{
-				idLog.Warning("TODO: LoadSWF( filename );");
-			}
- 
-			_atlasMaterial = declManager.FindMaterial(Path.GetFileNameWithoutExtension(binaryFileName));
-
+			_useMouse         = true;
+		
 			// TODO: 
 			/*globals = idSWFScriptObject::Alloc();
 			globals->Set( "_global", globals );
 
 			globals->Set( "Object", &scriptFunction_Object );
-
-			mainspriteInstance = spriteInstanceAllocator.Alloc();
-			mainspriteInstance->Init( mainsprite, NULL, 0 );
 
 			shortcutKeys = idSWFScriptObject::Alloc();
 			scriptFunction_shortcutKeys_clear.Bind( this );
@@ -217,27 +168,8 @@ namespace idTech4.UI.SWF
 			globals->SetNative( "cropToHeight", swfScriptVar_crop.Bind( this ) );
 			globals->SetNative( "cropToFit", swfScriptVar_crop.Bind( this ) );
 			globals->SetNative( "crop", swfScriptVar_crop.Bind( this ) );*/
-
-			// Do this to touch any external references (like sounds)
-			// But disable script warnings because many globals won't have been created yet
-			int debug = cvarSystem.GetInt("swf_debug");
-			cvarSystem.Set("swf_debug", 0);
-
-			/*mainspriteInstance->Run();
-			mainspriteInstance->RunActions();
-			mainspriteInstance->RunTo( 0 );*/
-
-			cvarSystem.Set("swf_debug", debug);
-
-			if(_mouseX == -1)
-			{
-				_mouseX = (int) (_frameWidth / 2);
-			}
-
-			if(_mouseY == -1)
-			{
-				_mouseY = (int) (_frameHeight / 2);
-			}
+						
+		
 
 			// TODO: soundWorld = soundWorld_;
 		}
@@ -279,6 +211,98 @@ namespace idTech4.UI.SWF
 		}*/
 		#endregion
 
+		#region Loading
+		internal void LoadFrom(ContentReader input)
+		{
+			IDeclManager declManager = idEngine.Instance.GetService<IDeclManager>();
+			ICVarSystem cvarSystem   = idEngine.Instance.GetService<ICVarSystem>();
+
+			_mainSpriteInstance = null;
+
+			// ------------------------------
+			// BEGIN XNB LOAD
+			_frameWidth  = input.ReadSingle();
+			_frameHeight = input.ReadSingle();
+			_frameRate   = input.ReadUInt16();
+
+			input.ReadInt32(); // dict type - sprite
+
+			_mainSprite = new idSWFSprite(this);
+			_mainSprite.LoadFrom(input);
+
+			_dictionary = new idSWFDictionaryEntry[input.ReadInt32()];
+
+			for(int i = 0; i < _dictionary.Length; i++)
+			{
+				_dictionary[i] = CreateDictionaryEntry((idSWFDictionaryType) input.ReadInt32());
+				_dictionary[i].LoadFrom(input);
+			}
+
+			// END XNB LOAD
+			// ------------------------------
+
+			idLog.Warning("TODO: _atlasMaterial      = declManager.FindMaterial(Path.GetFileNameWithoutExtension(binaryFileName));");
+
+			_mainSpriteInstance = new idSWFSpriteInstance();
+			_mainSpriteInstance.Initialize(_mainSprite, null, 0);
+
+			// Do this to touch any external references (like sounds)
+			// But disable script warnings because many globals won't have been created yet
+			int debug = cvarSystem.GetInt("swf_debug");
+			cvarSystem.Set("swf_debug", 0);						
+
+			_mainSpriteInstance.Run();
+			_mainSpriteInstance.RunActions();
+			_mainSpriteInstance.RunTo(0);
+
+			cvarSystem.Set("swf_debug", debug);
+
+			if(_mouseX == -1)
+			{
+				_mouseX = (int) (_frameWidth / 2);
+			}
+
+			if(_mouseY == -1)
+			{
+				_mouseY = (int) (_frameHeight / 2);
+			}
+		}
+
+		private idSWFDictionaryEntry CreateDictionaryEntry(idSWFDictionaryType type)
+		{
+			switch(type)
+			{
+				case idSWFDictionaryType.Null:
+					return new idSWFNull();
+
+				case idSWFDictionaryType.Image:
+					return new idSWFImage();
+
+				case idSWFDictionaryType.Shape:
+				case idSWFDictionaryType.Morph:
+					return new idSWFShape();
+
+				case idSWFDictionaryType.Sprite:
+					return new idSWFSprite(this);
+
+				case idSWFDictionaryType.Font:
+					return new idSWFFont();
+
+				case idSWFDictionaryType.Text:
+					return new idSWFText();
+
+				case idSWFDictionaryType.EditText:
+					return new idSWFEditText();
+
+				default:
+					idEngine.Instance.Error("Unknown SWF dictionary type");
+					break;
+			}
+
+			return null;
+		}
+		#endregion
+
 		#region State
 		#region Properties
 		public bool IsActive
@@ -290,5 +314,120 @@ namespace idTech4.UI.SWF
 		}
 		#endregion
 		#endregion
+	}
+
+	public enum idSWFTag
+	{
+		End                          = 0,
+		ShowFrame                    = 1,
+		DefineShape                  = 2,
+		PlaceObject                  = 4,
+		RemoveObject                 = 5,
+		DefineBits                   = 6,
+		DefineButton                 = 7,
+		JpegTables                   = 8,
+		SetBackgroundColor           = 9,
+		DefineFont                   = 10,
+		DefineText                   = 11,
+		DoAction                     = 12,
+		DefineFontInfo               = 13,
+		DefineSound                  = 14,
+		StartSound                   = 15,
+		DefineButtonSound            = 17,
+		SoundStreamHead              = 18,
+		SoundStreamBlock             = 19,
+		DefineBitsLossless           = 20,
+		DefineBitsJpeg2              = 21,
+		DefineShape2                 = 22,
+		DefineButtonCxForm           = 23,
+		Protect                      = 24,
+		PlaceObject2                 = 26,
+		RemoveObject2                = 28,
+		DefineShape3                 = 32,
+		DefineText2                  = 33,
+		DefineButton2                = 34,
+		DefineBitsJpeg3              = 35,
+		DefineBitsLossless2          = 36,
+		DefineEditText               = 37,
+		DefineSprite                 = 39,
+		FrameLabel                   = 43,
+		SoundStreamHead2             = 45,
+		DefineMorphShape             = 46,
+		DefineFont2                  = 48,
+		ExportAssets                 = 57,
+		EnableDebugger               = 58,
+		DoInitAction                 = 59,
+		DefineVideoStream            = 60,
+		VideoFrame                   = 61,
+		DefineFontInfo2              = 62,
+		EnableDebugger2              = 64,
+		ScriptLimits                 = 65,
+		SetTabIndex                  = 66,
+		FileAttributes               = 69,
+		PlaceObject3                 = 70,
+		ImportAssets2                = 71,
+		DefineFontAlignZones         = 73,
+		CsmTextSettings              = 74,
+		DefineFont3                  = 75,
+		SymbolClass                  = 76,
+		Metadata                     = 77,
+		DefineScalingGrid            = 78,
+		DoAbc                        = 82,
+		DefineShape4                 = 83,
+		DefineMorphShape2            = 84,
+		DefineSceneAndFrameLabelData = 86,
+		DefineBinaryData             = 87,
+		DefineFontName               = 88,
+		StartSound2                  = 89
+	}
+
+	public enum idSWFDictionaryType
+	{
+		Null,
+		Image,
+		Shape,
+		Morph,
+		Sprite,
+		Font,
+		Text,
+		EditText
+	}
+
+	public struct idSWFRect
+	{
+		public Vector2 TopLeft;
+		public Vector2 BottomRight;
+
+		internal void LoadFrom(ContentReader input)
+		{
+			this.TopLeft     = input.ReadVector2();
+			this.BottomRight = input.ReadVector2();
+		}
+	}
+
+	public struct idSWFColorRGBA
+	{
+		public byte R;
+		public byte G;
+		public byte B;
+		public byte A;
+
+		public idSWFColorRGBA(byte r, byte g, byte b, byte a)
+		{
+			this.R = r;
+			this.G = g;
+			this.B = b;
+			this.A = a;
+		}
+
+		internal void LoadFrom(ContentReader input)
+		{
+			this.R = input.ReadByte();
+			this.G = input.ReadByte();
+			this.B = input.ReadByte();
+			this.A = input.ReadByte();
+		}
+
+		public static idSWFColorRGBA Default = new idSWFColorRGBA(255, 255, 255, 255);
 	}
 }

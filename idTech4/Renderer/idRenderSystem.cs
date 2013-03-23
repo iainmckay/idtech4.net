@@ -86,6 +86,16 @@ namespace idTech4.Renderer
 		}
 		#endregion
 
+		#region Fonts
+		#region Methods
+		public idFont LoadFont(string fontName)
+		{
+			idLog.Warning("TODO: LoadFont");
+			return null;
+		}
+		#endregion
+		#endregion
+
 		#region Initialization
 		#region Properties
 		/// <summary>

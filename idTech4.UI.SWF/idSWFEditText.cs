@@ -29,14 +29,48 @@ using Microsoft.Xna.Framework.Content;
 
 namespace idTech4.UI.SWF
 {
-	internal class SWFTypeReader : ContentTypeReader<idSWF>
+	public class idSWFEditText : idSWFDictionaryEntry
 	{
-		protected override idSWF Read(ContentReader input, idSWF existingInstance)
-		{
-			idSWF swf = new idSWF();
-			swf.LoadFrom(input);
+		#region Members
+		private idSWFRect _bounds;
+		private uint _flags;
+		private ushort _fontID;
+		private ushort _fontHeight;
 
-			return swf;
+		private idSWFColorRGBA _color = idSWFColorRGBA.Default;
+				
+		private int _align;
+		private ushort _leftMargin;
+		private ushort _rightMargin;
+		private ushort _indent;
+		private short _leading;
+
+		private string _variable;
+		private string _initialText;
+		private ushort _maxLength = 0xFFFF;
+		#endregion
+
+		#region idSWFDictionaryEntry implementation
+		internal override void LoadFrom(ContentReader input)
+		{
+			_bounds.LoadFrom(input);
+
+			_flags       = input.ReadUInt32();
+			_fontID      = input.ReadUInt16();
+			_fontHeight  = input.ReadUInt16();
+
+			_color.LoadFrom(input);
+
+			_maxLength   = input.ReadUInt16();
+			_align       = input.ReadInt32();
+			_leftMargin  = input.ReadUInt16();
+			_rightMargin = input.ReadUInt16();
+			_indent      = input.ReadUInt16();
+			_leading     = input.ReadInt16();
+
+			_variable    = input.ReadString();
+			_initialText = input.ReadString();
 		}
+		#endregion
 	}
 }

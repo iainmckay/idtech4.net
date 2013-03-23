@@ -27,12 +27,14 @@ If you have questions concerning this license or the applicable additional terms
 */
 using idTech4.Services;
 
+using XState = idTech4.State;
+
 namespace idTech4
 {
 	public abstract class idSession : ISession
 	{
 		#region Members
-		private SessionState _localState;
+		private State _localState;
 		private uint _sessionOptions;
 
 		private SessionConnectType _connectType;
@@ -107,7 +109,7 @@ namespace idTech4
 		#region Initialization
 		private void InitBaseState()
 		{
-			_localState     = SessionState.PressStart;
+			_localState     = XState.PressStart;
 			_sessionOptions = 0;
 			_currentID      = 0;
 
@@ -434,6 +436,63 @@ namespace idTech4
 		#endregion
 
 		#region State Management
+		#region Properties
+		public SessionState State
+		{
+			get
+			{
+				// convert our internal state to one of the external states
+				switch(_localState)
+				{
+					case XState.PressStart:
+						return SessionState.PressStart;
+
+					case XState.Idle:
+						return SessionState.Idle;
+
+					case XState.PartyLobbyHost:
+					case XState.PartyLobbyPeer:
+						return SessionState.PartyLobby;
+
+					case XState.GameLobbyHost:
+					case XState.GameLobbyPeer:
+					case XState.GameStateLobbyHost:
+					case XState.GameStateLobbyPeer:
+						return SessionState.GameLobby;
+
+					case XState.Loading:
+						return SessionState.Loading;
+
+					case XState.InGame:
+						return SessionState.InGame;
+
+					case XState.CreateAndMoveToPartyLobby:
+					case XState.CreateAndMoveToGameLobby:
+					case XState.CreateAndMoveToGameStateLobby:
+						return SessionState.Connecting;
+
+					case XState.FindOrCreateMatch:
+						return SessionState.Searching;
+
+					case XState.ConnectAndMoveToParty:
+					case XState.ConnectAndMoveToGame:
+					case XState.ConnectAndMoveToGameState:
+						return SessionState.Connecting;
+
+					case XState.Busy:
+						return SessionState.Busy;
+
+					default:
+						idEngine.Instance.Error("idSession::State: unknown state");
+						break;
+				}
+
+				return SessionState.Idle;
+			}
+		}
+		#endregion
+
+		#region Methods
 		private bool HandleState()
 		{
 			// TODO:
@@ -458,7 +517,7 @@ namespace idTech4
 
 			switch(_localState) 
 			{
-				case SessionState.PressStart:
+				case XState.PressStart:
 					return false;
 
 				/*case STATE_IDLE:								HandlePackets(); return false;		// Call handle packets, since packets from old sessions could still be in flight, which need to be emptied
@@ -487,9 +546,10 @@ namespace idTech4
 			return false;
 		}
 		#endregion
+		#endregion
 	}
 
-	public enum SessionState
+	public enum State
 	{
 		/// <summary>We are at press start.</summary>
 		PressStart,
@@ -525,6 +585,19 @@ namespace idTech4
 		Loading,
 		/// <summary>We are currently in a match.</summary>
 		InGame
+	}
+
+	public enum SessionState
+	{
+		PressStart,
+		Idle,
+		Searching,
+		Connecting,
+		PartyLobby,
+		GameLobby,
+		Loading,
+		InGame,
+		Busy
 	}
 
 	public enum SessionConnectType

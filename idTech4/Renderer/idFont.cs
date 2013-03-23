@@ -25,27 +25,9 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace idTech4.Services
+namespace idTech4.Renderer
 {
-	public interface ISession
+	public class idFont
 	{
-		#region Initialization
-		void Initialize();
-		#endregion
-
-		#region Misc
-		void Pump();
-		void ProcessSnapAckQueue();
-		void UpdateSignInManager();
-		#endregion
-
-		#region State
-		SessionState State { get; }
-		#endregion
 	}
 }

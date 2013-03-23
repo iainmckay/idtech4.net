@@ -29,14 +29,75 @@ using Microsoft.Xna.Framework.Content;
 
 namespace idTech4.UI.SWF
 {
-	internal class SWFTypeReader : ContentTypeReader<idSWF>
+	public class idSWFText : idSWFDictionaryEntry
 	{
-		protected override idSWF Read(ContentReader input, idSWF existingInstance)
-		{
-			idSWF swf = new idSWF();
-			swf.LoadFrom(input);
+		#region Members
+		private idSWFRect _bounds;
+		private idSWFMatrix _matrix;
 
-			return swf;
+		private idSWFTextRecord[] _records;
+		private idSWFGlyphEntry[] _glyphs;
+		#endregion
+
+		#region idSWFDictionaryEntry implementation
+		internal override void LoadFrom(ContentReader input)
+		{
+			_bounds.LoadFrom(input);
+			_matrix.LoadFrom(input);
+
+			_records = new idSWFTextRecord[input.ReadInt32()];
+
+			for(int i = 0; i < _records.Length; i++)
+			{
+				_records[i].LoadFrom(input);
+			}
+
+			_glyphs = new idSWFGlyphEntry[input.ReadInt32()];
+
+			for(int i = 0; i < _glyphs.Length; i++)
+			{
+				_glyphs[i].LoadFrom(input);
+			}
+		}
+		#endregion
+	}
+
+	public class idSWFTextRecord
+	{
+		#region Members
+		private ushort _fontID;
+		private idSWFColorRGBA _color = idSWFColorRGBA.Default;
+		private short _offsetX;
+		private short _offsetY;
+		private ushort _textHeight;
+		private ushort _firstGlyph;
+		private ushort _glyphCount;
+		#endregion
+
+		internal void LoadFrom(ContentReader input)
+		{
+			_fontID = input.ReadUInt16();
+
+			_color.LoadFrom(input);
+
+			_offsetX = input.ReadInt16();
+			_offsetY = input.ReadInt16();
+
+			_textHeight = input.ReadUInt16();
+			_firstGlyph = input.ReadUInt16();
+			_glyphCount = input.ReadUInt16();
+		}
+	}
+
+	public struct idSWFGlyphEntry
+	{
+		public uint Index;
+		public int Advance;
+
+		internal void LoadFrom(ContentReader input)
+		{
+			this.Index   = input.ReadUInt32();
+			this.Advance = input.ReadInt32();
 		}
 	}
 }

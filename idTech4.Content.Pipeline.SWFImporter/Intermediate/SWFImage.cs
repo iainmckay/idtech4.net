@@ -49,6 +49,8 @@ namespace idTech4.Content.Pipeline.Intermediate.SWF
 		public override void Write(ContentWriter output)
 		{
 			output.Write((int) SWFDictionaryType.Image);
+
+			output.Write(this.MaterialName);
 			output.Write(this.ImageSize);
 			output.Write(this.ImageAtlasOffset);
 			output.Write(this.ChannelScale);

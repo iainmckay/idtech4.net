@@ -39,6 +39,12 @@ namespace idTech4.Services
 	/// </summary>
 	public interface IRenderSystem
 	{
+		#region Fonts
+		#region Methods
+		idFont LoadFont(string fontName);
+		#endregion
+		#endregion
+
 		#region Initialization
 		#region Properties
 		bool IsInitialized { get; }

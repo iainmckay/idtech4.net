@@ -25,18 +25,75 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+
+using idTech4.Renderer;
+using idTech4.Services;
 
 namespace idTech4.UI.SWF
 {
-	internal class SWFTypeReader : ContentTypeReader<idSWF>
+	public class idSWFFont : idSWFDictionaryEntry
 	{
-		protected override idSWF Read(ContentReader input, idSWF existingInstance)
-		{
-			idSWF swf = new idSWF();
-			swf.LoadFrom(input);
+		#region Members
+		private short _ascent;
+		private short _descent;
+		private short _leading;
 
-			return swf;
+		private idFont _font;
+		private idSWFFontGlyph[] _glyphs;
+		#endregion
+
+		#region idSWFDictionaryEntry implementation
+		internal override void LoadFrom(ContentReader input)
+		{
+			IRenderSystem renderSystem = idEngine.Instance.GetService<IRenderSystem>();
+
+			_ascent = input.ReadInt16();
+			_descent = input.ReadInt16();
+			_leading = input.ReadInt16();
+
+			_font = renderSystem.LoadFont(input.ReadString());
+
+			_glyphs = new idSWFFontGlyph[input.ReadInt32()];
+
+			for(int i = 0; i < _glyphs.Length; i++)
+			{
+				_glyphs[i] = new idSWFFontGlyph();
+				_glyphs[i].LoadFrom(input);
+			}
+		}
+		#endregion
+	}
+
+	public class idSWFFontGlyph
+	{
+		#region Members
+		private ushort _code;
+		private short _advance;
+
+		private Vector2[] _vertices;
+		private ushort[] _indices;
+		#endregion
+
+		internal void LoadFrom(ContentReader input)
+		{
+			_code     = input.ReadUInt16();
+			_advance  = input.ReadInt16();
+
+			_vertices = new Vector2[input.ReadInt32()];
+			
+			for(int i = 0; i < _vertices.Length; i++)
+			{
+				_vertices[i] = input.ReadVector2();
+			}
+
+			_indices = new ushort[input.ReadInt32()];
+
+			for(int i = 0; i < _indices.Length; i++)
+			{
+				_indices[i] = input.ReadUInt16();
+			}
 		}
 	}
 }

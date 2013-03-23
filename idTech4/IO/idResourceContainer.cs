@@ -28,20 +28,20 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.IO;
 
-using ICSharpCode.SharpZipLib.Zip;
+//using ICSharpCode.SharpZipLib.Zip;
 
 namespace idTech4.IO
 {
 	public sealed class idResourceContainer : IDisposable
 	{
 		#region Members
-		private ZipFile _zipFile;
+		//private ZipFile _zipFile;
 		#endregion
 
 		#region Constructor
 		public idResourceContainer(Stream file)
 		{
-			_zipFile = new ZipFile(file);
+			//_zipFile = new ZipFile(file);
 		}
 
 		~idResourceContainer()

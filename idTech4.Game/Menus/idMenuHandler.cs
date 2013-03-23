@@ -114,7 +114,7 @@ namespace idTech4.Game.Menus
 				if(menuScreens[index] != NULL)
 				{
 					menuScreens[index]->Release();
-				}
+				}z
 			}
 
 			delete gui;

@@ -25,18 +25,51 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+
+using idTech4.Renderer;
+using idTech4.Services;
 
 namespace idTech4.UI.SWF
 {
-	internal class SWFTypeReader : ContentTypeReader<idSWF>
+	public class idSWFImage : idSWFDictionaryEntry
 	{
-		protected override idSWF Read(ContentReader input, idSWF existingInstance)
-		{
-			idSWF swf = new idSWF();
-			swf.LoadFrom(input);
+		#region Members
+		private idMaterial _material;
+		private Vector2 _imageSize;
+		private Vector2 _imageAtlasOffset;
+		private Vector4 _channelScale;
+		#endregion
 
-			return swf;
+		#region Constructor
+		public idSWFImage()
+			: base()
+		{
+			_channelScale = new Vector4(1, 1, 1, 1);
 		}
+		#endregion
+
+		#region idSWFDictionaryEntry implementation
+		internal override void LoadFrom(ContentReader input)
+		{
+			IDeclManager declManager = idEngine.Instance.GetService<IDeclManager>();
+
+			string materialName = input.ReadString();
+
+			if(materialName.StartsWith(".") == true)
+			{
+				_material = null;
+			}
+			else
+			{
+				_material = declManager.FindMaterial(materialName);
+			}
+
+			_imageSize        = input.ReadVector2();
+			_imageAtlasOffset = input.ReadVector2();
+			_channelScale     = input.ReadVector4();
+		}
+		#endregion
 	}
 }

@@ -29,14 +29,35 @@ using Microsoft.Xna.Framework.Content;
 
 namespace idTech4.UI.SWF
 {
-	internal class SWFTypeReader : ContentTypeReader<idSWF>
+	public abstract class idSWFDictionaryEntry
 	{
-		protected override idSWF Read(ContentReader input, idSWF existingInstance)
+		#region Constructor
+		public idSWFDictionaryEntry()
 		{
-			idSWF swf = new idSWF();
-			swf.LoadFrom(input);
 
-			return swf;
 		}
+		#endregion
+
+		#region Methods
+		internal abstract void LoadFrom(ContentReader input);
+		#endregion
+	}
+
+	public class idSWFNull : idSWFDictionaryEntry
+	{
+		#region Constructor
+		public idSWFNull()
+			: base()
+		{
+
+		}
+		#endregion
+
+		#region idSWFDictionaryEntry implementation
+		internal override void LoadFrom(ContentReader input)
+		{
+			
+		}
+		#endregion
 	}
 }

@@ -43,9 +43,6 @@
     <XnaCompressContent>true</XnaCompressContent>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="ICSharpCode.SharpZipLib">
-      <HintPath>..\bin\ICSharpCode.SharpZipLib.dll</HintPath>
-    </Reference>
     <Reference Include="Microsoft.Xna.Framework, Version=4.0.0.0, Culture=neutral, PublicKeyToken=842cf8be1de50553, processorArchitecture=x86">
       <Private>False</Private>
     </Reference>
@@ -124,6 +121,7 @@
     <Compile Include="Math\idRotation.cs" />
     <Compile Include="Platform\BasePlatform.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="Renderer\idFont.cs" />
     <Compile Include="Renderer\idGuiModel.cs" />
     <Compile Include="Renderer\idImage.cs" />
     <Compile Include="Renderer\idImageManager.cs" />

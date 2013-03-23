@@ -111,16 +111,27 @@
       <Project>{80C83BA7-1260-46F2-9E9E-BAA94A249A48}</Project>
       <Name>idTech4.Content.Pipeline.BSWFImporter</Name>
     </ProjectReference>
-    <ProjectReference Include="..\idTech4.Content.Pipeline.MaterialImporter\idTech4.Content.Pipeline.MaterialImporter.csproj">
-      <Project>{0EF75A2D-1E37-42C8-AD92-AF6F1AA1540A}</Project>
-      <Name>idTech4.Content.Pipeline.MaterialImporter</Name>
-    </ProjectReference>
     <ProjectReference Include="..\idTech4.Content.Pipeline.SWFImporter\idTech4.Content.Pipeline.SWFImporter.csproj">
       <Project>{9037E97E-683A-45C3-95EC-BE641D252D69}</Project>
       <Name>idTech4.Content.Pipeline.SWFImporter</Name>
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="generated\images\guis\assets\dot#__0200.bimage">
+      <Name>dot#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\white#__0000.bimage">
+      <Name>white#__0000</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\white#__0200.bimage">
+      <Name>white#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
     <Compile Include="generated\swf\dialog.bswf">
       <Name>dialog</Name>
       <Importer>BSWFImporter</Importer>
@@ -468,23 +479,6 @@
     </Compile>
   </ItemGroup>
   <ItemGroup>
-    <Compile Include="generated\images\guis\assets\dot#__0200.bimage">
-      <Name>dot#__0200</Name>
-      <Importer>BImageImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="generated\images\guis\assets\white#__0000.bimage">
-      <Name>white#__0000</Name>
-      <Importer>BImageImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-    <Compile Include="generated\images\guis\assets\white#__0200.bimage">
-      <Name>white#__0200</Name>
-      <Importer>BImageImporter</Importer>
-      <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
     <Compile Include="generated\images\guis\assets\splash\legal_english#__0200.bimage">
       <Name>legal_english#__0200</Name>
       <Importer>BImageImporter</Importer>
@@ -497,6 +491,99 @@
     </Compile>
     <Compile Include="generated\images\guis\assets\splash\legal_french#__0200.bimage">
       <Name>legal_french#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Content Include="materials\guis.mtr">
+      <Name>guis</Name>
+      <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+    </Content>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\ui\assets\guicursor_arrow#__0200.bimage">
+      <Name>guicursor_arrow#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\guicursor_hand#__0200.bimage">
+      <Name>guicursor_hand#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\guicursor_hand_a#__0200.bimage">
+      <Name>guicursor_hand_a#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\guicursor_hand_b#__0200.bimage">
+      <Name>guicursor_hand_b#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\guicursor_hand_circle#__0200.bimage">
+      <Name>guicursor_hand_circle#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\guicursor_hand_cross#__0200.bimage">
+      <Name>guicursor_hand_cross#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\guicursor_hand_square#__0200.bimage">
+      <Name>guicursor_hand_square#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\guicursor_hand_triangle#__0200.bimage">
+      <Name>guicursor_hand_triangle#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\guicursor_hand_x#__0200.bimage">
+      <Name>guicursor_hand_x#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\guicursor_hand_y#__0200.bimage">
+      <Name>guicursor_hand_y#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\scrollbarh#__0200.bimage">
+      <Name>scrollbarh#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\scrollbarv#__0200.bimage">
+      <Name>scrollbarv#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\scrollbar_down#__0200.bimage">
+      <Name>scrollbar_down#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\scrollbar_left#__0200.bimage">
+      <Name>scrollbar_left#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\scrollbar_right#__0200.bimage">
+      <Name>scrollbar_right#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\scrollbar_thumb#__0200.bimage">
+      <Name>scrollbar_thumb#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\ui\assets\scrollbar_up#__0200.bimage">
+      <Name>scrollbar_up#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

@@ -261,40 +261,51 @@ namespace idTech4.Game
 
 		public void Shell_SyncWithSession()
 		{
-			idLog.Warning("TODO: Shell_SyncWithSession");
-
-				/*	if ( shellHandler == NULL ) {
+			if(_shellHandler == null)
+			{
 				return;
 			}
-			switch ( session->GetState() ) {
-				case idSession::PRESS_START:
-					shellHandler->SetShellState( SHELL_STATE_PRESS_START );
+
+			ISession session = idEngine.Instance.GetService<ISession>();
+
+			switch(session.State)
+			{
+				case SessionState.PressStart:
+					_shellHandler.State = ShellState.PressStart;
 					break;
-				case idSession::INGAME:
-					shellHandler->SetShellState( SHELL_STATE_PAUSED );
+
+				case SessionState.InGame:
+					_shellHandler.State = ShellState.Paused;
 					break;
-				case idSession::IDLE:
-					shellHandler->SetShellState( SHELL_STATE_IDLE );
+
+				case SessionState.Idle:
+					_shellHandler.State = ShellState.Idle;
 					break;
-				case idSession::PARTY_LOBBY:
-					shellHandler->SetShellState( SHELL_STATE_PARTY_LOBBY );
+
+				case SessionState.PartyLobby:
+					_shellHandler.State = ShellState.PartyLobby;
 					break;
-				case idSession::GAME_LOBBY:
-					shellHandler->SetShellState( SHELL_STATE_GAME_LOBBY );
+
+				case SessionState.GameLobby:
+					_shellHandler.State = ShellState.GameLobby;
 					break;
-				case idSession::SEARCHING:
-					shellHandler->SetShellState( SHELL_STATE_SEARCHING );
+
+				case SessionState.Searching:
+					_shellHandler.State = ShellState.Searching;
 					break;
-				case idSession::LOADING:
-					shellHandler->SetShellState( SHELL_STATE_LOADING );
+
+				case SessionState.Loading:
+					_shellHandler.State = ShellState.Loading;
 					break;
-				case idSession::CONNECTING:
-					shellHandler->SetShellState( SHELL_STATE_CONNECTING );
+
+				case SessionState.Connecting:
+					_shellHandler.State = ShellState.Connecting;
 					break;
-				case idSession::BUSY:
-					shellHandler->SetShellState( SHELL_STATE_BUSY );
+
+				case SessionState.Busy:
+					_shellHandler.State = ShellState.Busy;
 					break;
-			}*/
+			}
 		}
 
 		public void Shell_ResetMenu()

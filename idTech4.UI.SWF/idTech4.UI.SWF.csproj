@@ -92,9 +92,17 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="idSWFSpriteInstance.cs" />
     <Compile Include="idSWF.cs" />
+    <Compile Include="idSWFDictionaryEntry.cs" />
     <Compile Include="idSWFManager.cs" />
+    <Compile Include="idSWFSprite.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
+    <Compile Include="idSWFEditText.cs" />
+    <Compile Include="idSWFFont.cs" />
+    <Compile Include="idSWFImage.cs" />
+    <Compile Include="idSWFShape.cs" />
+    <Compile Include="idSWFText.cs" />
     <Compile Include="SWFTypeReader.cs" />
   </ItemGroup>
   <ItemGroup>
