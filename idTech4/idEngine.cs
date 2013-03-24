@@ -43,6 +43,7 @@ using idTech4.Math;
 using idTech4.Renderer;
 using idTech4.Services;
 using idTech4.Text;
+using idTech4.Threading;
 using idTech4.UI;
 
 namespace idTech4
@@ -128,6 +129,8 @@ namespace idTech4
 		// this is set if the player enables the console, which disables achievements
 		private bool _consoleUsed;
 
+		private idGameThread _gameThread;	// the game and draw code can be run in parallel
+
 		private int	_gameFrame;				// frame number of the local game
 		private double _gameTimeResidual;	// left over msec from the last game frame
 		private bool _syncNextGameFrame;
@@ -158,6 +161,11 @@ namespace idTech4
 		private long _speeds_Shadows;			// renderer backend waiting for shadow volumes to be created
 		private long _speeds_Gpu;				// total gpu time, at least for PC
 		private long _speeds_LastTime;
+		
+		private bool _showShellRequested;
+
+		private string _currentMapName;			// for checking reload on same level
+		private bool _mapSpawned;				// cleared on Stop()
 		#endregion
 
 		#region Constructor
@@ -398,6 +406,16 @@ namespace idTech4
 			}*/
 
 			return false;
+		}
+
+		private void GuiFrameEvents()
+		{
+			IGame game = idEngine.Instance.GetService<IGame>();
+
+			if(game != null)
+			{
+				game.Shell_SyncWithSession();
+			}
 		}
 		#endregion
 
@@ -778,12 +796,14 @@ namespace idTech4
 				{
 					idLog.Warning("TODO: RenderBink( \"video\\loadvideo.bik\" );");
 					RenderSplash();
+					RenderSplash();
 				}
 				else
 				{
 					idLog.WriteLine("Skipping Intro Videos!");
 
 					// display the legal splash screen
+					RenderSplash();
 					RenderSplash();
 				}
 
@@ -796,16 +816,17 @@ namespace idTech4
 				InitLanguageDict();
 
 				idLog.Warning("TODO: REST OF INIT");
-				/*
+				
 				// spawn the game thread, even if we are going to run without SMP
 				// one meg stack, because it can parse decls from gui surfaces (unfortunately)
 				// use a lower priority so job threads can run on the same core
-				gameThread.StartWorkerThread( "Game/Draw", CORE_1B, THREAD_BELOW_NORMAL, 0x100000 );
+				_gameThread = new idGameThread();
+				_gameThread.StartWorkerThread( "Game/Draw", ThreadCore.C_1B, ThreadPriority.BelowNormal, 0x100000);
 				// boost this thread's priority, so it will prevent job threads from running while
 				// the render back end still has work to do
 
 				// init the user command input code
-				usercmdGen->Init();
+				/*usercmdGen->Init();
 
 				Sys_SetRumble( 0, 0, 0 );*/
 
@@ -1491,10 +1512,11 @@ namespace idTech4
 			// this causes none of the loading messages to appear and it looks like the program isn't loading!
 			if(_firstTick == true)
 			{
-				_firstTick = false;
+				_firstTick     = false;
 				_lastFrameTime = this.ElapsedTime;
 
 				base.Update(gameTime);
+				return;
 			}
 			else if(_initialized == false)
 			{
@@ -1506,6 +1528,7 @@ namespace idTech4
 			IRenderSystem renderSystem = this.GetService<IRenderSystem>();
 			ICVarSystem cvarSystem     = this.GetService<ICVarSystem>();
 			ISession session           = this.GetService<ISession>();
+			IGame game                 = this.GetService<IGame>();
 
 			LinkedListNode<idRenderCommand> renderCommands = null;
 
@@ -1535,13 +1558,14 @@ namespace idTech4
 				eventLoop->RunEventLoop();*/
 
 				// activate the shell if it's been requested
-				/*if ( showShellRequested && game ) {
-					game->Shell_Show( true );
-					showShellRequested = false;
+				if((_showShellRequested == true) && (game != null))
+				{
+					game.Shell_Show(true);
+					_showShellRequested = false;
 				}
 
 				// if the console or another gui is down, we don't need to hold the mouse cursor
-				bool chatting = false;
+				/*bool chatting = false;
 				if ( console->Active() || Dialog().IsDialogActive() || session->IsSystemUIShowing() || ( game && game->InhibitControls() && !IsPlayingDoomClassic() ) ) {
 					Sys_GrabMouseCursor( false );
 					usercmdGen->InhibitUsercmd( INHIBIT_SESSION, true );
@@ -1717,26 +1741,36 @@ namespace idTech4
 				session.Pump();
 				session.ProcessSnapAckQueue();
 
-				/*if ( session->GetState() == idSession::LOADING ) {
+				if(session.State == SessionState.Loading)
+				{
+					idLog.Warning("TODO: sessionState loading");
+
 					// If the session reports we should be loading a map, load it!
-					ExecuteMapChange();
+					/*ExecuteMapChange();
 					mapSpawnData.savegameFile = NULL;
-					mapSpawnData.persistentPlayerInfo.Clear();
+					mapSpawnData.persistentPlayerInfo.Clear();*/
 					return;
-				} else if ( session->GetState() != idSession::INGAME && mapSpawned ) {
+				} 
+				else if((session.State != SessionState.InGame) && (_mapSpawned == true))
+				{
+					idLog.Warning("TODO: sessionState ingame");
+
 					// If the game is running, but the session reports we are not in a game, disconnect
 					// This happens when a server disconnects us or we sign out
-					LeaveGame();
+					//LeaveGame();
 					return;
 				}
 
-				if ( mapSpawned && !pauseGame ) {
-					if ( IsClient() ) {
+				if((_mapSpawned == true) && (pauseGame == false))
+				{
+					idLog.Warning("TODO: runNetworkSnapshotFrame");
+
+					/*if ( IsClient() ) {
 						RunNetworkSnapshotFrame();
-					}
+					}*/
 				}
 
-				ExecuteReliableMessages();
+				/*ExecuteReliableMessages();*/
 
 				// send frame and mouse events to active guis
 				GuiFrameEvents();
@@ -1747,7 +1781,7 @@ namespace idTech4
 				//--------------------------------------------
 
 				// get the previous usercmd for bypassed head tracking transform
-				const usercmd_t	previousCmd = usercmdGen->GetCurrentUsercmd();
+				/*const usercmd_t	previousCmd = usercmdGen->GetCurrentUsercmd();
 
 				// build a new usercmd
 				int deviceNum = session->GetSignInManager().GetMasterInputDevice();
@@ -1784,10 +1818,10 @@ namespace idTech4
 				// If we're in Doom or Doom 2, run tics and upload the new texture.
 				if ( ( GetCurrentGame() == DOOM_CLASSIC || GetCurrentGame() == DOOM2_CLASSIC ) && !( Dialog().IsDialogPausing() || session->IsSystemUIShowing() ) ) {
 					RunDoomClassicFrame();
-				}
+				}*/
 		
 				// start the game / draw command generation thread going in the background
-				gameReturn_t ret = gameThread.RunGameAndDraw( numGameFrames, userCmdMgr, IsClient(), gameFrame - numGameFrames );*/
+				GameReturn ret = _gameThread.RunGameAndDraw(gameFrameCount, /* TODO: userCmdMgr*/ null, /*TODO: IsClient()*/ true, _gameFrame - gameFrameCount);
 
 				if(cvarSystem.GetBool("com_smp") == false)
 				{
@@ -1874,6 +1908,110 @@ namespace idTech4
 			catch
 			{
 				return;			// an ERP_DROP was thrown
+			}
+		}
+
+		public void Draw()
+		{
+			ICVarSystem cvarSystem      = this.GetService<ICVarSystem>();
+			IRenderSystem renderSystem  = this.GetService<IRenderSystem>();
+			IGame game                  = this.GetService<IGame>();
+
+			// debugging tool to test frame dropping behavior
+			if(cvarSystem.GetInt("com_sleepDraw") > 0)
+			{
+				Thread.Sleep(cvarSystem.GetInt("com_sleepDraw"));
+			}
+			
+			// TODO: loadGui
+			/*if ( loadGUI != NULL ) 
+			{
+				loadGUI->Render( renderSystem, Sys_Milliseconds() );
+			} */
+			// TODO: doom classic
+			/*else if (	currentGame == DOOM_CLASSIC || currentGame == DOOM2_CLASSIC ) 
+			{
+				const float sysWidth = renderSystem->GetWidth() * renderSystem->GetPixelAspect();
+				const float sysHeight = renderSystem->GetHeight();
+				const float sysAspect = sysWidth / sysHeight;
+				const float doomAspect = 4.0f / 3.0f;
+				const float adjustment = sysAspect / doomAspect;
+				const float barHeight = ( adjustment >= 1.0f ) ? 0.0f : ( 1.0f - adjustment ) * (float)SCREEN_HEIGHT * 0.25f;
+				const float barWidth = ( adjustment <= 1.0f ) ? 0.0f : ( adjustment - 1.0f ) * (float)SCREEN_WIDTH * 0.25f;
+				if ( barHeight > 0.0f ) {
+					renderSystem->SetColor( colorBlack );
+					renderSystem->DrawStretchPic( 0, 0, SCREEN_WIDTH, barHeight, 0, 0, 1, 1, whiteMaterial );
+					renderSystem->DrawStretchPic( 0, SCREEN_HEIGHT - barHeight, SCREEN_WIDTH, barHeight, 0, 0, 1, 1, whiteMaterial );
+				}
+				if ( barWidth > 0.0f ) {
+					renderSystem->SetColor( colorBlack );
+					renderSystem->DrawStretchPic( 0, 0, barWidth, SCREEN_HEIGHT, 0, 0, 1, 1, whiteMaterial );
+					renderSystem->DrawStretchPic( SCREEN_WIDTH - barWidth, 0, barWidth, SCREEN_HEIGHT, 0, 0, 1, 1, whiteMaterial );
+				}
+				renderSystem->SetColor4( 1, 1, 1, 1 );
+				renderSystem->DrawStretchPic( barWidth, barHeight, SCREEN_WIDTH - barWidth * 2.0f, SCREEN_HEIGHT - barHeight * 2.0f, 0, 0, 1, 1, doomClassicMaterial );
+			}*/
+			else if((game != null) && (game.Shell_IsActive() == true))
+			{
+				idLog.Warning("TODO: game draw");
+				bool gameDraw = false; /*game->Draw( game->GetLocalClientNum() );*/
+
+				if(gameDraw == false)
+				{
+					renderSystem.Color = Color.Black;
+					renderSystem.DrawStretchPicture(0, 0, Constants.ScreenWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
+				}
+
+				game.Shell_Render();
+			} 
+			// TODO: readDemo
+			/*else if(readDemo == true) 
+			{
+				renderWorld->RenderScene( &currentDemoRenderView );
+				renderSystem->DrawDemoPics();
+			} */
+			else if(_mapSpawned == true)
+			{
+				idLog.Warning("TODO: mapSpawned");
+
+				/*bool gameDraw = false;
+				// normal drawing for both single and multi player
+				if ( !com_skipGameDraw.GetBool() && Game()->GetLocalClientNum() >= 0 ) {
+					// draw the game view
+					int	start = Sys_Milliseconds();
+					if ( game ) {
+						gameDraw = game->Draw( Game()->GetLocalClientNum() );
+					}
+					int end = Sys_Milliseconds();
+					time_gameDraw += ( end - start );	// note time used for com_speeds
+				}
+				if ( !gameDraw ) {
+					renderSystem->SetColor( colorBlack );
+					renderSystem->DrawStretchPic( 0, 0, 640, 480, 0, 0, 1, 1, whiteMaterial );
+				}
+
+				// save off the 2D drawing from the game
+				if ( writeDemo ) {
+					renderSystem->WriteDemoPics();
+				}*/
+			} 
+			else 
+			{
+				renderSystem.Color = new Color(0, 0, 0, 1);
+				renderSystem.DrawStretchPicture(0, 0, Constants.ScreenWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
+			}
+
+			// TODO: post draw
+			{
+				/*SCOPED_PROFILE_EVENT( "Post-Draw" );
+
+				// draw the wipe material on top of this if it hasn't completed yet
+				DrawWipeModel();
+
+				Dialog().Render( loadGUI != NULL );
+
+				// draw the half console / notify console on top of everything
+				console->Draw( false );*/
 			}
 		}
 

@@ -54,6 +54,7 @@
     <Compile Include="Intermediate\SWFEditText.cs" />
     <Compile Include="Intermediate\SWFFont.cs" />
     <Compile Include="Intermediate\SWFImage.cs" />
+    <Compile Include="Intermediate\SWFMorphShape.cs" />
     <Compile Include="Intermediate\SWFText.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Intermediate\SWFContent.cs" />

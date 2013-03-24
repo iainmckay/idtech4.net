@@ -93,6 +93,7 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="idSWFBitStream.cs" />
+    <Compile Include="idSWFMorphShape.cs" />
     <Compile Include="idSWFSpriteInstance.cs" />
     <Compile Include="idSWF.cs" />
     <Compile Include="idSWFDictionaryEntry.cs" />

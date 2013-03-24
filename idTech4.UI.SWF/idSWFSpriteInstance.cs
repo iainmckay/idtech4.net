@@ -47,6 +47,54 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public ushort CurrentFrame
+		{
+			get
+			{
+				return _currentFrame;
+			}
+		}
+
+		public List<idSWFDisplayEntry> DisplayList
+		{
+			get
+			{
+				return _displayList;
+			}
+		}
+
+		public bool IsVisible
+		{
+			get
+			{
+				return _isVisible;
+			}
+		}
+
+		public idMaterial MaterialOverride
+		{
+			get
+			{
+				return _materialOverride;
+			}
+		}
+
+		public ushort MaterialWidth
+		{
+			get
+			{
+				return _materialWidth;
+			}
+		}
+
+		public ushort MaterialHeight
+		{
+			get
+			{
+				return _materialHeight;
+			}
+		}
+
 		public string Name
 		{
 			get
@@ -59,11 +107,35 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public float OffsetX
+		{
+			get
+			{
+				return _xOffset;
+			}
+		}
+
+		public float OffsetY
+		{
+			get
+			{
+				return _yOffset;
+			}
+		}
+
 		public idSWFSpriteInstance Parent
 		{
 			get
 			{
 				return _parent;
+			}
+		}
+
+		public StereoDepthType StereoDepth
+		{
+			get
+			{
+				return _stereoDepth;
 			}
 		}
 		#endregion
@@ -94,7 +166,7 @@ namespace idTech4.UI.SWF
 
 		private idMaterial _materialOverride;
 		private ushort _materialWidth;
-		private ushort materialHeight;
+		private ushort _materialHeight;
 
 		private float _xOffset;
 		private float _yOffset;
@@ -103,7 +175,7 @@ namespace idTech4.UI.SWF
 		private float _moveToYScale;
 		private float _moveToSpeed;
 
-		private int _stereoDepth;
+		private StereoDepthType _stereoDepth;
 	
 		// name of this sprite instance
 		private string _name;
@@ -416,6 +488,12 @@ namespace idTech4.UI.SWF
 
 			_displayList.Clear();
 			_currentFrame = 0;
+		}
+
+		public void SetAlignment(float x, float y)
+		{
+			_xOffset = x;
+			_yOffset = y;
 		}
 		#endregion
 

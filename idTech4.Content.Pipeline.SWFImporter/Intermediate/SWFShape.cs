@@ -48,7 +48,14 @@ namespace idTech4.Content.Pipeline.Intermediate.SWF
 		#region SWFDictionaryEntry implementation
 		public override void Write(ContentWriter output)
 		{
-			output.Write((int) SWFDictionaryType.Shape);
+			if(this is SWFMorphShape)
+			{
+				output.Write((int) SWFDictionaryType.Morph);
+			}
+			else
+			{
+				output.Write((int) SWFDictionaryType.Shape);
+			}
 
 			this.StartBounds.Write(output);
 			this.EndBounds.Write(output);

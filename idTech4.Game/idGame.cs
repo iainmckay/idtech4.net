@@ -306,6 +306,14 @@ namespace idTech4.Game
 			}
 		}
 
+		public void Shell_Render()
+		{
+			if(_shellHandler != null)
+			{
+				_shellHandler.Update();
+			}
+		}
+
 		public void Shell_ResetMenu()
 		{
 			if(_shellHandler != null)

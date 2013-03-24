@@ -164,6 +164,8 @@
     <Compile Include="Text\idLexer.cs" />
     <Compile Include="Text\idLocalization.cs" />
     <Compile Include="Text\idToken.cs" />
+    <Compile Include="Threading\idGameThread.cs" />
+    <Compile Include="Threading\idSysThread.cs" />
     <Compile Include="Threading\idThread.cs" />
     <Compile Include="UI\idDeviceContext.cs" />
     <Compile Include="UI\idDeviceContextOptimized.cs" />

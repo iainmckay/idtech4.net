@@ -76,6 +76,8 @@ namespace idTech4.Renderer
 		private idGuiModel _guiModel;
 		private Color _currentColor;
 
+		private ulong _currentRenderState;
+
 		private ushort[] _quadIndexes = { 3, 0, 2, 2, 0, 1 };
 		#endregion
 
@@ -228,11 +230,12 @@ namespace idTech4.Renderer
 			_viewDefinition = null;
 			/*memset(&pc, 0, sizeof(pc));*/
 
-			_identitySpace     = new idViewEntity();
-			_currentRenderCrop = 0;
-			_currentColor      = Color.White;
-			_guiRecursionLevel = 0;
-			_guiModel          = null;
+			_identitySpace      = new idViewEntity();
+			_currentRenderCrop  = 0;
+			_currentColor       = Color.White;
+			_currentRenderState = 0;
+			_guiRecursionLevel  = 0;
+			_guiModel           = null;
 
 			/*
 			memset(gammaTable, 0, sizeof(gammaTable));
@@ -257,6 +260,11 @@ namespace idTech4.Renderer
 			}*/
 
 			//_frontEndJobList = null;
+		}
+
+		public void SetRenderState(ulong state)
+		{
+			_currentRenderState = state;
 		}
 		#endregion
 
@@ -695,7 +703,7 @@ namespace idTech4.Renderer
 			localVertices[3].Color              = _currentColor;
 			localVertices[3].ClearColor2();
 
-			_guiModel.AddPrimitive(localVertices, _quadIndexes, material, _backend.State/*, TODO: STEREO_DEPTH_TYPE_NONE*/);
+			_guiModel.AddPrimitive(localVertices, _quadIndexes, material, _currentRenderState/*, TODO: STEREO_DEPTH_TYPE_NONE*/);
 		}
 
 		/// <summary>
@@ -1266,5 +1274,13 @@ namespace idTech4.Renderer
 		public idScreenRect Scissor;
 		public int RenderZFail;
 		//volatile shadowVolumeState_t shadowVolumeState;
+	}
+	
+	public enum StereoDepthType
+	{
+		None,
+		Near,
+		Mid,
+		Far
 	}
 }

@@ -44,9 +44,9 @@ namespace idTech4.Services
 		/*void Shell_ClosePause() = 0;*/
 		void Shell_Show(bool show);
 		bool Shell_IsActive();
-		/*bool Shell_HandleGuiEvent( const sysEvent_t * sev ) = 0;
-		void Shell_Render() = 0;
-		void Shell_ResetMenu() = 0;*/
+		/*bool Shell_HandleGuiEvent( const sysEvent_t * sev ) = 0;*/
+		void Shell_Render();
+		/*void Shell_ResetMenu() = 0;*/
 		void Shell_SyncWithSession();
 		/*void Shell_UpdateSavedGames() = 0;
 		void Shell_SetCanContinue( bool valid ) = 0;
@@ -54,5 +54,21 @@ namespace idTech4.Services
 		void Shell_UpdateLeaderboard( const idLeaderboardCallback * callback ) = 0;
 		void Shell_SetGameComplete();*/
 		#endregion
+	}
+
+	public struct GameReturn
+	{
+		/// <summary>
+		/// "map", "disconnect", "victory", etc
+		/// </summary>
+		public string SessionCommand;
+
+		/// <summary>
+		/// Used when cinematics are skipped to prevent session from simulating several game frames to keep the game time in sync with real time.
+		/// </summary>
+		public bool SynchronizeNextGameFrame;
+
+		public int VibrationLow;
+		public int VibrationHigh;
 	}
 }

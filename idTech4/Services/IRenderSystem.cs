@@ -106,6 +106,10 @@ namespace idTech4.Services
 		#endregion
 		#endregion
 
+		#region State
+		void SetRenderState(ulong state);
+		#endregion
+
 		#region Texturing
 		Texture2D CreateTexture(int width, int height, bool mipmap = false, SurfaceFormat format = SurfaceFormat.Color);
 		#endregion

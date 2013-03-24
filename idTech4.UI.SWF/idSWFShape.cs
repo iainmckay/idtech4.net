@@ -268,6 +268,19 @@ namespace idTech4.UI.SWF
 			this.TY = input.ReadSingle();
 		}
 
+		public idSWFMatrix Multiply(idSWFMatrix a)
+		{
+			idSWFMatrix result = new idSWFMatrix();
+			result.XX = this.XX * a.XX + this.YX * a.XY;
+			result.YX = this.XX * a.YX + this.YX * a.YY;
+			result.XY = this.XY * a.XX + this.YY * a.XY;
+			result.YY = this.XY * a.YX + this.YY * a.YY;
+			result.TX = this.TX * a.XX + this.TY * a.XY + a.TX;
+			result.TY = this.TX * a.YX + this.TY * a.YY + a.TY;
+
+			return result;
+		}
+
 		public static idSWFMatrix Default = new idSWFMatrix(1, 1, 0, 0, 0, 0);
 	}
 

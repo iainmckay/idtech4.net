@@ -25,6 +25,7 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using idTech4.Services;
 using idTech4.UI.SWF;
 
 namespace idTech4.Game.Menus
@@ -138,6 +139,18 @@ namespace idTech4.Game.Menus
 
 			delete gui;
 			gui = NULL;*/
+		}
+		#endregion
+
+		#region Frame
+		public virtual void Update()
+		{
+			// TODO: PumpWidgetActionRepeater();
+
+			if((_gui != null) && (_gui.IsActive == true))
+			{
+				_gui.Draw(idEngine.Instance.GetService<IRenderSystem>(), idEngine.Instance.ElapsedTime);
+			}
 		}
 		#endregion
 	}

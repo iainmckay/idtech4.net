@@ -84,7 +84,7 @@ namespace idTech4.Content.Pipeline
 				
 					case SWFDictionaryType.Morph:
 					case SWFDictionaryType.Shape:
-						content.Dictionary[i] = LoadShape(r);
+						content.Dictionary[i] = LoadShape(r, entryType);
 						break;
 
 					case SWFDictionaryType.Sprite:
@@ -154,9 +154,19 @@ namespace idTech4.Content.Pipeline
 			return font;
 		}
 
-		private SWFShape LoadShape(BinaryReader r)
+		private SWFShape LoadShape(BinaryReader r, SWFDictionaryType type)
 		{
-			SWFShape entry                  = new SWFShape();
+			SWFShape entry;
+
+			if(type == SWFDictionaryType.Morph)
+			{
+				entry = new SWFMorphShape();
+			}
+			else
+			{
+				entry = new SWFShape();
+			}
+
 			entry.StartBounds.TopLeft.X     = r.ReadSingle();
 			entry.StartBounds.TopLeft.Y     = r.ReadSingle();
 			entry.StartBounds.BottomRight.X = r.ReadSingle();
