@@ -234,6 +234,23 @@ namespace idTech4
 			cvarSystem.Register("sys_lang",			idLanguage.English, "", CVarFlags.System | CVarFlags.Init/* TODO: sysLanguageNames, idCmdSystem::ArgCompletion_String<sysLanguageNames>*/);
 			#endregion
 
+			#region SWF
+			cvarSystem.Register("swf_debug",						"0",		"debug swf scripts.  1 shows traces/errors.  2 also shows warnings.  3 also shows disassembly.  4 shows parameters in the disassembly.", CVarFlags.Integer | CVarFlags.Archive);
+			cvarSystem.Register("swf_debugInvoke",					"0",		"debug swf functions being called from game.",	CVarFlags.Integer);
+			cvarSystem.Register("swf_subtitleEarlyTrans",			"3500",		"early time out to switch the line",			CVarFlags.Integer);
+			cvarSystem.Register("swf_subtitleExtraTime",			"3500",		"time after subtitles vo is complete",			CVarFlags.Integer);
+			cvarSystem.Register("swf_subtitleLengthGuess",			"10000",	"early time out to switch the line",			CVarFlags.Integer);
+			cvarSystem.Register("swf_textMaxInputLength",			"104",		"max number of characters that can go into the input line", CVarFlags.Integer);
+						
+			cvarSystem.Register("swf_textParagraphInc",				"1.3",		"scroll speed for text",						CVarFlags.Float);
+			cvarSystem.Register("swf_textParagraphSpeed",			"15",		"scroll speed for text",						CVarFlags.Integer);			
+			cvarSystem.Register("swf_textRndLetterSpeed",			"8",		"scroll speed for text",						CVarFlags.Integer);
+			cvarSystem.Register("swf_textRndLetterDelay",			"100",		"scroll speed for text",						CVarFlags.Integer);
+			cvarSystem.Register("swf_textScrollSpeed",				"80",		"scroll speed for text",						CVarFlags.Integer);
+			cvarSystem.Register("swf_textStrokeSize",				"1.65f", 0.0f, 2.0f, "size of font glyph stroke",			CVarFlags.Float);
+			cvarSystem.Register("swf_textStrokeSizeGlyphSpacer",	"1.5f",		"additional space for spacing glyphs using stroke", CVarFlags.Float);
+			#endregion
+
 			#region Windows
 			cvarSystem.Register("win_allowAltTab",				"0", "allow Alt-Tab when fullscreen",					CVarFlags.System | CVarFlags.Bool);
 			cvarSystem.Register("win_notaskkeys",				"0", "disable windows task keys",						CVarFlags.System | CVarFlags.Integer);
@@ -625,23 +642,12 @@ idCVar swf_titleSafe( "swf_titleSafe", "0.005", CVAR_FLOAT, "space between UI el
 
 idCVar swf_forceAlpha( "swf_forceAlpha", "0", CVAR_FLOAT, "force an alpha value on all elements, useful to show invisible animating elements", 0.0f, 1.0f );
 
-			idCVar swf_debug( "swf_debug", "0", CVAR_INTEGER|CVAR_ARCHIVE, "debug swf scripts.  1 shows traces/errors.  2 also shows warnings.  3 also shows disassembly.  4 shows parameters in the disassembly." );
-idCVar swf_debugInvoke( "swf_debugInvoke", "0", CVAR_INTEGER, "debug swf functions being called from game." );
+			
 
 
 			idCVar swf_debugShowAddress( "swf_debugShowAddress", "0", CVAR_BOOL, "shows addresses along with object types when they are serialized" );
 
-			idCVar swf_textScrollSpeed( "swf_textScrollSpeed", "80", CVAR_INTEGER, "scroll speed for text" );
-idCVar swf_textRndLetterSpeed( "swf_textRndLetterSpeed", "8", CVAR_INTEGER, "scroll speed for text" );
-idCVar swf_textRndLetterDelay( "swf_textRndLetterDelay", "100", CVAR_INTEGER, "scroll speed for text" );
-idCVar swf_textParagraphSpeed( "swf_textParagraphSpeed", "15", CVAR_INTEGER, "scroll speed for text" );
-idCVar swf_textParagraphInc( "swf_textParagraphInc", "1.3", CVAR_FLOAT, "scroll speed for text" );
-idCVar swf_subtitleExtraTime( "swf_subtitleExtraTime", "3500", CVAR_INTEGER, "time after subtitles vo is complete" );
-idCVar swf_subtitleEarlyTrans( "swf_subtitleEarlyTrans", "3500", CVAR_INTEGER, "early time out to switch the line" );
-idCVar swf_subtitleLengthGuess( "swf_subtitleLengthGuess", "10000", CVAR_INTEGER, "early time out to switch the line" );
-idCVar swf_textMaxInputLength( "swf_textMaxInputLength", "104", CVAR_INTEGER, "max number of characters that can go into the input line" );
-idCVar swf_textStrokeSize( "swf_textStrokeSize", "1.65f", CVAR_FLOAT, "size of font glyph stroke", 0.0f, 2.0f );
-idCVar swf_textStrokeSizeGlyphSpacer( "swf_textStrokeSizeGlyphSpacer", "1.5f", CVAR_FLOAT, "additional space for spacing glyphs using stroke" );
+			
 
 			idCVar r_useOpenGL32( "r_useOpenGL32", "1", CVAR_INTEGER, "0 = OpenGL 2.0, 1 = OpenGL 3.2 compatibility profile, 2 = OpenGL 3.2 core profile", 0, 2 );
 

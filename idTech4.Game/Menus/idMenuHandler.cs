@@ -55,7 +55,7 @@ namespace idTech4.Game.Menus
 		private int _transition;
 		private int _platform;
 
-		private idSWF _gui;
+		protected idSWF _gui;
 	
 		// TODO
 		/*actionRepeater_t			actionRepeater;
@@ -99,6 +99,25 @@ namespace idTech4.Game.Menus
 		#endregion
 
 		#region State
+		public virtual void ActivateMenu(bool show)
+		{
+			if(_gui == null)
+			{
+				return;
+			}
+
+			if(show == false)
+			{
+				_gui.Activate(show);
+				return;
+			}
+
+			idLog.Warning("TODO: gui->SetGlobal( \"updateMenuDisplay\", new (TAG_SWF) idSWFScriptFunction_updateMenuDisplay( gui, this ) );");
+			idLog.Warning("TODO: gui->SetGlobal( \"activateMenus\", new (TAG_SWF) idSWFScriptFunction_activateMenu( this ) );");
+
+			_gui.Activate(show);
+		}
+
 		private void Cleanup()
 		{
 			idLog.Warning("TODO: Cleanup");

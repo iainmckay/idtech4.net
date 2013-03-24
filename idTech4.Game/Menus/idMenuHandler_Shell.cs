@@ -26,6 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using idTech4.Renderer;
+using idTech4.UI.SWF;
 
 namespace idTech4.Game.Menus
 {
@@ -77,6 +78,18 @@ namespace idTech4.Game.Menus
 
 		#region State
 		#region Properties
+		public bool IsInGame
+		{
+			get
+			{
+				return _inGame;
+			}
+			set
+			{
+				_inGame = value;
+			}
+		}
+
 		public ShellState State
 		{
 			get
@@ -86,6 +99,102 @@ namespace idTech4.Game.Menus
 			set
 			{
 				_nextState = value;
+			}
+		}
+		#endregion
+
+		#region Methods
+		public override void ActivateMenu(bool show)
+		{
+			if((show == true) && (_gui != null) && (_gui.IsActive == true))
+			{
+				return;
+			}
+			else if((show == false) && (_gui != null) && (_gui.IsActive == false))
+			{
+				return;
+			}
+
+			if(_inGame == true)
+			{
+				idLog.Warning("TODO: ActivateMenu ingame");
+	
+				/*idPlayer * player = gameLocal.GetLocalPlayer();
+				if ( player != NULL ) {
+					if ( !show ) {
+						bool isDead = false;			
+						if ( player->health <= 0 ) {
+							isDead = true;
+						}
+			
+						if ( isDead && !common->IsMultiplayer() ) {
+							return;
+						}
+					}
+				}*/
+			}
+	
+			base.ActivateMenu(show);
+
+			if(show == true)
+			{
+				if(_inGame == false)
+				{
+					idLog.Warning("TODO: PlaySound( GUI_SOUND_MUSIC );");
+
+					if(_gui != null)
+					{
+						idLog.Warning("TODO: idSWFSpriteInstance mars = _gui.RootObject.GetNestedSprite(\"mars\");");
+						idSWFSpriteInstance mars = null;
+
+						if(mars != null)
+						{
+							idLog.Warning("TODO: ActivateMenu mars");
+				
+							/*mars->stereoDepth = STEREO_DEPTH_TYPE_FAR;
+
+							idSWFSpriteInstance * planet = mars->GetScriptObject()->GetNestedSprite( "planet" );
+
+							if ( marsRotation != NULL && planet != NULL ) {
+								const idMaterial * mat = marsRotation;
+								if ( mat != NULL ) {
+									int c = mat->GetNumStages();
+									for ( int i = 0; i < c; i++ ) {
+										const shaderStage_t *stage = mat->GetStage( i );
+										if ( stage != NULL && stage->texture.cinematic ) {
+											stage->texture.cinematic->ResetTime( Sys_Milliseconds() );
+										}
+									}
+								}
+
+								planet->SetMaterial( mat );
+							}*/
+						}
+					}
+				}
+
+				idLog.Warning("TODO: SetupPCOptions();");
+		
+				idLog.Warning("TODO: ActivateMenu cmdBar");
+				
+				/*if ( cmdBar != NULL ) {
+					cmdBar->ClearAllButtons();
+					cmdBar->Update();
+				}*/
+			}
+			else
+			{
+				idLog.Warning("TODO: ClearWidgetActionRepeater();");
+				/*nextScreen = SHELL_AREA_INVALID;
+				activeScreen = SHELL_AREA_INVALID;
+				nextState = SHELL_STATE_INVALID;*/
+
+				_state             = ShellState.Invalid;
+				_smallFrameShowing = false;
+				_largeFrameShowing = false;
+				_backgroundShowing = true;
+
+				idLog.Warning("TODO: common->Dialog().ClearDialog( GDM_LEAVE_LOBBY_RET_NEW_PARTY );");
 			}
 		}
 		#endregion

@@ -26,6 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using System.Collections.Generic;
+using System.IO;
 
 using idTech4.Renderer;
 
@@ -43,6 +44,18 @@ namespace idTech4.UI.SWF
 			protected set
 			{
 				_childrenRunning = true;
+			}
+		}
+
+		public string Name
+		{
+			get
+			{
+				return _name;
+			}
+			set
+			{
+				_name = value;
 			}
 		}
 
@@ -96,7 +109,8 @@ namespace idTech4.UI.SWF
 		private string _name;
 
 		// children display entries
-		public List<DisplayEntry> _displayList = new List<DisplayEntry>();
+		private List<idSWFDisplayEntry> _displayList = new List<idSWFDisplayEntry>();
+		private List<byte[]> _actions                = new List<byte[]>();
 		#endregion
 
 		#region Constructor
@@ -289,16 +303,16 @@ namespace idTech4.UI.SWF
 					continue;
 				}
 
-				command.Stream.Seek(0, System.IO.SeekOrigin.Begin);
+				command.Stream.Rewind();
 
 				switch(command.Tag)
 				{
 					case idSWFTag.PlaceObject2:
-						idLog.Warning("TODO: PlaceObject2(command.Stream);");
+						Tag_PlaceObject2(command.Stream);
 						break;
 
 					case idSWFTag.PlaceObject3:
-						idLog.Warning("TODO: PlaceObject3(command.Stream);");
+						Tag_PlaceObject3(command.Stream);
 						break;
 
 					case idSWFTag.RemoveObject:
@@ -310,7 +324,7 @@ namespace idTech4.UI.SWF
 						break;
 
 					case idSWFTag.DoAction:
-						idLog.Warning("TODO: DoAction(command.Stream);");
+						Tag_DoAction(command.Stream);
 						break;
 
 					default:
@@ -324,12 +338,80 @@ namespace idTech4.UI.SWF
 		#endregion
 
 		#region Misc.
-		private void ClearDisplayList()
+		public idSWFDisplayEntry AddDisplayEntry(int depth, int characterID)
+		{
+			int i = 0;
+
+			for(; i < _displayList.Count; i++)
+			{
+				if(_displayList[i].Depth == depth)
+				{
+					return null;
+				}
+				if(_displayList[i].Depth > depth)
+				{
+					break;
+				}
+			}
+
+			idSWFDisplayEntry display = new idSWFDisplayEntry();
+			display.Depth             = (ushort) depth;
+			display.CharacterID       = (ushort) characterID;
+
+			_displayList.Insert(i, display);
+
+			idSWFDictionaryEntry dictEntry = _sprite.Owner.FindDictionaryEntry(characterID);
+
+			if(dictEntry != null)
+			{
+				if(dictEntry is idSWFSprite)
+				{
+					display.SpriteInstance = new idSWFSpriteInstance();
+					display.SpriteInstance.Initialize((idSWFSprite) dictEntry, this, depth);
+					display.SpriteInstance.RunTo(1);
+				}
+				else if(dictEntry is idSWFEditText)
+				{
+					display.TextInstance = new idSWFTextInstance();
+					display.TextInstance.Initialize((idSWFEditText) dictEntry, _sprite.Owner);
+				}
+			}
+
+			return display;
+		}
+
+		public idSWFDisplayEntry FindDisplayEntry(int depth)
+		{
+			int length = _displayList.Count;
+			int mid = length;
+			int offset = 0;
+
+			while(mid > 0)
+			{
+				mid = length >> 1;
+
+				if(_displayList[offset + mid].Depth <= depth)
+				{
+					offset += mid;
+				}
+
+				length -= mid;
+			}
+
+			if(_displayList[offset].Depth == depth)
+			{
+				return _displayList[offset];
+			}
+
+			return null;
+		}
+
+		public void ClearDisplayList()
 		{
 			for(int i = 0; i < _displayList.Count; i++)
 			{
 				_displayList[i].SpriteInstance = null;
-				// TODO: _displayList[i].TextInstance = null;
+				_displayList[i].TextInstance   = null;
 			}
 
 			_displayList.Clear();
@@ -337,29 +419,299 @@ namespace idTech4.UI.SWF
 		}
 		#endregion
 
-		#region DisplayEntry
-		public class DisplayEntry
+		#region Tag handling
+		private void Tag_PlaceObject2(idSWFBitStream stream)
 		{
-			public ushort CharacterID;
-			public ushort Depth;
-			public ushort ClipDepth;
-			public ushort BlendMode;
-			public float Ratio;
+			// TODO: c_PlaceObject2++;
 
-			public idSWFMatrix Matrix;
+			PlaceObjectFlags flags = (PlaceObjectFlags) stream.ReadByte();
+			int depth              = stream.ReadUInt16();
+			int characterID        = -1;
 
-			// TODO: swfColorXform_t cxf;
+			if((flags & PlaceObjectFlags.HasCharacter) != 0)
+			{
+				characterID = stream.ReadUInt16();
+			}
 
-			/// <summary>
-			/// If this entry is a sprite, then this will point to the specific instance of that sprite.
-			/// </summary>
-			public idSWFSpriteInstance SpriteInstance;
+			idSWFDisplayEntry display = null;
 
-			/// <summary>
-			/// If this entry is text, then this will point to the specific instance of the text.
-			/// </summary>
-			// TODO:	class idSWFTextInstance * textInstance;
+			if((flags & PlaceObjectFlags.Move) != 0)
+			{
+				// modify an existing entry
+				display = FindDisplayEntry(depth);
+
+				if(display == null)
+				{
+					idLog.Warning("PlaceObject2: Trying to modify entry {0}, which doesn't exist", depth);
+					return;
+				}
+
+				if(characterID >= 0)
+				{
+					// We are very picky about what kind of objects can change characters
+					// Shapes can become other shapes, but sprites can never change
+					if((display.SpriteInstance != null) || (display.TextInstance != null))
+					{
+						idLog.Warning("PlaceObject2: Trying to change the character of a sprite after it's been created");
+						return;
+					}
+
+					idSWFDictionaryEntry dictEntry = _sprite.Owner.FindDictionaryEntry(characterID);
+
+					if(dictEntry != null)
+					{
+						if((dictEntry is idSWFSprite) || (dictEntry is idSWFEditText))
+						{
+							idLog.Warning("PlaceObject2: Trying to change the character of a shape to a sprite");
+							return;
+						}
+					}
+
+					display.CharacterID = (ushort) characterID;
+				}
+			}
+			else
+			{
+				if(characterID < 0)
+				{
+					idLog.Warning("PlaceObject2: Trying to create a new object without a character");
+					return;
+				}
+
+				// create a new entry
+				display = AddDisplayEntry(depth, characterID);
+
+				if(display == null)
+				{
+					idLog.Warning("PlaceObject2: Trying to create a new entry at {0}, but an item already exists there", depth);
+					return;
+				}
+			}
+
+			if((flags & PlaceObjectFlags.HasMatrix) != 0)
+			{
+				display.Matrix = stream.ReadMatrix();
+			}
+
+			if((flags & PlaceObjectFlags.HasColorTransform) != 0)
+			{
+				display.ColorXForm = stream.ReadColorXFormRGBA();
+			}
+
+			if((flags & PlaceObjectFlags.HasRatio) != 0)
+			{
+				display.Ratio = (stream.ReadUInt16() * (1.0f / 65535.0f));
+			}
+
+			if((flags & PlaceObjectFlags.HasName) != 0)
+			{
+				string name = stream.ReadString();
+
+				if(display.SpriteInstance != null)
+				{
+					display.SpriteInstance.Name = name;
+					idLog.Warning("TODO: scriptObject->Set( name, display->spriteInstance->GetScriptObject() );");
+				} 
+				else if(display.TextInstance != null)
+				{
+					idLog.Warning("TODO: scriptObject->Set( name, display->textInstance->GetScriptObject() );");
+				}
+			}
+
+			if((flags & PlaceObjectFlags.HasClipDepth) != 0)
+			{
+				display.ClipDepth = stream.ReadUInt16();
+			}
+
+			if((flags & PlaceObjectFlags.HasClipActions) != 0)
+			{
+				// FIXME: clip actions
+			}
+		}
+
+		private void Tag_PlaceObject3(idSWFBitStream stream)
+		{
+			// TODO: c_PlaceObject3++;
+
+			PlaceObjectFlags flags1  = (PlaceObjectFlags) stream.ReadByte();
+			PlaceObjectFlags2 flags2 = (PlaceObjectFlags2) stream.ReadByte();
+			ushort depth             = stream.ReadUInt16();
+
+			if(((flags2 & PlaceObjectFlags2.HasClassName) != 0) || (((flags2 & PlaceObjectFlags2.HasImage) != 0) && ((flags1 & PlaceObjectFlags.HasCharacter) != 0)))
+			{
+				stream.ReadString(); // ignored
+			}
+
+			int characterID = -1;
+
+			if((flags1 & PlaceObjectFlags.HasCharacter) != 0)
+			{
+				characterID = stream.ReadUInt16();
+			}
+
+			idSWFDisplayEntry display = null;
+
+			if((flags1 & PlaceObjectFlags.Move) != 0)
+			{
+				// modify an existing entry
+				display = FindDisplayEntry(depth);
+
+				if(display == null)
+				{
+					idLog.Warning("PlaceObject3: Trying to modify entry {0}, which doesn't exist", depth);
+					return;
+				}
+
+				if(characterID >= 0)
+				{
+					// We are very picky about what kind of objects can change characters
+					// Shapes can become other shapes, but sprites can never change
+					if((display.SpriteInstance != null) || (display.TextInstance != null))
+					{
+						idLog.Warning("PlaceObject3: Trying to change the character of a sprite after it's been created");
+						return;
+					}
+
+					idSWFDictionaryEntry dictEntry = _sprite.Owner.FindDictionaryEntry(characterID);
+
+					if(dictEntry != null)
+					{
+						if((dictEntry is idSWFSprite) || (dictEntry is idSWFEditText))
+						{
+							idLog.Warning("PlaceObject3: Trying to change the character of a shape to a sprite");
+							return;
+						}
+					}
+
+					display.CharacterID = (ushort) characterID;
+				}
+			} 
+			else 
+			{
+				if(characterID < 0)
+				{
+					idLog.Warning("PlaceObject3: Trying to create a new object without a character");
+					return;
+				}
+
+
+				// create a new entry
+				display = AddDisplayEntry(depth, characterID);
+
+				if(display == null)
+				{
+					idLog.Warning("PlaceObject3: Trying to create a new entry at {0}, but an item already exists there", depth);
+					return;
+				}
+			}
+
+			if((flags1 & PlaceObjectFlags.HasMatrix) != 0)
+			{
+				display.Matrix = stream.ReadMatrix();
+			}
+
+			if((flags1 & PlaceObjectFlags.HasColorTransform) != 0)
+			{
+				display.ColorXForm = stream.ReadColorXFormRGBA();
+			}
+
+			if((flags1 & PlaceObjectFlags.HasRatio) != 0)
+			{
+				display.Ratio = (stream.ReadUInt16() * (1.0f / 65535.0f));
+			}
+
+			if((flags1 & PlaceObjectFlags.HasName) != 0)
+			{
+				string name = stream.ReadString();
+
+				if(display.SpriteInstance != null)
+				{
+					display.SpriteInstance.Name = name;
+					idLog.Warning("TODO: scriptObject->Set( name, display->spriteInstance->GetScriptObject() );");
+				}
+				// TODO:
+				else if(display.TextInstance != null) 
+				{
+					idLog.Warning("TODO: scriptObject->Set( name, display->textInstance->GetScriptObject() );");
+				}
+			}
+
+			if((flags1 & PlaceObjectFlags.HasClipDepth) != 0)
+			{
+				display.ClipDepth = stream.ReadUInt16();
+			}
+
+			if((flags2 & PlaceObjectFlags2.HasFilterList) != 0)
+			{
+				// we don't support filters and because the filter list is variable length we
+				// can't support anything after the filter list either (blend modes and clip actions)
+				idLog.Warning("PlaceObject3: has filters");
+				return;
+			}
+
+			if((flags2 & PlaceObjectFlags2.HasBlendMode) != 0)
+			{
+				display.BlendMode = stream.ReadByte();
+			}
+
+			if((flags1 & PlaceObjectFlags.HasClipActions) != 0)
+			{
+				// FIXME:
+			}
+		}
+
+		private void Tag_DoAction(idSWFBitStream bitStream)
+		{
+			_actions.Add(bitStream.ReadData(bitStream.Length));
 		}
 		#endregion
+
+		#region PlaceObjectFlags
+		private enum PlaceObjectFlags : ulong
+		{
+			HasClipActions    = 1ul << 7,
+			HasClipDepth      = 1ul << 6,
+			HasName           = 1ul << 5,
+			HasRatio          = 1ul << 4,
+			HasColorTransform = 1ul << 3,
+			HasMatrix         = 1ul << 2,
+			HasCharacter      = 1ul << 1,
+			Move              = 1ul << 0
+		}
+		
+		private enum PlaceObjectFlags2 : ulong
+		{
+			Pad0          = 1ul << 7,
+			Pad1          = 1ul << 6,
+			Pad2          = 1ul << 5,
+			HasImage      = 1ul << 4,
+			HasClassName  = 1ul << 3,
+			CacheAsBitmap = 1ul << 2,
+			HasBlendMode  = 1ul << 1,
+			HasFilterList = 1ul << 0
+		}
+		#endregion
+	}
+
+	public class idSWFDisplayEntry
+	{
+		public ushort CharacterID;
+		public ushort Depth;
+		public ushort ClipDepth;
+		public ushort BlendMode;
+		public float Ratio;
+
+		public idSWFMatrix Matrix;
+		public idSWFColorXForm ColorXForm;
+
+		/// <summary>
+		/// If this entry is a sprite, then this will point to the specific instance of that sprite.
+		/// </summary>
+		public idSWFSpriteInstance SpriteInstance;
+
+		/// <summary>
+		/// If this entry is text, then this will point to the specific instance of the text.
+		/// </summary>
+		public idSWFTextInstance TextInstance;
 	}
 }

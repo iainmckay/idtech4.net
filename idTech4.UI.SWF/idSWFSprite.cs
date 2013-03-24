@@ -131,7 +131,7 @@ namespace idTech4.UI.SWF
 				int length          = input.ReadInt32();
 				byte[] data         = input.ReadBytes(length);
 
-				_commands[i].Stream = new MemoryStream(data);
+				_commands[i].Stream = new idSWFBitStream(data);
 			}
 
 			_doInitActions = new MemoryStream[input.ReadInt32()];
@@ -158,6 +158,6 @@ namespace idTech4.UI.SWF
 	public class idSWFSpriteCommand
 	{
 		public idSWFTag Tag;
-		public MemoryStream Stream;
+		public idSWFBitStream Stream;
 	}
 }

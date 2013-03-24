@@ -51,7 +51,7 @@ namespace idTech4.UI.SWF
 
 		private Vector2	_scaleToVirtual;
 
-		private int	_lastRenderTime;
+		private long	_lastRenderTime;
 
 		private bool _isActive;
 		private bool _inhibitControl;
@@ -303,6 +303,19 @@ namespace idTech4.UI.SWF
 		}
 		#endregion
 
+		#region Misc.
+		public idSWFDictionaryEntry FindDictionaryEntry(int characterID)
+		{
+			if(_dictionary.Length < (characterID + 1))
+			{
+				idLog.Warning("could not find character {0}", characterID);
+				return null;
+			}
+
+			return _dictionary[characterID];
+		}
+		#endregion
+
 		#region State
 		#region Properties
 		public bool IsActive
@@ -311,6 +324,31 @@ namespace idTech4.UI.SWF
 			{
 				return _isActive;
 			}
+		}
+		#endregion
+
+		#region Methods
+		/// <summary>
+		/// 
+		/// </summary>
+		/// <remarks>
+		/// When a SWF is deactivated, it rewinds the timeline back to the start.
+		/// </remarks>
+		/// <param name="show"></param>
+		public void Activate(bool show)
+		{
+			if((_isActive == false) && (show == true))
+			{
+				_inhibitControl = false;
+				_lastRenderTime = idEngine.Instance.ElapsedTime;
+
+				_mainSpriteInstance.ClearDisplayList();
+				_mainSpriteInstance.Play();
+				_mainSpriteInstance.Run();
+				_mainSpriteInstance.RunActions();
+			}
+			
+			_isActive = show;
 		}
 		#endregion
 		#endregion

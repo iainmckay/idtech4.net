@@ -918,7 +918,7 @@ namespace idTech4
 				}
 
 				idLog.WriteLine("--- Common Initialization Complete ---");
-				idLog.WriteLine("QA Timing IIS: {0:000000}ms", _gameTimer.ElapsedMilliseconds);
+				idLog.WriteLine("QA Timing IIS: {0}ms", _gameTimer.ElapsedMilliseconds);
 
 				/*if(win32.win_notaskkeys.GetInteger())
 				{
@@ -1073,7 +1073,7 @@ namespace idTech4
 
 			if(dllName == null)
 			{
-				dllName = fileSystem.GetAbsolutePath(cvarSystem.GetString("fs_basedir"), idLicensee.BaseGameDirectory, "idTech4.Game.dll");
+				dllName = fileSystem.GetAbsolutePath(null, idLicensee.BaseGameDirectory, "idTech4.Game.dll");
 			}
 
 			// register some extra assembly paths

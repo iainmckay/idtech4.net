@@ -270,4 +270,19 @@ namespace idTech4.UI.SWF
 
 		public static idSWFMatrix Default = new idSWFMatrix(1, 1, 0, 0, 0, 0);
 	}
+
+	public struct idSWFColorXForm
+	{
+		public Vector4 Mul;
+		public Vector4 Add;
+
+		public idSWFColorXForm Multiply(idSWFColorXForm a)
+		{
+			idSWFColorXForm result = new idSWFColorXForm();
+			result.Mul = this.Mul * a.Mul;
+			result.Add = (this.Add * a.Mul) + a.Add;
+
+			return result;
+		}		
+	}
 }

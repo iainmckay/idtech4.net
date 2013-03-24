@@ -31,6 +31,32 @@ namespace idTech4.UI.SWF
 {
 	public class idSWFEditText : idSWFDictionaryEntry
 	{
+		#region Properties
+		public idSWFColorRGBA Color
+		{
+			get
+			{
+				return _color;
+			}
+		}
+
+		public string InitialText
+		{
+			get
+			{
+				return _initialText;
+			}
+		}
+
+		public string Variable
+		{
+			get
+			{
+				return _variable;
+			}
+		}
+		#endregion
+
 		#region Members
 		private idSWFRect _bounds;
 		private uint _flags;

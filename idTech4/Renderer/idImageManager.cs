@@ -256,7 +256,7 @@ namespace idTech4.Renderer
 			int loadCount = LoadLevelImages(true);
 			long end = idEngine.Instance.ElapsedTime;
 
-			idLog.WriteLine("{0:00000} images loaded in {0:00} seconds", loadCount, (end - start) * 0.001);
+			idLog.WriteLine("{0} images loaded in {0} seconds", loadCount, (end - start) * 0.001);
 			idLog.WriteLine("----------------------------------------");
 		}
 

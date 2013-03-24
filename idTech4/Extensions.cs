@@ -37,5 +37,59 @@ namespace idTech4
 			return (s.GetService(typeof(T)) as T);
 		}
 		#endregion
+
+		#region Vector2
+		public static void Set(this Vector2 v, int component, float value)
+		{
+			if(component == 0)
+			{
+				v.X = value;
+			}
+			else if(component == 1)
+			{
+				v.Y = value;
+			}
+		}
+		#endregion
+
+		#region Vector3
+		public static void Set(this Vector3 v, int component, float value)
+		{
+			if(component == 0)
+			{
+				v.X = value;
+			}
+			else if(component == 1)
+			{
+				v.Y = value;
+			}
+			else if(component == 2)
+			{
+				v.Z = value;
+			}
+		}
+		#endregion
+
+		#region Vector4
+		public static void Set(this Vector4 v, int component, float value)
+		{
+			if(component == 0)
+			{
+				v.X = value;
+			}
+			else if(component == 1)
+			{
+				v.Y = value;
+			}
+			else if(component == 2)
+			{
+				v.Z = value;
+			}
+			else if(component == 3)
+			{
+				v.W = value;
+			}
+		}
+		#endregion
 	}
 }

@@ -221,13 +221,13 @@ namespace idTech4.Game
 			{
 				if(inGame == false)
 				{
-					idLog.WriteLine("TODO: _shellHandler.IsInGame = false;");
+					_shellHandler.IsInGame = false;
 
 					Shell_Init("shell" /* TODO: common->MenuSW()*/);
 				} 
 				else 
 				{
-					idLog.WriteLine("TODO: _shellHandler.IsInGame = true;");
+					_shellHandler.IsInGame = true;
 
 					// TODO: multiplayer
 					/*if ( common->IsMultiplayer() ) {
@@ -251,12 +251,10 @@ namespace idTech4.Game
 
 		public void Shell_Show(bool show)
 		{
-			idLog.Warning("TODO: Shell_Show");
-
-			/*if(shellHandler != NULL)
+			if(_shellHandler != null)
 			{
-				shellHandler->ActivateMenu(show);
-			}*/
+				_shellHandler.ActivateMenu(show);
+			}
 		}
 
 		public void Shell_SyncWithSession()

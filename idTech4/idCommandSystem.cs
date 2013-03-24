@@ -201,7 +201,7 @@ namespace idTech4
 		#region Scanning
 		private void Scan(Assembly assembly)
 		{
-			idLog.DeveloperWriteLine("loaded '{0}', scanning for commands...", assembly.FullName);
+			idLog.DeveloperWriteLine("loaded '{0}', scanning for commands...", assembly.ManifestModule.Name);
 
 			foreach(Type type in assembly.GetTypes())
 			{
