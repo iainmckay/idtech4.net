@@ -237,11 +237,13 @@ namespace idTech4
 			#region SWF
 			cvarSystem.Register("swf_debug",						"0",		"debug swf scripts.  1 shows traces/errors.  2 also shows warnings.  3 also shows disassembly.  4 shows parameters in the disassembly.", CVarFlags.Integer | CVarFlags.Archive);
 			cvarSystem.Register("swf_debugInvoke",					"0",		"debug swf functions being called from game.",	CVarFlags.Integer);
+			cvarSystem.Register("swf_forceAlpha",					"0", 0.0f, 1.0f, "force an alpha value on all elements, useful to show invisible animating elements", CVarFlags.Float);
+			cvarSystem.Register("swf_stopat",						"0",		"stop at a specific frame",						CVarFlags.Float);
 			cvarSystem.Register("swf_subtitleEarlyTrans",			"3500",		"early time out to switch the line",			CVarFlags.Integer);
 			cvarSystem.Register("swf_subtitleExtraTime",			"3500",		"time after subtitles vo is complete",			CVarFlags.Integer);
 			cvarSystem.Register("swf_subtitleLengthGuess",			"10000",	"early time out to switch the line",			CVarFlags.Integer);
-			cvarSystem.Register("swf_textMaxInputLength",			"104",		"max number of characters that can go into the input line", CVarFlags.Integer);
-						
+		
+			cvarSystem.Register("swf_textMaxInputLength",			"104",		"max number of characters that can go into the input line", CVarFlags.Integer);			
 			cvarSystem.Register("swf_textParagraphInc",				"1.3",		"scroll speed for text",						CVarFlags.Float);
 			cvarSystem.Register("swf_textParagraphSpeed",			"15",		"scroll speed for text",						CVarFlags.Integer);			
 			cvarSystem.Register("swf_textRndLetterSpeed",			"8",		"scroll speed for text",						CVarFlags.Integer);
@@ -249,6 +251,9 @@ namespace idTech4
 			cvarSystem.Register("swf_textScrollSpeed",				"80",		"scroll speed for text",						CVarFlags.Integer);
 			cvarSystem.Register("swf_textStrokeSize",				"1.65f", 0.0f, 2.0f, "size of font glyph stroke",			CVarFlags.Float);
 			cvarSystem.Register("swf_textStrokeSizeGlyphSpacer",	"1.5f",		"additional space for spacing glyphs using stroke", CVarFlags.Float);
+
+			cvarSystem.Register("swf_timescale",					"1",		"timescale for swf files",						CVarFlags.Float);
+			cvarSystem.Register("swf_titleSafe",					"0.005", 0.0f, 0.075f, "space between UI elements and screen edge", CVarFlags.Float);
 			#endregion
 
 			#region Windows
@@ -633,14 +638,7 @@ idCVar s_showVoices( "s_showVoices", "0", CVAR_BOOL, "show active voices" );
 idCVar s_volume_dB( "s_volume_dB", "0", CVAR_ARCHIVE | CVAR_FLOAT, "volume in dB" );
 
 			idCVar s_subFraction( "s_subFraction", "0.5", CVAR_ARCHIVE | CVAR_FLOAT, "Amount of each sound to send to the LFE channel" );
-			idCVar swf_loadBinary( "swf_loadBinary", "1", CVAR_INTEGER, "used to set whether to load binary swf from generated" );
-
-			idCVar swf_timescale( "swf_timescale", "1", CVAR_FLOAT, "timescale for swf files" );
-idCVar swf_stopat( "swf_stopat", "0", CVAR_FLOAT, "stop at a specific frame" );
-
-idCVar swf_titleSafe( "swf_titleSafe", "0.005", CVAR_FLOAT, "space between UI elements and screen edge", 0.0f, 0.075f );
-
-idCVar swf_forceAlpha( "swf_forceAlpha", "0", CVAR_FLOAT, "force an alpha value on all elements, useful to show invisible animating elements", 0.0f, 1.0f );
+		
 
 			
 

@@ -29,6 +29,7 @@ using System.Collections.Generic;
 using System.IO;
 
 using idTech4.Renderer;
+using idTech4.UI.SWF.Scripting;
 
 namespace idTech4.UI.SWF
 {
@@ -131,6 +132,14 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public idSWFScriptObject ScriptObject
+		{
+			get
+			{
+				return _scriptObject;
+			}
+		}
+
 		public StereoDepthType StereoDepth
 		{
 			get
@@ -157,6 +166,12 @@ namespace idTech4.UI.SWF
 
 		// sprite instances can be nested
 		private idSWFSpriteInstance _parent;
+
+		private idSWFScriptFunction_Script _actionScript;
+		private idSWFScriptObject _scriptObject;
+		private static idSWFScriptObject_SpriteInstancePrototype _scriptObjectPrototype = new idSWFScriptObject_SpriteInstancePrototype();
+
+		private idSWFScriptVariable _onEnterFrame;
 
 		// depth of this sprite instance in the parent's display list
 		private int _depth;
@@ -218,28 +233,21 @@ namespace idTech4.UI.SWF
 			_parent = parent;
 			_depth  = depth;
 
-			_frameCount = sprite.FrameCount;
+			_frameCount = sprite.FrameCount;			
+			_firstRun   = true;
 
-			idLog.Warning("TODO: idSWFSpriteInstance.Initialize");
+			List<idSWFScriptObject> scope = new List<idSWFScriptObject>();
+			scope.Add(_sprite.Owner.Globals);
+			scope.Add(_scriptObject);
 
-			/*scriptObject = idSWFScriptObject::Alloc();
-			scriptObject->SetPrototype( &spriteInstanceScriptObjectPrototype );
-			scriptObject->SetSprite( this );*/
-
-			_firstRun = true;
-
-			/*actionScript = idSWFScriptFunction_Script::Alloc();
-
-			idList<idSWFScriptObject *, TAG_SWF> scope;
-			scope.Append( sprite->swf->globals );
-			scope.Append( scriptObject );
-			actionScript->SetScope( scope );
-			actionScript->SetDefaultSprite( this );
-
-			for	(int i = 0; i < sprite->doInitActions.Num(); i++) {
-				actionScript->SetData( sprite->doInitActions[i].Ptr(), sprite->doInitActions[i].Length() );
-				actionScript->Call( scriptObject, idSWFParmList() );
-			}*/
+			_scriptObject = new idSWFScriptObject(this, _scriptObjectPrototype);
+			_actionScript = new idSWFScriptFunction_Script(scope, this);
+			
+			for(int i = 0; i < _sprite.DoInitActions.Length; i++)
+			{
+				_actionScript.Data = _sprite.DoInitActions[i];
+				_actionScript.Invoke(_scriptObject, new idSWFParameterList());
+			}
 
 			Play();
 		}
@@ -299,38 +307,38 @@ namespace idTech4.UI.SWF
 		{
 			if(_isVisible == false)
 			{
-				idLog.Warning("TODO: _actions.Clear();");
+				_actions.Clear();
 				return false;
 			}
 
-			idLog.Warning("TODO: RunActions");
+			if((_firstRun == true) && (_scriptObject.HasProperty("onLoad") == true))
+			{
+				_firstRun = false;
 
-			/*if ( firstRun && scriptObject->HasProperty( "onLoad" ) ) {
-				firstRun = false;
-				idSWFScriptVar onLoad = scriptObject->Get( "onLoad" );
-				onLoad.GetFunction()->Call( scriptObject, idSWFParmList() );
+				idSWFScriptVariable onLoad = _scriptObject.Get("onLoad");
+				onLoad.Function.Invoke(_scriptObject, new idSWFParameterList());
 			}
 
-			if ( onEnterFrame.IsFunction() ) {
-				onEnterFrame.GetFunction()->Call( scriptObject, idSWFParmList() );
+			if((_onEnterFrame != null) && (_onEnterFrame.IsFunction == true))
+			{
+				_onEnterFrame.Function.Invoke(_scriptObject, new idSWFParameterList());
 			}
 
-			for ( int i = 0; i < actions.Num(); i++ ) {
-				actionScript->SetData( actions[i].data, actions[i].dataLength );
-				actionScript->Call( scriptObject, idSWFParmList() );
+			for(int i = 0; i < _actions.Count; i++)
+			{
+				_actionScript.Data = _actions[i];
+				_actionScript.Invoke(_scriptObject, new idSWFParameterList());
 			}
-			actions.SetNum( 0 );
 
-			for ( int i = 0; i < displayList.Num(); i++ ) {
-				if ( displayList[i].spriteInstance != NULL ) {
-					Prefetch( displayList[i].spriteInstance, 0 );
+			_actions.Clear();
+
+			for(int i = 0; i < _displayList.Count; i++)
+			{
+				if(_displayList[i].SpriteInstance != null)
+				{
+					_displayList[i].SpriteInstance.RunActions();
 				}
 			}
-			for ( int i = 0; i < displayList.Num(); i++ ) {
-				if ( displayList[i].spriteInstance != NULL ) {
-					displayList[i].spriteInstance->RunActions();
-				}
-			}*/
 
 			return true;
 		}
@@ -387,8 +395,8 @@ namespace idTech4.UI.SWF
 						Tag_PlaceObject3(command.Stream);
 						break;
 
-					case idSWFTag.RemoveObject:
-						idLog.Warning("TODO: RemoveObject(command.Stream);");
+					case idSWFTag.RemoveObject2:
+						Tag_RemoveObject2(command.Stream);
 						break;
 
 					case idSWFTag.StartSound:
@@ -476,6 +484,19 @@ namespace idTech4.UI.SWF
 			}
 
 			return null;
+		}
+
+		public void RemoveDisplayEntry(int depth) 
+		{
+			idSWFDisplayEntry entry = FindDisplayEntry(depth);
+
+			if(entry != null)
+			{
+				entry.SpriteInstance = null;
+				entry.TextInstance   = null;
+
+				_displayList.RemoveAt(_displayList.IndexOf(entry));
+			}
 		}
 
 		public void ClearDisplayList()
@@ -588,11 +609,12 @@ namespace idTech4.UI.SWF
 				if(display.SpriteInstance != null)
 				{
 					display.SpriteInstance.Name = name;
-					idLog.Warning("TODO: scriptObject->Set( name, display->spriteInstance->GetScriptObject() );");
+
+					_scriptObject.Set(name, display.SpriteInstance.ScriptObject);
 				} 
 				else if(display.TextInstance != null)
 				{
-					idLog.Warning("TODO: scriptObject->Set( name, display->textInstance->GetScriptObject() );");
+					_scriptObject.Set(name, display.TextInstance.ScriptObject);
 				}
 			}
 
@@ -741,6 +763,11 @@ namespace idTech4.UI.SWF
 		private void Tag_DoAction(idSWFBitStream bitStream)
 		{
 			_actions.Add(bitStream.ReadData(bitStream.Length));
+		}
+
+		private void Tag_RemoveObject2(idSWFBitStream bitStream)
+		{
+			RemoveDisplayEntry(bitStream.ReadUInt16());
 		}
 		#endregion
 

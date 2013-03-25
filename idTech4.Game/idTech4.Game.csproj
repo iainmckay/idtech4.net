@@ -96,6 +96,7 @@
     <Compile Include="idGameEdit.cs" />
     <Compile Include="Menus\idMenuHandler.cs" />
     <Compile Include="Menus\idMenuHandler_Shell.cs" />
+    <Compile Include="Menus\idMenuScreen.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

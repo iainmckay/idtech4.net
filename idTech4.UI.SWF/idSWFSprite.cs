@@ -42,6 +42,14 @@ namespace idTech4.UI.SWF
 	public class idSWFSprite : idSWFDictionaryEntry
 	{
 		#region Properties
+		public byte[][] DoInitActions
+		{
+			get
+			{
+				return _doInitActions;
+			}
+		}
+
 		public ushort FrameCount
 		{
 			get
@@ -80,7 +88,7 @@ namespace idTech4.UI.SWF
 		private idSWFSpriteCommand[] _commands;
 
 		//// [ES-BrianBugh 1/16/10] - There can be multiple DoInitAction tags, and all need to be executed.
-		private MemoryStream[] _doInitActions;
+		private byte[][] _doInitActions;
 		#endregion
 
 		#region Constructor
@@ -134,14 +142,14 @@ namespace idTech4.UI.SWF
 				_commands[i].Stream = new idSWFBitStream(data);
 			}
 
-			_doInitActions = new MemoryStream[input.ReadInt32()];
+			_doInitActions = new byte[input.ReadInt32()][];
 
 			for(int i = 0; i < _doInitActions.Length; i++)
 			{
 				int length        = input.ReadInt32();
 				byte[] data       = input.ReadBytes(length);
 
-				_doInitActions[i] = new MemoryStream(data);
+				_doInitActions[i] = data;
 			}
 		}
 		#endregion

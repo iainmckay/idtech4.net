@@ -211,7 +211,7 @@ namespace idTech4.Game.Menus
 //
 //	}
 //#endif
-			if((_gui != null) || (_gui.IsActive == false))
+			if((_gui == null) || (_gui.IsActive == false))
 			{
 				return;
 			}
@@ -222,26 +222,35 @@ namespace idTech4.Game.Menus
 			} */
 
 			if(_nextState != _state)
-			{
-				idLog.Warning("TODO: state transition");
-	
-				/*if ( introGui != NULL && introGui->IsActive() ) {
-					gui->StopSound();
+			{	
+				if((_introGui != null) && (_introGui.IsActive == true))
+				{
+					idLog.Warning("TODO: introgui");
+				
+					/*gui->StopSound();
 					showingIntro = false;
 					introGui->Activate( false );
-					PlaySound( GUI_SOUND_MUSIC );
+					PlaySound( GUI_SOUND_MUSIC );*/
 				}
 
-				if ( nextState == SHELL_STATE_PRESS_START ) {
-					HidePacifier();
-					nextScreen = SHELL_AREA_START;
-					transition = MENU_TRANSITION_SIMPLE;
-					state = nextState;
-					if ( menuBar != NULL && gui != NULL ) {			
+				if(_nextState == ShellState.PressStart)
+				{
+					// TODO: HidePacifier();
+
+					_nextScreen = ShellArea.Start;
+					_transition = MainMenuTransition.Simple;
+					_state      = _nextState;
+
+					// TODO: menuBar
+					/*if ( menuBar != NULL && gui != NULL ) {			
 						menuBar->ClearSprite();
-					}
-				} else if ( nextState == SHELL_STATE_IDLE ) {
-					HidePacifier();
+					}*/
+				} 
+				else if(_nextState == ShellState.Idle)
+				{
+					idLog.Warning("TODO: nextState idle");
+
+					/*HidePacifier();
 					if ( nextScreen == SHELL_AREA_START || nextScreen == SHELL_AREA_PARTY_LOBBY || nextScreen == SHELL_AREA_GAME_LOBBY || nextScreen == SHELL_AREA_INVALID )  {
 						nextScreen = SHELL_AREA_ROOT;
 					}
@@ -252,17 +261,25 @@ namespace idTech4.Game.Menus
 						SetupPCOptions();
 					}
 					transition = MENU_TRANSITION_SIMPLE;
-					state = nextState;
-				} else if ( nextState == SHELL_STATE_PARTY_LOBBY ) {
-					HidePacifier();
+					state = nextState;*/
+				} 
+				else if(_nextState == ShellState.PartyLobby)
+				{
+					idLog.Warning("TODO: nextState party lobby");
+
+					/*HidePacifier();
 					nextScreen = SHELL_AREA_PARTY_LOBBY;
 					transition = MENU_TRANSITION_SIMPLE;
-					state = nextState;
-				} else if ( nextState == SHELL_STATE_GAME_LOBBY ) {
-					HidePacifier();
+					state = nextState;*/
+				} 
+				else if(_nextState == ShellState.GameLobby)
+				{
+					idLog.Warning("TODO: nextState game lobby");
+					
+					/*HidePacifier();
 					if ( state != SHELL_STATE_IN_GAME ) {
 						timeRemaining = WAIT_START_TIME_LONG;
-						idMatchParameters matchParameters = session->GetActivePlatformLobbyBase().GetMatchParms();
+						idMatchParameters matchParameters = session->GetActivePlatformLobbyBase().GetMatchParms();*/
 						/*if ( MatchTypeIsPrivate( matchParameters.matchFlags ) && ActiveScreen() == SHELL_AREA_PARTY_LOBBY ) {
 							timeRemaining = 0;
 							session->StartMatch();
@@ -273,9 +290,13 @@ namespace idTech4.Game.Menus
 						//}
 
 						state = nextState;
-					}
-				} else if ( nextState == SHELL_STATE_PAUSED ) {
-					HidePacifier();
+					}*/
+				} 
+				else if(_nextState == ShellState.Paused)
+				{
+					idLog.Warning("TODO: nextState paused");
+
+					/*HidePacifier();
 					transition = MENU_TRANSITION_SIMPLE;
 
 					if ( gameComplete ) {
@@ -284,59 +305,68 @@ namespace idTech4.Game.Menus
 						nextScreen = SHELL_AREA_ROOT;
 					}
 
-					state = nextState;
-				} else if ( nextState == SHELL_STATE_CONNECTING ) {
-					ShowPacifier( "#str_dlg_connecting" );
-					state = nextState;
-				} else if ( nextState == SHELL_STATE_SEARCHING ) {
-					ShowPacifier( "#str_online_mpstatus_searching" );
-					state = nextState;
-				}*/
+					state = nextState;*/
+				} 
+				else if(_nextState == ShellState.Connecting)
+				{
+					idLog.Warning("TODO: nextState connecting");
+
+					/*ShowPacifier( "#str_dlg_connecting" );
+					state = nextState;*/
+				} 
+				else if(_nextState == ShellState.Searching)
+				{
+					idLog.Warning("TODO: nextState searching");
+
+					/*ShowPacifier( "#str_online_mpstatus_searching" );
+					state = nextState;*/
+				}
 			}
 
-			// TODO: active screen
-			/*if ( activeScreen != nextScreen ) {
+			if(_activeScreen != _nextScreen)
+			{
+				// TODO: ClearWidgetActionRepeater();
+				UpdateBackgroundState();
 
-				ClearWidgetActionRepeater();
-				UpdateBGState();
-
-				if ( nextScreen == SHELL_AREA_INVALID ) {
-
-					if ( activeScreen > SHELL_AREA_INVALID && activeScreen < SHELL_NUM_AREAS && menuScreens[ activeScreen ] != NULL ) {
+				if(_nextScreen == ShellArea.Invalid)
+				{
+					// TODO: 
+					/*if ( activeScreen > SHELL_AREA_INVALID && activeScreen < SHELL_NUM_AREAS && menuScreens[ activeScreen ] != NULL ) {
 						menuScreens[ activeScreen ]->HideScreen( static_cast<mainMenuTransition_t>(transition) );
-					}
-
-					if ( cmdBar != NULL ) {
+					}*/
+					
+					/*if ( cmdBar != NULL ) {
 						cmdBar->ClearAllButtons();
 						cmdBar->Update();
-					}
+					}*/
 
-					idSWFSpriteInstance * bg = gui->GetRootObject().GetNestedSprite( "pause_bg" );
-					idSWFSpriteInstance * edging = gui->GetRootObject().GetNestedSprite( "_fullscreen" );
+					/*idSWFSpriteInstance * bg = gui->GetRootObject().GetNestedSprite( "pause_bg" );
+					idSWFSpriteInstance * edging = gui->GetRootObject().GetNestedSprite( "_fullscreen" );*/
 			
-					if ( bg != NULL )  {
+					/*if ( bg != NULL )  {
 						bg->PlayFrame( "rollOff" );
 					}
 
 					if ( edging != NULL ) {
 						edging->PlayFrame( "rollOff" );
-					}
+					}*/
+				} 
+				else
+				{
 
-				} else {
-
-					if ( activeScreen > SHELL_AREA_INVALID && activeScreen < SHELL_NUM_AREAS && menuScreens[ activeScreen ] != NULL ) {
+					/*if ( activeScreen > SHELL_AREA_INVALID && activeScreen < SHELL_NUM_AREAS && menuScreens[ activeScreen ] != NULL ) {
 						menuScreens[ activeScreen ]->HideScreen( static_cast<mainMenuTransition_t>(transition) );
 					}
 
 					if ( nextScreen > SHELL_AREA_INVALID && nextScreen < SHELL_NUM_AREAS && menuScreens[ nextScreen ] != NULL ) {
 						menuScreens[ nextScreen ]->UpdateCmds();
 						menuScreens[ nextScreen ]->ShowScreen( static_cast<mainMenuTransition_t>(transition) );			
-					}
+					}*/
 				}
 
-				transition = MENU_TRANSITION_INVALID;
-				activeScreen = nextScreen;
-			}*/
+				_transition   = MainMenuTransition.Invalid;
+				_activeScreen = _nextScreen;
+			}
 
 			// TODO cmdBar
 
@@ -350,20 +380,30 @@ namespace idTech4.Game.Menus
 
 			base.Update();
 
-			// TODO: activeScreen
-			/*if ( activeScreen == nextScreen && activeScreen == SHELL_AREA_LEADERBOARDS ) {
-				idMenuScreen_Shell_Leaderboards * screen = dynamic_cast< idMenuScreen_Shell_Leaderboards * >( menuScreens[ SHELL_AREA_LEADERBOARDS ] );
+			if((_activeScreen == _nextScreen) && (_activeScreen == ShellArea.LeaderBoards))
+			{
+				idLog.Warning("TODO: active screen leaderboards");
+				
+				/*idMenuScreen_Shell_Leaderboards * screen = dynamic_cast< idMenuScreen_Shell_Leaderboards * >( menuScreens[ SHELL_AREA_LEADERBOARDS ] );
 				if ( screen != NULL ) {
 					screen->PumpLBCache();
 					screen->RefreshLeaderboard();
-				}
-			} else if ( activeScreen == nextScreen && activeScreen == SHELL_AREA_PARTY_LOBBY ) {
-				idMenuScreen_Shell_PartyLobby * screen = dynamic_cast< idMenuScreen_Shell_PartyLobby * >( menuScreens[ SHELL_AREA_PARTY_LOBBY ] );
+				}*/
+			}
+			else if((_activeScreen == _nextScreen) && (_activeScreen == ShellArea.PartyLobby))
+			{
+				idLog.Warning("TODO: active screen party lobby");
+				
+				/*idMenuScreen_Shell_PartyLobby * screen = dynamic_cast< idMenuScreen_Shell_PartyLobby * >( menuScreens[ SHELL_AREA_PARTY_LOBBY ] );
 				if ( screen != NULL ) {
 					screen->UpdateLobby();
-				}
-			} else if ( activeScreen == nextScreen && activeScreen == SHELL_AREA_GAME_LOBBY ) {
-				if ( session->GetActingGameStateLobbyBase().IsHost() ) {
+				}*/
+			}
+			else if((_activeScreen == _nextScreen) && (_activeScreen == ShellArea.GameLobby))
+			{
+				idLog.Warning("TODO: active screen game lobby");
+
+				/*if ( session->GetActingGameStateLobbyBase().IsHost() ) {
 
 					if ( timeRemaining <= 0 && state != SHELL_STATE_IN_GAME ) {
 						session->StartMatch();
@@ -386,13 +426,13 @@ namespace idTech4.Game.Menus
 				idMenuScreen_Shell_GameLobby * screen = dynamic_cast< idMenuScreen_Shell_GameLobby * >( menuScreens[ SHELL_AREA_GAME_LOBBY ] );
 				if ( screen != NULL ) {
 					screen->UpdateLobby();
-				}
-			}*/
+				}*/
+			}
 
-			// TODO: introGui
-			/*if ( introGui != NULL && introGui->IsActive() ) {
-				introGui->Render( renderSystem, Sys_Milliseconds() );
-			}*/
+			if((_introGui != null) && (_introGui.IsActive == true))
+			{
+				idLog.Warning("TODO: introGui->Render( renderSystem, Sys_Milliseconds() );");
+			}
 
 			if(_continueWaitForEnumerate == true)
 			{
@@ -406,6 +446,54 @@ namespace idTech4.Game.Menus
 						screen->ContinueGame();
 					}
 				}*/
+			}
+		}
+
+		private void UpdateBackgroundState()
+		{
+			if(_smallFrameShowing == true)
+			{
+				if((_nextScreen != ShellArea.Playstation) && (_nextScreen != ShellArea.Settings) && (_nextScreen != ShellArea.Campaign) && (_nextScreen != ShellArea.Dev))
+				{
+					if((_nextScreen != ShellArea.Resolution) && (_nextScreen != ShellArea.GamePad) && (_nextScreen != ShellArea.Difficulty) && (_nextScreen != ShellArea.SystemOptions) && (_nextScreen != ShellArea.GameOptions) && (_nextScreen != ShellArea.NewGame) && (_nextScreen != ShellArea.Stereoscopics)
+						&& (_nextScreen != ShellArea.Controls))
+					{
+						idLog.Warning("TODO: ShowSmallFrame(false);");
+					}
+				}
+			} 
+			else 
+			{
+				if((_nextScreen == ShellArea.Resolution) || (_nextScreen == ShellArea.GamePad) || (_nextScreen == ShellArea.Playstation) || (_nextScreen == ShellArea.Settings) || (_nextScreen == ShellArea.Campaign) || (_nextScreen == ShellArea.Controls) || (_nextScreen == ShellArea.Dev) || (_nextScreen == ShellArea.Difficulty))
+				{
+					idLog.Warning("TODO: ShowSmallFrame(true);");
+				}		
+			}
+
+			if(_largeFrameShowing == true)
+			{
+				if((_nextScreen != ShellArea.PartyLobby) && (_nextScreen != ShellArea.GameLobby) && (_nextScreen != ShellArea.ControllerLayout) && (_nextScreen != ShellArea.Keyboard) && (_nextScreen != ShellArea.LeaderBoards) && (_nextScreen != ShellArea.MatchSettings) && (_nextScreen != ShellArea.ModeSelect) &&
+					(_nextScreen != ShellArea.Browser) && (_nextScreen != ShellArea.Load) && (_nextScreen != ShellArea.Save) && (_nextScreen != ShellArea.Credits))
+				{
+					idLog.Warning("TODO: ShowMPFrame(false);");
+				}
+			} 
+			else 
+			{
+				if((_nextScreen == ShellArea.PartyLobby) || (_nextScreen == ShellArea.ControllerLayout) || (_nextScreen == ShellArea.GameLobby) || (_nextScreen == ShellArea.Keyboard) || (_nextScreen == ShellArea.LeaderBoards) || (_nextScreen == ShellArea.MatchSettings) || (_nextScreen == ShellArea.ModeSelect) ||
+					(_nextScreen == ShellArea.Browser) || (_nextScreen == ShellArea.Load) || (_nextScreen == ShellArea.Save) || (_nextScreen == ShellArea.Credits))
+				{
+					idLog.Warning("TODO: ShowMPFrame(true);");
+				}
+			}
+
+			if((_smallFrameShowing == true) || (_largeFrameShowing ==true) || (_nextScreen == ShellArea.Start))
+			{
+				idLog.Warning("TODO: ShowLogo(false);");
+			}
+ 			else
+			{
+				idLog.Warning("TODO: ShowLogo(true);");
 			}
 		}
 		#endregion
@@ -425,5 +513,39 @@ namespace idTech4.Game.Menus
 		Loading,
 		Busy,
 		InGame
+	}
+
+	public enum ShellArea
+	{
+		Invalid = -1,
+		Start,
+		Root,
+		Dev,
+		Campaign,
+		Load,
+		Save,
+		NewGame,
+		GameOptions,
+		SystemOptions,
+		Multiplayer,
+		GameLobby,
+		Stereoscopics,
+		PartyLobby,
+		Settings,
+		Audio,
+		Video,
+		Keyboard,
+		Controls,
+		ControllerLayout,
+		GamePad,
+		Pause,
+		LeaderBoards,
+		Playstation,
+		Difficulty,
+		Resolution,
+		MatchSettings,
+		ModeSelect,
+		Browser,
+		Credits
 	}
 }

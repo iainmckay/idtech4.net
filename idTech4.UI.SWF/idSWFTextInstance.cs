@@ -28,17 +28,28 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 
 using idTech4.Services;
+using idTech4.UI.SWF.Scripting;
 
 namespace idTech4.UI.SWF
 {
 	public class idSWFTextInstance
 	{
+		#region Properties
+		public idSWFScriptObject ScriptObject
+		{
+			get
+			{
+				return _scriptObject;
+			}
+		}
+		#endregion
+
 		#region Members
 		private idSWFEditText _editText;
 		private idSWF _owner;
 
 		// this text instance's script object
-		//idSWFScriptObject  scriptObject;
+		private idSWFScriptObject _scriptObject;
 
 		private string _text;
 		private string _randomtext;
@@ -201,10 +212,7 @@ namespace idTech4.UI.SWF
 			_strokeStrength       = 1.0f;
 			_strokeWeight         = cvarSystem.GetFloat("swf_textStrokeSize");
 
-			idLog.Warning("TODO: idSWFTextInstance.Initialize");
-			/*_scriptObject.SetPrototype( &textInstanceScriptObjectPrototype );
-			_scriptObject.SetText( this );
-			_scriptObject.SetNoAutoDelete( true );*/
+			_scriptObject         = new idSWFScriptObject(this, _scriptObjectPrototype);
 		}
 		#endregion
 	}

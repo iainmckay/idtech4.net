@@ -51,12 +51,14 @@ namespace idTech4.Game.Menus
 		private bool _scrollingMenu;
 		private int _scrollCounter;
 
-		private int _activeScreen;
-		private int _nextScreen;
-		private int _transition;
+		protected ShellArea _activeScreen;
+		protected ShellArea _nextScreen;
+		protected MainMenuTransition _transition;
+
 		private int _platform;
 
 		protected idSWF _gui;
+		protected idSWF _introGui;
 	
 		// TODO
 		/*actionRepeater_t			actionRepeater;
@@ -71,9 +73,9 @@ namespace idTech4.Game.Menus
 		#region Constructor
 		public idMenuHandler()
 		{
-			_activeScreen = -1;
-			_nextScreen   = -1;
-			_transition   = -1;
+			_activeScreen = ShellArea.Invalid;
+			_nextScreen   = ShellArea.Invalid;
+			_transition   = MainMenuTransition.Invalid;
 
 			/*for(int index = 0; index < MAX_SCREEN_AREAS; ++index)
 			{

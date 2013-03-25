@@ -60,6 +60,26 @@ namespace idTech4.UI.SWF
 		#endregion
 
 		#region Properties
+		public byte[] Data
+		{
+			get
+			{
+				return _data;
+			}
+			set
+			{
+				_data = value;
+			}
+		}
+
+		public bool HasData
+		{
+			get
+			{
+				return (_data != null);
+			}
+		}
+
 		public int Length
 		{
 			get
@@ -78,6 +98,11 @@ namespace idTech4.UI.SWF
 		#endregion
 
 		#region Constructor
+		public idSWFBitStream()
+		{
+
+		}
+
 		public idSWFBitStream(byte[] data)
 		{
 			_data = data;

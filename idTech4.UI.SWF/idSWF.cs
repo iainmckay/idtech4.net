@@ -34,6 +34,7 @@ using Microsoft.Xna.Framework.Content;
 
 using idTech4.Renderer;
 using idTech4.Services;
+using idTech4.UI.SWF.Scripting;
 
 namespace idTech4.UI.SWF
 {
@@ -43,6 +44,16 @@ namespace idTech4.UI.SWF
 		private const float AlphaEpsilon   = 0.001f;
 		private const int StencilDecrement = -1;
 		private const int StencilIncrement = -2;
+		#endregion
+
+		#region Properties
+		public idSWFScriptObject Globals
+		{
+			get
+			{
+				return _globals;
+			}
+		}
 		#endregion
 
 		#region Members
@@ -86,6 +97,9 @@ namespace idTech4.UI.SWF
 
 		private idSWFSprite _mainSprite;
 		private idSWFSpriteInstance _mainSpriteInstance;
+
+		private idSWFScriptObject _globals;
+		private idSWFScriptObject _shortcutKeys;
 
 		private idSWFDictionaryEntry[] _dictionary;
 		#endregion
@@ -131,53 +145,53 @@ namespace idTech4.UI.SWF
 
 			_useInhibtControl = true;
 			_useMouse         = true;
-		
-			// TODO: 
-			/*globals = idSWFScriptObject::Alloc();
-			globals->Set( "_global", globals );
 
-			globals->Set( "Object", &scriptFunction_Object );
+			idLog.Warning("TODO: swf globals");
 
-			shortcutKeys = idSWFScriptObject::Alloc();
+			/*_globals = new idSWFScriptObject();
+			_globals.Set("_global", _globals);
+
+			_globals.Set("Object", scriptFunction_Object );*/
+
+			// TODO: swf shortcuts
+			/*shortcutKeys = idSWFScriptObject::Alloc();
 			scriptFunction_shortcutKeys_clear.Bind( this );
 			scriptFunction_shortcutKeys_clear.Call( shortcutKeys, idSWFParmList() );
-			globals->Set( "shortcutKeys", shortcutKeys );
+			globals->Set( "shortcutKeys", shortcutKeys );*/
 
-			globals->Set( "deactivate", scriptFunction_deactivate.Bind( this ) );
-			globals->Set( "inhibitControl", scriptFunction_inhibitControl.Bind( this ) );
-			globals->Set( "useInhibit", scriptFunction_useInhibit.Bind( this ) );
-			globals->Set( "precacheSound", scriptFunction_precacheSound.Bind( this ) );
-			globals->Set( "playSound", scriptFunction_playSound.Bind( this ) );
-			globals->Set( "stopSounds",scriptFunction_stopSounds.Bind( this ) );
-			globals->Set( "getPlatform", scriptFunction_getPlatform.Bind( this ) );
-			globals->Set( "getTruePlatform", scriptFunction_getTruePlatform.Bind( this ) );
-			globals->Set( "getLocalString", scriptFunction_getLocalString.Bind( this ) );
-			globals->Set( "swapPS3Buttons", scriptFunction_swapPS3Buttons.Bind( this ) );
-			globals->Set( "_root", mainspriteInstance->scriptObject );
-			globals->Set( "strReplace", scriptFunction_strReplace.Bind( this ) );
-			globals->Set( "getCVarInteger", scriptFunction_getCVarInteger.Bind( this ) );
-			globals->Set( "setCVarInteger", scriptFunction_setCVarInteger.Bind( this ) );
+			/*_globals.Set("deactivate",			scriptFunction_deactivate.Bind( this ) );
+			_globals.Set("inhibitControl",		scriptFunction_inhibitControl.Bind( this ) );
+			_globals.Set("useInhibit",			scriptFunction_useInhibit.Bind( this ) );
+			_globals.Set("precacheSound",		scriptFunction_precacheSound.Bind( this ) );
+			_globals.Set("playSound",			scriptFunction_playSound.Bind( this ) );
+			_globals.Set("stopSounds",			scriptFunction_stopSounds.Bind( this ) );
+			_globals.Set("getPlatform",			scriptFunction_getPlatform.Bind( this ) );
+			_globals.Set("getTruePlatform",		scriptFunction_getTruePlatform.Bind( this ) );
+			_globals.Set("getLocalString",		scriptFunction_getLocalString.Bind( this ) );
+			_globals.Set("swapPS3Buttons",		scriptFunction_swapPS3Buttons.Bind( this ) );
+			_globals.Set("_root",				_mainSpriteInstance.ScriptObject);
+			_globals.Set("strReplace",			scriptFunction_strReplace.Bind( this ) );
+			_globals.Set("getCVarInteger",		scriptFunction_getCVarInteger.Bind( this ) );
+			_globals.Set("setCVarInteger",		scriptFunction_setCVarInteger.Bind( this ) );
 
-			globals->Set( "acos", scriptFunction_acos.Bind( this ) );
-			globals->Set( "cos", scriptFunction_cos.Bind( this ) );
-			globals->Set( "sin", scriptFunction_sin.Bind( this ) );
-			globals->Set( "round", scriptFunction_round.Bind( this ) );
-			globals->Set( "pow", scriptFunction_pow.Bind( this ) );
-			globals->Set( "sqrt", scriptFunction_sqrt.Bind( this ) );
-			globals->Set( "abs", scriptFunction_abs.Bind( this ) );
-			globals->Set( "rand", scriptFunction_rand.Bind( this ) );
-			globals->Set( "floor", scriptFunction_floor.Bind( this ) );
-			globals->Set( "ceil", scriptFunction_ceil.Bind( this ) );
-			globals->Set( "toUpper", scriptFunction_toUpper.Bind( this ) );
+			_globals.Set("acos",				scriptFunction_acos.Bind( this ) );
+			_globals.Set("cos",					scriptFunction_cos.Bind( this ) );
+			_globals.Set("sin",					scriptFunction_sin.Bind( this ) );
+			_globals.Set("round",				scriptFunction_round.Bind( this ) );
+			_globals.Set("pow",					scriptFunction_pow.Bind( this ) );
+			_globals.Set("sqrt",				scriptFunction_sqrt.Bind( this ) );
+			_globals.Set("abs",					scriptFunction_abs.Bind( this ) );
+			_globals.Set("rand",				scriptFunction_rand.Bind( this ) );
+			_globals.Set("floor",				scriptFunction_floor.Bind( this ) );
+			_globals.Set("ceil",				scriptFunction_ceil.Bind( this ) );
+			_globals.Set("toUpper",				scriptFunction_toUpper.Bind( this ) );
 
-			globals->SetNative( "platform", swfScriptVar_platform.Bind( &scriptFunction_getPlatform ) );
-			globals->SetNative( "blackbars", swfScriptVar_blackbars.Bind( this ) );
-			globals->SetNative( "cropToHeight", swfScriptVar_crop.Bind( this ) );
-			globals->SetNative( "cropToFit", swfScriptVar_crop.Bind( this ) );
-			globals->SetNative( "crop", swfScriptVar_crop.Bind( this ) );*/
-						
-		
-
+			_globals.SetNative("platform",		swfScriptVar_platform.Bind( &scriptFunction_getPlatform ) );
+			_globals.SetNative("blackbars",		swfScriptVar_blackbars.Bind( this ) );
+			_globals.SetNative("cropToHeight",	swfScriptVar_crop.Bind( this ) );
+			_globals.SetNative("cropToFit",		swfScriptVar_crop.Bind( this ) );
+			_globals.SetNative("crop",			swfScriptVar_crop.Bind( this ) );*/
+					
 			// TODO: soundWorld = soundWorld_;
 		}
 
