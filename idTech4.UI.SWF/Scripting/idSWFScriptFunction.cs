@@ -166,6 +166,16 @@ namespace idTech4.UI.SWF.Scripting
 		#endregion
 
 		#region Methods
+		public void Add(string value)
+		{
+			_pool.Add(value);
+		}
+
+		public void Clear()
+		{
+			_pool.Clear();
+		}
+
 		public string Get(int n)
 		{
 			return _pool[n];

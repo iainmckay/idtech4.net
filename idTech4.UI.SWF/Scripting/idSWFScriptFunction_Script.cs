@@ -148,13 +148,17 @@ namespace idTech4.UI.SWF.Scripting
 							idLog.Warning("SWF: no target movie clip for prevFrame");
 						}
 						break;
-			/*case Action_Play:
-				if ( verify( currentTarget != NULL ) ) {
-					currentTarget->Play();
-				} else if ( swf_debug.GetInteger() > 0 ) {
-					idLib::Printf( "SWF: no target movie clip for play\n" );
-				}
-				break;*/
+
+					case idSWFAction.Play:
+						if(currentTarget != null)
+						{
+							currentTarget.Play();
+						}
+						else if(cvarSystem.GetInt("swf_debug") > 0)
+						{
+							idLog.WriteLine("SWF: no target movie clip for play");
+						}
+						break;
 
 					case idSWFAction.Stop:
 						if(currentTarget != null)
@@ -167,19 +171,27 @@ namespace idTech4.UI.SWF.Scripting
 						}
 						break;
 
-						/*
-			case Action_ToggleQuality: break;
-			case Action_StopSounds: break;
-			case Action_GotoFrame: {
-				assert( recordLength == 2 );
-				int frameNum = bitstream.ReadU16() + 1;
-				if ( verify( currentTarget != NULL ) ) {
-					currentTarget->RunTo( frameNum );
-				} else if ( swf_debug.GetInteger() > 0 ) {
-					idLib::Printf( "SWF: no target movie clip for runTo %d\n", frameNum );
-				}
-				break;
-			}
+					case idSWFAction.ToggleQuality:
+						break;
+
+					case idSWFAction.StopSounds:
+						break;
+
+					case idSWFAction.GotoFrame:
+						Debug.Assert(recordLength == 2);
+
+						int frameNum = bitStream.ReadUInt16() + 1;
+
+						if(currentTarget != null)
+						{
+							currentTarget.RunTo(frameNum);
+						}
+						else if(cvarSystem.GetInt("swf_debug") > 0)
+						{
+							idLog.WriteLine("SWF: no target movie clip for runTo {0}", frameNum);
+						}				
+						break;
+			/*}
 			case Action_SetTarget: {
 				const char * targetName = (const char *)bitstream.ReadData( recordLength );
 				if ( verify( thisSprite != NULL ) ) {
@@ -488,16 +500,20 @@ namespace idTech4.UI.SWF.Scripting
 					stack.Alloc().SetUndefined();
 				}
 				break;
-			}
-			case Action_ConstantPool: {
-				constants.Clear();
-				uint16 numConstants = bitstream.ReadU16();
-				for ( int i = 0; i < numConstants; i++ ) {
-					constants.Append( idSWFScriptString::Alloc( bitstream.ReadString() ) );
-				}
-				break;
-			}
-			case Action_DefineFunction: {
+			}*/
+
+					case idSWFAction.ConstantPool:						
+						ushort constantCount = bitStream.ReadUInt16();
+
+						_constants.Clear();
+
+						for(int i = 0; i < constantCount; i++)
+						{
+							_constants.Add(bitStream.ReadString());
+						}
+						break;
+
+			/*case Action_DefineFunction: {
 				idStr functionName = bitstream.ReadString();
 
 				idSWFScriptFunction_Script * newFunction = idSWFScriptFunction_Script::Alloc();
