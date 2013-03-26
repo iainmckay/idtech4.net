@@ -25,6 +25,11 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+using System.Diagnostics;
+
+using idTech4.Services;
+
 namespace idTech4.UI.SWF.Scripting
 {
 	/// <summary>
@@ -34,14 +39,26 @@ namespace idTech4.UI.SWF.Scripting
 	/// These can be on the stack, in a script object, passed around as parameters, etc
 	/// they can contain raw data (int, float), strings, functions, or objects
 	/// </remarks>
-	public class idSWFScriptVariable
+	public class idSWFScriptVariable : ICloneable
 	{
 		#region Properties
 		public idSWFScriptFunction Function
 		{
 			get
 			{
+				Debug.Assert(_type == ScriptVariableType.Function);
+
 				return _valueFunction;
+			}
+		}
+
+		public idSWFScriptObject Object
+		{
+			get
+			{
+				Debug.Assert(_type == ScriptVariableType.Object);
+
+				return _valueObject;
 			}
 		}
 
@@ -161,6 +178,55 @@ namespace idTech4.UI.SWF.Scripting
 			Set(value);
 		}
 		#endregion
+		
+		#region Misc.
+		public string TypeOf()
+		{
+			switch(_type)
+			{
+				case ScriptVariableType.StringID:
+					return "stringid";
+
+				case ScriptVariableType.String:
+					return "string";
+
+				case ScriptVariableType.Float:
+					return "number";
+
+				case ScriptVariableType.Bool:
+					return "boolean";
+
+				case ScriptVariableType.Integer:
+					return "number";
+
+				case ScriptVariableType.Object:
+					if(_valueObject.Sprite != null)
+					{
+						return "movieclip";
+					}
+					else if(_valueObject.Text != null)
+					{
+						return "text";
+					}
+					else
+					{
+						return "object";
+					}
+					break;
+
+				case ScriptVariableType.Function:
+					return "function";
+
+				case ScriptVariableType.Null:
+					return "null";
+
+				case ScriptVariableType.Undefined:
+					return "undefined";
+			}
+
+			return string.Empty;
+		}					
+		#endregion
 
 		#region Set
 		public void Set(string value)
@@ -248,6 +314,61 @@ namespace idTech4.UI.SWF.Scripting
 		#endregion
 
 		#region To*
+		public bool ToBool()
+		{
+			switch(_type)
+			{
+				case ScriptVariableType.String:
+					return ((_valueString.Equals("true", StringComparison.OrdinalIgnoreCase) == true) || (_valueString == "1"));
+
+				case ScriptVariableType.Float:
+					return (_valueFloat != 0.0f);
+
+				case ScriptVariableType.Bool:
+					return _valueBool;
+
+				case ScriptVariableType.Integer:
+					return (_valueInt != 0);
+
+				case ScriptVariableType.Object:
+					return _valueObject.GetDefaultValue(false).ToBool();
+
+				default:
+					return false;
+			}
+		}
+
+		public float ToFloat()
+		{
+			switch(_type)
+			{
+				case ScriptVariableType.String:
+					float tmp;
+					float.TryParse(_valueString, out tmp);
+
+					return tmp;
+
+				case ScriptVariableType.Float:
+					return _valueFloat;
+
+				case ScriptVariableType.Bool:
+					return (_valueBool ? 1 : 0);
+
+				case ScriptVariableType.Integer:
+					return _valueInt;
+
+				case ScriptVariableType.Object:
+					return _valueObject.GetDefaultValue(false).ToFloat();
+
+				case ScriptVariableType.Function:
+				case ScriptVariableType.Null:
+				case ScriptVariableType.Undefined:
+					return 0;
+			}
+
+			return 0;
+		}
+
 		public int ToInt32()
 		{
 			switch(_type)
@@ -268,13 +389,69 @@ namespace idTech4.UI.SWF.Scripting
 					return _valueInt;
 
 				case ScriptVariableType.Object:
-					return _valueObject.DefaultValue(false).ToInt32();
+					return _valueObject.GetDefaultValue(false).ToInt32();
 
 				case ScriptVariableType.Function:
 				case ScriptVariableType.Null:
 				case ScriptVariableType.Undefined:
 					return 0;
 			}
+
+			return 0;
+		}
+
+		public override string ToString()
+		{
+
+			switch(_type)
+			{
+				case ScriptVariableType.StringID:
+					throw new NotImplementedException();
+
+				case ScriptVariableType.String:
+					return _valueString;
+
+				case ScriptVariableType.Float:
+					return _valueFloat.ToString("G");
+
+				case ScriptVariableType.Bool:
+					return (_valueBool ? "true" : "false");
+
+				case ScriptVariableType.Integer:
+					return _valueInt.ToString();
+
+				case ScriptVariableType.Null:
+					return "[null]";
+
+				case ScriptVariableType.Undefined:
+					return "[undefined]";
+
+				case ScriptVariableType.Object:
+					return _valueObject.GetDefaultValue(true).ToString();
+
+				case ScriptVariableType.Function:
+					return "[function]";
+			}
+
+			return string.Empty;
+		}
+		#endregion
+
+		#region ICloneable implementation
+		public object Clone()
+		{
+			idSWFScriptVariable var = new idSWFScriptVariable();
+			var.Clear();
+
+			var._type          = _type;
+			var._valueBool     = _valueBool;
+			var._valueFloat    = _valueFloat;
+			var._valueFunction = _valueFunction;
+			var._valueInt      = _valueInt;
+			var._valueObject   = _valueObject;
+			var._valueString   = _valueString;
+
+			return var;
 		}
 		#endregion
 	}

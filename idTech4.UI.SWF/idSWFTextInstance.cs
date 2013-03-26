@@ -50,6 +50,7 @@ namespace idTech4.UI.SWF
 
 		// this text instance's script object
 		private idSWFScriptObject _scriptObject;
+		private static idSWFScriptObject_SpriteInstancePrototype _scriptObjectPrototype = new idSWFScriptObject_SpriteInstancePrototype();
 
 		private string _text;
 		private string _randomtext;

@@ -85,6 +85,9 @@ namespace idTech4
 
 			idLog.WriteLine("Reading {0} as UTF-8", name);
 
+			// FIXME: first character is something odd
+			buffer = buffer.Substring(1);
+
 			idLexer lexer = new idLexer(LexerOptions.NoFatalErrors | LexerOptions.NoStringConcatination | LexerOptions.AllowMultiCharacterLiterals | LexerOptions.AllowBackslashStringConcatination);
 			lexer.LoadMemory(buffer, name);
 

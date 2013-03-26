@@ -43,7 +43,7 @@ namespace idTech4
 			{
 				return '\0';
 			}
-
+						
 			return buffer[position];
 		}
 		#endregion

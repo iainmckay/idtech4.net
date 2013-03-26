@@ -25,20 +25,31 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace idTech4
+namespace idTech4.UI.SWF.Scripting
 {
-	public class idLanguage
+	public class idSWFScriptFunction_Nested<T> : idSWFScriptFunction
 	{
-		public const string English  = "english";
-		public const string French   = "french";
-		public const string Italian  = "italian";
-		public const string German   = "german";
-		public const string Spanish  = "spanish";
-		public const string Japanese = "japanese";
+		#region Members
+		private NestedScriptFunction<T> _callback;
+		private T _context;
+		#endregion
+
+		#region Constructor
+		public idSWFScriptFunction_Nested(NestedScriptFunction<T> callback, T context)
+			: base()
+		{
+			_callback = callback;
+			_context  = context;
+		}
+		#endregion
+
+		#region Methods
+		public override idSWFScriptVariable Invoke(idSWFScriptObject scriptObj, idSWFParameterList parms)
+		{
+			return _callback(scriptObj, _context, parms);
+		}
+		#endregion
 	}
+
+	public delegate idSWFScriptVariable NestedScriptFunction<T>(idSWFScriptObject scriptObj, T context, idSWFParameterList parms);
 }

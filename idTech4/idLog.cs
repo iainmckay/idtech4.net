@@ -334,7 +334,7 @@ namespace idTech4
 
 		public static void Print(string format, params object[] args)
 		{
-			string msg = string.Format(format, args);
+			string msg = string.Format(Escape(format), args);
 
 			Debug.WriteLine(msg);
 
@@ -342,6 +342,12 @@ namespace idTech4
 			/*if ( win32.win_outputEditString.GetBool() && idLib::IsMainThread() ) {
 				Conbuf_AppendText( msg );
 			}*/
+		}
+
+		private static string Escape(string str)
+		{
+			return str
+				.Replace("'{'", "'{{'");
 		}
 		#endregion
 		#endregion

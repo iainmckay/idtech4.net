@@ -31,6 +31,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Text;
 using System.Threading;
 
 using Microsoft.Xna.Framework;
@@ -1069,11 +1070,11 @@ namespace idTech4
 
 			foreach(string lang in currentLanguageList)
 			{
-				byte[] buffer = fileSystem.ReadFile(lang);
+				byte[] buffer = fileSystem.ReadFile(Path.Combine("strings", lang));
 
 				if(buffer != null)
 				{
-					loc.Load(BitConverter.ToString(buffer), lang);
+					loc.Load(Encoding.UTF8.GetString(buffer), lang);
 				}
 			}
 		}

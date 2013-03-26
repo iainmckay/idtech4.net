@@ -378,7 +378,7 @@ namespace idTech4.IO
 		public idFileList ListFiles(string relativePath, string extension, bool sort = false, bool fullRelativePath = false, string gameDirectory = null)
 		{
 			string[] extensionList = GetExtensionList(extension);
-			string[] fileList = GetFileList(relativePath, extensionList, fullRelativePath, gameDirectory);
+			string[] fileList      = GetFileList(relativePath, extensionList, fullRelativePath, gameDirectory);
 
 			if(sort == true)
 			{
@@ -386,7 +386,6 @@ namespace idTech4.IO
 			}
 
 			return new idFileList(relativePath, fileList);
-
 		}
 
 		public string[] GetExtensionList(string extension)

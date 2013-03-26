@@ -106,12 +106,14 @@
     <Compile Include="idSWFImage.cs" />
     <Compile Include="idSWFShape.cs" />
     <Compile Include="idSWFText.cs" />
-    <Compile Include="Scripting\idSWFParameterList.cs" />
+    <Compile Include="Scripting\idSWFScriptFunction_Nested.cs" />
+    <Compile Include="Scripting\idSWFScriptFunction_Text.cs" />
     <Compile Include="Scripting\idSWFScriptFunction.cs" />
     <Compile Include="Scripting\idSWFScriptFunction_Sprite.cs" />
     <Compile Include="Scripting\idSWFScriptFunction_Script.cs" />
     <Compile Include="Scripting\idSWFScriptObject.cs" />
     <Compile Include="Scripting\idSWFScriptObject_SpriteInstancePrototype.cs" />
+    <Compile Include="Scripting\idSWFScriptObject_TextInstancePrototype.cs" />
     <Compile Include="Scripting\idSWFScriptVariable.cs" />
     <Compile Include="SWFTypeReader.cs" />
   </ItemGroup>

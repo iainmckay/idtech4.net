@@ -145,53 +145,7 @@ namespace idTech4.UI.SWF
 
 			_useInhibtControl = true;
 			_useMouse         = true;
-
-			idLog.Warning("TODO: swf globals");
-
-			/*_globals = new idSWFScriptObject();
-			_globals.Set("_global", _globals);
-
-			_globals.Set("Object", scriptFunction_Object );*/
-
-			// TODO: swf shortcuts
-			/*shortcutKeys = idSWFScriptObject::Alloc();
-			scriptFunction_shortcutKeys_clear.Bind( this );
-			scriptFunction_shortcutKeys_clear.Call( shortcutKeys, idSWFParmList() );
-			globals->Set( "shortcutKeys", shortcutKeys );*/
-
-			/*_globals.Set("deactivate",			scriptFunction_deactivate.Bind( this ) );
-			_globals.Set("inhibitControl",		scriptFunction_inhibitControl.Bind( this ) );
-			_globals.Set("useInhibit",			scriptFunction_useInhibit.Bind( this ) );
-			_globals.Set("precacheSound",		scriptFunction_precacheSound.Bind( this ) );
-			_globals.Set("playSound",			scriptFunction_playSound.Bind( this ) );
-			_globals.Set("stopSounds",			scriptFunction_stopSounds.Bind( this ) );
-			_globals.Set("getPlatform",			scriptFunction_getPlatform.Bind( this ) );
-			_globals.Set("getTruePlatform",		scriptFunction_getTruePlatform.Bind( this ) );
-			_globals.Set("getLocalString",		scriptFunction_getLocalString.Bind( this ) );
-			_globals.Set("swapPS3Buttons",		scriptFunction_swapPS3Buttons.Bind( this ) );
-			_globals.Set("_root",				_mainSpriteInstance.ScriptObject);
-			_globals.Set("strReplace",			scriptFunction_strReplace.Bind( this ) );
-			_globals.Set("getCVarInteger",		scriptFunction_getCVarInteger.Bind( this ) );
-			_globals.Set("setCVarInteger",		scriptFunction_setCVarInteger.Bind( this ) );
-
-			_globals.Set("acos",				scriptFunction_acos.Bind( this ) );
-			_globals.Set("cos",					scriptFunction_cos.Bind( this ) );
-			_globals.Set("sin",					scriptFunction_sin.Bind( this ) );
-			_globals.Set("round",				scriptFunction_round.Bind( this ) );
-			_globals.Set("pow",					scriptFunction_pow.Bind( this ) );
-			_globals.Set("sqrt",				scriptFunction_sqrt.Bind( this ) );
-			_globals.Set("abs",					scriptFunction_abs.Bind( this ) );
-			_globals.Set("rand",				scriptFunction_rand.Bind( this ) );
-			_globals.Set("floor",				scriptFunction_floor.Bind( this ) );
-			_globals.Set("ceil",				scriptFunction_ceil.Bind( this ) );
-			_globals.Set("toUpper",				scriptFunction_toUpper.Bind( this ) );
-
-			_globals.SetNative("platform",		swfScriptVar_platform.Bind( &scriptFunction_getPlatform ) );
-			_globals.SetNative("blackbars",		swfScriptVar_blackbars.Bind( this ) );
-			_globals.SetNative("cropToHeight",	swfScriptVar_crop.Bind( this ) );
-			_globals.SetNative("cropToFit",		swfScriptVar_crop.Bind( this ) );
-			_globals.SetNative("crop",			swfScriptVar_crop.Bind( this ) );*/
-					
+											
 			// TODO: soundWorld = soundWorld_;
 		}
 
@@ -619,6 +573,54 @@ namespace idTech4.UI.SWF
 		#endregion
 
 		#region Loading
+		private void CreateGlobals()
+		{
+			idLog.Warning("TODO: swf globals");
+
+			_globals = new idSWFScriptObject();
+			_globals.Set("_global", _globals);
+
+			/*_globals.Set("Object", scriptFunction_Object );*/
+
+			// TODO: swf shortcuts
+			/*shortcutKeys = idSWFScriptObject::Alloc();
+			scriptFunction_shortcutKeys_clear.Bind( this );
+			scriptFunction_shortcutKeys_clear.Call( shortcutKeys, idSWFParmList() );
+			globals->Set( "shortcutKeys", shortcutKeys );*/
+
+			_globals.Set("deactivate",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_deactivate, this));
+			_globals.Set("inhibitControl",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_inhibitControl, this));
+			_globals.Set("useInhibit",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_useInhibit, this));
+			_globals.Set("precacheSound",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_precacheSound, this));
+			_globals.Set("playSound",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_playSound, this));
+			_globals.Set("stopSounds",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_stopSounds, this));
+			_globals.Set("getPlatform",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getPlatform, this));
+			_globals.Set("getTruePlatform",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getTruePlatform, this));
+			_globals.Set("getLocalString",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getLocalString, this));
+			_globals.Set("swapPS3Buttons",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_swapPS3Buttons, this));
+			_globals.Set("strReplace",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_strReplace, this));
+			_globals.Set("getCVarInteger",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getCVarInteger, this));
+			_globals.Set("setCVarInteger",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_setCVarInteger, this));
+
+			/*_globals.Set("acos",				scriptFunction_acos.Bind( this ) );
+			_globals.Set("cos",					scriptFunction_cos.Bind( this ) );
+			_globals.Set("sin",					scriptFunction_sin.Bind( this ) );
+			_globals.Set("round",				scriptFunction_round.Bind( this ) );
+			_globals.Set("pow",					scriptFunction_pow.Bind( this ) );
+			_globals.Set("sqrt",				scriptFunction_sqrt.Bind( this ) );
+			_globals.Set("abs",					scriptFunction_abs.Bind( this ) );
+			_globals.Set("rand",				scriptFunction_rand.Bind( this ) );
+			_globals.Set("floor",				scriptFunction_floor.Bind( this ) );
+			_globals.Set("ceil",				scriptFunction_ceil.Bind( this ) );
+			_globals.Set("toUpper",				scriptFunction_toUpper.Bind( this ) );
+
+			_globals.SetNative("platform",		swfScriptVar_platform.Bind( &scriptFunction_getPlatform ) );
+			_globals.SetNative("blackbars",		swfScriptVar_blackbars.Bind( this ) );
+			_globals.SetNative("cropToHeight",	swfScriptVar_crop.Bind( this ) );
+			_globals.SetNative("cropToFit",		swfScriptVar_crop.Bind( this ) );
+			_globals.SetNative("crop",			swfScriptVar_crop.Bind( this ) );*/
+		}
+
 		internal void LoadFrom(ContentReader input)
 		{
 			IDeclManager declManager = idEngine.Instance.GetService<IDeclManager>();
@@ -650,13 +652,17 @@ namespace idTech4.UI.SWF
 
 			idLog.Warning("TODO: _atlasMaterial      = declManager.FindMaterial(Path.GetFileNameWithoutExtension(binaryFileName));");
 
+			CreateGlobals();
+
 			_mainSpriteInstance = new idSWFSpriteInstance();
 			_mainSpriteInstance.Initialize(_mainSprite, null, 0);
 
+			_globals.Set("_root", _mainSpriteInstance.ScriptObject);
+			
 			// Do this to touch any external references (like sounds)
 			// But disable script warnings because many globals won't have been created yet
 			int debug = cvarSystem.GetInt("swf_debug");
-			cvarSystem.Set("swf_debug", 0);						
+			//cvarSystem.Set("swf_debug", 0);						
 
 			_mainSpriteInstance.Run();
 			_mainSpriteInstance.RunActions();
@@ -759,6 +765,74 @@ namespace idTech4.UI.SWF
 		}
 		#endregion
 		#endregion
+
+		#region Script Functions
+		private idSWFScriptVariable ScriptFunction_deactivate(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_inhibitControl(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			idLog.Warning("TODO: ScriptFunction_inhibitControl");
+			return new idSWFScriptVariable();
+		}
+
+		private idSWFScriptVariable ScriptFunction_useInhibit(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_precacheSound(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_playSound(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_stopSounds(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_getPlatform(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_getTruePlatform(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_getLocalString(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_swapPS3Buttons(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_strReplace(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_getCVarInteger(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+
+		private idSWFScriptVariable ScriptFunction_setCVarInteger(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			throw new NotImplementedException();
+		}
+		#endregion
 	}
 
 	public enum idSWFTag
@@ -825,6 +899,124 @@ namespace idTech4.UI.SWF
 		DefineFontName               = 88,
 		StartSound2                  = 89
 	}
+
+	public enum idSWFAction
+	{
+		End             = 0,
+
+		// swf 3
+		NextFrame       = 0x04,
+		PrevFrame       = 0x05,
+		Play            = 0x06,
+		Stop            = 0x07,
+		ToggleQuality   = 0x08,
+		StopSounds      = 0x09,
+
+		GotoFrame       = 0x81,
+		GetURL          = 0x83,
+		WaitForFrame    = 0x8A,
+		SetTarget       = 0x8B,
+		GoToLabel       = 0x8C,
+	
+		// swf 4
+		Add             = 0x0A,
+		Subtract        = 0x0B,
+		Multiply        = 0x0C,
+		Divide          = 0x0D,
+		Equals          = 0x0E,
+		Less            = 0x0F,
+		And             = 0x10,
+		Or              = 0x11,
+		Not             = 0x12,
+		StringEquals    = 0x13,
+		StringLength    = 0x14,
+		StringExtract   = 0x15,
+		Pop             = 0x17,
+		ToInteger       = 0x18,
+		GetVariable     = 0x1C,
+		SetVariable     = 0x1D,
+		SetTarget2      = 0x20,
+		StringAdd       = 0x21,
+		GetProperty     = 0x22,
+		SetProperty     = 0x23,
+		CloneSprite     = 0x24,
+		RemoveSprite    = 0x25,
+		Trace           = 0x26,
+		StartDrag       = 0x27,
+		EndDrag         = 0x28,
+		StringLess      = 0x29,
+		RandomNumber    = 0x30,
+		MBStringLength  = 0x31,
+		CharToAscii     = 0x32,
+		AsciiToChar     = 0x33,
+		GetTime         = 0x34,
+		MBStringExtract = 0x35,
+		MBCharToAscii   = 0x36,
+		MBAsciiToChar   = 0x37,
+
+		WaitForFrame2   = 0x8D,
+		Push            = 0x96,
+		Jump            = 0x99,
+		GetURL2         = 0x9A,
+		If              = 0x9D,
+		Call            = 0x9E,
+		GotoFrame2      = 0x9F,
+	
+		// swf 5
+		Delete          = 0x3A,
+		Delete2         = 0x3B,
+		DefineLocal     = 0x3C,
+		CallFunction    = 0x3D,
+		Return          = 0x3E,
+		Modulo          = 0x3F,
+		NewObject       = 0x40,
+		DefineLocal2    = 0x41,
+		InitArray       = 0x42,
+		InitObject      = 0x43,
+		TypeOf          = 0x44,
+		TargetPath      = 0x45,
+		Enumerate       = 0x46,
+		Add2            = 0x47,
+		Less2           = 0x48,
+		Equals2         = 0x49,
+		ToNumber        = 0x4A,
+		ToString        = 0x4B,
+		PushDuplicate   = 0x4C,
+		StackSwap       = 0x4D,
+		GetMember       = 0x4E,
+		SetMember       = 0x4F,
+		Increment       = 0x50,
+		Decrement       = 0x51,
+		CallMethod      = 0x52,
+		NewMethod       = 0x53,
+		BitAnd          = 0x60,
+		BitOr           = 0x61,
+		BitXor          = 0x62,
+		BitLShift       = 0x63,
+		BitRShift       = 0x64,
+		BitURShift      = 0x65,
+
+		StoreRegister   = 0x87,
+		ConstantPool    = 0x88,
+		With            = 0x94,
+		DefineFunction  = 0x9B,
+	
+		// swf 6
+		InstanceOf      = 0x54,
+		Enumerate2      = 0x55,
+		StrictEquals    = 0x66,
+		Greater         = 0x67,
+		StringGreater   = 0x68,
+	
+		// swf 7
+		Extends         = 0x69,
+		CastOp          = 0x2B,
+		ImplementsOp    = 0x2C,
+		Throw           = 0x2A,
+		Try             = 0x8F,
+
+		DefineFunction2 = 0x8E,
+	};
 
 	public enum idSWFDictionaryType
 	{

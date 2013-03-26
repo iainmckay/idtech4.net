@@ -233,14 +233,14 @@ namespace idTech4.UI.SWF
 			_parent = parent;
 			_depth  = depth;
 
-			_frameCount = sprite.FrameCount;			
-			_firstRun   = true;
+			_frameCount   = sprite.FrameCount;			
+			_firstRun     = true;
+			_scriptObject = new idSWFScriptObject(this, _scriptObjectPrototype);
 
 			List<idSWFScriptObject> scope = new List<idSWFScriptObject>();
 			scope.Add(_sprite.Owner.Globals);
 			scope.Add(_scriptObject);
-
-			_scriptObject = new idSWFScriptObject(this, _scriptObjectPrototype);
+						
 			_actionScript = new idSWFScriptFunction_Script(scope, this);
 			
 			for(int i = 0; i < _sprite.DoInitActions.Length; i++)
@@ -254,6 +254,22 @@ namespace idTech4.UI.SWF
 		#endregion
 
 		#region Frame
+		public void NextFrame()
+		{
+			if(_currentFrame < _frameCount)
+			{
+				RunTo(_currentFrame + 1);
+			}
+		}
+
+		public void PreviousFrame()
+		{
+			if(_currentFrame > 1)
+			{
+				RunTo(_currentFrame - 1);
+			}
+		}
+
 		public void Play()
 		{
 			for(idSWFSpriteInstance p = _parent; p != null; p = p.Parent)
@@ -414,6 +430,11 @@ namespace idTech4.UI.SWF
 			}
 
 			_currentFrame = (ushort) targetFrame;
+		}
+
+		public void Stop()
+		{
+			_isPlaying = false;
 		}
 		#endregion
 
@@ -727,12 +748,12 @@ namespace idTech4.UI.SWF
 				if(display.SpriteInstance != null)
 				{
 					display.SpriteInstance.Name = name;
-					idLog.Warning("TODO: scriptObject->Set( name, display->spriteInstance->GetScriptObject() );");
+
+					_scriptObject.Set(name, display.SpriteInstance.ScriptObject);
 				}
-				// TODO:
 				else if(display.TextInstance != null) 
 				{
-					idLog.Warning("TODO: scriptObject->Set( name, display->textInstance->GetScriptObject() );");
+					_scriptObject.Set(name, display.TextInstance.ScriptObject);
 				}
 			}
 

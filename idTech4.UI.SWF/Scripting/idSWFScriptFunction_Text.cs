@@ -25,20 +25,37 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-namespace idTech4
+namespace idTech4.UI.SWF.Scripting
 {
-	public class idLanguage
+	public class idSWFScriptFunction_Text : idSWFScriptFunction
 	{
-		public const string English  = "english";
-		public const string French   = "french";
-		public const string Italian  = "italian";
-		public const string German   = "german";
-		public const string Spanish  = "spanish";
-		public const string Japanese = "japanese";
+		#region Members
+		private TextScriptFunction _callback;
+		#endregion
+
+		#region Constructor
+		public idSWFScriptFunction_Text(TextScriptFunction callback) 
+			: base()
+		{
+			_callback = callback;
+		}
+		#endregion
+
+		#region Methods
+		public override idSWFScriptVariable Invoke(idSWFScriptObject scriptObj, idSWFParameterList parms)
+		{
+			idSWFTextInstance textInstance = (scriptObj != null) ? scriptObj.Text : null;
+
+			if(textInstance == null)
+			{
+				idLog.Warning("SWF: tried to call {0} on NULL text", _callback.Method.Name); 
+				return new idSWFScriptVariable(); 
+			}
+
+			return _callback(scriptObj, textInstance, parms); 
+		}
+		#endregion
 	}
+
+	public delegate idSWFScriptVariable TextScriptFunction(idSWFScriptObject scriptObj, idSWFTextInstance textInstance, idSWFParameterList parms);
 }

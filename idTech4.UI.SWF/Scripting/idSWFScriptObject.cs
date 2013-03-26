@@ -25,6 +25,7 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
 using System.Collections.Generic;
 
 using idTech4.Services;
@@ -52,6 +53,19 @@ namespace idTech4.UI.SWF.Scripting
 				if(_objectType == ObjectType.Sprite)
 				{
 					return _spriteInstance;
+				}
+
+				return null;
+			}
+		}
+
+		public idSWFTextInstance Text
+		{
+			get
+			{
+				if(_objectType == ObjectType.Text)
+				{
+					return _textInstance;
 				}
 
 				return null;
@@ -106,7 +120,7 @@ namespace idTech4.UI.SWF.Scripting
 		}*/
 		#endregion
 
-		#region Set/Get
+		#region Set/Get		
 		public idSWFScriptVariable Get(string name)
 		{
 			idSWFNamedVariable variable = GetVariable(name, false);
@@ -127,6 +141,63 @@ namespace idTech4.UI.SWF.Scripting
 					return variable.Value;
 				}
 			}
+		}
+
+		public idSWFScriptVariable GetDefaultValue(bool stringHint)
+		{
+			string[] methods = { "toString", "valueOf" };
+
+			if(stringHint == false)
+			{
+				Array.Reverse(methods);
+			}
+
+			for(int i = 0; i < 2; i++)
+			{
+				idSWFScriptVariable method = Get(methods[i]);
+
+				if(method.IsFunction == true)
+				{
+					idSWFScriptVariable value = method.Function.Invoke(this, new idSWFParameterList());
+
+					if((value.IsObject == false) && (value.IsFunction == false))
+					{
+						return value;
+					}
+				}
+			}
+
+			switch(_objectType)
+			{
+				case ObjectType.Object:
+					return new idSWFScriptVariable("[object]");
+
+				case ObjectType.Array:
+					return new idSWFScriptVariable("[array]");
+
+				case ObjectType.Sprite:
+					if(_spriteInstance != null)
+					{
+						if(_spriteInstance.Parent == null)
+						{
+							return new idSWFScriptVariable("[_root]");
+						}
+						else
+						{
+							return new idSWFScriptVariable(string.Format("[{0}]", _spriteInstance.Name));
+						}
+					}
+					else
+					{
+						return new idSWFScriptVariable("[NULL]");
+					}
+					break;
+
+				case ObjectType.Text:
+					return new idSWFScriptVariable("[edittext]");
+			}
+
+			return new idSWFScriptVariable("[unknown]");
 		}
 
 		public void Set(int index, idSWFScriptVariable value)

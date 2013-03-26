@@ -31,7 +31,19 @@ namespace idTech4.UI.SWF.Scripting
 {
 	public abstract class idSWFScriptFunction
 	{
+		#region Members
+		protected List<idSWFParameterInfo> _parameters = new List<idSWFParameterInfo>();
+		#endregion
+
 		public abstract idSWFScriptVariable Invoke(idSWFScriptObject scriptObj, idSWFParameterList parms);
+
+		#region idSWFParameterInfo
+		protected struct idSWFParameterInfo
+		{
+			public string Name;
+			public byte Register;
+		}
+		#endregion
 	}
 
 	public class idSWFParameterList
@@ -51,6 +63,10 @@ namespace idTech4.UI.SWF.Scripting
 			{
 				return _list[index];
 			}
+			set
+			{
+				_list[index] = value;
+			}
 		}
 		#endregion
 
@@ -67,6 +83,92 @@ namespace idTech4.UI.SWF.Scripting
 		public idSWFParameterList(int count)
 		{
 			_list = new List<idSWFScriptVariable>(count);
+		}
+		#endregion
+	}
+
+	public class idSWFStack : List<idSWFScriptVariable>
+	{
+		public idSWFScriptVariable A
+		{
+			get
+			{
+				return this[this.Count - 1];
+			}
+		}
+
+		public idSWFScriptVariable B
+		{
+			get
+			{
+				return this[this.Count - 2];
+			}
+		}
+
+		public idSWFScriptVariable C
+		{
+			get
+			{
+				return this[this.Count - 3];
+			}
+		}
+
+		public idSWFScriptVariable D
+		{
+			get
+			{
+				return this[this.Count - 4];
+			}
+		}
+
+		public void Pop(int n)
+		{
+			this.RemoveRange(this.Count - n, n);
+		}
+
+		public idSWFScriptVariable Alloc()
+		{
+			idSWFScriptVariable var = new idSWFScriptVariable();
+			this.Add(var);
+
+			return var;
+		}
+
+		public idSWFStack(int count)
+			: base(count)
+		{
+			for(int i = 0; i < count; i++)
+			{
+				this.Add(new idSWFScriptVariable());
+			}
+		}
+	}
+
+	/// <summary>
+	/// Action Scripts can define a pool of constants then push values from that pool.
+	/// </summary>
+	/// <remarks>
+	/// The documentation isn't very clear on the scope of these things, but from what
+	/// I've gathered by testing, pool is per-function and copied into the function
+	/// whenever that function is declared.
+	/// </remarks>
+	public class idSWFConstantPool
+	{
+		#region Members
+		private List<string> _pool = new List<string>();
+		#endregion
+
+		#region Constructor
+		public idSWFConstantPool()
+		{
+
+		}
+		#endregion
+
+		#region Methods
+		public string Get(int n)
+		{
+			return _pool[n];
 		}
 		#endregion
 	}

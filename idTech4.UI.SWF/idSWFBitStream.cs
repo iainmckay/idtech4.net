@@ -87,6 +87,14 @@ namespace idTech4.UI.SWF
 				return _data.Length;
 			}
 		}
+
+		public int Position
+		{
+			get
+			{
+				return _position;
+			}
+		}
 		#endregion
 
 		#region Members
@@ -177,7 +185,26 @@ namespace idTech4.UI.SWF
 			byte[] b = new byte[length];
 			Array.Copy(_data, _position, b, 0, length);
 
+			_position += length;
+
 			return b;
+		}
+
+		public double ReadDouble()
+		{
+			byte[] swfIsRetarded = ReadData(8);
+			byte[] buffer = {
+				swfIsRetarded[4],
+				swfIsRetarded[5],
+				swfIsRetarded[6],
+				swfIsRetarded[7],
+				swfIsRetarded[0],
+				swfIsRetarded[1],
+				swfIsRetarded[2],
+				swfIsRetarded[3]
+			};
+
+			return BitConverter.ToDouble(buffer, 0);
 		}
 
 		public idSWFMatrix ReadMatrix()
@@ -243,6 +270,15 @@ namespace idTech4.UI.SWF
 			_position += 2;
 
 			return (ushort) (_data[_position - 2] | (_data[_position - 1] << 8));
+		}
+
+		public int ReadInt32()
+		{
+			ResetBits();
+
+			_position += 4;
+
+			return (_data[_position - 4] | (_data[_position - 3] << 8) | (_data[_position - 2] << 16) | (_data[_position - 1] << 24));
 		}
 
 		public string ReadString()
