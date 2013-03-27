@@ -85,6 +85,24 @@ namespace idTech4.UI.SWF.Scripting
 			_list = new List<idSWFScriptVariable>(count);
 		}
 		#endregion
+
+		#region Add
+		public void Add(string value)
+		{
+			idSWFScriptVariable var = new idSWFScriptVariable();
+			var.Set(value);
+
+			_list.Add(var);
+		}
+
+		public void Add(int value)
+		{
+			idSWFScriptVariable var = new idSWFScriptVariable();
+			var.Set(value);
+
+			_list.Add(var);
+		}
+		#endregion
 	}
 
 	public class idSWFStack : List<idSWFScriptVariable>

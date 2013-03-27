@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 
 using Microsoft.Xna.Framework;
@@ -52,6 +53,16 @@ namespace idTech4.UI.SWF
 			get
 			{
 				return _globals;
+			}
+		}
+
+		public idSWFScriptObject RootObject
+		{
+			get
+			{
+				Debug.Assert(_mainSpriteInstance != null);
+
+				return _mainSpriteInstance.ScriptObject;
 			}
 		}
 		#endregion
@@ -248,6 +259,7 @@ namespace idTech4.UI.SWF
 			float scale       = _swfScale * sysHeight / (float) _frameHeight;
 
 			idSWFRenderState renderState = new idSWFRenderState();
+			renderState.ColorXForm       = idSWFColorXForm.Default;
 			renderState.StereoDepth      = _mainSpriteInstance.StereoDepth;
 			renderState.Matrix.XX        = scale;
 			renderState.Matrix.YY        = scale;
@@ -350,7 +362,8 @@ namespace idTech4.UI.SWF
 					continue;
 				}
 
-				idSWFRenderState renderState2;
+				idSWFRenderState renderState2 = new idSWFRenderState();
+				renderState2.ColorXForm = idSWFColorXForm.Default;
 
 				if(spriteInstance.StereoDepth != StereoDepthType.None)
 				{
@@ -540,7 +553,7 @@ namespace idTech4.UI.SWF
 						}
 					}
 
-					idLog.Warning("TODO: RenderSprite(renderSystem, display.SpriteInstance, renderState2, time, isSplitScreen);");
+					DrawSprite(renderSystem, display.SpriteInstance, renderState2, time, isSplitScreen);
 				}
 				else if(entry is idSWFMorphShape)
 				{
@@ -548,7 +561,7 @@ namespace idTech4.UI.SWF
 				}
 				else if(entry is idSWFShape)
 				{
-					idLog.Warning("TODO: RenderShape(renderSystem, (idSWFShape) entry, renderState2);");
+					idLog.Warning("TODO: DrawShape(renderSystem, (idSWFShape) entry, renderState2);");
 				}
 				else if(entry is idSWFEditText)
 				{

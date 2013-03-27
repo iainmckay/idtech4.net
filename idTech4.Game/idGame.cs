@@ -327,7 +327,7 @@ namespace idTech4.Game
 		{
 			if(_shellHandler != null)
 			{
-				_shellHandler.Init(fileName/* TODO:, sw*/);
+				_shellHandler.Initialize(fileName/* TODO:, sw*/);
 			}
 		}
 		#endregion

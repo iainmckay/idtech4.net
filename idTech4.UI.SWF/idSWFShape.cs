@@ -289,6 +289,12 @@ namespace idTech4.UI.SWF
 		public Vector4 Mul;
 		public Vector4 Add;
 
+		public idSWFColorXForm(Vector4 mul, Vector4 add)
+		{
+			this.Mul = mul;
+			this.Add = add;
+		}
+
 		public idSWFColorXForm Multiply(idSWFColorXForm a)
 		{
 			idSWFColorXForm result = new idSWFColorXForm();
@@ -296,6 +302,8 @@ namespace idTech4.UI.SWF
 			result.Add = (this.Add * a.Mul) + a.Add;
 
 			return result;
-		}		
+		}
+
+		public static idSWFColorXForm Default = new idSWFColorXForm(new Vector4(1, 1, 1, 1), Vector4.Zero);
 	}
 }

@@ -26,6 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using idTech4.Renderer;
+using idTech4.Services;
 using idTech4.UI.SWF;
 
 namespace idTech4.Game.Menus
@@ -73,6 +74,187 @@ namespace idTech4.Game.Menus
 			_state             = ShellState.Invalid;
 			_nextState         = ShellState.Invalid;
 			_backgroundShowing = true;
+		}
+		#endregion
+
+		#region Initialization
+		public override void Initialize(string swfFile)
+		{
+			base.Initialize(swfFile);
+			
+			idLog.Warning("TODO: idMenuHandler_Shell.Initialize");
+
+			//---------------------
+			// Initialize the menus
+			//---------------------
+			for(int i = 0; i < (int) ShellArea.AreaCount; i++)
+			{
+				_menuScreens[i] = null;
+			}
+
+			IDeclManager declManager = idEngine.Instance.GetService<IDeclManager>();
+
+			if(_inGame == true)
+			{
+				idLog.Warning("TODO: idMenuHandler_Shell ingame");
+		
+				/*BIND_SHELL_SCREEN( SHELL_AREA_ROOT, idMenuScreen_Shell_Pause, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_SETTINGS, idMenuScreen_Shell_Settings, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_LOAD, idMenuScreen_Shell_Load, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_SYSTEM_OPTIONS, idMenuScreen_Shell_SystemOptions, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_GAME_OPTIONS, idMenuScreen_Shell_GameOptions, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_SAVE, idMenuScreen_Shell_Save, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_STEREOSCOPICS, idMenuScreen_Shell_Stereoscopics, this );		
+				BIND_SHELL_SCREEN( SHELL_AREA_CONTROLS, idMenuScreen_Shell_Controls, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_KEYBOARD, idMenuScreen_Shell_Bindings, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_RESOLUTION, idMenuScreen_Shell_Resolution, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_CONTROLLER_LAYOUT, idMenuScreen_Shell_ControllerLayout, this );
+
+				BIND_SHELL_SCREEN( SHELL_AREA_GAMEPAD, idMenuScreen_Shell_Gamepad, this );		
+				BIND_SHELL_SCREEN( SHELL_AREA_CREDITS, idMenuScreen_Shell_Credits, this );*/
+			} 
+			else 
+			{
+				idLog.Warning("TODO: idMenuHandler_Shell not in game");
+
+				/*BIND_SHELL_SCREEN( SHELL_AREA_START, idMenuScreen_Shell_PressStart, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_ROOT, idMenuScreen_Shell_Root, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_CAMPAIGN, idMenuScreen_Shell_Singleplayer, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_SETTINGS, idMenuScreen_Shell_Settings, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_LOAD, idMenuScreen_Shell_Load, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_NEW_GAME, idMenuScreen_Shell_NewGame, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_SYSTEM_OPTIONS, idMenuScreen_Shell_SystemOptions, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_GAME_OPTIONS, idMenuScreen_Shell_GameOptions, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_PARTY_LOBBY, idMenuScreen_Shell_PartyLobby, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_GAME_LOBBY, idMenuScreen_Shell_GameLobby, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_STEREOSCOPICS, idMenuScreen_Shell_Stereoscopics, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_DIFFICULTY, idMenuScreen_Shell_Difficulty, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_CONTROLS, idMenuScreen_Shell_Controls, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_KEYBOARD, idMenuScreen_Shell_Bindings, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_RESOLUTION, idMenuScreen_Shell_Resolution, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_CONTROLLER_LAYOUT, idMenuScreen_Shell_ControllerLayout, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_DEV, idMenuScreen_Shell_Dev, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_LEADERBOARDS, idMenuScreen_Shell_Leaderboards, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_GAMEPAD, idMenuScreen_Shell_Gamepad, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_MATCH_SETTINGS, idMenuScreen_Shell_MatchSettings, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_MODE_SELECT, idMenuScreen_Shell_ModeSelect, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_BROWSER, idMenuScreen_Shell_GameBrowser, this );
+				BIND_SHELL_SCREEN( SHELL_AREA_CREDITS, idMenuScreen_Shell_Credits, this );*/
+
+				_doom3Intro = declManager.FindMaterial("gui/intro/introloop");
+				_roeIntro   = declManager.FindMaterial("gui/intro/marsflyby");
+
+				//typeSoundShader = declManager->FindSound( "gui/teletype/print_text", true );
+				idLog.Warning("TODO: typeSoundShader = declManager->FindSound( \"gui/teletype/print_text\", true );");
+				idLog.Warning("TODO: declManager->FindSound( \"gui/doomintro\", true );");
+
+				_marsRotation = declManager.FindMaterial("gui/shell/mars_rotation");
+			}
+
+			// TODO: 
+			/*menuBar = new (TAG_SWF) idMenuWidget_MenuBar();
+			menuBar->SetSpritePath( "pcBar" );
+			menuBar->Initialize( this );
+			menuBar->SetNumVisibleOptions( MAX_MENU_OPTIONS );
+			menuBar->SetWrappingAllowed( true );
+			menuBar->SetButtonSpacing( 45.0f );
+			while ( menuBar->GetChildren().Num() < MAX_MENU_OPTIONS ) {
+				idMenuWidget_MenuButton * const navButton = new (TAG_SWF) idMenuWidget_MenuButton();
+				idMenuScreen_Shell_Root * rootScreen = dynamic_cast< idMenuScreen_Shell_Root * >( menuScreens[ SHELL_AREA_ROOT ] );
+				if ( rootScreen != NULL ) {
+					navButton->RegisterEventObserver( rootScreen->GetHelpWidget() );
+				}
+				menuBar->AddChild( navButton );
+			}
+			AddChild( menuBar );*/
+
+			//
+			// command bar
+			//
+			/*cmdBar = new (TAG_SWF) idMenuWidget_CommandBar();
+			cmdBar->SetAlignment( idMenuWidget_CommandBar::LEFT );
+			cmdBar->SetSpritePath( "prompts" );
+			cmdBar->Initialize( this );
+			AddChild( cmdBar );
+
+			pacifier = new ( TAG_SWF ) idMenuWidget();
+			pacifier->SetSpritePath( "pacifier" );
+			AddChild( pacifier );*/
+
+			// precache sounds
+			// don't load gui music for the pause menu to save some memory
+			/*const idSoundShader * soundShader = NULL;
+			if ( !inGame ) {
+				soundShader = declManager->FindSound( "gui/menu_music", true );
+				if ( soundShader != NULL ) {
+					sounds[ GUI_SOUND_MUSIC ] = soundShader->GetName();
+				}
+			} else {
+				idStrStatic< MAX_OSPATH > shortMapName = gameLocal.GetMapFileName();
+				shortMapName.StripFileExtension();
+				shortMapName.StripLeading( "maps/" );
+				shortMapName.StripLeading( "game/" );
+				if ( ( shortMapName.Icmp( "le_hell_post" ) == 0 ) || ( shortMapName.Icmp( "hellhole" ) == 0 ) || ( shortMapName.Icmp( "hell" ) == 0 ) ) {
+					soundShader = declManager->FindSound( "hell_music_credits", true );
+					if ( soundShader != NULL ) {
+						sounds[ GUI_SOUND_MUSIC ] = soundShader->GetName();
+					}
+				}
+			}
+
+			soundShader = declManager->FindSound( "gui/list_scroll", true );
+			if ( soundShader != NULL ) {
+				sounds[ GUI_SOUND_SCROLL ] = soundShader->GetName();
+			}
+			soundShader = declManager->FindSound( "gui/btn_PDA_advance", true );
+			if ( soundShader != NULL ) {
+				sounds[ GUI_SOUND_ADVANCE ] = soundShader->GetName();
+			}
+			soundShader = declManager->FindSound( "gui/btn_PDA_back", true );
+			if ( soundShader != NULL ) {
+				sounds[ GUI_SOUND_BACK ] = soundShader->GetName();
+			}
+			soundShader = declManager->FindSound( "gui/menu_build_on", true );
+			if ( soundShader != NULL ) {
+				sounds[ GUI_SOUND_BUILD_ON ] = soundShader->GetName();
+			}
+			soundShader = declManager->FindSound( "gui/pda_next_tab", true );
+			if ( soundShader != NULL ) {
+				sounds[ GUI_SOUND_BUILD_ON ] = soundShader->GetName();
+			}
+			soundShader = declManager->FindSound( "gui/btn_set_focus", true );
+			if ( soundShader != NULL ) {
+				sounds[ GUI_SOUND_FOCUS ] = soundShader->GetName();
+			}
+			soundShader = declManager->FindSound( "gui/btn_roll_over", true );
+			if ( soundShader != NULL ) {
+				sounds[ GUI_SOUND_ROLL_OVER ] = soundShader->GetName();
+			}
+			soundShader = declManager->FindSound( "gui/btn_roll_out", true );
+			if ( soundShader != NULL ) {
+				sounds[ GUI_SOUND_ROLL_OUT ] = soundShader->GetName();
+			}
+
+			class idPauseGUIClose : public idSWFScriptFunction_RefCounted {
+			public:
+				idSWFScriptVar Call( idSWFScriptObject * thisObject, const idSWFParmList & parms ) {
+					gameLocal.Shell_Show( false );
+					return idSWFScriptVar();
+				}
+			};	
+
+			if ( gui != NULL ) {
+				gui->SetGlobal( "closeMenu", new idPauseGUIClose() );
+			}*/
+		}
+
+		protected override void Cleanup() 
+		{
+			base.Cleanup();
+	
+			idLog.Warning("TODO: idMenuHandler_Shell.Cleanup");
+			/*delete introGui;
+			introGui = NULL;*/
 		}
 		#endregion
 
@@ -144,8 +326,7 @@ namespace idTech4.Game.Menus
 
 					if(_gui != null)
 					{
-						idLog.Warning("TODO: idSWFSpriteInstance mars = _gui.RootObject.GetNestedSprite(\"mars\");");
-						idSWFSpriteInstance mars = null;
+						idSWFSpriteInstance mars = _gui.RootObject.GetNestedSprite("mars");
 
 						if(mars != null)
 						{
@@ -185,9 +366,10 @@ namespace idTech4.Game.Menus
 			else
 			{
 				idLog.Warning("TODO: ClearWidgetActionRepeater();");
-				/*nextScreen = SHELL_AREA_INVALID;
-				activeScreen = SHELL_AREA_INVALID;
-				nextState = SHELL_STATE_INVALID;*/
+
+				_nextScreen   = ShellArea.Invalid;
+				_activeScreen = ShellArea.Invalid;
+				_nextState    = ShellState.Invalid;
 
 				_state             = ShellState.Invalid;
 				_smallFrameShowing = false;
@@ -449,6 +631,40 @@ namespace idTech4.Game.Menus
 			}
 		}
 
+		private void ShowLogo(bool show)
+		{
+			if(_gui == null)
+			{
+				return;
+			}
+
+			if(show == _backgroundShowing)
+			{
+				return;
+			}
+
+			idSWFSpriteInstance logo = _gui.RootObject.GetNestedSprite("logoInfo");
+			idSWFSpriteInstance bg   = _gui.RootObject.GetNestedSprite("background");
+
+			if((logo != null) && (bg != null))
+			{
+				bg.StereoDepth = StereoDepthType.Mid;
+
+				if((show == true) && (_backgroundShowing == false))
+				{
+					logo.PlayFrame("rollOn");
+					bg.PlayFrame("rollOff");
+				}
+				else if((show == false) && (_backgroundShowing == true))
+				{
+					logo.PlayFrame("rollOff");
+					bg.PlayFrame("rollOn");
+				}
+			}
+
+			_backgroundShowing = show;
+		}
+
 		private void UpdateBackgroundState()
 		{
 			if(_smallFrameShowing == true)
@@ -487,9 +703,9 @@ namespace idTech4.Game.Menus
 				}
 			}
 
-			if((_smallFrameShowing == true) || (_largeFrameShowing ==true) || (_nextScreen == ShellArea.Start))
+			if((_smallFrameShowing == true) || (_largeFrameShowing == true) || (_nextScreen == ShellArea.Start))
 			{
-				idLog.Warning("TODO: ShowLogo(false);");
+				ShowLogo(false);
 			}
  			else
 			{
@@ -546,6 +762,7 @@ namespace idTech4.Game.Menus
 		MatchSettings,
 		ModeSelect,
 		Browser,
-		Credits
+		Credits,
+		AreaCount
 	}
 }

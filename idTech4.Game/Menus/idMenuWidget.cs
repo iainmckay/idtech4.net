@@ -27,57 +27,54 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System.Collections.Generic;
 
-using idTech4.UI.SWF;
-
 namespace idTech4.Game.Menus
 {
-	public abstract class idMenuScreen : idMenuWidget
+	/// <summary>
+	/// We're using a model/view architecture, so this is the combination of both model and view.  The
+	/// other part of the view is the SWF itself.
+	/// </summary>
+	public abstract class idMenuWidget
 	{
+		#region Properties
+		public idMenuWidget[] Children
+		{
+			get
+			{
+				return _children.ToArray();
+			}
+		}
+		#endregion
+
 		#region Members
-		private idSWF _menuGui;
-		private MainMenuTransition _transition;
+		protected idMenuHandler _menuData;
+
+		private List<idMenuWidget> _children  = new List<idMenuWidget>();
+		private List<idMenuWidget> _observers = new List<idMenuWidget>();
 		#endregion
 
 		#region Constructor
-		public idMenuScreen()
-			: base()
+		public idMenuWidget()
 		{
-			_transition = MainMenuTransition.Invalid;
+			// TODO:
+			/*eventActionLookup.SetNum( eventActionLookup.Max() );
+			for ( int i = 0; i < eventActionLookup.Num(); ++i ) {
+				eventActionLookup[ i ] = INVALID_ACTION_INDEX;
+			}*/
 		}
 		#endregion
 
-		#region idMenuWidget implementation
+		#region Initialization
+		public void Initialize(idMenuHandler data)
+		{
+			_menuData = data;
+		}
+		#endregion
+
 		#region Frame
-		public override void Update()
-		{
-			if(_menuGui == null)
-			{
-				return;
-			}
-
-			//
-			// Display
-			//
-			for(int childIndex = 0; childIndex < this.Children.Length; ++childIndex)
-			{
-				this.Children[childIndex].Update();
-			}
-
-			if(_menuData != null)
-			{
-				_menuData.UpdateChildren();
-			}
+		public virtual void Update() 
+		{ 
+		
 		}
 		#endregion
-		#endregion
-	}
-
-	public enum MainMenuTransition
-	{
-		Invalid = -1,
-		Simple,
-		Advance,
-		Back,
-		Force
 	}
 }

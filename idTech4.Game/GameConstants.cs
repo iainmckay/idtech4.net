@@ -25,59 +25,10 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System.Collections.Generic;
-
-using idTech4.UI.SWF;
-
-namespace idTech4.Game.Menus
+namespace idTech4.Game
 {
-	public abstract class idMenuScreen : idMenuWidget
+	public class GameConstants
 	{
-		#region Members
-		private idSWF _menuGui;
-		private MainMenuTransition _transition;
-		#endregion
-
-		#region Constructor
-		public idMenuScreen()
-			: base()
-		{
-			_transition = MainMenuTransition.Invalid;
-		}
-		#endregion
-
-		#region idMenuWidget implementation
-		#region Frame
-		public override void Update()
-		{
-			if(_menuGui == null)
-			{
-				return;
-			}
-
-			//
-			// Display
-			//
-			for(int childIndex = 0; childIndex < this.Children.Length; ++childIndex)
-			{
-				this.Children[childIndex].Update();
-			}
-
-			if(_menuData != null)
-			{
-				_menuData.UpdateChildren();
-			}
-		}
-		#endregion
-		#endregion
-	}
-
-	public enum MainMenuTransition
-	{
-		Invalid = -1,
-		Simple,
-		Advance,
-		Back,
-		Force
+		public const int MaxScreenAreas = 32;
 	}
 }

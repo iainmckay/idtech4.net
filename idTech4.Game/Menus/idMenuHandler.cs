@@ -25,8 +25,11 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System.Collections.Generic;
+
 using idTech4.Services;
 using idTech4.UI.SWF;
+using idTech4.UI.SWF.Scripting;
 
 namespace idTech4.Game.Menus
 {
@@ -59,10 +62,11 @@ namespace idTech4.Game.Menus
 
 		protected idSWF _gui;
 		protected idSWF _introGui;
-	
+
+		public List<idMenuWidget> _children = new List<idMenuWidget>();
+		public idMenuScreen[] _menuScreens  = new idMenuScreen[GameConstants.MaxScreenAreas];
 		// TODO
 		/*actionRepeater_t			actionRepeater;
-		idMenuScreen *				menuScreens[MAX_SCREEN_AREAS];
 		idList< idMenuWidget *, TAG_IDLIB_LIST_MENU>	children;
 	
 		idStaticList< idStr, NUM_GUI_SOUNDS >		sounds;
@@ -77,10 +81,10 @@ namespace idTech4.Game.Menus
 			_nextScreen   = ShellArea.Invalid;
 			_transition   = MainMenuTransition.Invalid;
 
-			/*for(int index = 0; index < MAX_SCREEN_AREAS; ++index)
+			for(int index = 0; index < _menuScreens.Length; ++index)
 			{
-				menuScreens[index] = NULL;
-			}*/
+				_menuScreens[index] = null;
+			}
 
 			// TODO: sounds.SetNum(NUM_GUI_SOUNDS);
 		}
@@ -92,12 +96,32 @@ namespace idTech4.Game.Menus
 		#endregion
 
 		#region Initialization
-		public void Init(string swfFile /* TODO:, idSoundWorld * sw*/)
+		public virtual void Initialize(string swfFile /* TODO:, idSoundWorld * sw*/)
 		{
 			Cleanup();
 
 			_gui      = idEngine.Instance.GetService<idSWFManager>().Load(swfFile/* TODO: , sw*/);
 			_platform = 2;
+		}
+
+		protected virtual void Cleanup()
+		{
+			idLog.Warning("TODO: idMenuHandler.Cleanup");
+
+			/*for ( int index = 0; index < children.Num(); ++index ) {
+				assert( children[ index ]->GetRefCount() > 0 );
+				children[ index ]->Release();
+			}
+			children.Clear();
+
+			for ( int index = 0; index < MAX_SCREEN_AREAS; ++index ) {
+				if ( menuScreens[ index ] != NULL ) {
+					menuScreens[ index ]->Release();
+				}
+			}
+
+			delete gui;
+			gui = NULL;*/
 		}
 		#endregion
 
@@ -115,32 +139,15 @@ namespace idTech4.Game.Menus
 				return;
 			}
 
-			idLog.Warning("TODO: gui->SetGlobal( \"updateMenuDisplay\", new (TAG_SWF) idSWFScriptFunction_updateMenuDisplay( gui, this ) );");
-			idLog.Warning("TODO: gui->SetGlobal( \"activateMenus\", new (TAG_SWF) idSWFScriptFunction_activateMenu( this ) );");
+			_gui.Globals.Set("updateMenuDisplay",	new idSWFScriptFunction_UpdateMenuDisplay(_gui, this));
+			_gui.Globals.Set("activateMenus",		new idSWFScriptFunction_ActivateMenus(this));
 
 			_gui.Activate(show);
 		}
 
-		private void Cleanup()
+		public virtual void TriggerMenu() 
 		{
-			idLog.Warning("TODO: Cleanup");
-			/*for(int index = 0; index < children.Num(); ++index)
-			{
-				assert(children[index]->GetRefCount() > 0);
-				children[index]->Release();
-			}
-			children.Clear();
 
-			for(int index = 0; index < MAX_SCREEN_AREAS; ++index)
-			{
-				if(menuScreens[index] != NULL)
-				{
-					menuScreens[index]->Release();
-				}z
-			}
-
-			delete gui;
-			gui = NULL;*/
 		}
 		#endregion
 
@@ -153,6 +160,83 @@ namespace idTech4.Game.Menus
 			{
 				_gui.Draw(idEngine.Instance.GetService<IRenderSystem>(), idEngine.Instance.ElapsedTime);
 			}
+		}
+
+		public void UpdateChildren()
+		{
+			for(int index = 0; index < _children.Count; ++index)
+			{
+				if(_children[index] != null)
+				{
+					_children[index].Update();
+				}
+			}
+		}
+
+		public virtual void UpdateMenuDisplay(int menu)
+		{
+			if(_menuScreens[menu] != null)
+			{
+				_menuScreens[menu].Update();
+			}
+
+			UpdateChildren();
+		}
+		#endregion
+	}
+
+	public class idSWFScriptFunction_UpdateMenuDisplay : idSWFScriptFunction
+	{
+		#region Members
+		private idSWF _gui;
+		private idMenuHandler _handler;
+		#endregion
+
+		#region Constructor
+		public idSWFScriptFunction_UpdateMenuDisplay(idSWF gui, idMenuHandler handler)
+		{
+			_gui     = gui;
+			_handler = handler;
+		}
+		#endregion
+
+		#region idSWFScriptFunction implementation
+		public override idSWFScriptVariable Invoke(idSWFScriptObject scriptObj, idSWFParameterList parms)
+		{
+			if(_handler != null)
+			{
+				int screen = parms[0].ToInt32();
+
+				_handler.UpdateMenuDisplay(screen);
+			}
+
+			return new idSWFScriptVariable();
+		}
+		#endregion
+	}
+
+	public class idSWFScriptFunction_ActivateMenus : idSWFScriptFunction
+	{
+		#region Members
+		private idMenuHandler _handler;
+		#endregion
+
+		#region Constructor
+		public idSWFScriptFunction_ActivateMenus(idMenuHandler handler)
+		{
+			_handler = handler;
+		}
+		#endregion
+
+		#region idSWFScriptFunction implementation
+		public override idSWFScriptVariable Invoke(idSWFScriptObject scriptObj, idSWFParameterList parms)
+		{
+			if(_handler != null)
+			{				
+				_handler.TriggerMenu();
+			}
+
+			return new idSWFScriptVariable();
 		}
 		#endregion
 	}

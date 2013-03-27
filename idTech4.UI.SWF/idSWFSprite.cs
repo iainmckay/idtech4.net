@@ -58,6 +58,14 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public idSWFFrameLabel[] FrameLabels
+		{
+			get
+			{
+				return _frameLabels;
+			}
+		}
+
 		public int FrameOffsetCount
 		{
 			get
@@ -84,7 +92,7 @@ namespace idTech4.UI.SWF
 		// the first command for frame 3 is frameOffsets[2] and the last command is frameOffsets[3]
 		private uint[] _frameOffsets;
 
-		private FrameLabel[] _frameLabels;
+		private idSWFFrameLabel[] _frameLabels;
 		private idSWFSpriteCommand[] _commands;
 
 		//// [ES-BrianBugh 1/16/10] - There can be multiple DoInitAction tags, and all need to be executed.
@@ -121,11 +129,11 @@ namespace idTech4.UI.SWF
 				_frameOffsets[i] = input.ReadUInt32();
 			}
 
-			_frameLabels = new FrameLabel[input.ReadInt32()];
+			_frameLabels = new idSWFFrameLabel[input.ReadInt32()];
 			
 			for(int i = 0; i < _frameLabels.Length; i++)
 			{
-				_frameLabels[i].Number = input.ReadUInt32();
+				_frameLabels[i].FrameNumber = input.ReadUInt32();
 				_frameLabels[i].Label  = input.ReadString();
 			}
 
@@ -153,15 +161,15 @@ namespace idTech4.UI.SWF
 			}
 		}
 		#endregion
-
-		#region Types
-		private struct FrameLabel
-		{
-			public string Label;
-			public uint Number;
-		}
-		#endregion
 	}
+
+	#region Types
+	public struct idSWFFrameLabel
+	{
+		public string Label;
+		public uint FrameNumber;
+	}
+	#endregion
 
 	public class idSWFSpriteCommand
 	{

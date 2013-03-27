@@ -92,11 +92,13 @@
     </Reference>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="GameConstants.cs" />
     <Compile Include="idGame.cs" />
     <Compile Include="idGameEdit.cs" />
     <Compile Include="Menus\idMenuHandler.cs" />
     <Compile Include="Menus\idMenuHandler_Shell.cs" />
     <Compile Include="Menus\idMenuScreen.cs" />
+    <Compile Include="Menus\idMenuWidget.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
   </ItemGroup>
   <ItemGroup>

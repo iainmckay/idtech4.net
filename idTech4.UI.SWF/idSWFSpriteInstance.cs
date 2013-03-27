@@ -25,6 +25,7 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
 using System.Collections.Generic;
 using System.IO;
 
@@ -146,6 +147,10 @@ namespace idTech4.UI.SWF
 			{
 				return _stereoDepth;
 			}
+			set
+			{
+				_stereoDepth = value;
+			}
 		}
 		#endregion
 
@@ -210,6 +215,8 @@ namespace idTech4.UI.SWF
 			_moveToXScale    = 1.0f;
 			_moveToYScale    = 1.0f;
 			_moveToSpeed     = 1.0f;
+
+			_name            = string.Empty;
 		}
 
 		// TODO: cleanup
@@ -254,6 +261,29 @@ namespace idTech4.UI.SWF
 		#endregion
 
 		#region Frame
+		private uint FindFrame(string labelName)
+		{
+			uint frameNum;
+			uint.TryParse(labelName, out frameNum);
+
+			if(frameNum > 0)
+			{
+				return frameNum;
+			}
+
+			for(int i = 0; i < _sprite.FrameLabels.Length; i++)
+			{
+				if(_sprite.FrameLabels[i].Label.Equals(labelName, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					return _sprite.FrameLabels[i].FrameNumber;
+				}
+			}
+
+			idLog.Warning("Could not find frame '{0}' in sprite '{1}'", labelName, this.Name);
+
+			return _currentFrame;
+		}
+
 		public void NextFrame()
 		{
 			if(_currentFrame < _frameCount)
@@ -278,6 +308,37 @@ namespace idTech4.UI.SWF
 			}
 
 			_isPlaying = true;
+		}
+
+		public void PlayFrame(idSWFParameterList parms)
+		{
+			if(parms.Count > 0)
+			{
+				_actions.Clear();
+
+				RunTo((int) FindFrame(parms[0].ToString()));
+				Play();
+			}
+			else
+			{
+				idLog.Warning("gotoAndPlay: expected 1 parameter");
+			}
+		}
+
+		public void PlayFrame(string name)
+		{
+			idSWFParameterList parms = new idSWFParameterList(1);
+			parms.Add(name);
+
+			PlayFrame(parms);
+		}
+
+		public void PlayFrame(int num)
+		{
+			idSWFParameterList parms = new idSWFParameterList(1);
+			parms.Add(num);
+
+			PlayFrame(parms);
 		}
 
 		public bool Run()
@@ -828,7 +889,7 @@ namespace idTech4.UI.SWF
 		public float Ratio;
 
 		public idSWFMatrix Matrix;
-		public idSWFColorXForm ColorXForm;
+		public idSWFColorXForm ColorXForm = idSWFColorXForm.Default;
 
 		/// <summary>
 		/// If this entry is a sprite, then this will point to the specific instance of that sprite.

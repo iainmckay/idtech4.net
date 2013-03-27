@@ -400,6 +400,16 @@ namespace idTech4.UI.SWF.Scripting
 			return 0;
 		}
 
+		public idSWFSpriteInstance ToSprite()
+		{
+			if((this.IsObject == true) && (_valueObject != null))
+			{
+				return _valueObject.Sprite;
+			}
+
+			return null;
+		}
+
 		public override string ToString()
 		{
 

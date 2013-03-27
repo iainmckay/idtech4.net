@@ -200,6 +200,48 @@ namespace idTech4.UI.SWF.Scripting
 			return new idSWFScriptVariable("[unknown]");
 		}
 
+		public idSWFSpriteInstance GetNestedSprite(string arg1, string arg2 = null, string arg3 = null, string arg4 = null, string arg5 = null, string arg6 = null)
+		{
+			return GetNestedVariable(arg1, arg2, arg3, arg4, arg5, arg6).ToSprite();
+		}
+
+		public idSWFScriptVariable GetNestedVariable(string arg1, string arg2 = null, string arg3 = null, string arg4 = null, string arg5 = null, string arg6 = null)
+		{
+			List<string> list = new List<string>(new string[] {arg1, arg2, arg3, arg4, arg5, arg6});
+			list.RemoveAll((s) => { return (s == null); });
+
+			idSWFScriptObject baseObject = this;
+			idSWFScriptVariable retVal   = new idSWFScriptVariable();
+
+			for(int i = 0; i < list.Count; ++i)
+			{
+				if(list[i] == null)
+				{
+					continue;
+				}
+
+				idSWFScriptVariable var = baseObject.Get(list[i]);
+
+				// when at the end of object path just use the latest value as result
+				if(i == (list.Count - 1))
+				{
+					retVal = var;
+					break;
+				}
+
+				// encountered variable in path that wasn't an object
+				if(var.IsObject == false)
+				{
+					retVal = new idSWFScriptVariable();
+					break;
+				}
+
+				baseObject = var.Object;
+			}
+
+			return retVal;
+		}
+	
 		public void Set(int index, idSWFScriptVariable value)
 		{
 			if(index < 0)
