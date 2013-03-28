@@ -441,18 +441,20 @@ namespace idTech4.Game.Menus
 						idSWFScriptObject & root = gui->GetRootObject();
 						menuBar->BindSprite( root );
 						SetupPCOptions();
-					}
-					transition = MENU_TRANSITION_SIMPLE;
-					state = nextState;*/
+					}*/
+
+					_transition = MainMenuTransition.Simple;
+					_state      = _nextState;
 				} 
 				else if(_nextState == ShellState.PartyLobby)
 				{
 					idLog.Warning("TODO: nextState party lobby");
 
-					/*HidePacifier();
-					nextScreen = SHELL_AREA_PARTY_LOBBY;
-					transition = MENU_TRANSITION_SIMPLE;
-					state = nextState;*/
+					/*HidePacifier();*/
+
+					_nextState  = ShellState.PartyLobby;
+					_transition = MainMenuTransition.Simple;
+					_state      = _nextState;
 				} 
 				else if(_nextState == ShellState.GameLobby)
 				{
@@ -485,23 +487,23 @@ namespace idTech4.Game.Menus
 						nextScreen = SHELL_AREA_CREDITS;
 					} else {
 						nextScreen = SHELL_AREA_ROOT;
-					}
+					}*/
 
-					state = nextState;*/
+					_state = _nextState;
 				} 
 				else if(_nextState == ShellState.Connecting)
 				{
 					idLog.Warning("TODO: nextState connecting");
 
-					/*ShowPacifier( "#str_dlg_connecting" );
-					state = nextState;*/
+					/*ShowPacifier( "#str_dlg_connecting" );*/
+					_state = _nextState;
 				} 
 				else if(_nextState == ShellState.Searching)
 				{
 					idLog.Warning("TODO: nextState searching");
 
-					/*ShowPacifier( "#str_online_mpstatus_searching" );
-					state = nextState;*/
+					/*ShowPacifier( "#str_online_mpstatus_searching" );*/
+					_state = _nextState;
 				}
 			}
 
