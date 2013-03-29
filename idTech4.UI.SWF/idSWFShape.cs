@@ -28,10 +28,46 @@ If you have questions concerning this license or the applicable additional terms
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 
+using idTech4.Math;
+
 namespace idTech4.UI.SWF
 {
 	public class idSWFShape : idSWFDictionaryEntry
 	{
+		#region Properties
+		public idSWFShapeDrawFill[] Fills
+		{
+			get
+			{
+				return _fillDraws;
+			}
+		}
+
+		public idSWFShapeDrawLine[] Lines
+		{
+			get
+			{
+				return _lineDraws;
+			}
+		}
+
+		public idSWFRect StartBounds
+		{
+			get
+			{
+				return _startBounds;
+			}
+		}
+
+		public idSWFRect EndBounds
+		{
+			get
+			{
+				return _endBounds;
+			}
+		}
+		#endregion
+
 		#region Members
 		private idSWFRect _startBounds;
 		private idSWFRect _endBounds;
@@ -74,6 +110,40 @@ namespace idTech4.UI.SWF
 
 	public class idSWFShapeDrawFill
 	{
+		#region Properties
+		public Vector2[] EndVertices
+		{
+			get
+			{
+				return _endVertices;
+			}
+		}
+
+		public ushort[] Indices
+		{
+			get
+			{
+				return _indices;
+			}
+		}
+
+		public Vector2[] StartVertices
+		{
+			get
+			{
+				return _startVertices;
+			}
+		}
+
+		public idSWFFillStyle Style
+		{
+			get
+			{
+				return _style;
+			}
+		}
+		#endregion
+
 		#region Members
 		private idSWFFillStyle _style = new idSWFFillStyle();
 
@@ -148,6 +218,48 @@ namespace idTech4.UI.SWF
 
 	public class idSWFFillStyle
 	{
+		#region Properties
+		public ushort BitmapID
+		{
+			get
+			{
+				return _bitmapID;
+			}
+		}
+
+		public idSWFColorRGBA EndColor
+		{
+			get
+			{
+				return _endColor;
+			}
+		}
+
+		public idSWFColorRGBA StartColor
+		{
+			get
+			{
+				return _startColor;
+			}
+		}
+
+		public idSWFMatrix StartMatrix
+		{
+			get
+			{
+				return _startMatrix;
+			}
+		}
+
+		public byte Type
+		{
+			get
+			{
+				return _type;
+			}
+		}
+		#endregion
+
 		#region Members
 		/// <summary>
 		/// 0 = solid, 1 = gradient, 4 = bitmap.
@@ -268,9 +380,32 @@ namespace idTech4.UI.SWF
 			this.TY = input.ReadSingle();
 		}
 
+		public idSWFMatrix Inverse()
+		{
+			idSWFMatrix inverse = idSWFMatrix.Default;
+			
+			float det = ((this.XX * this.YY) - (this.YX * this.XY));
+
+			if(idMath.Abs(det) < idMath.FloatSmallestNonDenormal)
+			{
+				return (idSWFMatrix) this.MemberwiseClone();
+			}
+
+			float invDet = 1.0f / det;
+
+			inverse.XX = invDet * this.YY;
+			inverse.YX = invDet * -this.YX;
+			inverse.XY = invDet * -this.XY;
+			inverse.YY = invDet * this.XX;
+			//inverse.tx = invDet * ( xy * ty ) - ( yy * tx );
+			//inverse.ty = invDet * ( yx * tx ) - ( xx * ty );
+
+			return inverse;
+		}
+
 		public idSWFMatrix Multiply(idSWFMatrix a)
 		{
-			idSWFMatrix result = new idSWFMatrix();
+			idSWFMatrix result = idSWFMatrix.Default;
 			result.XX = this.XX * a.XX + this.YX * a.XY;
 			result.YX = this.XX * a.YX + this.YX * a.YY;
 			result.XY = this.XY * a.XX + this.YY * a.XY;
@@ -279,6 +414,12 @@ namespace idTech4.UI.SWF
 			result.TY = this.TX * a.YX + this.TY * a.YY + a.TY;
 
 			return result;
+		}
+
+		public Vector2 Transform(Vector2 t)
+		{
+			return new Vector2((t.X * this.XX) + (t.Y * this.XY) + this.TX,
+						(t.Y * this.YY) + (t.X * this.YX) + this.TY);
 		}
 
 		public static idSWFMatrix Default = new idSWFMatrix(1, 1, 0, 0, 0, 0);

@@ -85,6 +85,7 @@ namespace idTech4.Services
 		#endregion
 
 		#region Methods
+		void AddPrimitive(idVertex[] vertices, ushort[] indexes, idMaterial material, StereoDepthType stereoType);
 		DynamicIndexBuffer CreateDynamicIndexBuffer(IndexElementSize indexElementSize, int indexCount, BufferUsage usage);
 		DynamicVertexBuffer CreateDynamicVertexBuffer(VertexDeclaration vertexDeclaration, int vertexCount, BufferUsage usage);
 		IndexBuffer CreateIndexBuffer(IndexElementSize indexElementSize, int indexCount, BufferUsage usage);

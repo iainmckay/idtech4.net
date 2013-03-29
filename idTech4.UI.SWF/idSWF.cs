@@ -32,7 +32,9 @@ using System.IO;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
+using Microsoft.Xna.Framework.Graphics.PackedVector;
 
+using idTech4.Math;
 using idTech4.Renderer;
 using idTech4.Services;
 using idTech4.UI.SWF.Scripting;
@@ -561,7 +563,7 @@ namespace idTech4.UI.SWF
 				}
 				else if(entry is idSWFShape)
 				{
-					idLog.Warning("TODO: DrawShape(renderSystem, (idSWFShape) entry, renderState2);");
+					DrawShape(renderSystem, (idSWFShape) entry, renderState2);
 				}
 				else if(entry is idSWFEditText)
 				{
@@ -579,9 +581,228 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		private void DrawShape(IRenderSystem renderSystem, idSWFShape shape, idSWFRenderState renderState)
+		{
+			if(shape == null)
+			{
+				idLog.Warning("RenderShape: shape == null");
+				return;
+			}
+
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+
+			foreach(idSWFShapeDrawFill fill  in shape.Fills)
+			{
+				idMaterial material    = null;
+				idSWFMatrix invMatrix  = idSWFMatrix.Default;
+				idSWFColorXForm color  = idSWFColorXForm.Default;
+				
+				Vector2 atlasScale = Vector2.Zero;
+				Vector2 atlasBias  = Vector2.Zero;
+				bool useAtlas      = false;
+
+				Vector2 size = new Vector2(1, 1);
+
+				if(renderState.Material != null)
+				{
+					material = renderState.Material;
+					invMatrix.XX = invMatrix.YY = (1.0f / 20.0f);
+				}
+				else if(fill.Style.Type == 0)
+				{
+					material = _guiSolid;
+					color.Mul = fill.Style.StartColor.ToVector4();
+				} 
+				else if((fill.Style.Type == 4) && (fill.Style.BitmapID != 65535)) 
+				{
+					// everything in a single image atlas
+					idSWFImage entry  = _dictionary[fill.Style.BitmapID] as idSWFImage;
+					material          = _atlasMaterial;
+					Vector2 atlasSize = new Vector2(material.ImageWidth, material.ImageHeight);
+
+					for(int i = 0; i < 2; i++)
+					{
+						size.Set(i, entry.ImageSize.Get(i));
+
+						atlasScale.Set(i, (float) size.Get(i) / atlasSize.Get(i));
+						atlasBias.Set(i, (float) entry.ImageAtlasOffset.Get(i) / atlasSize.Get(i));
+					}
+
+					// de-normalize color channels after DXT decompression
+					color.Mul = entry.ChannelScale;
+					useAtlas  = true;
+					invMatrix = fill.Style.StartMatrix.Inverse();
+				} 
+				else 
+				{
+					material = _guiSolid;
+				}
+
+				color = color.Multiply(renderState.ColorXForm);
+
+				if(cvarSystem.GetFloat("swf_forceAlpha") > 0.0f)
+				{
+					color.Mul.W = cvarSystem.GetFloat("swf_forceAlpha");
+					color.Add.W = 0.0f;
+				}
+
+				if((color.Mul.W + color.Add.W) <= AlphaEpsilon)
+				{
+					continue;
+				}
+
+				Color colorMul   = new Color(color.Mul);
+				Color colorAdd   = new Color(color.Add);
+				idSWFRect bounds = shape.StartBounds;
+
+				if(renderState.MaterialWidth > 0)
+				{
+					size.X = renderState.MaterialWidth;
+				}
+
+				if(renderState.MaterialHeight > 0)
+				{
+					size.Y = renderState.MaterialHeight;
+				}
+
+				Vector2 oneOverSize = new Vector2(1.0f / size.X, 1.0f / size.Y);
+
+				renderSystem.SetRenderState(StateForRenderState(renderState));
+
+				idVertex[] verts = new idVertex[fill.StartVertices.Length];
+				ushort[] indexes = fill.Indices;
+
+				for(int j = 0; j < fill.StartVertices.Length; j++)
+				{
+					Vector2 xy = fill.StartVertices[j];
+				
+					verts[j].Clear();
+					verts[j].Position   = new Vector3(renderState.Matrix.Transform(xy) * _scaleToVirtual, 0);
+					verts[j].Color      = colorMul;
+					verts[j].Color2     = colorAdd;
+
+					// for some reason I don't understand, having texcoords
+					// in the range of 2000 or so causes what should be solid
+					// fill areas to have horizontal bands on nvidia, but not 360.
+					// forcing the texcoords to zero fixes it.
+					if(fill.Style.Type != 0)
+					{
+						Vector2 st;
+						
+						// all the swf vertexes have an implicit scale of 1/20 for some reason...
+						st.X = ((xy.X - bounds.TopLeft.X) * oneOverSize.X) * 20.0f;
+						st.Y = ((xy.Y - bounds.TopLeft.Y) * oneOverSize.Y) * 20.0f;
+						st = invMatrix.Transform(st);
+						
+						if(useAtlas == true) 
+						{
+							st = (st * atlasScale) + atlasBias;
+						}
+
+						// inset the tc - the gui may use a vmtr and the tc might end up
+						// crossing page boundaries if using [0.0,1.0]
+						st.X = MathHelper.Clamp(st.X, 0.001f, 0.999f);
+						st.X = MathHelper.Clamp(st.Y, 0.001f, 0.999f);
+
+						verts[j].TextureCoordinates = new HalfVector2(st);
+					}
+				}
+				
+				renderSystem.AddPrimitive(verts, indexes, material, renderState.StereoDepth);
+			}
+
+			if(shape.Lines.Length > 0)
+			{
+				idLog.Warning("TODO: DrawShape LineDraws");
+			}
+
+			/*for ( int i = 0; i < shape->lineDraws.Num(); i++ ) {
+				const idSWFShapeDrawLine & line = shape->lineDraws[i];
+				swfColorXform_t color;
+				color.mul = line.style.startColor.ToVec4();
+				color = color.Multiply( renderState.cxf );
+				if ( swf_forceAlpha.GetFloat() > 0.0f ) {
+					color.mul.w = swf_forceAlpha.GetFloat();
+					color.add.w = 0.0f;
+				}
+				if ( ( color.mul.w + color.add.w ) <= ALPHA_EPSILON ) {
+					continue;
+				}
+				uint32 packedColorM = LittleLong( PackColor( color.mul ) );
+				uint32 packedColorA = LittleLong( PackColor( ( color.add * 0.5f ) + idVec4( 0.5f ) ) ); // Compress from -1..1 to 0..1
+
+				gui->SetGLState( GLStateForRenderState( renderState ) | GLS_POLYMODE_LINE );
+
+				idDrawVert * verts = gui->AllocTris( line.startVerts.Num(), line.indices.Ptr(), line.indices.Num(), white, renderState.stereoDepth );	
+				if ( verts == NULL ) {
+					continue;
+				}
+
+				for ( int j = 0; j < line.startVerts.Num(); j++ ) {
+					const idVec2 & xy = line.startVerts[j];
+
+					ALIGNTYPE16 idDrawVert tempVert;
+
+					tempVert.Clear();
+					tempVert.xyz.ToVec2() = renderState.matrix.Transform( xy ).Scale( scaleToVirtual );
+					tempVert.xyz.z = 0.0f;
+					tempVert.SetTexCoord( 0.0f, 0.0f );
+					tempVert.SetNativeOrderColor( packedColorM );
+					tempVert.SetNativeOrderColor2( packedColorA );
+
+					WriteDrawVerts16( & verts[j], & tempVert, 1 );
+				}
+			}*/
+		}
+
 		private void DrawStretchPicture(float x, float y, float width, float height, float s1, float t1, float s2, float t2, idMaterial material)
 		{
 			idEngine.Instance.GetService<IRenderSystem>().DrawStretchPicture(x * _scaleToVirtual.X, y * _scaleToVirtual.Y, width * _scaleToVirtual.X, height * _scaleToVirtual.Y, s1, t1, s2, t2, material);
+		}
+
+		private ulong StateForRenderState(idSWFRenderState renderState)
+		{
+			MaterialStates extraState = MaterialStates.Override | MaterialStates.DepthFunctionLess | MaterialStates.DepthMask; // SWF State always overrides what's set in the material
+
+			if(renderState.ActiveMasks > 0)
+			{
+				extraState |= MaterialStates.StencilFunctionEqual | idHelper.MakeStencilReference((ulong) (128 + renderState.ActiveMasks)) | idHelper.MakeStencilMask(255);
+			} 
+			else if(renderState.ActiveMasks == StencilIncrement)
+			{
+				return (ulong) (MaterialStates.ColorMask | MaterialStates.AlphaMask | MaterialStates.StencilOperationFailKeep | MaterialStates.StencilOperationZFailKeep | MaterialStates.StencilOperationPassIncrement);
+			}
+			else if(renderState.ActiveMasks == StencilDecrement)
+			{
+				return (ulong) (MaterialStates.ColorMask | MaterialStates.AlphaMask | MaterialStates.StencilOperationFailKeep | MaterialStates.StencilOperationZFailKeep | MaterialStates.StencilOperationPassDecrement);
+			}
+
+			switch(renderState.BlendMode)
+			{
+				case 7: // difference : dst = abs( dst - src )
+				case 9: // subtract : dst = dst - src
+					return (ulong) (extraState | (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne | MaterialStates.BlendOperationSubtract));
+				case 8: // add : dst = dst + src
+					return (ulong) (extraState | (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne));
+				case 6: // darken : dst = min( dst, src )
+					return (ulong) (extraState | (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne | MaterialStates.BlendOperationMin));
+				case 5: // lighten : dst = max( dst, src )
+					return (ulong) (extraState | (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne | MaterialStates.BlendOperationMax));
+				case 4: // screen : dst = dst + src - dst*src ( we only do dst - dst * src, we could do the extra + src with another pass if we need to)
+					return (ulong) (extraState | (MaterialStates.SourceBlendDestinationColor | MaterialStates.DestinationBlendOne | MaterialStates.BlendOperationSubtract));
+				case 14: // hardlight : src < 0.5 ? multiply : screen
+				case 13: // overlay : dst < 0.5 ? multiply  : screen
+				case 3: // multiply : dst = ( dst * src ) + ( dst * (1-src.a) )
+					return (ulong) (extraState | (MaterialStates.SourceBlendDestinationColor | MaterialStates.DestinationBlendOneMinusSourceAlpha));
+				case 12: // erase
+				case 11: // alpha
+				case 10: // invert
+				case 2: // layer
+				case 1: // normal
+				case 0: // normaler
+				default:
+					return (ulong) (extraState | (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOneMinusSourceAlpha));
+			}
 		}
 		#endregion
 
@@ -663,7 +884,7 @@ namespace idTech4.UI.SWF
 			// END XNB LOAD
 			// ------------------------------
 
-			idLog.Warning("TODO: _atlasMaterial      = declManager.FindMaterial(Path.GetFileNameWithoutExtension(binaryFileName));");
+			_atlasMaterial = declManager.FindMaterial(input.AssetName.Replace('\\', '/'));
 
 			CreateGlobals();
 
@@ -1076,6 +1297,11 @@ namespace idTech4.UI.SWF
 			this.G = input.ReadByte();
 			this.B = input.ReadByte();
 			this.A = input.ReadByte();
+		}
+
+		public Vector4 ToVector4()
+		{
+			return new Vector4(this.R * (1.0f / 255.0f), this.G * (1.0f / 255.0f), this.B * (1.0f / 255.0f), this.A * (1.0f / 255.0f));
 		}
 
 		public static idSWFColorRGBA Default = new idSWFColorRGBA(255, 255, 255, 255);

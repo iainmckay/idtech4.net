@@ -69,11 +69,15 @@ namespace idTech4.Renderer
 
 		#region Methods
 		#region Rendering
-		public void AddPrimitive(idVertex[] vertices, ushort[] indexes, idMaterial material, ulong state)
+		public void AddPrimitive(idVertex[] vertices, ushort[] indexes, idMaterial material, ulong state, StereoDepthType stereoType)
 		{
 			IRenderSystem renderSystem = idEngine.Instance.GetService<IRenderSystem>();
 
 			if(material == null)
+			{
+				return;
+			}
+			else if((vertices.Length == 0) || (indexes.Length == 0))
 			{
 				return;
 			}
@@ -109,9 +113,9 @@ namespace idTech4.Renderer
 					AdvanceSurface();
 				}
 
-				_surface.Material         = material;
-				_surface.State            = state;
-				// TODO: surf->stereoType = stereoType;
+				_surface.Material   = material;
+				_surface.State      = state;
+				_surface.StereoType = stereoType;
 			}
 
 			int startVertex = _vertexCount;
@@ -353,6 +357,6 @@ namespace idTech4.Renderer
 		public int FirstVertex;
 		public int VertexCount;
 
-		// TODO: stereoDepthType_t		stereoType;
+		public StereoDepthType StereoType;
 	}
 }

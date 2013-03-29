@@ -1066,6 +1066,7 @@ namespace idTech4.Platform.Windows
 					StageVertexColor stageVertexColor = stage.VertexColor;
 
 					// TODO: renderLog.OpenBlock( "Old Shader Stage" );
+					
 					idLog.Warning("TODO: SetColor(color);");
 
 					if(surface.Space.IsGuiSurface == true)

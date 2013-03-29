@@ -25,6 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework;
 
 namespace idTech4
@@ -39,6 +41,20 @@ namespace idTech4
 		#endregion
 
 		#region Vector2
+		public static float Get(this Vector2 v, int component)
+		{
+			if(component == 0)
+			{
+				return v.X;
+			}
+			else if(component == 1)
+			{
+				return v.Y;
+			}
+
+			throw new ArgumentOutOfRangeException("component");
+		}
+
 		public static void Set(this Vector2 v, int component, float value)
 		{
 			if(component == 0)

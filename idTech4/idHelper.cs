@@ -25,6 +25,7 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using idTech4.Renderer;
 using idTech4.Services;
 
 namespace idTech4
@@ -74,6 +75,16 @@ namespace idTech4
 		public static int FrameToMillsecond(long frame)
 		{
 			return (int) ((frame * Constants.EngineHzNumerator) / Constants.EngineHzDenominator);
+		}
+
+		public static MaterialStates MakeStencilReference(ulong x)
+		{
+			return (MaterialStates) ((x << (int) MaterialStates.StencilFunctionReferenceShift) & ((int) MaterialStates.StencilFunctionReferenceBits));
+		}
+
+		public static MaterialStates MakeStencilMask(ulong x)
+		{
+			return (MaterialStates) ((x << (int) MaterialStates.StencilFunctionReferenceShift) & ((int) MaterialStates.StencilFunctionReferenceBits));
 		}
 	}
 }

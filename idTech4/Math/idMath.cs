@@ -33,14 +33,17 @@ namespace idTech4.Math
 {
 	public class idMath
 	{
-		public const float Pi = MathHelper.Pi;
-		public const float TwoPi = MathHelper.TwoPi;
-		public const float HalfPi = MathHelper.PiOver2;
-		public const float Radian = MathHelper.Pi / 180.0f;
-		public const float Infinity = 1e30f;
-		public const float Epsilon = 1.192092896e-07f;
-		public const float Sqrt1Over2 = 0.70710678118654752440f;
-		public const float Rad2Deg = 180.0f / Pi;
+		public const float Pi                       = MathHelper.Pi;
+		public const float TwoPi                    = MathHelper.TwoPi;
+		public const float HalfPi                   = MathHelper.PiOver2;
+		public const float Radian                   = MathHelper.Pi / 180.0f;
+		public const float Infinity                 = 1e30f;
+		public const float Epsilon                  = 1.192092896e-07f;
+		public const float Sqrt1Over2               = 0.70710678118654752440f;
+		public const float Rad2Deg                  = 180.0f / Pi;
+
+		public const int SmallestNonDenormal        = 1 << 23;
+		public const float FloatSmallestNonDenormal = (float) (1 << 23); // 1.1754944e-038f
 
 		public static float Abs(float a)
 		{

@@ -35,6 +35,40 @@ namespace idTech4.UI.SWF
 {
 	public class idSWFImage : idSWFDictionaryEntry
 	{
+		#region Properties
+		public Vector4 ChannelScale
+		{
+			get
+			{
+				return _channelScale;
+			}
+		}
+
+		public Vector2 ImageSize
+		{
+			get
+			{
+				return _imageSize;
+			}
+		}
+
+		public Vector2 ImageAtlasOffset
+		{
+			get
+			{
+				return _imageAtlasOffset;
+			}
+		}
+
+		public idMaterial Material
+		{
+			get
+			{
+				return _material;
+			}
+		}
+		#endregion
+
 		#region Members
 		private idMaterial _material;
 		private Vector2 _imageSize;

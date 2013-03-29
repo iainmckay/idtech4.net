@@ -634,6 +634,11 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Methods
+		public void AddPrimitive(idVertex[] vertices, ushort[] indexes, idMaterial material, StereoDepthType stereoType)
+		{
+			_guiModel.AddPrimitive(vertices, indexes, material, _currentRenderState, stereoType);
+		}
+
 		public DynamicIndexBuffer CreateDynamicIndexBuffer(IndexElementSize indexElementSize, int indexCount, BufferUsage usage)
 		{
 			return _backend.CreateDynamicIndexBuffer(indexElementSize, indexCount, usage);
@@ -666,7 +671,7 @@ namespace idTech4.Renderer
 				return;
 			}
 
-			idVertex[] localVertices = new idVertex[4];
+			idVertex[] localVertices            = new idVertex[4];
 
 			localVertices[0]                    = new idVertex();
 			localVertices[0].Clear();
@@ -703,7 +708,7 @@ namespace idTech4.Renderer
 			localVertices[3].Color              = _currentColor;
 			localVertices[3].ClearColor2();
 
-			_guiModel.AddPrimitive(localVertices, _quadIndexes, material, _currentRenderState/*, TODO: STEREO_DEPTH_TYPE_NONE*/);
+			_guiModel.AddPrimitive(localVertices, _quadIndexes, material, _currentRenderState, StereoDepthType.None);
 		}
 
 		/// <summary>
