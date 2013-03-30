@@ -99,6 +99,7 @@
     <Compile Include="WindowsPlatform.cs" />
     <Compile Include="WindowsSession.cs" />
     <Compile Include="XNARenderBackend.cs" />
+    <Compile Include="XNARenderProgramManager.cs" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\idTech4\idTech4.csproj">

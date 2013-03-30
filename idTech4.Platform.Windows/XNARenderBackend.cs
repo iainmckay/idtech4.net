@@ -52,6 +52,7 @@ namespace idTech4.Platform.Windows
 		private BackendState _backendState = new BackendState();
 		private GraphicsDeviceManager _graphicsDeviceManager;
 		private idRenderCapabilities _renderCaps;
+		private XNARenderProgramManager _renderProgramManager;
 
 		private idViewDefinition _viewDef;
 		private idScreenRect _currentScissor;
@@ -1750,7 +1751,8 @@ namespace idTech4.Platform.Windows
 			idLog.WriteLine("Profile     : {0}", _graphicsDeviceManager.GraphicsProfile);
 			idLog.WriteLine("Shader Model: {0}", _renderCaps.ShaderModel);
 
-			idLog.Warning("TODO: renderProgManager.Init();");
+			_renderProgramManager = new XNARenderProgramManager();
+			_renderProgramManager.Initialize();
 
 			// allocate the vertex array range or vertex objects
 			idLog.Warning("TODO: vertexCache.Init();");
