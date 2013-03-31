@@ -129,6 +129,7 @@ namespace idTech4
 			cvarSystem.Register("r_drawEyeColor",				"0",		"Draw a colored box, red = left eye, blue = right eye, grey = non-stereo", CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_drawFlickerBox",				"0",		"visual test for dropping frames",							CVarFlags.Renderer | CVarFlags.Bool);
 			cvarSystem.Register("r_fullscreen",					"1",		"0 = windowed, 1 = full screen on monitor 1, 2 = full screen on monitor 2, etc", CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
+			cvarSystem.Register("r_lightScale",					"3",		"all light intensities are multiplied by this",				CVarFlags.Archive | CVarFlags.Renderer | CVarFlags.Float);
 			cvarSystem.Register("r_logFile",					"0",		"number of frames to emit GL logs",							CVarFlags.Renderer | CVarFlags.Integer);
 			cvarSystem.Register("r_motionBlur",					"0",		 "1 - 5, log2 of the number of motion blur samples",		CVarFlags.Renderer | CVarFlags.Integer | CVarFlags.Archive);
 			cvarSystem.Register("r_multiSamples",				"0",		"number of antialiasing samples",							CVarFlags.Renderer | CVarFlags.Archive | CVarFlags.Integer);
@@ -530,7 +531,7 @@ idCVar r_shadowPolygonFactor( "r_shadowPolygonFactor", "0", CVAR_RENDERER | CVAR
 idCVar r_subviewOnly( "r_subviewOnly", "0", CVAR_RENDERER | CVAR_BOOL, "1 = don't render main view, allowing subviews to be debugged" );
 idCVar r_testGamma( "r_testGamma", "0", CVAR_RENDERER | CVAR_FLOAT, "if > 0 draw a grid pattern to test gamma levels", 0, 195 );
 idCVar r_testGammaBias( "r_testGammaBias", "0", CVAR_RENDERER | CVAR_FLOAT, "if > 0 draw a grid pattern to test gamma levels" );
-idCVar r_lightScale( "r_lightScale", "3", CVAR_ARCHIVE | CVAR_RENDERER | CVAR_FLOAT, "all light intensities are multiplied by this" );
+
 idCVar r_flareSize( "r_flareSize", "1", CVAR_RENDERER | CVAR_FLOAT, "scale the flare deforms from the material def" ); 
 
 idCVar r_skipPrelightShadows( "r_skipPrelightShadows", "0", CVAR_RENDERER | CVAR_BOOL, "skip the dmap generated static shadow volumes" );

@@ -111,7 +111,7 @@ namespace idTech4.Platform.Windows
 		}
 		#endregion
 		#endregion
-
+		
 		#region Rendering
 		public void BindTexture(idImage image)
 		{
@@ -678,13 +678,13 @@ namespace idTech4.Platform.Windows
 			GraphicsDevice graphicsDevice = _graphicsDeviceManager.GraphicsDevice;
 
 			//if(_effect == null)
-			{
+			/*{
 				_effect                    = new BasicEffect(graphicsDevice);
 				_effect.FogEnabled         = false;
 				_effect.LightingEnabled    = false;
 				_effect.TextureEnabled     = true;
 				_effect.VertexColorEnabled = false;
-			}
+			}*/
 
 			// TODO: RENDERLOG_PRINTF( "Binding Buffers: %p:%i %p:%i\n", vertexBuffer, vertOffset, indexBuffer, indexOffset );
 
@@ -712,7 +712,7 @@ namespace idTech4.Platform.Windows
 				qglBindBufferRange( GL_UNIFORM_BUFFER, 0, ubo, jointBuffer.GetOffset(), jointBuffer.GetNumJoints() * sizeof( idJointMat ) );
 			}*/
 
-			// TODO: renderProgManager.CommitUniforms();
+			_renderProgramManager.CommitUniforms();
 
 			if((_backendState.CurrentIndexBuffer != surface.IndexBuffer) || (cvarSystem.GetBool("r_useStateCaching") == false))
 			{
@@ -728,7 +728,7 @@ namespace idTech4.Platform.Windows
 				_backendState.VertexLayout        = VertexLayout.DrawVertex;
 			}
 	
-			TextureUnit textureUnit = _backendState.TextureUnits[_backendState.CurrentTextureUnit];
+			/*TextureUnit textureUnit = _backendState.TextureUnits[_backendState.CurrentTextureUnit];
 			Texture texture         = textureUnit.CurrentTexture;
 
 			if(texture != null)
@@ -743,9 +743,9 @@ namespace idTech4.Platform.Windows
 			
 			_effect.Projection  = _viewDef.ProjectionMatrix;
 			_effect.View        = _viewDef.WorldSpace.ModelViewMatrix;
-			_effect.World       = _viewDef.WorldSpace.ModelMatrix;
+			_effect.World       = _viewDef.WorldSpace.ModelMatrix;*/
 							
-			foreach(EffectPass p in _effect.CurrentTechnique.Passes)
+			foreach(EffectPass p in _renderProgramManager.Effect.CurrentTechnique.Passes)
 			{
 				p.Apply();
 
@@ -874,21 +874,17 @@ namespace idTech4.Platform.Windows
 					{
 						idLog.WriteLine("TODO: RB_SetMVP( space->mvp );");
 					}
-
+					
 					// set eye position in local space
-					/*Vector4 localViewOrigin = new Vector4(1, 1, 1, 1);
-					R_GlobalPointToLocal( space->modelMatrix, backEnd.viewDef->renderView.vieworg, localViewOrigin.ToVec3() );
-					SetVertexParm( RENDERPARM_LOCALVIEWORIGIN, localViewOrigin.ToFloatPtr() );
+					Vector4 localViewOrigin = new Vector4(1, 1, 1, 1);
+					idHelper.GlobalPointToLocal(space.ModelMatrix, _viewDef.RenderView.ViewOrigin, ref localViewOrigin);
+					SetVertexParameter(RenderParameter.LocalViewOrigin, localViewOrigin);
 
 					// set model Matrix
-					float modelMatrixTranspose[16];
-					R_MatrixTranspose( space->modelMatrix, modelMatrixTranspose );
-					SetVertexParms( RENDERPARM_MODELMATRIX_X, modelMatrixTranspose, 4 );
+					SetVertexParameter(RenderParameter.ModelMatrixX, Matrix.Transpose(space.ModelMatrix));
 
 					// set ModelView Matrix
-					float modelViewMatrixTranspose[16];
-					R_MatrixTranspose( space->modelViewMatrix, modelViewMatrixTranspose );
-					SetVertexParms( RENDERPARM_MODELVIEWMATRIX_X, modelViewMatrixTranspose, 4 );*/
+					SetVertexParameter(RenderParameter.ModelViewMatrixX, Matrix.Transpose(space.ModelViewMatrix));
 				}
 
 				// change the scissor if needed
@@ -985,6 +981,7 @@ namespace idTech4.Platform.Windows
 								registers[ newStage.VertexParameters[j, 3]]
 							};
 
+							idLog.Warning("TODO: newStage.SetVertexParameter");
 							// TODO: SetVertexParameter((renderParm_t)( RENDERPARM_USER + j ), parm );
 						}
 
@@ -1029,8 +1026,8 @@ namespace idTech4.Platform.Windows
 						}*/
 
 						SelectTextureUnit(0);
-						
-						// TODO: renderProgManager.Unbind();
+
+						_renderProgramManager.Unbind();	
 
 						// TODO: renderLog.CloseBlock();
 						continue;
@@ -1097,10 +1094,9 @@ namespace idTech4.Platform.Windows
 								// TODO: skinning
 								/*if ( surf->jointCache ) {
 									renderProgManager.BindShader_TextureVertexColorSkinned();
-								} else {
-									renderProgManager.BindShader_TextureVertexColor();
-								}*/
-								idLog.Warning("TODO: BindShader_TextureVertexColor");
+								} else {*/
+									_renderProgramManager.BindBuiltin(BuiltinShader.TextureVertexColor);
+								/*}*/								
 							}
 						/*}*/
 					} 
@@ -1118,14 +1114,12 @@ namespace idTech4.Platform.Windows
 						// TODO: skinning
 						/*if ( surf->jointCache ) {
 							renderProgManager.BindShader_TextureVertexColorSkinned();
-						} else {
-							renderProgManager.BindShader_TextureVertexColor();
-						}*/
-
-						idLog.Warning("TODO: BindShader_TextureVertexColor");
+						} else {*/
+							_renderProgramManager.BindBuiltin(BuiltinShader.TextureVertexColor);
+						/*}*/
 					}
 		
-					idLog.Warning("TODO: SetVertexColorParameters(stageVertexColor);");
+					SetVertexColorParameters(stageVertexColor);
 
 					// bind the texture
 					BindVariableStageImage(stage.Texture, registers);
@@ -1304,35 +1298,23 @@ namespace idTech4.Platform.Windows
 			//------------------------------------
 			
 			// TODO
-			/*{
+			{
 				//
 				// set eye position in global space
 				//
-				float parm[4];
-				parm[0] = backEnd.viewDef->renderView.vieworg[0];
-				parm[1] = backEnd.viewDef->renderView.vieworg[1];
-				parm[2] = backEnd.viewDef->renderView.vieworg[2];
-				parm[3] = 1.0f;
-
-				SetVertexParm( RENDERPARM_GLOBALEYEPOS, parm ); // rpGlobalEyePos
+				SetVertexParameter(RenderParameter.GlobalEyePosition, new Vector4(_viewDef.RenderView.ViewOrigin, 1.0f)); // rpGlobalEyePos
 
 				// sets overbright to make world brighter
 				// This value is baked into the specularScale and diffuseScale values so
 				// the interaction programs don't need to perform the extra multiply,
 				// but any other renderprogs that want to obey the brightness value
 				// can reference this.
-				float overbright = r_lightScale.GetFloat() * 0.5f;
-				parm[0] = overbright;
-				parm[1] = overbright;
-				parm[2] = overbright;
-				parm[3] = overbright;
-				SetFragmentParm( RENDERPARM_OVERBRIGHT, parm );
+				float overbright = cvarSystem.GetFloat("r_lightScale") * 0.5f;
+				SetFragmentParameter(RenderParameter.OverBright, new Vector4(overbright, overbright, overbright, overbright));
 
-				// Set Projection Matrix
-				float projMatrixTranspose[16];
-				R_MatrixTranspose( backEnd.viewDef->projectionMatrix, projMatrixTranspose );
-				SetVertexParms( RENDERPARM_PROJMATRIX_X, projMatrixTranspose, 4 );
-			}*/
+				// set Projection Matrix
+				SetVertexParameter(RenderParameter.ProjectionMatrixX, _viewDef.ProjectionMatrix);
+			}
 
 			//-------------------------------------------------
 			// fill the depth buffer and clear color buffer to black except on subviews
@@ -1497,6 +1479,55 @@ namespace idTech4.Platform.Windows
 			{
 				graphicsDevice.ScissorRectangle = new Rectangle(0, 0, renderSystem.Width, renderSystem.Height);
 			}
+		}
+		#endregion
+
+		#region Shader
+		private void SetFragmentParameter(RenderParameter renderParameter, Matrix value)
+		{
+			_renderProgramManager.SetUniformValue(renderParameter + 0, value.Get(0));
+			_renderProgramManager.SetUniformValue(renderParameter + 1, value.Get(1));
+			_renderProgramManager.SetUniformValue(renderParameter + 2, value.Get(2));
+			_renderProgramManager.SetUniformValue(renderParameter + 3, value.Get(3));
+		}
+
+		private void SetFragmentParameter(RenderParameter renderParameter, Vector4 value)
+		{
+			_renderProgramManager.SetUniformValue(renderParameter, value);
+		}
+
+		private void SetVertexColorParameters(StageVertexColor stageVertexColor)
+		{
+			switch(stageVertexColor)
+			{
+				case StageVertexColor.Ignore:
+					SetVertexParameter(RenderParameter.VertexColorModulate, Vector4.Zero);
+					SetVertexParameter(RenderParameter.VertexColorAdd, Vector4.One);
+					break;
+
+				case StageVertexColor.Modulate:
+					SetVertexParameter(RenderParameter.VertexColorModulate, Vector4.One);
+					SetVertexParameter(RenderParameter.VertexColorAdd, Vector4.Zero);
+					break;
+
+				case StageVertexColor.InverseModulate:
+					SetVertexParameter(RenderParameter.VertexColorModulate, -Vector4.One);
+					SetVertexParameter(RenderParameter.VertexColorAdd, Vector4.One);
+					break;
+			}
+		}
+
+		private void SetVertexParameter(RenderParameter renderParameter, Matrix value)
+		{
+			_renderProgramManager.SetUniformValue(renderParameter + 0, value.Get(0));
+			_renderProgramManager.SetUniformValue(renderParameter + 1, value.Get(1));
+			_renderProgramManager.SetUniformValue(renderParameter + 2, value.Get(2));
+			_renderProgramManager.SetUniformValue(renderParameter + 3, value.Get(3));
+		}
+
+		private void SetVertexParameter(RenderParameter renderParameter, Vector4 value)
+		{
+			_renderProgramManager.SetUniformValue(renderParameter, value);
 		}
 		#endregion
 

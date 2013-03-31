@@ -40,6 +40,8 @@ namespace idTech4
 		public const int MaxVertexParameters			= 4;
 		public const int MaxWarningList					= 256;
 
+		public const int MaxEffectUserParameters        = 8;
+
 		// if we exceed these limits we stop rendering GUI surfaces
 		public const int MaxGuiIndexes                  = 20000 * 6;
 		public const int MaxGuiVertices                 = 20000 * 4;

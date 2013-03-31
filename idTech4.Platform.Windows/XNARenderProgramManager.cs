@@ -25,9 +25,11 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
 using System.Collections.Generic;
 using System.IO;
 
+using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 
@@ -37,15 +39,28 @@ namespace idTech4.Platform.Windows
 {
 	public class XNARenderProgramManager
 	{
+		#region Properties
+		public Effect Effect
+		{
+			get
+			{
+				return _currentEffect;
+			}
+		}
+		#endregion
+
 		#region Members
-		private List<Effect> _effects;
 		private ContentManager _contentManager;
+
+		private Effect _currentEffect;
+		private Effect[] _effects         = new Effect[(int) BuiltinShader.Count];
+		private Vector4[] _effectUniforms = new Vector4[(int) RenderParameter.User + Constants.MaxEffectUserParameters];
 		#endregion
 
 		#region Constructor
 		public XNARenderProgramManager()
 		{
-
+			
 		}
 		#endregion
 
@@ -77,6 +92,9 @@ namespace idTech4.Platform.Windows
 
 			builtins[(int) BuiltinShader.Depth]                         = "depth";
 			builtins[(int) BuiltinShader.DepthSkinned]                  = "depth_skinned";
+
+			builtins[(int) BuiltinShader.Shadow]                        = "shadow";
+			builtins[(int) BuiltinShader.ShadowSkinned]                 = "shadow_skinned";
 			builtins[(int) BuiltinShader.ShadowDebug]                   = "shadowDebug";
 			builtins[(int) BuiltinShader.ShadowDebugSkinned]            = "shadowDebug_skinned";
 
@@ -93,9 +111,7 @@ namespace idTech4.Platform.Windows
 			builtins[(int) BuiltinShader.BinkGui]                       = "bink_gui";
 			builtins[(int) BuiltinShader.StereoInterface]               = "stereoInterlace";
 			builtins[(int) BuiltinShader.MotionBlur]                    = "motionBlur";
-
-			_effects = new List<Effect>(builtins.Length);
-
+			
 			for(int i = 0; i < builtins.Length; i++)
 			{
 				/*vertexShaders[i].name = builtins[i].name;
@@ -106,7 +122,7 @@ namespace idTech4.Platform.Windows
 
 				string fileName = Path.Combine("renderprogs", "xna", builtins[i]);
 
-				if(fileSystem.FileExists(fileName) == true)
+				if(fileSystem.FileExists(fileName + ".xnb") == true)
 				{
 					idLog.WriteLine("...loading {0}", fileName);
 					_effects[i] = _contentManager.Load<Effect>(fileName);
@@ -141,52 +157,255 @@ namespace idTech4.Platform.Windows
 		}
 		#endregion
 
-		#region BuiltinShader
-		private enum BuiltinShader
+		#region Binding
+		public void BindBuiltin(BuiltinShader shader)
 		{
-			Gui,
-			Color,
-			SimpleShade,
-			Textured,
-			TextureVertexColor,
-			TextureVertexColorSkinned,
-			TextureCoordinatesVertexColor,
+			// TODO: RENDERLOG_PRINTF( "Binding GLSL Program %s\n", glslPrograms[vIndex].name.c_str() );
+			_currentEffect = _effects[(int) shader];
+		}
 
-			Interaction,
-			InteractionSkinned,
-			InteractionAmbient,
-			InteractionAmbientSkinned,
-
-			Environment,
-			EnvironmentSkinned,
-
-			BumpyEnvironment,
-			BumpyEnvironmentSkinned,
-
-			Depth,
-			DepthSkinned,
-
-			Shadow,
-			ShadowSkinned,
-			ShadowDebug,
-			ShadowDebugSkinned,
-
-			BlendLight,
-			Fog,
-			FogSkinned,
-			SkyBox,
-			WobbleSky,
-			PostProcess,
-			StereoDeGhost,
-			StereoWarp,
-			ZCullReconstruct,
-			Bink,
-			BinkGui,
-			StereoInterface,
-			MotionBlur,
-
-			Count
+		public void Unbind()
+		{
+			_currentEffect = null;
 		}
 		#endregion
+
+		#region Uniforms
+		private RenderParameter GetRenderParameterFromName(string name)
+		{
+			switch(name)
+			{
+				case "g_ScreenCorrectionFactor":     return RenderParameter.ScreenCorrectionFactor;
+				case "g_WindowCoordinate":           return RenderParameter.WindowCoordinate;
+				case "g_DiffuseModifier":            return RenderParameter.DiffuseModifier;
+				case "g_SpecularModifier":           return RenderParameter.SpecularModifier;
+
+				case "g_LocalLightOrigin":           return RenderParameter.LocalLightOrigin;
+				case "g_LocalViewOrigin":            return RenderParameter.LocalViewOrigin;
+
+				case "g_LightProjectionS":           return RenderParameter.LightProjectionS;
+				case "g_LightProjectionT":           return RenderParameter.LightProjectionT;
+				case "g_LightProjectionQ":           return RenderParameter.LightProjectionQ;
+				case "g_LightFallOffS":              return RenderParameter.LightFallOffS;
+
+				case "g_BumpMatrixS":                return RenderParameter.BumpMatrixS;
+				case "g_BumpMatrixT":                return RenderParameter.BumpMatrixT;
+
+				case "g_DiffuseMatrixS":             return RenderParameter.DiffuseMatrixS;
+				case "g_DiffuseMatrixT":             return RenderParameter.DiffuseMatrixT;
+
+				case "g_SpecularMatrixS":            return RenderParameter.SpecularMatrixS;
+				case "g_SpecularMatrixT":            return RenderParameter.SpecularMatrixT;
+
+				case "g_VertexColorModulate":        return RenderParameter.VertexColorModulate;
+				case "g_VertexColorAdd":             return RenderParameter.VertexColorAdd;
+
+				case "g_Color":                      return RenderParameter.Color;
+				case "g_ViewOrigin":                 return RenderParameter.ViewOrigin;
+				case "g_GlobalEyePosition":          return RenderParameter.GlobalEyePosition;
+
+				case "g_ModelViewProjectionMatrixX": return RenderParameter.ModelViewProjectionMatrixX;
+				case "g_ModelViewProjectionMatrixY": return RenderParameter.ModelViewProjectionMatrixY;
+				case "g_ModelViewProjectionMatrixZ": return RenderParameter.ModelViewProjectionMatrixZ;
+				case "g_ModelViewProjectionMatrixW": return RenderParameter.ModelViewProjectionMatrixW;
+
+				case "g_ModelMatrixX":               return RenderParameter.ModelMatrixX;
+				case "g_ModelMatrixY":               return RenderParameter.ModelMatrixY;
+				case "g_ModelMatrixZ":               return RenderParameter.ModelMatrixZ;
+				case "g_ModelMatrixW":               return RenderParameter.ModelMatrixW;
+
+				case "g_ProjectionMatrixX":          return RenderParameter.ProjectionMatrixX;
+				case "g_ProjectionMatrixY":          return RenderParameter.ProjectionMatrixY;
+				case "g_ProjectionMatrixZ":          return RenderParameter.ProjectionMatrixZ;
+				case "g_ProjectionMatrixW":          return RenderParameter.ProjectionMatrixW;
+
+				case "g_ModelViewMatrixX":           return RenderParameter.ModelViewMatrixX;
+				case "g_ModelViewMatrixY":           return RenderParameter.ModelViewMatrixY;
+				case "g_ModelViewMatrixZ":           return RenderParameter.ModelViewMatrixZ;
+				case "g_ModelViewMatrixW":           return RenderParameter.ModelViewMatrixW;
+
+				case "g_TextureMatrixS":             return RenderParameter.TextureMatrixS;
+				case "g_TextureMatrixT":             return RenderParameter.TextureMatrixT;
+
+				case "g_TextureCoordinates0S":       return RenderParameter.TextureCoordinates0S;
+				case "g_TextureCoordinates0T":       return RenderParameter.TextureCoordinates0T;
+				case "g_TextureCoordinates0Q":       return RenderParameter.TextureCoordinates0Q;
+				case "g_TextureCoordinates0Enabled": return RenderParameter.TextureCoordinates0Enabled;
+
+				case "g_TextureCoordinates1S":       return RenderParameter.TextureCoordinates1S;
+				case "g_TextureCoordinates1T":       return RenderParameter.TextureCoordinates1T;
+				case "g_TextureCoordinates1Q":       return RenderParameter.TextureCoordinates1Q;
+				case "g_TextureCoordinates1Enabled": return RenderParameter.TextureCoordinates1Enabled;
+
+				case "g_WobbleSkyX":                 return RenderParameter.WobbleSkyX;
+				case "g_WobbleSkyY":                 return RenderParameter.WobbleSkyY;
+				case "g_WobbleSkyZ":                 return RenderParameter.WobbleSkyZ;
+
+				case "g_OverBright":                 return RenderParameter.OverBright;
+				case "g_EnableSkinning":             return RenderParameter.EnableSkinning;
+				case "g_AlphaTest":                  return RenderParameter.AlphaTest;
+
+				case "g_User1":                      return RenderParameter.User1;
+				case "g_User2":                      return RenderParameter.User2;
+				case "g_User3":                      return RenderParameter.User3;
+				case "g_User4":                      return RenderParameter.User4;
+				case "g_User5":                      return RenderParameter.User5;
+				case "g_User6":                      return RenderParameter.User6;
+				case "g_User7":                      return RenderParameter.User7;
+				case "g_User8":                      return RenderParameter.User8;
+			}
+
+			throw new ArgumentException("name");
+		}
+
+		public void CommitUniforms()
+		{
+			foreach(EffectParameter effectParameter in _currentEffect.Parameters)
+			{
+				effectParameter.SetValue(_effectUniforms[(int) GetRenderParameterFromName(effectParameter.Name)]);
+			}			
+		}
+
+		public void SetUniformValue(RenderParameter renderParameter, Vector4 value)
+		{
+			_effectUniforms[(int) renderParameter] = value;
+		}
+		#endregion
+	}
+
+	public enum BuiltinShader
+	{
+		Gui,
+		Color,
+		SimpleShade,
+		Textured,
+		TextureVertexColor,
+		TextureVertexColorSkinned,
+		TextureCoordinatesVertexColor,
+
+		Interaction,
+		InteractionSkinned,
+		InteractionAmbient,
+		InteractionAmbientSkinned,
+
+		Environment,
+		EnvironmentSkinned,
+
+		BumpyEnvironment,
+		BumpyEnvironmentSkinned,
+
+		Depth,
+		DepthSkinned,
+
+		Shadow,
+		ShadowSkinned,
+		ShadowDebug,
+		ShadowDebugSkinned,
+
+		BlendLight,
+		Fog,
+		FogSkinned,
+		SkyBox,
+		WobbleSky,
+		PostProcess,
+		StereoDeGhost,
+		StereoWarp,
+		ZCullReconstruct,
+		Bink,
+		BinkGui,
+		StereoInterface,
+		MotionBlur,
+
+		Count
+	}
+
+	// This enum list corresponds to the global constant register indecies as defined in global.inc for all
+	// shaders.  We used a shared pool to keeps things simple.  If something changes here then it also
+	// needs to change in global.inc and vice versa
+	public enum RenderParameter
+	{
+		// For backwards compatibility, do not change the order of the first 17 items
+		ScreenCorrectionFactor = 0,
+		WindowCoordinate,
+		DiffuseModifier,
+		SpecularModifier,
+
+		LocalLightOrigin,
+		LocalViewOrigin,
+
+		LightProjectionS,
+		LightProjectionT,
+		LightProjectionQ,
+		LightFallOffS,
+
+		BumpMatrixS,
+		BumpMatrixT,
+
+		DiffuseMatrixS,
+		DiffuseMatrixT,
+
+		SpecularMatrixS,
+		SpecularMatrixT,
+
+		VertexColorModulate,
+		VertexColorAdd,
+
+		// The following are new and can be in any order
+
+		Color,
+		ViewOrigin,
+		GlobalEyePosition,
+
+		ModelViewProjectionMatrixX,
+		ModelViewProjectionMatrixY,
+		ModelViewProjectionMatrixZ,
+		ModelViewProjectionMatrixW,
+
+		ModelMatrixX,
+		ModelMatrixY,
+		ModelMatrixZ,
+		ModelMatrixW,
+
+		ProjectionMatrixX,
+		ProjectionMatrixY,
+		ProjectionMatrixZ,
+		ProjectionMatrixW,
+
+		ModelViewMatrixX,
+		ModelViewMatrixY,
+		ModelViewMatrixZ,
+		ModelViewMatrixW,
+
+		TextureMatrixS,
+		TextureMatrixT,
+
+		TextureCoordinates0S,
+		TextureCoordinates0T,
+		TextureCoordinates0Q,
+		TextureCoordinates0Enabled,
+
+		TextureCoordinates1S,
+		TextureCoordinates1T,
+		TextureCoordinates1Q,
+		TextureCoordinates1Enabled,
+
+		WobbleSkyX,
+		WobbleSkyY,
+		WobbleSkyZ,
+
+		OverBright,
+		EnableSkinning,
+		AlphaTest,
+
+		Total,
+		User,
+		User1,
+		User2,
+		User3,
+		User4,
+		User5,
+		User6,
+		User7,
+		User8
 	}
 }

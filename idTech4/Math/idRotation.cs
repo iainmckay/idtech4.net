@@ -25,6 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework;
 
 namespace idTech4.Math
@@ -69,6 +71,7 @@ namespace idTech4.Math
 		#region Constructor
 		public idRotation(Vector3 origin, Vector3 vector, float angle)
 		{
+			throw new Exception("_axis is supposed to be column major but we've changed it to row-major.  check the math!");
 			_origin = origin;
 			_vector = vector;
 			_angle = angle;

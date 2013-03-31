@@ -25,6 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using Microsoft.Xna.Framework;
+
 using idTech4.Renderer;
 using idTech4.Services;
 
@@ -75,6 +77,32 @@ namespace idTech4
 		public static int FrameToMillsecond(long frame)
 		{
 			return (int) ((frame * Constants.EngineHzNumerator) / Constants.EngineHzDenominator);
+		}
+
+		public static void GlobalPointToLocal(Matrix matrix, Vector3 inPoint, ref Vector4 outPoint)
+		{
+			Vector3 temp = new Vector3(
+				inPoint.X - matrix.M41,
+				inPoint.X - matrix.M42,
+				inPoint.X - matrix.M43
+			);
+
+			outPoint.X = temp.X * matrix.M11 + temp.Y * matrix.M12 + temp.Z * matrix.M13;
+			outPoint.Y = temp.X * matrix.M21 + temp.Y * matrix.M22 + temp.Z * matrix.M23;
+			outPoint.Z = temp.X * matrix.M31 + temp.Y * matrix.M32 + temp.Z * matrix.M33;
+		}
+
+		public static void GlobalPointToLocal(Matrix matrix, Vector3 inPoint, ref Vector3 outPoint)
+		{
+			Vector3 temp = new Vector3(
+				inPoint.X - matrix.M41,
+				inPoint.X - matrix.M42,
+				inPoint.X - matrix.M43
+			);
+
+			outPoint.X = temp.X * matrix.M11 + temp.Y * matrix.M12 + temp.Z * matrix.M13;
+			outPoint.Y = temp.X * matrix.M21 + temp.Y * matrix.M22 + temp.Z * matrix.M23;
+			outPoint.Z = temp.X * matrix.M31 + temp.Y * matrix.M32 + temp.Z * matrix.M33;
 		}
 
 		public static MaterialStates MakeStencilReference(ulong x)

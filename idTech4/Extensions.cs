@@ -33,10 +33,34 @@ namespace idTech4
 {
 	public static class Extensions
 	{
-		#region Matrix
+		#region GameServiceContainer
 		public static T GetService<T>(this GameServiceContainer s) where T : class
 		{
 			return (s.GetService(typeof(T)) as T);
+		}
+		#endregion
+
+		#region Matrix
+		public static Vector4 Get(this Matrix m, int row)
+		{
+			if(row == 0)
+			{
+				return new Vector4(m.M11, m.M12, m.M13, m.M14);
+			}
+			else if(row == 1)
+			{
+				return new Vector4(m.M21, m.M22, m.M23, m.M24);
+			}
+			else if(row == 2)
+			{
+				return new Vector4(m.M31, m.M32, m.M33, m.M34);
+			}
+			else if(row == 3)
+			{
+				return new Vector4(m.M41, m.M42, m.M43, m.M44);
+			}
+
+			throw new ArgumentOutOfRangeException("row");
 		}
 		#endregion
 
