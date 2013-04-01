@@ -1015,7 +1015,7 @@ namespace idTech4.Renderer
 		/// </summary>
 		public Matrix ModelViewMatrix;
 
-		//idRenderMatrix			mvp;
+		public Matrix ModelViewProjectionMatrix;
 
 		// parallelAddModels will build a chain of surfaces here that will need to
 		// be linked to the lights or added to the drawsurf list in a serial code section

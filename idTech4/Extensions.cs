@@ -41,6 +41,15 @@ namespace idTech4
 		#endregion
 
 		#region Matrix
+		public static void ApplyDepthHack(this Matrix m)
+		{
+			// scale projected z by 25%
+			m.M31 *= 0.25f;
+			m.M32 *= 0.25f;
+			m.M33 *= 0.25f;
+			m.M34 *= 0.25f;
+		}
+
 		public static Vector4 Get(this Matrix m, int row)
 		{
 			if(row == 0)

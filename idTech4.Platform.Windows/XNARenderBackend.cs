@@ -134,7 +134,7 @@ namespace idTech4.Platform.Windows
 			{
 				if(textureUnit.CurrentTexture != image.Texture)
 				{
-					textureUnit.CurrentTexture                 = image.Texture;
+					textureUnit.CurrentTexture                = image.Texture;
 					graphicsDevice.Textures[textureUnitIndex] = image.Texture;
 				}
 			}
@@ -712,8 +712,6 @@ namespace idTech4.Platform.Windows
 				qglBindBufferRange( GL_UNIFORM_BUFFER, 0, ubo, jointBuffer.GetOffset(), jointBuffer.GetNumJoints() * sizeof( idJointMat ) );
 			}*/
 
-			_renderProgramManager.CommitUniforms();
-
 			if((_backendState.CurrentIndexBuffer != surface.IndexBuffer) || (cvarSystem.GetBool("r_useStateCaching") == false))
 			{
 				graphicsDevice.Indices           = surface.IndexBuffer;
@@ -744,7 +742,14 @@ namespace idTech4.Platform.Windows
 			_effect.Projection  = _viewDef.ProjectionMatrix;
 			_effect.View        = _viewDef.WorldSpace.ModelViewMatrix;
 			_effect.World       = _viewDef.WorldSpace.ModelMatrix;*/
-							
+
+			_renderProgramManager.SetProjectionMatrix(_viewDef.ProjectionMatrix);
+			_renderProgramManager.SetModelViewMatrix(_viewDef.WorldSpace.ModelViewMatrix);
+			_renderProgramManager.SetModelMatrix(_viewDef.WorldSpace.ModelMatrix);
+			_renderProgramManager.SetModelViewProjectionMatrix(_viewDef.WorldSpace.ModelMatrix * _viewDef.WorldSpace.ModelViewMatrix * _viewDef.ProjectionMatrix);
+
+			_renderProgramManager.CommitUniforms();
+
 			foreach(EffectPass p in _renderProgramManager.Effect.CurrentTechnique.Passes)
 			{
 				p.Apply();
@@ -872,19 +877,20 @@ namespace idTech4.Platform.Windows
 					} 
 					else 
 					{
-						idLog.WriteLine("TODO: RB_SetMVP( space->mvp );");
+						_renderProgramManager.SetModelViewProjectionMatrix(space.ModelViewProjectionMatrix);
 					}
 					
 					// set eye position in local space
 					Vector4 localViewOrigin = new Vector4(1, 1, 1, 1);
 					idHelper.GlobalPointToLocal(space.ModelMatrix, _viewDef.RenderView.ViewOrigin, ref localViewOrigin);
-					SetVertexParameter(RenderParameter.LocalViewOrigin, localViewOrigin);
+
+					_renderProgramManager.SetLocalViewOrigin(localViewOrigin);
 
 					// set model Matrix
-					SetVertexParameter(RenderParameter.ModelMatrixX, Matrix.Transpose(space.ModelMatrix));
+					_renderProgramManager.SetModelMatrix(space.ModelMatrix);
 
 					// set ModelView Matrix
-					SetVertexParameter(RenderParameter.ModelViewMatrixX, Matrix.Transpose(space.ModelViewMatrix));
+					_renderProgramManager.SetModelViewMatrix(space.ModelViewMatrix);
 				}
 
 				// change the scissor if needed
@@ -1040,23 +1046,23 @@ namespace idTech4.Platform.Windows
 					//--------------------------
 					
 					// set the color
-					float[] color = {
+					Vector4 color = new Vector4(
 						registers[stage.Color.Registers[0]],
 						registers[stage.Color.Registers[1]],
 						registers[stage.Color.Registers[2]],
 						registers[stage.Color.Registers[3]]
-					};
+					);
 
 					// skip the entire stage if an add would be black
 					if(((stageState & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendOne | MaterialStates.DestinationBlendOne))
-						&& (color[0] <= 0) && (color[1] <= 0) && (color[2] <= 0))
+						&& (color.X <= 0) && (color.Y <= 0) && (color.Z <= 0))
 					{
 						continue;
 					}
 
 					// skip the entire stage if a blend would be completely transparent
 					if(((stageState & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) == (MaterialStates.SourceBlendSourceAlpha | MaterialStates.DestinationBlendOneMinusSourceAlpha))
-						&& (color[3] <= 0))
+						&& (color.Z <= 0))
 					{
 						continue;
 					}
@@ -1065,7 +1071,7 @@ namespace idTech4.Platform.Windows
 
 					// TODO: renderLog.OpenBlock( "Old Shader Stage" );
 					
-					idLog.Warning("TODO: SetColor(color);");
+					SetColor(color);
 
 					if(surface.Space.IsGuiSurface == true)
 					{
@@ -1135,12 +1141,12 @@ namespace idTech4.Platform.Windows
 					// set the state
 					ChangeState(stageState);
 
-					idLog.Warning("TODO: PrepareStageTexturing(stage, surface);");
+					PrepareStageTexturing(stage, surface);
 
 					// draw it
 					DrawElementsWithCounters(surface);
 
-					idLog.Warning("TODO: FinishStageTexturing(stage, surface);");
+					FinishStageTexturing(stage, surface);
 
 					// unset privatePolygonOffset if necessary
 					if(stage.PrivatePolygonOffset > 0)
@@ -1302,7 +1308,7 @@ namespace idTech4.Platform.Windows
 				//
 				// set eye position in global space
 				//
-				SetVertexParameter(RenderParameter.GlobalEyePosition, new Vector4(_viewDef.RenderView.ViewOrigin, 1.0f)); // rpGlobalEyePos
+				_renderProgramManager.SetGlobalEyePosition(new Vector4(_viewDef.RenderView.ViewOrigin, 1.0f)); // rpGlobalEyePos
 
 				// sets overbright to make world brighter
 				// This value is baked into the specularScale and diffuseScale values so
@@ -1310,10 +1316,10 @@ namespace idTech4.Platform.Windows
 				// but any other renderprogs that want to obey the brightness value
 				// can reference this.
 				float overbright = cvarSystem.GetFloat("r_lightScale") * 0.5f;
-				SetFragmentParameter(RenderParameter.OverBright, new Vector4(overbright, overbright, overbright, overbright));
+				_renderProgramManager.SetOverBright(new Vector4(overbright, overbright, overbright, overbright));
 
 				// set Projection Matrix
-				SetVertexParameter(RenderParameter.ProjectionMatrixX, _viewDef.ProjectionMatrix);
+				_renderProgramManager.SetProjectionMatrix(_viewDef.ProjectionMatrix);
 			}
 
 			//-------------------------------------------------
@@ -1421,6 +1427,221 @@ namespace idTech4.Platform.Windows
 			// TODO: renderLog.CloseBlock();
 		}
 
+		private void PrepareStageTexturing(MaterialStage stage, idDrawSurface surface)
+		{
+			Vector4 useTexGenParm = Vector4.Zero;
+
+			// set the texture matrix if needed
+			LoadShaderTextureMatrix(surface.MaterialRegisters, stage.Texture);
+
+			// texgens
+			if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
+			{
+				idLog.Warning("TODO: REFLECT_CUBE");
+
+				// see if there is also a bump map specified
+				/*const shaderStage_t *bumpStage = surf->material->GetBumpStage();
+				if ( bumpStage != NULL ) {
+					// per-pixel reflection mapping with bump mapping
+					GL_SelectTexture( 1 );
+					bumpStage->texture.image->Bind();
+					GL_SelectTexture( 0 );
+
+					RENDERLOG_PRINTF( "TexGen: TG_REFLECT_CUBE: Bumpy Environment\n" );
+					if ( surf->jointCache ) {
+						renderProgManager.BindShader_BumpyEnvironmentSkinned();
+					} else {
+						renderProgManager.BindShader_BumpyEnvironment();
+					}
+				} else {
+					RENDERLOG_PRINTF( "TexGen: TG_REFLECT_CUBE: Environment\n" );
+					if ( surf->jointCache ) {
+						renderProgManager.BindShader_EnvironmentSkinned();
+					} else {
+						renderProgManager.BindShader_Environment();
+					}
+				}*/
+			} 
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.SkyboxCube)
+			{
+				idLog.Warning("TODO: SKYBOX CUBE");
+
+				//renderProgManager.BindShader_SkyBox();
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.WobbleSkyCube)
+			{
+				idLog.Warning("TODO: WOBBLYSKY CUBE");
+
+				/*const int * parms = surf->material->GetTexGenRegisters();
+
+				float wobbleDegrees = surf->shaderRegisters[ parms[0] ] * ( idMath::PI / 180.0f );
+				float wobbleSpeed = surf->shaderRegisters[ parms[1] ] * ( 2.0f * idMath::PI / 60.0f );
+				float rotateSpeed = surf->shaderRegisters[ parms[2] ] * ( 2.0f * idMath::PI / 60.0f );
+
+				idVec3 axis[3];
+				{
+					// very ad-hoc "wobble" transform
+					float s, c;
+					idMath::SinCos( wobbleSpeed * backEnd.viewDef->renderView.time[0] * 0.001f, s, c );
+
+					float ws, wc;
+					idMath::SinCos( wobbleDegrees, ws, wc );
+
+					axis[2][0] = ws * c;
+					axis[2][1] = ws * s;
+					axis[2][2] = wc;
+
+					axis[1][0] = -s * s * ws;
+					axis[1][2] = -s * ws * ws;
+					axis[1][1] = idMath::Sqrt( idMath::Fabs( 1.0f - ( axis[1][0] * axis[1][0] + axis[1][2] * axis[1][2] ) ) );
+
+					// make the second vector exactly perpendicular to the first
+					axis[1] -= ( axis[2] * axis[1] ) * axis[2];
+					axis[1].Normalize();
+
+					// construct the third with a cross
+					axis[0].Cross( axis[1], axis[2] );
+				}
+
+				// add the rotate
+				float rs, rc;
+				idMath::SinCos( rotateSpeed * backEnd.viewDef->renderView.time[0] * 0.001f, rs, rc );
+
+				float transform[12];
+				transform[0*4+0] = axis[0][0] * rc + axis[1][0] * rs;
+				transform[0*4+1] = axis[0][1] * rc + axis[1][1] * rs;
+				transform[0*4+2] = axis[0][2] * rc + axis[1][2] * rs;
+				transform[0*4+3] = 0.0f;
+
+				transform[1*4+0] = axis[1][0] * rc - axis[0][0] * rs;
+				transform[1*4+1] = axis[1][1] * rc - axis[0][1] * rs;
+				transform[1*4+2] = axis[1][2] * rc - axis[0][2] * rs;
+				transform[1*4+3] = 0.0f;
+
+				transform[2*4+0] = axis[2][0];
+				transform[2*4+1] = axis[2][1];
+				transform[2*4+2] = axis[2][2];
+				transform[2*4+3] = 0.0f;
+
+				SetVertexParms( RENDERPARM_WOBBLESKY_X, transform, 3 );
+				renderProgManager.BindShader_WobbleSky();*/
+			}
+			else if((stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen)
+				||(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.Screen2))
+			{
+				idLog.Warning("TODO: SCREEN || SCREEN2");
+
+				/*useTexGenParm[0] = 1.0f;
+				useTexGenParm[1] = 1.0f;
+				useTexGenParm[2] = 1.0f;
+				useTexGenParm[3] = 1.0f;
+
+				float mat[16];
+				R_MatrixMultiply( surf->space->modelViewMatrix, backEnd.viewDef->projectionMatrix, mat );
+
+				RENDERLOG_PRINTF( "TexGen : %s\n", ( pStage->texture.texgen == TG_SCREEN ) ? "TG_SCREEN" : "TG_SCREEN2" );
+				renderLog.Indent();
+
+				float plane[4];
+				plane[0] = mat[0*4+0];
+				plane[1] = mat[1*4+0];
+				plane[2] = mat[2*4+0];
+				plane[3] = mat[3*4+0];
+				SetVertexParm( RENDERPARM_TEXGEN_0_S, plane );
+				RENDERLOG_PRINTF( "TEXGEN_S = %4.3f, %4.3f, %4.3f, %4.3f\n",  plane[0], plane[1], plane[2], plane[3] );
+
+				plane[0] = mat[0*4+1];
+				plane[1] = mat[1*4+1];
+				plane[2] = mat[2*4+1];
+				plane[3] = mat[3*4+1];
+				SetVertexParm( RENDERPARM_TEXGEN_0_T, plane );
+				RENDERLOG_PRINTF( "TEXGEN_T = %4.3f, %4.3f, %4.3f, %4.3f\n",  plane[0], plane[1], plane[2], plane[3] );
+
+				plane[0] = mat[0*4+3];
+				plane[1] = mat[1*4+3];
+				plane[2] = mat[2*4+3];
+				plane[3] = mat[3*4+3];
+				SetVertexParm( RENDERPARM_TEXGEN_0_Q, plane );	
+				RENDERLOG_PRINTF( "TEXGEN_Q = %4.3f, %4.3f, %4.3f, %4.3f\n",  plane[0], plane[1], plane[2], plane[3] );
+
+				renderLog.Outdent();*/
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.DiffuseCube)
+			{
+				// as far as I can tell, this is never used
+				idLog.Warning("Using Diffuse Cube! Please contact Brian!");
+			}
+			else if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.GlassWarp)
+			{
+				// as far as I can tell, this is never used
+				idLog.Warning("Using GlassWarp! Please contact Brian!");
+			}
+
+			_renderProgramManager.SetTextureCoordinates0Enabled(useTexGenParm);
+		}
+
+		private void FinishStageTexturing(MaterialStage stage, idDrawSurface surface)
+		{
+			// TODO: cinematic
+			/*if ( pStage->texture.cinematic ) {
+				// unbind the extra bink textures
+				GL_SelectTexture( 1 );
+				globalImages->BindNull();
+				GL_SelectTexture( 2 );
+				globalImages->BindNull();
+				GL_SelectTexture( 0 );
+			}*/
+
+			if(stage.Texture.TextureCoordinates == TextureCoordinateGeneration.ReflectCube)
+			{
+				idLog.Warning("TODO: REFLECT CUBE");
+				// see if there is also a bump map specified
+				/*const shaderStage_t *bumpStage = surf->material->GetBumpStage();
+				if ( bumpStage != NULL ) {
+					// per-pixel reflection mapping with bump mapping
+					GL_SelectTexture( 1 );
+					globalImages->BindNull();
+					GL_SelectTexture( 0 );
+				} else {
+					// per-pixel reflection mapping without bump mapping
+				}
+		
+				renderProgManager.Unbind();*/
+			}
+		}
+
+		private void LoadShaderTextureMatrix(float[] materialRegisters, TextureStage texture)
+		{
+			Vector4 texS = new Vector4(1, 0, 0, 0);
+			Vector4 texT = new Vector4(0, 1, 0, 0);
+
+			if(texture.HasMatrix == true)
+			{
+				idLog.Warning("TODO: LoadShaderTextureMatrix");
+
+				/*float matrix[16];
+				RB_GetShaderTextureMatrix( shaderRegisters, texture, matrix );
+				texS[0] = matrix[0*4+0];
+				texS[1] = matrix[1*4+0];
+				texS[2] = matrix[2*4+0];
+				texS[3] = matrix[3*4+0];
+	
+				texT[0] = matrix[0*4+1];
+				texT[1] = matrix[1*4+1];
+				texT[2] = matrix[2*4+1];
+				texT[3] = matrix[3*4+1];
+
+				RENDERLOG_PRINTF( "Setting Texture Matrix\n");
+				renderLog.Indent();
+				RENDERLOG_PRINTF( "Texture Matrix S : %4.3f, %4.3f, %4.3f, %4.3f\n", texS[0], texS[1], texS[2], texS[3] );
+				RENDERLOG_PRINTF( "Texture Matrix T : %4.3f, %4.3f, %4.3f, %4.3f\n", texT[0], texT[1], texT[2], texT[3] );
+				renderLog.Outdent();*/
+			}
+
+			_renderProgramManager.SetTextureMatrixS(texS);
+			_renderProgramManager.SetTextureMatrixT(texT);
+		}
+
 		private void SelectTextureUnit(int unit)
 		{
 			if(_backendState.CurrentTextureUnit == unit)
@@ -1482,18 +1703,17 @@ namespace idTech4.Platform.Windows
 		}
 		#endregion
 
-		#region Shader
-		private void SetFragmentParameter(RenderParameter renderParameter, Matrix value)
+		#region Shader		
+		private void SetColor(Vector4 color)
 		{
-			_renderProgramManager.SetUniformValue(renderParameter + 0, value.Get(0));
-			_renderProgramManager.SetUniformValue(renderParameter + 1, value.Get(1));
-			_renderProgramManager.SetUniformValue(renderParameter + 2, value.Get(2));
-			_renderProgramManager.SetUniformValue(renderParameter + 3, value.Get(3));
-		}
+			Vector4 parm = new Vector4(
+				MathHelper.Clamp(color.X, 0, 1),
+				MathHelper.Clamp(color.Y, 0, 1),
+				MathHelper.Clamp(color.Z, 0, 1),
+				MathHelper.Clamp(color.W, 0, 1)
+			);
 
-		private void SetFragmentParameter(RenderParameter renderParameter, Vector4 value)
-		{
-			_renderProgramManager.SetUniformValue(renderParameter, value);
+			_renderProgramManager.SetColor(parm);
 		}
 
 		private void SetVertexColorParameters(StageVertexColor stageVertexColor)
@@ -1501,34 +1721,21 @@ namespace idTech4.Platform.Windows
 			switch(stageVertexColor)
 			{
 				case StageVertexColor.Ignore:
-					SetVertexParameter(RenderParameter.VertexColorModulate, Vector4.Zero);
-					SetVertexParameter(RenderParameter.VertexColorAdd, Vector4.One);
+					_renderProgramManager.SetVertexColorModulate(Vector4.Zero);
+					_renderProgramManager.SetVertexColorAdd(Vector4.One);
 					break;
 
 				case StageVertexColor.Modulate:
-					SetVertexParameter(RenderParameter.VertexColorModulate, Vector4.One);
-					SetVertexParameter(RenderParameter.VertexColorAdd, Vector4.Zero);
+					_renderProgramManager.SetVertexColorModulate(Vector4.One);
+					_renderProgramManager.SetVertexColorAdd(Vector4.Zero);
 					break;
 
 				case StageVertexColor.InverseModulate:
-					SetVertexParameter(RenderParameter.VertexColorModulate, -Vector4.One);
-					SetVertexParameter(RenderParameter.VertexColorAdd, Vector4.One);
+					_renderProgramManager.SetVertexColorModulate(-Vector4.One);
+					_renderProgramManager.SetVertexColorAdd(Vector4.One);
 					break;
 			}
-		}
-
-		private void SetVertexParameter(RenderParameter renderParameter, Matrix value)
-		{
-			_renderProgramManager.SetUniformValue(renderParameter + 0, value.Get(0));
-			_renderProgramManager.SetUniformValue(renderParameter + 1, value.Get(1));
-			_renderProgramManager.SetUniformValue(renderParameter + 2, value.Get(2));
-			_renderProgramManager.SetUniformValue(renderParameter + 3, value.Get(3));
-		}
-
-		private void SetVertexParameter(RenderParameter renderParameter, Vector4 value)
-		{
-			_renderProgramManager.SetUniformValue(renderParameter, value);
-		}
+		}		
 		#endregion
 
 		#region IRenderBackend implementation
@@ -1782,7 +1989,7 @@ namespace idTech4.Platform.Windows
 			idLog.WriteLine("Profile     : {0}", _graphicsDeviceManager.GraphicsProfile);
 			idLog.WriteLine("Shader Model: {0}", _renderCaps.ShaderModel);
 
-			_renderProgramManager = new XNARenderProgramManager();
+			_renderProgramManager = new XNARenderProgramManager(_backendState);
 			_renderProgramManager.Initialize();
 
 			// allocate the vertex array range or vertex objects
@@ -2093,67 +2300,65 @@ namespace idTech4.Platform.Windows
 			public DisplayMode DisplayMode;
 		}
 		#endregion
+	}
 
-		#region State
-		private class BackendState
+	internal class BackendState
+	{
+		public TextureUnit[] TextureUnits = new TextureUnit[8];
+		public int CurrentTextureUnit;
+
+		public VertexBuffer CurrentVertexBuffer;
+		public IndexBuffer CurrentIndexBuffer;
+
+		public CullType FaceCulling;
+		public MaterialStates StateBits;
+
+		public VertexLayout VertexLayout;
+
+		public float PolyOfsScale;
+		public float PolyOfsBias;
+
+		public BackendState()
 		{
-			public TextureUnit[] TextureUnits = new TextureUnit[8];
-			public int CurrentTextureUnit;
+			int count = TextureUnits.Length;
 
-			public VertexBuffer CurrentVertexBuffer;
-			public IndexBuffer CurrentIndexBuffer;
-
-			public CullType FaceCulling;
-			public MaterialStates StateBits;
-
-			public VertexLayout VertexLayout;
-
-			public float PolyOfsScale;
-			public float PolyOfsBias;
-
-			public BackendState()
+			for(int i = 0; i < count; i++)
 			{
-				int count = TextureUnits.Length;
-
-				for(int i = 0; i < count; i++)
-				{
-					TextureUnits[i] = new TextureUnit();
-				}
-			}
-
-			public void Clear()
-			{
-				CurrentTextureUnit = 0;
-				CurrentVertexBuffer = null;
-				CurrentIndexBuffer = null;
-				FaceCulling = CullType.Front;
-				VertexLayout = VertexLayout.Unknown;
-				StateBits = 0;
-
-				PolyOfsScale = 0;
-				PolyOfsBias = 0;
-
-				int count = TextureUnits.Length;
-
-				for(int i = 0; i < count; i++)
-				{
-					TextureUnits[i].CurrentTexture = null;
-				}
+				TextureUnits[i] = new TextureUnit();
 			}
 		}
 
-		private class TextureUnit
+		public void Clear()
 		{
-			public Texture CurrentTexture;
+			CurrentTextureUnit = 0;
+			CurrentVertexBuffer = null;
+			CurrentIndexBuffer = null;
+			FaceCulling = CullType.Front;
+			VertexLayout = VertexLayout.Unknown;
+			StateBits = 0;
+
+			PolyOfsScale = 0;
+			PolyOfsBias = 0;
+
+			int count = TextureUnits.Length;
+
+			for(int i = 0; i < count; i++)
+			{
+				TextureUnits[i].CurrentTexture = null;
+			}
 		}
+	}
+
+	internal class TextureUnit
+	{
+		public Texture CurrentTexture;
+	}
 		
-		private enum VertexLayout
-		{
-			Unknown,
-			DrawVertex,
-			DrawShadowVertex,
-			DrawShadowVertexSkinned
-		}
-		#endregion
+	internal enum VertexLayout
+	{
+		Unknown,
+		DrawVertex,
+		DrawShadowVertex,
+		DrawShadowVertexSkinned
 	}
 }

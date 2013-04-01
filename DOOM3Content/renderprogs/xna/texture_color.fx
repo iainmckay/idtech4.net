@@ -1,10 +1,7 @@
 float4 g_VertexColorModulate;
 float4 g_VertexColorAdd;
 float4 g_Color;
-float4 g_ModelViewProjectionMatrixX;
-float4 g_ModelViewProjectionMatrixY;
-float4 g_ModelViewProjectionMatrixZ;
-float4 g_ModelViewProjectionMatrixW;
+float4x4 g_ModelViewProjectionMatrix;
 float4 g_TextureMatrixS;
 float4 g_TextureMatrixT;
 float4 g_TextureCoordinates0S;
@@ -15,6 +12,7 @@ float4 g_AlphaTest;
 texture g_Texture0;
 sampler2D g_TextureSampler0 = sampler_state {
     Texture = g_Texture0;
+	mipfilter = LINEAR; 
 };
 
 struct VertexShaderInput
@@ -28,28 +26,30 @@ struct VertexShaderInput
 
 struct VertexShaderOutput
 {
-    float4 Position   : POSITION0;
-	float2 TexCoord   : TEXCOORD0;
-	float4 Color : COLOR0;
+    float4 Position : POSITION0;
+	float2 TexCoord : TEXCOORD0;
+	float4 Color    : COLOR0;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
     VertexShaderOutput output;
-	output.Position.x = dot(input.Position, g_ModelViewProjectionMatrixX);
-	output.Position.y = dot(input.Position, g_ModelViewProjectionMatrixY);
-	output.Position.z = dot(input.Position, g_ModelViewProjectionMatrixZ);
-	output.Position.w = dot(input.Position, g_ModelViewProjectionMatrixW);
+	output.Position = mul(input.Position, g_ModelViewProjectionMatrix);
 	
 	if(g_TextureCoordinates0Enabled.x > 0.0) {
-		output.TexCoord.x = dot(input.Position , g_TextureCoordinates0S);
-		output.TexCoord.y = dot(input.Position , g_TextureCoordinates0T);
+		output.Color = float4(1, 0, 0, 1);
+		output.TexCoord.x = mul(input.Position , g_TextureCoordinates0S);
+		output.TexCoord.y = mul(input.Position , g_TextureCoordinates0T);
 	} else {
-		output.TexCoord.x = dot(input.TexCoord.xy , g_TextureMatrixS);
-		output.TexCoord.y = dot(input.TexCoord.xy , g_TextureMatrixT);
+		output.TexCoord.x = mul(input.TexCoord.xy , g_TextureMatrixS);
+		output.TexCoord.y = mul(input.TexCoord.xy , g_TextureMatrixT);
 	}
 
-	float4 vertexColor = (input.Color * g_VertexColorModulate) + g_VertexColorAdd;
+	output.TexCoord = input.TexCoord;
+
+	float4 vertexColor = (/*input.Color*/ float4(1,1,1,1) * g_VertexColorModulate) + g_VertexColorAdd;
+	//float4 vertexColor = input.Color;
+	//float4 vertexColor = float4(1, 1, 1, 1);
 	output.Color = vertexColor * g_Color;
 
     return output;
@@ -58,8 +58,8 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
 	float4 color = tex2D(g_TextureSampler0 , input.TexCoord) * input.Color;
-	saturate(color.a - g_AlphaTest.x);
-	
+	clip(color.a - g_AlphaTest.x);
+
 	return color;
 }
 

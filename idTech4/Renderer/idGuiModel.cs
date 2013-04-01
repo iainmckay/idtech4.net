@@ -228,13 +228,13 @@ namespace idTech4.Renderer
 			//---------------------------
 			// make a tech5 renderMatrix
 			//---------------------------
-			// TODO: idRenderMatrix
-			/*idRenderMatrix viewMat;
-			idRenderMatrix::Transpose( *(idRenderMatrix *)modelViewMatrix, viewMat );
-			idRenderMatrix::Multiply( tr.viewDef->projectionRenderMatrix, viewMat, guiSpace->mvp );
-			if ( depthHack ) {
-				idRenderMatrix::ApplyDepthHack( guiSpace->mvp );
-			}*/
+
+			guiSpace.ModelViewProjectionMatrix = renderSystem.ViewDefinition.ProjectionMatrix * modelViewMatrix;
+
+			if(depthHack == true)
+			{
+				guiSpace.ModelViewProjectionMatrix.ApplyDepthHack();
+			}
 
 			// to allow 3D-TV effects in the menu system, we define surface flags to set
 			// depth fractions between 0=screen and 1=infinity, which directly modulate the
