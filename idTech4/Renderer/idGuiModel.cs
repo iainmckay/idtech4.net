@@ -121,6 +121,7 @@ namespace idTech4.Renderer
 			int startVertex = _vertexCount;
 			int startIndex  = _indexCount;
 
+			int s = System.Runtime.InteropServices.Marshal.SizeOf(typeof(idVertex));
 			_vertexBuffer.SetData<idVertex>(_vertexCount * idVertex.VertexDeclaration.VertexStride, vertices, 0, vertices.Length, idVertex.VertexDeclaration.VertexStride, SetDataOptions.NoOverwrite);
 			_indexBuffer.SetData<ushort>(_indexCount * sizeof(ushort), indexes, 0, indexes.Length, SetDataOptions.NoOverwrite);
 
