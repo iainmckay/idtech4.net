@@ -99,8 +99,10 @@
     <Compile Include="Menus\idMenuHandler.cs" />
     <Compile Include="Menus\idMenuHandler_Shell.cs" />
     <Compile Include="Menus\idMenuScreen.cs" />
+    <Compile Include="Menus\idMenuScreen_Shell_PressStart.cs" />
     <Compile Include="Menus\idMenuWidget.cs" />
     <Compile Include="Menus\idMenuWidget_Button.cs" />
+    <Compile Include="Menus\idMenuWidget_Carousel.cs" />
     <Compile Include="Menus\idMenuWidget_CommandBar.cs" />
     <Compile Include="Menus\idMenuWidget_DynamicList.cs" />
     <Compile Include="Menus\idMenuWidget_List.cs" />

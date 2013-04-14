@@ -247,31 +247,29 @@ namespace idTech4.Game.Menus
 			} 
 			else 
 			{
-				idLog.Warning("TODO: idMenuHandler_Shell not in game");
-
-				/*BIND_SHELL_SCREEN( SHELL_AREA_START, idMenuScreen_Shell_PressStart, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_ROOT, idMenuScreen_Shell_Root, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_CAMPAIGN, idMenuScreen_Shell_Singleplayer, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_SETTINGS, idMenuScreen_Shell_Settings, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_LOAD, idMenuScreen_Shell_Load, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_NEW_GAME, idMenuScreen_Shell_NewGame, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_SYSTEM_OPTIONS, idMenuScreen_Shell_SystemOptions, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_GAME_OPTIONS, idMenuScreen_Shell_GameOptions, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_PARTY_LOBBY, idMenuScreen_Shell_PartyLobby, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_GAME_LOBBY, idMenuScreen_Shell_GameLobby, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_STEREOSCOPICS, idMenuScreen_Shell_Stereoscopics, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_DIFFICULTY, idMenuScreen_Shell_Difficulty, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_CONTROLS, idMenuScreen_Shell_Controls, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_KEYBOARD, idMenuScreen_Shell_Bindings, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_RESOLUTION, idMenuScreen_Shell_Resolution, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_CONTROLLER_LAYOUT, idMenuScreen_Shell_ControllerLayout, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_DEV, idMenuScreen_Shell_Dev, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_LEADERBOARDS, idMenuScreen_Shell_Leaderboards, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_GAMEPAD, idMenuScreen_Shell_Gamepad, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_MATCH_SETTINGS, idMenuScreen_Shell_MatchSettings, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_MODE_SELECT, idMenuScreen_Shell_ModeSelect, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_BROWSER, idMenuScreen_Shell_GameBrowser, this );
-				BIND_SHELL_SCREEN( SHELL_AREA_CREDITS, idMenuScreen_Shell_Credits, this );*/
+				RegisterShellScreen<idMenuScreen_Shell_PressStart>(ShellArea.Start, this);
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_ROOT, idMenuScreen_Shell_Root, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_CAMPAIGN, idMenuScreen_Shell_Singleplayer, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_SETTINGS, idMenuScreen_Shell_Settings, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_LOAD, idMenuScreen_Shell_Load, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_NEW_GAME, idMenuScreen_Shell_NewGame, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_SYSTEM_OPTIONS, idMenuScreen_Shell_SystemOptions, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_GAME_OPTIONS, idMenuScreen_Shell_GameOptions, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_PARTY_LOBBY, idMenuScreen_Shell_PartyLobby, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_GAME_LOBBY, idMenuScreen_Shell_GameLobby, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_STEREOSCOPICS, idMenuScreen_Shell_Stereoscopics, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_DIFFICULTY, idMenuScreen_Shell_Difficulty, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_CONTROLS, idMenuScreen_Shell_Controls, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_KEYBOARD, idMenuScreen_Shell_Bindings, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_RESOLUTION, idMenuScreen_Shell_Resolution, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_CONTROLLER_LAYOUT, idMenuScreen_Shell_ControllerLayout, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_DEV, idMenuScreen_Shell_Dev, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_LEADERBOARDS, idMenuScreen_Shell_Leaderboards, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_GAMEPAD, idMenuScreen_Shell_Gamepad, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_MATCH_SETTINGS, idMenuScreen_Shell_MatchSettings, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_MODE_SELECT, idMenuScreen_Shell_ModeSelect, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_BROWSER, idMenuScreen_Shell_GameBrowser, this );");
+				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_CREDITS, idMenuScreen_Shell_Credits, this );");
 
 				_doom3Intro = declManager.FindMaterial("gui/intro/introloop");
 				_roeIntro   = declManager.FindMaterial("gui/intro/marsflyby");
@@ -388,13 +386,18 @@ namespace idTech4.Game.Menus
 			}*/
 		}
 
+		private void RegisterShellScreen<T>(ShellArea shellArea, idMenuHandler handler) where T : idMenuScreen, new()
+		{
+			_menuScreens[(int) shellArea] = new T();
+			_menuScreens[(int) shellArea].Initialize(handler);
+		}
+
 		protected override void Cleanup() 
 		{
 			base.Cleanup();
 	
-			idLog.Warning("TODO: idMenuHandler_Shell.Cleanup");
-			/*delete introGui;
-			introGui = NULL;*/
+			// TODO: _introGui.Dispose();
+			_introGui = null;
 		}
 		#endregion
 
@@ -678,30 +681,31 @@ namespace idTech4.Game.Menus
 				} 
 				else
 				{
-					idLog.Warning("TODO: blah shell area");
-					/*if ( activeScreen > SHELL_AREA_INVALID && activeScreen < SHELL_NUM_AREAS && menuScreens[ activeScreen ] != NULL ) {
-						menuScreens[ activeScreen ]->HideScreen( static_cast<mainMenuTransition_t>(transition) );
+					if((_activeScreen > ShellArea.Invalid) && (_activeScreen < ShellArea.AreaCount) && (_menuScreens[(int) _activeScreen] != null))
+					{
+						_menuScreens[(int) _activeScreen].HideScreen(_transition);
 					}
 
-					if ( nextScreen > SHELL_AREA_INVALID && nextScreen < SHELL_NUM_AREAS && menuScreens[ nextScreen ] != NULL ) {
-						menuScreens[ nextScreen ]->UpdateCmds();
-						menuScreens[ nextScreen ]->ShowScreen( static_cast<mainMenuTransition_t>(transition) );			
-					}*/
+					if((_nextScreen > ShellArea.Invalid) && (_nextScreen < ShellArea.AreaCount) && (_menuScreens[(int) _nextScreen] != null))
+					{
+						idLog.Warning("TODO: _menuScreens[(int) _nextScreen].UpdateCommands();");
+						_menuScreens[(int) _nextScreen].ShowScreen(_transition);
+					}
 				}
 
 				_transition   = MainMenuTransition.Invalid;
 				_activeScreen = _nextScreen;
 			}
 
-			// TODO cmdBar
-
-			/*if ( cmdBar != NULL && cmdBar->GetSprite() ) {
-				if ( common->Dialog().IsDialogActive() ) {		
+			if((_cmdBar != null) && (_cmdBar.Sprite != null))
+			{
+				// TODO: dialog
+				/*if ( common->Dialog().IsDialogActive() ) {		
 					cmdBar->GetSprite()->SetVisible( false );
-				} else {
-					cmdBar->GetSprite()->SetVisible( true );
-				}
-			}*/
+				} else {*/
+					_cmdBar.Sprite.IsVisible = true;
+				//}
+			}
 
 			base.Update();
 

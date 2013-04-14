@@ -36,6 +36,14 @@ namespace idTech4.Game.Menus
 	public abstract class idMenuHandler
 	{
 		#region Properties
+		public ShellArea ActiveScreen
+		{
+			get
+			{
+				return _activeScreen;
+			}
+		}
+
 		public bool IsActive
 		{
 			get
@@ -247,6 +255,12 @@ namespace idTech4.Game.Menus
 			}
 
 			return _platform;
+		}
+
+		public void SetNextScreen(ShellArea area, MainMenuTransition transitionType)
+		{
+			_nextScreen = area;
+			_transition = transitionType;
 		}
 
 		public virtual void TriggerMenu() 

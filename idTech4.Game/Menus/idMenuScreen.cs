@@ -33,6 +33,32 @@ namespace idTech4.Game.Menus
 {
 	public abstract class idMenuScreen : idMenuWidget
 	{
+		#region Properties
+		public idSWF UserInterface
+		{
+			get
+			{
+				return _menuGui;
+			}
+			protected set
+			{
+				_menuGui = value;
+			}
+		}
+
+		public MainMenuTransition Transition
+		{
+			get
+			{
+				return _transition;
+			}
+			protected set
+			{
+				_transition = value;
+			}
+		}
+		#endregion
+
 		#region Members
 		private idSWF _menuGui;
 		private MainMenuTransition _transition;
@@ -43,6 +69,82 @@ namespace idTech4.Game.Menus
 			: base()
 		{
 			_transition = MainMenuTransition.Invalid;
+		}
+		#endregion
+
+		#region Methods
+		public virtual void HideScreen(MainMenuTransition transitionType)
+		{
+			if(_menuGui == null)
+			{
+				return;
+			}
+
+			if(BindSprite(_menuGui.RootObject) == false)
+			{
+				return;
+			}
+
+			if(transitionType == MainMenuTransition.Simple)
+			{
+				this.Sprite.PlayFrame("rollOff");
+			}
+			else if(transitionType == MainMenuTransition.Advance)
+			{
+				this.Sprite.PlayFrame("rollOffBack");
+			}
+			else
+			{
+				this.Sprite.PlayFrame("rollOffFront");
+			}
+
+			Update();
+		}
+
+		public virtual void ShowScreen(MainMenuTransition transitionType)
+		{
+			if(_menuGui == null)
+			{
+				return;
+			}
+
+			if(BindSprite(_menuGui.RootObject) == false)
+			{
+				return;
+			}
+
+			this.Sprite.IsVisible = true;
+
+			if(transitionType == MainMenuTransition.Simple)
+			{
+				if((_menuData != null) && (_menuData.ActiveScreen != ShellArea.Invalid))
+				{
+					idLog.Warning("TODO: menuData->PlaySound( GUI_SOUND_BUILD_ON );");
+				}
+
+				this.Sprite.PlayFrame("rollOn");
+			}
+			else if(transitionType == MainMenuTransition.Advance)
+			{
+				if((_menuData != null) && (_menuData.ActiveScreen != ShellArea.Invalid))
+				{
+					idLog.Warning("TODO: menuData->PlaySound( GUI_SOUND_BUILD_ON );");
+				}
+
+				this.Sprite.PlayFrame("rollOnFront");
+			} 
+			else 
+			{
+				if(_menuData != null)
+				{
+					idLog.Warning("TODO: menuData->PlaySound( GUI_SOUND_BUILD_OFF );");
+				}
+
+				this.Sprite.PlayFrame("rollOnBack");
+			}
+
+			Update();
+			SetFocusIndex(this.FocusIndex, true);
 		}
 		#endregion
 
