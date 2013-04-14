@@ -48,6 +48,14 @@ namespace idTech4.Game.Menus
 				return false;
 			}
 		}
+
+		public idSWF UserInterface
+		{
+			get
+			{
+				return _gui;
+			}
+		}
 		#endregion
 
 		#region Members
@@ -63,15 +71,14 @@ namespace idTech4.Game.Menus
 		protected idSWF _gui;
 		protected idSWF _introGui;
 
-		public List<idMenuWidget> _children = new List<idMenuWidget>();
-		public idMenuScreen[] _menuScreens  = new idMenuScreen[GameConstants.MaxScreenAreas];
+		protected List<idMenuWidget> _children = new List<idMenuWidget>();
+		protected idMenuScreen[] _menuScreens  = new idMenuScreen[GameConstants.MaxScreenAreas];
 		// TODO
 		/*actionRepeater_t			actionRepeater;
-		idList< idMenuWidget *, TAG_IDLIB_LIST_MENU>	children;
 	
-		idStaticList< idStr, NUM_GUI_SOUNDS >		sounds;
+		idStaticList< idStr, NUM_GUI_SOUNDS >		sounds;*/
 
-		idMenuWidget_CommandBar *	cmdBar;*/
+		protected idMenuWidget_CommandBar _cmdBar;
 		#endregion
 
 		#region Constructor
@@ -95,6 +102,89 @@ namespace idTech4.Game.Menus
 		}*/
 		#endregion
 
+		#region Children
+		public void AddChild(idMenuWidget widget)
+		{
+			widget.SWFObject       = _gui;
+			widget.HandlerIsParent = true;
+
+			_children.Add(widget);
+		}
+		#endregion
+
+		#region Events
+		public bool HandleAction(idWidgetAction action, idWidgetEvent ev, idMenuWidget widget, bool forceHandled = false)
+		{
+			WidgetActionType actionType   = action.Type;
+			idSWFParameterList parameters = action.Parameters;
+
+			switch(actionType)
+			{
+				case WidgetActionType.AdjustField:
+					if((widget != null) && (widget.DataSource != null))
+					{
+						widget.DataSource.AdjustField(widget.DataSourceFieldIndex, parameters[0].ToInt32());
+						widget.Update();
+					}
+
+					return true;
+				
+				case WidgetActionType.Function:
+					if(action.ScriptFunction != null)
+					{
+						action.ScriptFunction.Invoke(ev.ScriptObject, ev.Parameters);
+					}
+
+					return true;
+				
+				case WidgetActionType.PressFocused:
+					idMenuScreen screen = _menuScreens[(int) _activeScreen];
+
+					if(screen != null)
+					{
+						idWidgetEvent pressEvent = new idWidgetEvent(WidgetEventType.Press, 0, ev.ScriptObject, new idSWFParameterList());
+						screen.ReceiveEvent(pressEvent);
+					}
+
+					return true;
+				
+				case WidgetActionType.StartRepeater:
+					idLog.Warning("TODO: HandleAction.StartRepeater");
+					/*idWidgetAction repeatAction;
+					widgetAction_t repeatActionType = static_cast< widgetAction_t >( parms[ 0 ].ToInteger() );
+					assert( parms.Num() >= 2 );
+					int repeatDelay = DEFAULT_REPEAT_TIME;
+					if ( parms.Num() >= 3 ) {
+						repeatDelay = parms[2].ToInteger();
+					} 
+					repeatAction.Set( repeatActionType, parms[ 1 ], repeatDelay );
+					StartWidgetActionRepeater( widget, repeatAction, event );*/
+					
+					return true;
+				
+				case WidgetActionType.StopRepeater:
+					idLog.Warning("TODO: ClearWidgetActionRepeater();");
+					return true;				
+			}
+
+			if(widget.HandlerIsParent == false)
+			{
+				for(int index = 0; index < _children.Count; ++index)
+				{
+					if(_children[index] != null)
+					{
+						if(_children[index].HandleAction(action, ev, widget, forceHandled) == true)
+						{
+							return true;
+						}
+					}
+				}
+			}
+
+			return false;
+		}
+		#endregion
+
 		#region Initialization
 		public virtual void Initialize(string swfFile /* TODO:, idSoundWorld * sw*/)
 		{
@@ -111,17 +201,19 @@ namespace idTech4.Game.Menus
 			/*for ( int index = 0; index < children.Num(); ++index ) {
 				assert( children[ index ]->GetRefCount() > 0 );
 				children[ index ]->Release();
-			}
-			children.Clear();
+			}*/
 
-			for ( int index = 0; index < MAX_SCREEN_AREAS; ++index ) {
+			_children.Clear();
+
+			/*for ( int index = 0; index < MAX_SCREEN_AREAS; ++index ) {
 				if ( menuScreens[ index ] != NULL ) {
 					menuScreens[ index ]->Release();
 				}
 			}
 
-			delete gui;
-			gui = NULL;*/
+			delete gui;*/
+
+			_gui = null;
 		}
 		#endregion
 
@@ -143,6 +235,18 @@ namespace idTech4.Game.Menus
 			_gui.Globals.Set("activateMenus",		new idSWFScriptFunction_ActivateMenus(this));
 
 			_gui.Activate(show);
+		}
+
+		public int GetPlatform(bool realPlatform = false)
+		{
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+
+			if((_platform == 2) && (cvarSystem.GetBool("in_useJoystick") == true) && (realPlatform == false))
+			{
+				return 0;
+			}
+
+			return _platform;
 		}
 
 		public virtual void TriggerMenu() 

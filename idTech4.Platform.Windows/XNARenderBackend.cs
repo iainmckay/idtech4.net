@@ -747,7 +747,7 @@ namespace idTech4.Platform.Windows
 			_renderProgramManager.SetModelViewMatrix(_viewDef.WorldSpace.ModelViewMatrix);
 			_renderProgramManager.SetModelMatrix(_viewDef.WorldSpace.ModelMatrix);
 			_renderProgramManager.SetModelViewProjectionMatrix(_viewDef.WorldSpace.ModelMatrix * _viewDef.WorldSpace.ModelViewMatrix * _viewDef.ProjectionMatrix);
-
+			
 			_renderProgramManager.CommitUniforms();
 
 			foreach(EffectPass p in _renderProgramManager.Effect.CurrentTechnique.Passes)
@@ -1093,7 +1093,7 @@ namespace idTech4.Platform.Windows
 							{
 								// This is a hack... Only SWF Guis set GLS_OVERRIDE
 								// Old style guis do not, and we don't want them to use the new GUI renderProg
-								idLog.Warning("TODO: renderProgManager.BindShader_GUI();");
+								_renderProgramManager.BindBuiltin(BuiltinShader.Gui);
 							} 
 							else 
 							{
@@ -2163,9 +2163,10 @@ namespace idTech4.Platform.Windows
 			_graphicsDeviceManager.PreferMultiSampling            = (multiSamples > 1);
 			_graphicsDeviceManager.IsFullScreen                   = (fullScreen > 0);
 			_graphicsDeviceManager.GraphicsProfile                = adapter.IsProfileSupported(GraphicsProfile.HiDef) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
-						
+
 			/*_graphicsDeviceManager.PreparingDeviceSettings       += delegate(object sender, PreparingDeviceSettingsEventArgs args)
 			{
+				
 				args.GraphicsDeviceInformation.Adapter         = adapter;
 			
 				PresentationParameters p            = args.GraphicsDeviceInformation.PresentationParameters;

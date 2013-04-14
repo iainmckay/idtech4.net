@@ -620,7 +620,13 @@
       <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
     </Content>
   </ItemGroup>
-  <ItemGroup />
+  <ItemGroup>
+    <Compile Include="renderprogs\xna\gui.fx">
+      <Name>gui</Name>
+      <Importer>EffectImporter</Importer>
+      <Processor>EffectProcessor</Processor>
+    </Compile>
+  </ItemGroup>
   <ItemGroup>
     <Compile Include="renderprogs\xna\texture_color.fx">
       <Name>texture_color</Name>

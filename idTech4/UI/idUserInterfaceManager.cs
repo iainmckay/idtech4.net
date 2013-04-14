@@ -64,7 +64,7 @@ namespace idTech4.UI
 			SetDrawingContext();
 		}
 
-		private void SetDrawingContext()
+		public void SetDrawingContext()
 		{
 			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
 

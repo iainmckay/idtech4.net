@@ -29,6 +29,13 @@ namespace idTech4.Services
 {
 	public interface IGame
 	{
+		#region Game
+		/// <summary>
+		/// Makes rendering and sound system calls.
+		/// </summary>
+		bool Draw(int clientNum);
+		#endregion
+
 		#region Initialization
 		/// <summary>
 		/// Initialize the game for the first time.
@@ -53,6 +60,10 @@ namespace idTech4.Services
 		void Shell_UpdateClientCountdown( int countdown ) = 0;
 		void Shell_UpdateLeaderboard( const idLeaderboardCallback * callback ) = 0;
 		void Shell_SetGameComplete();*/
+		#endregion
+
+		#region Misc.
+		int LocalClientNumber { get; }
 		#endregion
 	}
 

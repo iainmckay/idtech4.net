@@ -120,10 +120,32 @@ namespace idTech4.UI.SWF.Scripting
 		}*/
 		#endregion
 
-		#region Set/Get		
+		#region Set/Get
 		public idSWFScriptVariable Get(string name)
 		{
 			idSWFNamedVariable variable = GetVariable(name, false);
+
+			if(variable == null)
+			{
+				return new idSWFScriptVariable();
+			}
+			else
+			{
+				// TODO: native
+				/*if(variable.Native != null)
+				{
+					return variable.Native.Get(this);
+				}
+				else*/
+				{
+					return variable.Value;
+				}
+			}
+		}
+
+		public idSWFScriptVariable Get(int index)
+		{
+			idSWFNamedVariable variable = GetVariable(index, false);
 
 			if(variable == null)
 			{
@@ -200,15 +222,31 @@ namespace idTech4.UI.SWF.Scripting
 			return new idSWFScriptVariable("[unknown]");
 		}
 
+		public idSWFScriptObject GetNestedObject(string arg1, string arg2 = null, string arg3 = null, string arg4 = null, string arg5 = null, string arg6 = null)
+		{
+			idSWFScriptVariable var = GetNestedVariable(arg1, arg2, arg3, arg4, arg5, arg6);
+
+			if(var.IsObject == null)
+			{
+				return null;
+			}
+
+			return var.Object;
+		}
+
 		public idSWFSpriteInstance GetNestedSprite(string arg1, string arg2 = null, string arg3 = null, string arg4 = null, string arg5 = null, string arg6 = null)
 		{
 			return GetNestedVariable(arg1, arg2, arg3, arg4, arg5, arg6).ToSprite();
 		}
 
+		public idSWFTextInstance GetNestedText(string arg1, string arg2 = null, string arg3 = null, string arg4 = null, string arg5 = null, string arg6 = null)
+		{
+			return GetNestedVariable(arg1, arg2, arg3, arg4, arg5, arg6).ToText();
+		}
+
 		public idSWFScriptVariable GetNestedVariable(string arg1, string arg2 = null, string arg3 = null, string arg4 = null, string arg5 = null, string arg6 = null)
 		{
 			List<string> list = new List<string>(new string[] {arg1, arg2, arg3, arg4, arg5, arg6});
-			list.RemoveAll((s) => { return (s == null); });
 
 			idSWFScriptObject baseObject = this;
 			idSWFScriptVariable retVal   = new idSWFScriptVariable();
@@ -217,7 +255,7 @@ namespace idTech4.UI.SWF.Scripting
 			{
 				if(list[i] == null)
 				{
-					continue;
+					break;
 				}
 
 				idSWFScriptVariable var = baseObject.Get(list[i]);
@@ -240,6 +278,16 @@ namespace idTech4.UI.SWF.Scripting
 			}
 
 			return retVal;
+		}
+
+		public idSWFSpriteInstance GetSprite(int index)
+		{
+			return Get(index).ToSprite();
+		}
+
+		public idSWFSpriteInstance GetSprite(string name)
+		{
+			return Get(name).ToSprite();
 		}
 	
 		public void Set(int index, idSWFScriptVariable value)

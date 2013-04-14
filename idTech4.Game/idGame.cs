@@ -54,6 +54,36 @@ namespace idTech4.Game
 		}
 		#endregion
 
+		#region Draw
+		public bool Draw(int clientNum)
+		{
+			if(clientNum == -1)
+			{
+				return false;
+			}
+			
+			/*if ( common->IsMultiplayer() && session->GetState() == idSession::INGAME ) {
+				return mpGame.Draw( clientNum );
+			}*/
+
+			// chose the optimized or legacy device context code
+			IUserInterfaceManager uiManager = idEngine.Instance.GetService<IUserInterfaceManager>();
+			uiManager.SetDrawingContext();
+
+			idLog.Warning("TODO: idGame.Draw");
+			/*idPlayer *player = static_cast<idPlayer *>(entities[ clientNum ]);
+
+			if ( ( player == NULL ) || ( player->GetRenderView() == NULL ) ) {
+				return false;
+			}
+
+			// render the scene
+			player->playerView.RenderPlayerView( player->hudManager );*/
+
+			return true;
+		}
+		#endregion
+
 		#region Initialization
 		private void Clear()
 		{
@@ -328,6 +358,28 @@ namespace idTech4.Game
 			if(_shellHandler != null)
 			{
 				_shellHandler.Initialize(fileName/* TODO:, sw*/);
+			}
+		}
+		#endregion
+
+		#region Misc.
+		public int LocalClientNumber
+		{
+			get
+			{
+				// TODO: localclientnumber
+				/*localUserHandle_t localUserHandle = session->GetSignInManager().GetMasterLocalUserHandle();
+				if ( !localUserHandle.IsValid() ) {
+					return 0;
+				}
+	
+				for ( int i = 0; i < lobbyUserIDs.Num(); i++ ) {
+					lobbyUserID_t lobbyUserID = lobbyUserIDs[i];
+					if ( localUserHandle == lobbyUserID.GetLocalUserHandle() ) {
+						return i;
+					}
+				}*/
+				return 0;
 			}
 		}
 		#endregion

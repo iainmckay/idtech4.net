@@ -133,8 +133,8 @@ namespace idTech4.UI.SWF
 			
 			for(int i = 0; i < _frameLabels.Length; i++)
 			{
-				_frameLabels[i].FrameNumber = input.ReadUInt32();
-				_frameLabels[i].Label  = input.ReadString();
+				_frameLabels[i].FrameNumber = (int) input.ReadUInt32();
+				_frameLabels[i].Label       = input.ReadString();
 			}
 
 			_commands = new idSWFSpriteCommand[input.ReadInt32()];
@@ -167,7 +167,7 @@ namespace idTech4.UI.SWF
 	public struct idSWFFrameLabel
 	{
 		public string Label;
-		public uint FrameNumber;
+		public int FrameNumber;
 	}
 	#endregion
 

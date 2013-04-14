@@ -410,6 +410,16 @@ namespace idTech4.UI.SWF.Scripting
 			return null;
 		}
 
+		public idSWFTextInstance ToText()
+		{
+			if((this.IsObject == true) && (_valueObject != null))
+			{
+				return _valueObject.Text;
+			}
+
+			return null;
+		}
+
 		public override string ToString()
 		{
 

@@ -28,11 +28,16 @@ If you have questions concerning this license or the applicable additional terms
 using idTech4.Renderer;
 using idTech4.Services;
 using idTech4.UI.SWF;
+using idTech4.UI.SWF.Scripting;
 
 namespace idTech4.Game.Menus
 {
 	public class idMenuHandler_Shell : idMenuHandler
 	{
+		#region Constants
+		public const int MaxMenuOptions = 6;
+		#endregion
+
 		#region Members
 		private ShellState _state;
 		private ShellState _nextState;
@@ -46,9 +51,9 @@ namespace idTech4.Game.Menus
 		
 		// TODO:
 		/*idList<const char *, TAG_IDLIB_LIST_MENU>	mpGameModes;
-		idList<mpMap_t, TAG_IDLIB_LIST_MENU>			mpGameMaps;
-		idMenuWidget_MenuBar *	menuBar;
-		idMenuWidget *			pacifier;*/
+		idList<mpMap_t, TAG_IDLIB_LIST_MENU>			mpGameMaps;*/
+		private idMenuWidget_MenuBar _menuBar;
+		private idMenuWidget _pacifier;
 	
 		private int	_timeRemaining;
 		private int	_nextPeerUpdateMs;
@@ -74,6 +79,133 @@ namespace idTech4.Game.Menus
 			_state             = ShellState.Invalid;
 			_nextState         = ShellState.Invalid;
 			_backgroundShowing = true;
+		}
+		#endregion
+
+		#region Events
+		public bool HandleAction(idWidgetAction action, idWidgetEvent ev, idMenuWidget widget, bool forceHandled = false)
+		{
+			if(_activeScreen == ShellArea.Invalid)
+			{
+				return true;
+			}
+
+			WidgetActionType actionType   = action.Type;
+			idSWFParameterList parameters = action.Parameters;
+			ICVarSystem cvarSystem        = idEngine.Instance.GetService<ICVarSystem>();
+			ICommandSystem cmdSystem      = idEngine.Instance.GetService<ICommandSystem>();
+
+			if(ev.Type == WidgetEventType.Command)
+			{
+				/*if ( activeScreen == SHELL_AREA_ROOT && navOptions.Num() > 0 ) {
+					return true;
+				}*/
+
+				if((_menuScreens[(int) _activeScreen] != null) && (forceHandled == false))
+				{
+					if(_menuScreens[(int) _activeScreen].HandleAction(action, ev, widget, true) == true)
+					{
+						if(actionType == WidgetActionType.GoBack)
+						{
+							idLog.Warning("TODO: PlaySound( GUI_SOUND_BACK );");
+						} 
+						else 
+						{
+							idLog.Warning("TODO: PlaySound( GUI_SOUND_ADVANCE );");
+						}
+				
+						return true;
+					}
+				}
+			}
+
+			switch(actionType)
+			{
+				case WidgetActionType.Command:
+					if(parameters.Count < 2)
+					{
+						return true;
+					}
+
+					ShellCommand cmd = (ShellCommand) parameters[0].ToInt32();
+
+					if(((_activeScreen == ShellArea.GameLobby) || (_activeScreen == ShellArea.MatchSettings))
+						&& (cmd != ShellCommand.Quit) && (cmd != ShellCommand.Multiplayer))
+					{
+						idLog.Warning("TODO: session->Cancel();");
+						idLog.Warning("TODO: session->Cancel();");
+					}
+					else if(((_activeScreen == ShellArea.PartyLobby) || (_activeScreen == ShellArea.LeaderBoards) || (_activeScreen == ShellArea.Browser) || (_activeScreen == ShellArea.ModeSelect))
+						&& (cmd != ShellCommand.Quit) && (cmd != ShellCommand.Multiplayer))
+					{
+						idLog.Warning("TODO: session->Cancel();");
+					}
+
+					if((cmd != ShellCommand.Quit) && ((_nextScreen == ShellArea.Stereoscopics) || (_nextScreen == ShellArea.SystemOptions) || (_nextScreen == ShellArea.GameOptions) || (_nextScreen == ShellArea.GamePad) || (_nextScreen == ShellArea.MatchSettings)))
+					{
+						cvarSystem.SetModifiedFlags(CVarFlags.Archive);
+					}
+
+					int index = parameters[1].ToInt32();
+
+					_menuBar.SetFocusIndex(index);
+					_menuBar.ViewIndex = index;
+
+					idLog.Warning("TODO: shell root");
+					/*idMenuScreen_Shell_Root menu = _menuScreens[(int) ShellArea.Root] as idMenuScreen_Shell_Root;
+
+					if(menu != null)
+					{
+						menu.RootIndex = index;
+					}*/
+
+					switch(cmd)
+					{
+						case ShellCommand.Demo0:
+							cmdSystem.BufferCommandText(string.Format("devmap {0} {1}", "demo/enpro_e3_2012", 1));
+							break;
+
+						case ShellCommand.Demo1:
+							cmdSystem.BufferCommandText(string.Format("devmap {0} {1}", "game/le_hell", 2));
+							break;
+
+						case ShellCommand.Developer:
+							_nextScreen = ShellArea.Dev;
+							_transition = MainMenuTransition.Simple;
+							break;
+				
+						case ShellCommand.Campaign:
+							_nextScreen = ShellArea.Campaign;
+							_transition = MainMenuTransition.Simple;
+							break;
+
+						case ShellCommand.Multiplayer:
+							idLog.Warning("TODO: shell command mp");
+
+							/*idMatchParameters matchParameters;
+							matchParameters.matchFlags = DefaultPartyFlags;
+							session->CreatePartyLobby( matchParameters );*/
+							break;
+				
+						case ShellCommand.Settings:
+							_nextScreen = ShellArea.Settings;
+							_transition = MainMenuTransition.Simple;
+							break;
+					
+						case ShellCommand.Credits:
+							_nextScreen = ShellArea.Credits;
+							_transition = MainMenuTransition.Simple;
+							break;
+
+						case ShellCommand.Quit:
+							idLog.Warning("TODO: HandleExitGameBtn();");
+							break;
+					}
+						
+					return true;
+				}
+			
+				return base.HandleAction(action, ev, widget, forceHandled);
 		}
 		#endregion
 
@@ -151,35 +283,43 @@ namespace idTech4.Game.Menus
 				_marsRotation = declManager.FindMaterial("gui/shell/mars_rotation");
 			}
 
-			// TODO: 
-			/*menuBar = new (TAG_SWF) idMenuWidget_MenuBar();
-			menuBar->SetSpritePath( "pcBar" );
-			menuBar->Initialize( this );
-			menuBar->SetNumVisibleOptions( MAX_MENU_OPTIONS );
-			menuBar->SetWrappingAllowed( true );
-			menuBar->SetButtonSpacing( 45.0f );
-			while ( menuBar->GetChildren().Num() < MAX_MENU_OPTIONS ) {
-				idMenuWidget_MenuButton * const navButton = new (TAG_SWF) idMenuWidget_MenuButton();
-				idMenuScreen_Shell_Root * rootScreen = dynamic_cast< idMenuScreen_Shell_Root * >( menuScreens[ SHELL_AREA_ROOT ] );
-				if ( rootScreen != NULL ) {
-					navButton->RegisterEventObserver( rootScreen->GetHelpWidget() );
-				}
-				menuBar->AddChild( navButton );
+			_menuBar = new idMenuWidget_MenuBar();
+			_menuBar.SetSpritePath("pcBar");
+			_menuBar.Initialize(this);
+			_menuBar.VisibleOptionCount = MaxMenuOptions;
+			_menuBar.IsWrappingAllowed  = true;
+			_menuBar.ButtonSpacing      = 45.0f;
+
+			while(_menuBar.Children.Length < MaxMenuOptions)
+			{
+				idMenuWidget_MenuButton navButton = new idMenuWidget_MenuButton();
+				idLog.Warning("TODO: shell root");
+				/*idMenuScreen_Shell_Root rootScreen = _menuScreens[(int) ShellArea.Root] as idMenuScreen_Shell_Root;
+
+				if(rootScreen != null)
+				{
+					navButton.RegisterEventObserver(rootScreen.HelpWidget);
+				}*/
+
+				_menuBar.AddChild(navButton);
 			}
-			AddChild( menuBar );*/
+
+			AddChild(_menuBar);
 
 			//
 			// command bar
 			//
-			/*cmdBar = new (TAG_SWF) idMenuWidget_CommandBar();
-			cmdBar->SetAlignment( idMenuWidget_CommandBar::LEFT );
-			cmdBar->SetSpritePath( "prompts" );
-			cmdBar->Initialize( this );
-			AddChild( cmdBar );
+			_cmdBar            = new idMenuWidget_CommandBar();
+			_cmdBar.Alignment  = Alignment.Left;
+			_cmdBar.SetSpritePath("prompts");
+			_cmdBar.Initialize(this);
+			
+			AddChild(_cmdBar);
 
-			pacifier = new ( TAG_SWF ) idMenuWidget();
-			pacifier->SetSpritePath( "pacifier" );
-			AddChild( pacifier );*/
+			_pacifier = new idMenuWidget();
+			_pacifier.SetSpritePath("pacifier");
+		
+			AddChild(_pacifier);
 
 			// precache sounds
 			// don't load gui music for the pause menu to save some memory
@@ -514,6 +654,7 @@ namespace idTech4.Game.Menus
 
 				if(_nextScreen == ShellArea.Invalid)
 				{
+					idLog.Warning("TODO: invalid shell area");
 					// TODO: 
 					/*if ( activeScreen > SHELL_AREA_INVALID && activeScreen < SHELL_NUM_AREAS && menuScreens[ activeScreen ] != NULL ) {
 						menuScreens[ activeScreen ]->HideScreen( static_cast<mainMenuTransition_t>(transition) );
@@ -537,7 +678,7 @@ namespace idTech4.Game.Menus
 				} 
 				else
 				{
-
+					idLog.Warning("TODO: blah shell area");
 					/*if ( activeScreen > SHELL_AREA_INVALID && activeScreen < SHELL_NUM_AREAS && menuScreens[ activeScreen ] != NULL ) {
 						menuScreens[ activeScreen ]->HideScreen( static_cast<mainMenuTransition_t>(transition) );
 					}
@@ -766,5 +907,17 @@ namespace idTech4.Game.Menus
 		Browser,
 		Credits,
 		AreaCount
+	}
+
+	public enum ShellCommand
+	{
+		Demo0,
+		Demo1,
+		Developer,
+		Campaign,
+		Multiplayer,
+		Settings,
+		Credits,
+		Quit
 	}
 }

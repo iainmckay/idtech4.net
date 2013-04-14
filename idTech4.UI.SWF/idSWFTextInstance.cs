@@ -30,16 +30,128 @@ using System;
 using idTech4.Services;
 using idTech4.UI.SWF.Scripting;
 
+using XMath = System.Math;
+
 namespace idTech4.UI.SWF
 {
 	public class idSWFTextInstance
 	{
 		#region Properties
+		public bool IgnoreColor
+		{
+			get
+			{
+				return _ignoreColor;
+			}
+			set
+			{
+				_ignoreColor = value;
+			}
+		}
+
 		public idSWFScriptObject ScriptObject
 		{
 			get
 			{
 				return _scriptObject;
+			}
+		}
+
+		public string Text
+		{
+			get
+			{
+				return _text;
+			}
+			set
+			{
+				_text             = value;
+				_lengthCalculated = false;
+			}
+		}
+
+		public float TextLength
+		{
+			get
+			{
+				// CURRENTLY ONLY WORKS FOR SINGLE LINE TEXTFIELDS
+				/*ILocalization localization = idEngine.Instance.GetService<ILocalization>();
+				
+				if((_lengthCalculated > 0) && (string.IsNullOrEmpty(_variable) == true))
+				{
+					return _textLength;
+				}
+
+				string lengthCheck = "";
+				float length       = 0.0f;
+
+				if(_swf != null)
+				{
+					if(string.IsNullOrEmpty(_variable) == false)
+					{
+						idSWFScriptVariable var = _swf.GetGlobal(_variable);
+
+						if(var.IsUndefined == true)
+						{
+							lengthCheck = _text;
+						}
+						else
+						{
+							lengthCheck = var.ToString();
+						}
+
+						length = localization.GetString(lengthCheck);
+					}
+					else 
+					{
+						lengthCheck = localization.GetString(_text);
+					}
+
+					idSWFEditText shape            = _editText;
+					idSWFDictionaryEntry fontEntry = _swf.FindDictionaryEntry(shape.FontID, SWF_DICT_FONT);
+					idSWFFont swfFont              = fontEntry.Font;
+
+					float width = XMath.Abs(shape.Bounds.BR.X - shape.Bounds.T1.X);
+					float postTrans = SWFTWIP(shape.FontHeight);
+				
+					const idFont * fontInfo = swfFont->fontID;
+					float glyphScale = postTrans / 48.0f;
+
+					int tlen = txtLengthCheck.Length();
+					int index = 0;
+					while ( index < tlen ) {
+						scaledGlyphInfo_t glyph;
+						fontInfo->GetScaledGlyph( glyphScale, txtLengthCheck.UTF8Char( index ), glyph );
+
+						len += glyph.xSkip;
+						if ( useStroke ) {
+							len += ( swf_textStrokeSizeGlyphSpacer.GetFloat() * strokeWeight * glyphScale );
+						}
+
+						if ( !( shape->flags & SWF_ET_AUTOSIZE ) && len >= width ) {
+							len = width;
+							break;
+						}
+					}
+				}
+
+				lengthCalculated = true;
+				textLength = len;
+				return textLength;*/
+
+				return 0;
+			}
+		}
+
+		public bool Tooltip
+		{
+			get
+			{
+				return _toolTip;
+			}
+			set
+			{
+				_toolTip = value;
 			}
 		}
 		#endregion
@@ -214,6 +326,19 @@ namespace idTech4.UI.SWF
 			_strokeWeight         = cvarSystem.GetFloat("swf_textStrokeSize");
 
 			_scriptObject         = new idSWFScriptObject(this, _scriptObjectPrototype);
+		}
+		#endregion
+
+		#region Settings
+		public void SetStrokeInfo(bool use, float strength = 0.75f, float weight = 1.75f)
+		{
+			_useStroke = use;
+
+			if(_useStroke == true)
+			{
+				_strokeWeight   = weight;
+				_strokeStrength = strength;
+			}
 		}
 		#endregion
 	}

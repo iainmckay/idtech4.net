@@ -27,7 +27,10 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
+
+using Microsoft.Xna.Framework;
 
 using idTech4.Renderer;
 using idTech4.UI.SWF.Scripting;
@@ -70,6 +73,18 @@ namespace idTech4.UI.SWF
 			get
 			{
 				return _isVisible;
+			}
+			set
+			{
+				_isVisible = value;
+
+				if(_isVisible == true)
+				{
+					for(idSWFSpriteInstance p = _parent; p != null; p = p.Parent)
+					{
+						p.ChildrenRunning = true;
+					}
+				}
 			}
 		}
 
@@ -122,6 +137,82 @@ namespace idTech4.UI.SWF
 			get
 			{
 				return _yOffset;
+			}
+		}
+
+		public float PositionX
+		{
+			get
+			{
+				if(_parent == null)
+				{
+					return 0.0f;
+				}
+
+				idSWFDisplayEntry displayEntry = _parent.FindDisplayEntry(_depth);
+
+				if((displayEntry == null) || (displayEntry.SpriteInstance != this))
+				{
+					idLog.Warning("GetXPos: Couldn't find our display entry in our parent's display list for depth {0}", _depth);
+					return 0.0f;
+				}
+
+				return displayEntry.Matrix.TX;
+			}
+			set
+			{
+				if(_parent == null)
+				{
+					return;
+				}
+
+				idSWFDisplayEntry displayEntry = _parent.FindDisplayEntry(_depth);
+
+				if((displayEntry == null) || (displayEntry.SpriteInstance != this))
+				{
+					idLog.Warning("_x: Couldn't find our display entry in our parents display list" );
+					return;
+				}
+
+				displayEntry.Matrix.TX = value;
+			}
+		}
+
+		public float PositionY
+		{
+			get
+			{
+				if(_parent == null)
+				{
+					return 0.0f;
+				}
+
+				idSWFDisplayEntry displayEntry = _parent.FindDisplayEntry(_depth);
+
+				if((displayEntry == null) || (displayEntry.SpriteInstance != this))
+				{
+					idLog.Warning("GetYPos: Couldn't find our display entry in our parents display list for depth {0}", _depth);
+					return 0.0f;
+				}
+
+				return displayEntry.Matrix.TY;
+			}
+			set
+			{
+				if(_parent == null)
+				{
+					return;
+				}
+
+				idSWFDisplayEntry displayEntry = _parent.FindDisplayEntry(_depth);
+
+				if((displayEntry == null) || (displayEntry.SpriteInstance != this))
+				{
+					idLog.Warning("_y: Couldn't find our display entry in our parents display list" );
+					return;
+				}
+
+				displayEntry.Matrix.TY = value;
 			}
 		}
 
@@ -261,10 +352,10 @@ namespace idTech4.UI.SWF
 		#endregion
 
 		#region Frame
-		private uint FindFrame(string labelName)
+		public int FindFrame(string labelName)
 		{
-			uint frameNum;
-			uint.TryParse(labelName, out frameNum);
+			int frameNum;
+			int.TryParse(labelName, out frameNum);
 
 			if(frameNum > 0)
 			{
@@ -339,6 +430,44 @@ namespace idTech4.UI.SWF
 			parms.Add(num);
 
 			PlayFrame(parms);
+		}
+
+		public void StopFrame(idSWFParameterList parameters)
+		{
+			if(parameters.Count > 0)
+			{
+				if((parameters[0].IsNumeric == true) && (parameters[0].ToInt32() < 1))
+				{
+					RunTo(FindFrame("1"));
+				}
+				else
+				{
+					RunTo(FindFrame(parameters[0].ToString()));
+				}
+		
+				Stop();
+	
+			} 
+			else 
+			{
+				idLog.Warning("gotoAndStop: expected 1 paramater");
+			}
+		}
+
+		public void StopFrame(string name)
+		{
+			idSWFParameterList parameters = new idSWFParameterList(1);
+			parameters.Add(name);
+
+			StopFrame(parameters);
+		}
+
+		public void StopFrame(int index)
+		{
+			idSWFParameterList parameters = new idSWFParameterList(1);
+			parameters.Add(index);
+
+			StopFrame(parameters);
 		}
 
 		public bool Run()
@@ -597,6 +726,94 @@ namespace idTech4.UI.SWF
 		{
 			_xOffset = x;
 			_yOffset = y;
+		}
+
+		public void SetScale(float x, float y)
+		{
+			if(_parent == null)
+			{
+				return;
+			}
+
+			idSWFDisplayEntry displayEntry = _parent.FindDisplayEntry(_depth);
+
+			if((displayEntry == null) || (displayEntry.SpriteInstance != this))
+			{
+				idLog.Warning("scale: Couldn't find our display entry in our parents display list");
+				return;
+			}
+
+			float newScale = x / 100.0f;
+
+			// this is done funky to maintain the current rotation
+			Vector2 currentScale = displayEntry.Matrix.Scale(new Vector2(1, 0));
+			currentScale.Normalize();
+
+			if(currentScale.Length() == 0.0f)
+			{
+				displayEntry.Matrix.XX = newScale;
+				displayEntry.Matrix.YX = 0.0f;
+			}
+			else
+			{
+				displayEntry.Matrix.XX = currentScale.X * newScale;
+				displayEntry.Matrix.YX = currentScale.Y * newScale;
+			}
+		
+			newScale = y / 100.0f;
+
+			// this is done funky to maintain the current rotation
+			currentScale = displayEntry.Matrix.Scale(new Vector2(0, 1));
+			currentScale.Normalize();
+
+			if(currentScale.Length() == 0.0f)
+			{
+				displayEntry.Matrix.YY = newScale;
+				displayEntry.Matrix.XY = 0.0f;
+			}
+			else
+			{
+				displayEntry.Matrix.YY = currentScale.Y * newScale;
+				displayEntry.Matrix.XY = currentScale.X * newScale;
+			}
+		}
+
+		public void SetMaterial(idMaterial material, int width = -1, int height = -1)
+		{
+			_materialOverride = material;
+
+			if(_materialOverride != null)
+			{
+				// converting this to a short should be safe since we don't support images larger than 8k anyway
+				if((_materialOverride.GetStage(0) != null) && (_materialOverride.GetStage(0).Texture.Cinematic != null))
+				{
+					_materialWidth  = 256;
+					_materialHeight = 256;
+				} 
+				else 
+				{
+					Debug.Assert((_materialOverride.ImageWidth > 0) && (_materialOverride.ImageHeight > 0));
+					Debug.Assert((_materialOverride.ImageWidth <= 8192) && (_materialOverride.ImageHeight <= 8192));
+
+					_materialWidth  = (ushort) _materialOverride.ImageWidth;
+					_materialHeight = (ushort) _materialOverride.ImageHeight;
+				}
+			} 
+			else
+			{
+				_materialWidth  = 0;
+				_materialHeight = 0;
+			}
+
+			if(width >= 0) 
+			{
+				_materialWidth = (ushort) width;
+			}
+
+			if(height >= 0) 
+			{
+				_materialHeight = (ushort) height;
+			}
 		}
 		#endregion
 

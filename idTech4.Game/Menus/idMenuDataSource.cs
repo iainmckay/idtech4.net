@@ -25,21 +25,21 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-namespace idTech4.Services
+using idTech4.UI.SWF.Scripting;
+
+namespace idTech4.Game.Menus
 {
-	public interface IUserInterfaceManager
+	public abstract class idMenuDataSource
 	{
-		#region Context
-		void SetDrawingContext();
+		#region Properties
+		public abstract bool DataChanged { get; }
 		#endregion
 
-		#region Initialization
-		void Init();
-		#endregion
-
-		#region Loading
-		void BeginLevelLoad();
-		void EndLevelLoad(string mapName);
+		#region Methods
+		public abstract void LoadData();
+		public abstract void CommitData();
+		public abstract idSWFScriptVariable GetField(int fieldIndex);
+		public abstract void AdjustField(int fieldIndex, int adjustAmount);
 		#endregion
 	}
 }

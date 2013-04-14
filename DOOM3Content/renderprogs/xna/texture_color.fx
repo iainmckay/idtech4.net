@@ -22,6 +22,7 @@ struct VertexShaderInput
 	float4 Normal   : NORMAL0;
 	float4 Tangent  : TANGENT0;
 	float4 Color    : COLOR0;
+	float4 Color2   : COLOR1;
 };
 
 struct VertexShaderOutput
@@ -34,22 +35,17 @@ struct VertexShaderOutput
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
     VertexShaderOutput output;
-	output.Position = mul(input.Position, g_ModelViewProjectionMatrix);
+	output.Position = mul(input.Position , g_ModelViewProjectionMatrix);
 	
 	if(g_TextureCoordinates0Enabled.x > 0.0) {
-		output.Color = float4(1, 0, 0, 1);
-		output.TexCoord.x = mul(input.Position , g_TextureCoordinates0S);
-		output.TexCoord.y = mul(input.Position , g_TextureCoordinates0T);
+		output.TexCoord.x = mul(input.Position.x , g_TextureCoordinates0S);
+		output.TexCoord.y = mul(input.Position.y, g_TextureCoordinates0T);
 	} else {
 		output.TexCoord.x = mul(input.TexCoord.xy , g_TextureMatrixS);
 		output.TexCoord.y = mul(input.TexCoord.xy , g_TextureMatrixT);
 	}
 
-	output.TexCoord = input.TexCoord;
-
 	float4 vertexColor = (/*input.Color*/ float4(1,1,1,1) * g_VertexColorModulate) + g_VertexColorAdd;
-	//float4 vertexColor = input.Color;
-	//float4 vertexColor = float4(1, 1, 1, 1);
 	output.Color = vertexColor * g_Color;
 
     return output;

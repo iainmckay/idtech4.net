@@ -1954,8 +1954,7 @@ namespace idTech4
 			}*/
 			else if((game != null) && (game.Shell_IsActive() == true))
 			{
-				idLog.Warning("TODO: game draw");
-				bool gameDraw = false; /*game->Draw( game->GetLocalClientNum() );*/
+				bool gameDraw = game.Draw(game.LocalClientNumber);
 
 				if(gameDraw == false)
 				{

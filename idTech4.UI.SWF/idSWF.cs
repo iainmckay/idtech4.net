@@ -344,7 +344,7 @@ namespace idTech4.UI.SWF
 
 					if(display.Depth > mask.ClipDepth)
 					{
-						idLog.Warning("TODO: RenderMask(renderSystem, mask, renderState, StencilDecrement);");
+						DrawMask(renderSystem, mask, renderState, StencilDecrement);
 						activeMasks.RemoveAt(j);
 					}
 
@@ -353,7 +353,7 @@ namespace idTech4.UI.SWF
 				if(display.ClipDepth > 0)
 				{
 					activeMasks.Add(display);
-					idLog.Warning("TODO: RenderMask(renderSystem, display, renderState, StencilIncrement);");
+					DrawMask(renderSystem, display, renderState, StencilIncrement);
 					continue;
 				}
 
@@ -365,7 +365,7 @@ namespace idTech4.UI.SWF
 				}
 
 				idSWFRenderState renderState2 = new idSWFRenderState();
-				renderState2.ColorXForm = idSWFColorXForm.Default;
+				renderState2.ColorXForm       = idSWFColorXForm.Default;
 
 				if(spriteInstance.StereoDepth != StereoDepthType.None)
 				{
@@ -577,7 +577,29 @@ namespace idTech4.UI.SWF
 
 			for(int j = 0; j < activeMasks.Count; j++)
 			{
-				idLog.Warning("TODO: RenderMask(renderSystem, activeMasks[j], renderState, StencilDecrement);");
+				DrawMask(renderSystem, activeMasks[j], renderState, StencilDecrement);
+			}
+		}
+
+		private void DrawMask(IRenderSystem renderSystem, idSWFDisplayEntry mask, idSWFRenderState renderState, int stencilMode)
+		{
+			idSWFRenderState renderState2 = new idSWFRenderState();
+			renderState2.StereoDepth      = renderState.StereoDepth;
+			renderState2.Matrix           = mask.Matrix.Multiply(renderState.Matrix);
+			renderState2.ColorXForm       = mask.ColorXForm.Multiply(renderState.ColorXForm);
+			renderState2.Ratio            = mask.Ratio;
+			renderState2.Material         = _guiSolid;
+			renderState2.ActiveMasks      = stencilMode;
+
+			idSWFDictionaryEntry entry = _dictionary[mask.CharacterID];
+
+			if(entry is idSWFMorphShape)
+			{
+				idLog.Warning("TODO: RenderMorphShape( gui, entry.shape, renderState2 );");
+			}
+			else
+			{
+				DrawShape(renderSystem, (idSWFShape) entry, renderState2);
 			}
 		}
 
@@ -700,7 +722,7 @@ namespace idTech4.UI.SWF
 						}
 
 						// inset the tc - the gui may use a vmtr and the tc might end up
-						// crossing page boundaries if using [0.0,1.0]
+						// crossing page boundaries if using [0.0, 1.0]
 						st.X = MathHelper.Clamp(st.X, 0.001f, 0.999f);
 						st.X = MathHelper.Clamp(st.Y, 0.001f, 0.999f);
 
@@ -926,8 +948,10 @@ namespace idTech4.UI.SWF
 					return new idSWFImage();
 
 				case idSWFDictionaryType.Shape:
-				case idSWFDictionaryType.Morph:
 					return new idSWFShape();
+
+				case idSWFDictionaryType.Morph:
+					return new idSWFMorphShape();
 
 				case idSWFDictionaryType.Sprite:
 					return new idSWFSprite(this);

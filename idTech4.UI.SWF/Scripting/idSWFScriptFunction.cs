@@ -102,6 +102,18 @@ namespace idTech4.UI.SWF.Scripting
 
 			_list.Add(var);
 		}
+
+		public void Add(idSWFScriptVariable var)
+		{
+			_list.Add((idSWFScriptVariable) var.Clone());
+		}
+		#endregion
+
+		#region Misc.
+		public void Clear()
+		{
+			_list.Clear();
+		}
 		#endregion
 	}
 

@@ -416,6 +416,12 @@ namespace idTech4.UI.SWF
 			return result;
 		}
 
+		public Vector2 Scale(Vector2 s)
+		{
+			return new Vector2((s.X * this.XX) + (s.Y * this.XY),
+						(s.Y * this.YY) + (s.X * this.YX));
+		}
+
 		public Vector2 Transform(Vector2 t)
 		{
 			return new Vector2((t.X * this.XX) + (t.Y * this.XY) + this.TX,

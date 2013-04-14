@@ -3346,6 +3346,7 @@ namespace idTech4.Renderer
 	{
 		// TODO
 		/*idCinematic *		cinematic;*/
+		public object Cinematic;
 		public idImage Image;
 		public TextureCoordinateGeneration TextureCoordinates;
 
