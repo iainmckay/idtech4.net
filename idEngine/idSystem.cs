@@ -868,7 +868,7 @@ namespace idTech4
 #endif*/
 
 			// not bothering with fetching the windows username.
-			idE.CvarSystem.SetString("win_username", "player");
+			idE.CvarSystem.SetString("win_username", Environment.UserName);
 
 			//
 			// Windows version

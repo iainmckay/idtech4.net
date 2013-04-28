@@ -219,13 +219,6 @@ namespace idTech4.Renderer.Backends
 				{
 					p.Apply();
 
-					/*tri.Indexes[0] = 3;
-					tri.Indexes[1] = 0;
-					tri.Indexes[2] = 2;
-					tri.Indexes[3] = 2;
-					tri.Indexes[4] = 0;
-					tri.Indexes[5] = 1;*/
-
 					_graphicsDevice.DrawUserIndexedPrimitives<Vertex>(PrimitiveType.TriangleList,
 						tri.AmbientCache.Data, 0,
 						tri.AmbientCache.Data.Length,
@@ -451,7 +444,7 @@ namespace idTech4.Renderer.Backends
 			{
 				_effect.View = surface.Space.ModelViewMatrix;
 				_currentSpace = surface.Space;
-				idConsole.Warning("TODO: RB_SetProgramEnvironmentSpace();");
+				//idConsole.Warning("TODO: RB_SetProgramEnvironmentSpace();");
 			}
 
 			// change the scissor if needed

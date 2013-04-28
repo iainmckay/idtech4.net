@@ -1217,7 +1217,7 @@ oldViewYaw = 0.0f;*/
 			{
 				origin = this.EyePosition + _viewBob;
 				angles = _viewAngles + _viewBobAngles + _playerView.AngleOffset;
-				axis = angles.ToMatrix() * _physicsObject.GravityAxis;
+				axis = angles.ToMatrix() *_physicsObject.GravityAxis;
 
 				// adjust the origin based on the camera nodal distance (eye distance from neck)
 				float v = idR.CvarSystem.GetFloat("g_viewNodalZ");

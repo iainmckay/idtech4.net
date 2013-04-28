@@ -123,7 +123,7 @@ namespace idTech4.Math
 
 		public override string ToString()
 		{
-			return string.Format("Yaw:{0} Pitch:{1} Roll:{2}", this.Yaw, this.Pitch, this.Roll);
+			return string.Format("Pitch:{1} Yaw:{0} Roll:{2}", this.Yaw, this.Pitch, this.Roll);
 		}
 		#endregion
 	}

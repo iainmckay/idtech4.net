@@ -63,14 +63,14 @@ namespace idTech4.Renderer
 			new VideoMode("Mode  8: 1600x1200",		1600,	1200),
 		};
 
-		private static readonly float[] FlipMatrix = new float[] {
+		private static readonly Matrix FlipMatrix = new Matrix(
 			// convert from our coordinate system (looking down X)
 			// to OpenGL's coordinate system (looking down -Z)
 			0, 0, -1, 0,
 			-1, 0, 0, 0,
 			0, 1, 0, 0,
 			0, 0, 0, 1
-		};
+		);
 		#endregion
 
 		#region Properties
@@ -2214,7 +2214,7 @@ namespace idTech4.Renderer
 			// transform by the camera placement
 			Vector3 origin = view.RenderView.ViewOrigin;
 			
-			viewerMatrix[0] = _viewDefinition.RenderView.ViewAxis.M11;
+			/*viewerMatrix[0] = _viewDefinition.RenderView.ViewAxis.M11;
 			viewerMatrix[4] = _viewDefinition.RenderView.ViewAxis.M12;
 			viewerMatrix[8] = _viewDefinition.RenderView.ViewAxis.M13;
 			viewerMatrix[12] = -origin.X * viewerMatrix[0] + -origin.Y * viewerMatrix[4] + -origin.Z * viewerMatrix[8];
@@ -2232,13 +2232,17 @@ namespace idTech4.Renderer
 			viewerMatrix[3] = 0;
 			viewerMatrix[7] = 0;
 			viewerMatrix[11] = 0;
-			viewerMatrix[15] = 1;
+			viewerMatrix[15] = 1;*/
+
+			Vector3 look = origin + Vector3.Transform(Vector3.Forward, _viewDefinition.RenderView.ViewAxis);
+			world.ModelViewMatrix = Matrix.CreateLookAt(origin, look, Vector3.Up);
+			//world.ModelViewMatrix = Matrix.Multiply(world.ModelViewMatrix, FlipMatrix);
 
 			view.WorldSpace = world;
 			
 			// convert from our coordinate system (looking down X)
 			// to OpenGL's coordinate system (looking down -Z)
-			idHelper.ConvertMatrix(viewerMatrix, FlipMatrix, out view.WorldSpace.ModelViewMatrix);
+			//idHelper.ConvertMatrix(viewerMatrix, FlipMatrix, out view.WorldSpace.ModelViewMatrix);
 		}
 		#endregion
 		

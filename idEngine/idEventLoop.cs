@@ -33,9 +33,19 @@ using System.Text;
 
 namespace idTech4
 {
+	/// <summary>
+	/// The event loop receives events from the system and dispatches them to the various parts of the engine. 
+	/// </sumary>
+	/// <remarks>
+	/// The event loop also handles journaling.
+	/// The file system copies .cfg files to the journaled file.
+	/// </remarks>
 	public sealed class idEventLoop
 	{
 		#region Properties
+		/// <summary>
+		/// Gets the current time in a way that will be journaled properly, as opposed to idEngine.ElapsedTime, which always reads a real timer.
+		/// </summary>
 		public int Milliseconds
 		{
 			get

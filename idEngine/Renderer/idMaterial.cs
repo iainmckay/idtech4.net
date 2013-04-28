@@ -2997,8 +2997,6 @@ namespace idTech4.Renderer
 
 		public int FragmentProgram;
 		public idImage[] FragmentProgramImages;
-
-		// TODO: public idMegaTexture MegaTexture; // handles all the binding and parameter setting.
 		#endregion
 	}
 
