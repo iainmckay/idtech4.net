@@ -1202,14 +1202,14 @@ namespace idTech4.Renderer
 
 			this.Normal             = new Byte4(0, 0, 1, 0);
 			this.Tangent            = new Byte4(1, 0, 0, 0);
-
-			this.Color              = Color.Black;
-			this.Color2             = Color.Black;
+			
+			this.Color              = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+			this.Color2             = new Color(0.0f, 0.0f, 0.0f, 1.0f);
 		}
 
 		public void ClearColor2()
 		{
-			this.Color2 = Color.Gray;
+			this.Color2 = new Color(0.5f, 0.5f, 0.5f, 1.0f);
 		}
 
 		public static VertexDeclaration VertexDeclaration = new VertexDeclaration(
@@ -1244,6 +1244,9 @@ namespace idTech4.Renderer
 		public int VertexCount;
 		public IndexBuffer IndexBuffer;
 		public VertexBuffer VertexBuffer;
+
+		public idVertex[] Vertices;
+		public short[] Indices;
 
 		//vertCacheHandle_t		shadowCache;		// idShadowVert / idShadowVertSkinned
 		//vertCacheHandle_t		jointCache;			// idJointMat

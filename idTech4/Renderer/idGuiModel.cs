@@ -26,6 +26,7 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using System.Collections.Generic;
+using System.Runtime.InteropServices;
 
 using Microsoft.Xna.Framework;
 using Microsoft.Xna.Framework.Graphics;
@@ -89,30 +90,19 @@ namespace idTech4.Renderer
 				return;
 			}
 
+			SetDataOptions vertexDataOptions = SetDataOptions.NoOverwrite;
+			SetDataOptions indexDataOptions  = SetDataOptions.NoOverwrite;
+
 			if((indexes.Length + _indexCount) > _maxIndexCount)
 			{
-				if(_warningFrame != renderSystem.FrameCount)
-				{
-					_warningFrame = renderSystem.FrameCount;
-					idLog.Warning("idGuiModel.AddPrimitive: MAX_INDEXES exceeded");
-				}
-
 				_indexCount = 0;
-
-				return;
+				indexDataOptions = SetDataOptions.Discard;
 			}
 
 			if((vertices.Length + _vertexCount) > _maxVertexCount)
 			{
-				if(_warningFrame != renderSystem.FrameCount)
-				{
-					_warningFrame = renderSystem.FrameCount;
-					idLog.Warning("idGuiModel.AddPrimitive: MAX_VERTS exceeded");
-				}
-
 				_vertexCount = 0;
-
-				return;
+				vertexDataOptions = SetDataOptions.Discard;
 			}
 
 			// break the current surface if we are changing to a new material or we can't
@@ -131,23 +121,35 @@ namespace idTech4.Renderer
 
 			int startVertex = _vertexCount;
 			int startIndex  = _indexCount;
+			int vertexSize  = Marshal.SizeOf(typeof(idVertex));
 
-			SetDataOptions dataOptions = SetDataOptions.NoOverwrite;
-
-			if(_vertexCount == 0)
+			for(int i = 0; i < indexes.Length; i++)
 			{
-				dataOptions = SetDataOptions.Discard;
+				//indexes[i] += (ushort) _indexCount;
 			}
 
-			//_vertexBuffer.SetData<idVertex>(vertices, _vertexCount, vertices.Length, SetDataOptions.NoOverwrite);
-			//_indexBuffer.SetData<ushort>(indexes, _indexCount, indexes.Length, SetDataOptions.NoOverwrite);
-			_vertexBuffer.SetData<idVertex>(_vertexCount * idVertex.VertexDeclaration.VertexStride, vertices, 0, vertices.Length, idVertex.VertexDeclaration.VertexStride, dataOptions);
-			_indexBuffer.SetData<ushort>(_indexCount * sizeof(ushort), indexes, 0, indexes.Length, dataOptions);
+			_vertexBuffer.SetData<idVertex>(startVertex * vertexSize, vertices, 0, vertices.Length, vertexSize, vertexDataOptions);
+			_indexBuffer.SetData<ushort>(startIndex * sizeof(ushort), indexes, 0, indexes.Length, indexDataOptions);
 			
 			_vertexCount         += vertices.Length;
 			_indexCount          += indexes.Length;
 			_surface.IndexCount  += indexes.Length;
 			_surface.VertexCount += vertices.Length;
+
+			/*int currentVertexCount = _vertices.Count;
+			int currentIndexCount = _indexes.Count;
+			int vertexCount = vertices.Length;
+			int indexCount = indexes.Length;
+
+			_surface.VertexCount += vertexCount;
+			_surface.IndexCount += indexCount;
+
+			for(int i = 0; i < indexCount; i++)
+			{
+				_indexes.Add(currentVertexCount + indexes[i] - _surface.FirstVertex);
+			}
+
+			_vertices.AddRange(vertices);*/
 		}
 
 		public void BeginFrame()

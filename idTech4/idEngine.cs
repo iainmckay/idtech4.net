@@ -1299,7 +1299,6 @@ namespace idTech4
 
 		private void RenderSplash()
 		{
-			return;
 			IRenderSystem renderSystem = GetService<IRenderSystem>();
 
 			float sysWidth     = renderSystem.Width * renderSystem.PixelAspect;
@@ -1324,7 +1323,7 @@ namespace idTech4
 				renderSystem.DrawStretchPicture(Constants.ScreenWidth - barWidth, 0, barWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
 			}
 
-			renderSystem.Color = new Color(1, 1, 1, 1);
+			renderSystem.Color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
 			renderSystem.DrawStretchPicture(barWidth, barHeight, Constants.ScreenWidth - barWidth * 2.0f, Constants.ScreenHeight - barHeight * 2.0f, 0, 0, 1, 1, _splashScreen);
 			
 			LinkedListNode<idRenderCommand> cmd = renderSystem.SwapCommandBuffers(out _speeds_Frontend, out _speeds_Backend, out _speeds_Shadows, out _speeds_Gpu);
@@ -1609,7 +1608,7 @@ namespace idTech4
 
 			LinkedListNode<idRenderCommand> renderCommands = null;
 
-			try
+			/*try*/
 			{
 				// TODO: SCOPED_PROFILE_EVENT( "Common::Frame" );
 
@@ -1982,10 +1981,10 @@ namespace idTech4
 
 				session->GetSaveGameManager().Pump();*/
 			}
-			catch
+			/*catch
 			{
 				return;			// an ERP_DROP was thrown
-			}
+			}*/
 		}
 
 		public void Draw()
@@ -2034,7 +2033,7 @@ namespace idTech4
 
 				if(gameDraw == false)
 				{
-					renderSystem.Color = Color.Black;
+					renderSystem.Color = idColor.Black;
 					renderSystem.DrawStretchPicture(0, 0, Constants.ScreenWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
 				}
 
@@ -2074,7 +2073,7 @@ namespace idTech4
 			else 
 			{
 				idLog.Warning("DRAWING NOOOOOOOOOOOOOOOOOOOOOOTHIN");
-				renderSystem.Color = new Color(0, 0, 0, 1);
+				renderSystem.Color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
 				renderSystem.DrawStretchPicture(0, 0, Constants.ScreenWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
 			}
 

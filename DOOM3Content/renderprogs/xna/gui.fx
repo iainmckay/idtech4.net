@@ -30,14 +30,14 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 	output.Position  = mul(input.Position , g_ModelViewProjectionMatrix);
 	output.TexCoord0 = input.TexCoord;
 	output.TexCoord1 = (input.Color2 * 2) - 1;
-	output.Color     = float4(1,1,1,1); //input.Color;
+	output.Color     = input.Color;
 
     return output;
 }
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float4 color = (tex2D(g_TextureSampler0 , input.TexCoord0) * input.Color) + input.TexCoord1;
+	float4 color = (tex2D(g_TextureSampler0 , input.TexCoord0)) /** input.Color) + input.TexCoord1*/;
 	color.xyz    = color.xyz * color.w;
 	color.w      = color.w;
 	

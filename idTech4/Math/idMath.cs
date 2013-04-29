@@ -42,8 +42,7 @@ namespace idTech4.Math
 		public const float Sqrt1Over2               = 0.70710678118654752440f;
 		public const float Rad2Deg                  = 180.0f / Pi;
 
-		public const int SmallestNonDenormal        = 1 << 23;
-		public const float FloatSmallestNonDenormal = (float) (1 << 23); // 1.1754944e-038f
+		public const float FloatSmallestNonDenormal = 1.1754944e-038f;
 
 		public static float Abs(float a)
 		{

@@ -681,8 +681,8 @@ namespace idTech4.Platform.Windows
 			ICVarSystem cvarSystem        = idEngine.Instance.GetService<ICVarSystem>();
 			GraphicsDevice graphicsDevice = _graphicsDeviceManager.GraphicsDevice;
 
-			//if(_effect == null)
-			/*{
+			/*if(_effect == null)
+			{
 				_effect                    = new BasicEffect(graphicsDevice);
 				_effect.FogEnabled         = false;
 				_effect.LightingEnabled    = false;
@@ -741,16 +741,17 @@ namespace idTech4.Platform.Windows
 			else
 			{
 				_effect.TextureEnabled = false;
-			}
+			}*/
 			
-			_effect.Projection  = _viewDef.ProjectionMatrix;
+			/*_effect.Projection  = _viewDef.ProjectionMatrix;
 			_effect.View        = _viewDef.WorldSpace.ModelViewMatrix;
 			_effect.World       = _viewDef.WorldSpace.ModelMatrix;*/
 
 			_renderProgramManager.SetProjectionMatrix(_viewDef.ProjectionMatrix);
 			_renderProgramManager.SetModelViewMatrix(_viewDef.WorldSpace.ModelViewMatrix);
 			_renderProgramManager.SetModelMatrix(_viewDef.WorldSpace.ModelMatrix);
-			_renderProgramManager.SetModelViewProjectionMatrix(_viewDef.WorldSpace.ModelMatrix * _viewDef.WorldSpace.ModelViewMatrix * _viewDef.ProjectionMatrix);			
+			_renderProgramManager.SetModelViewProjectionMatrix(_viewDef.WorldSpace.ModelMatrix * _viewDef.WorldSpace.ModelViewMatrix * _viewDef.ProjectionMatrix);	
+		
 			_renderProgramManager.CommitUniforms();
 
 			foreach(EffectPass p in _renderProgramManager.Effect.CurrentTechnique.Passes)
@@ -760,13 +761,17 @@ namespace idTech4.Platform.Windows
 				/*graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, sizeof(ushort),
 					surface.FirstVertex, surface.VertexCount, surface.FirstIndex, surface.IndexCount / 3);*/
 
-				graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0,
-					surface.FirstVertex, surface.VertexCount, surface.FirstIndex, surface.IndexCount / 3);
+				/*graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0,
+					surface.FirstVertex, surface.VertexCount, surface.FirstIndex, surface.IndexCount / 3);*/
+
+				//graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, surface.FirstIndex, surface.FirstVertex, surface.VertexCount, 0, surface.IndexCount / 3);
+
+				graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, surface.FirstVertex, 0, surface.VertexCount, surface.FirstIndex, surface.IndexCount / 3);
 
 				/*graphicsDevice.DrawUserIndexedPrimitives<idVertex>(PrimitiveType.TriangleList,
 						surface.Vertices, 0,
 						surface.Vertices.Length,
-						surface.Indexes, 0, surface.Indexes.Length / 3);*/
+						surface.Indices, 0, surface.Indices.Length / 3);*/
 			}
 		}
 

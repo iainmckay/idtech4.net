@@ -294,7 +294,7 @@ namespace idTech4.UI.SWF
 
 				if(barWidth > 0.0f)
 				{
-					renderSystem.Color = new Color(0, 0, 0, 1);
+					renderSystem.Color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
 
 					DrawStretchPicture(0, 0, barWidth, sysHeight, 0, 0, 1, 1, _white);
 					DrawStretchPicture(sysWidth - barWidth, 0, barWidth, sysHeight, 0, 0, 1, 1, _white);
@@ -302,7 +302,7 @@ namespace idTech4.UI.SWF
 
 				if(barHeight > 0.0f)
 				{
-					renderSystem.Color = new Color(0, 0, 0, 1);
+					renderSystem.Color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
 
 					DrawStretchPicture(0, 0, sysWidth, barHeight, 0, 0, 1, 1, _white);
 					DrawStretchPicture(0, sysHeight - barHeight, sysWidth, barHeight, 0, 0, 1, 1, _white);
@@ -1544,7 +1544,7 @@ namespace idTech4.UI.SWF
 				
 					verts[j].Clear();
 					verts[j].Position = new Vector3(renderState.Matrix.Transform(xy) * _scaleToVirtual, 0);
-					verts[j].Color    = colorMul;
+					verts[j].Color = colorMul;
 					verts[j].Color2   = colorAdd;
 
 					// for some reason I don't understand, having texcoords
@@ -1685,9 +1685,9 @@ namespace idTech4.UI.SWF
 			scriptFunction_shortcutKeys_clear.Call( shortcutKeys, idSWFParmList() );
 			globals->Set( "shortcutKeys", shortcutKeys );*/
 
-			_globals.Set("deactivate",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_deactivate, this));
+			//_globals.Set("deactivate",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_deactivate, this));
 			_globals.Set("inhibitControl",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_inhibitControl, this));
-			_globals.Set("useInhibit",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_useInhibit, this));
+			/*_globals.Set("useInhibit",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_useInhibit, this));
 			_globals.Set("precacheSound",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_precacheSound, this));
 			_globals.Set("playSound",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_playSound, this));
 			_globals.Set("stopSounds",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_stopSounds, this));
@@ -1697,7 +1697,7 @@ namespace idTech4.UI.SWF
 			_globals.Set("swapPS3Buttons",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_swapPS3Buttons, this));
 			_globals.Set("strReplace",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_strReplace, this));
 			_globals.Set("getCVarInteger",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getCVarInteger, this));
-			_globals.Set("setCVarInteger",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_setCVarInteger, this));
+			_globals.Set("setCVarInteger",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_setCVarInteger, this));*/
 
 			/*_globals.Set("acos",				scriptFunction_acos.Bind( this ) );
 			_globals.Set("cos",					scriptFunction_cos.Bind( this ) );
