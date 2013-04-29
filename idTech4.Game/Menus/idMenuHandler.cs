@@ -44,6 +44,14 @@ namespace idTech4.Game.Menus
 			}
 		}
 
+		public idMenuWidget_CommandBar CommandBar
+		{
+			get
+			{
+				return _cmdBar;
+			}
+		}
+
 		public bool IsActive
 		{
 			get

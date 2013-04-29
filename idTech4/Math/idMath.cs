@@ -49,12 +49,17 @@ namespace idTech4.Math
 			return XMath.Abs(a);
 		}
 
+		public static float Acos(float a)
+		{
+			return (float) XMath.Acos(a);
+		}
+
 		public static float Atan2(float x, float y)
 		{
 			return (float) XMath.Atan2(x, y);
 		}
 
-		public static float Ceiling(float c)
+		public static float Ceil(float c)
 		{
 			return (float) XMath.Ceiling(c);
 		}
@@ -127,6 +132,11 @@ namespace idTech4.Math
 		public static float Sin(float s)
 		{
 			return (float) XMath.Sin(s);
+		}
+
+		public static float ToDegrees(float v)
+		{
+			return MathHelper.ToDegrees(v);
 		}
 
 		public static float ToRadians(float v)

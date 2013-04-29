@@ -99,7 +99,11 @@
     <Compile Include="Menus\idMenuHandler.cs" />
     <Compile Include="Menus\idMenuHandler_Shell.cs" />
     <Compile Include="Menus\idMenuScreen.cs" />
+    <Compile Include="Menus\idMenuScreen_Shell_ControllerLayout.cs" />
+    <Compile Include="Menus\idMenuScreen_Shell_Credits.cs" />
+    <Compile Include="Menus\idMenuScreen_Shell_GamePad.cs" />
     <Compile Include="Menus\idMenuScreen_Shell_PressStart.cs" />
+    <Compile Include="Menus\idMenuScreen_Shell_Root.cs" />
     <Compile Include="Menus\idMenuWidget.cs" />
     <Compile Include="Menus\idMenuWidget_Button.cs" />
     <Compile Include="Menus\idMenuWidget_Carousel.cs" />

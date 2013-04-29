@@ -91,7 +91,7 @@ namespace idTech4.Text.Decls
 
 				if(index < 0)
 				{
-					index += (domain * (float) idMath.Ceiling(-index / domain));
+					index += (domain * (float) idMath.Ceil(-index / domain));
 				}
 
 				iIndex = (int) idMath.Floor(index);

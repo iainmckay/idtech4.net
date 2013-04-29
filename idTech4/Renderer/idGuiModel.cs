@@ -122,12 +122,7 @@ namespace idTech4.Renderer
 			int startVertex = _vertexCount;
 			int startIndex  = _indexCount;
 			int vertexSize  = Marshal.SizeOf(typeof(idVertex));
-
-			for(int i = 0; i < indexes.Length; i++)
-			{
-				//indexes[i] += (ushort) _indexCount;
-			}
-
+			
 			_vertexBuffer.SetData<idVertex>(startVertex * vertexSize, vertices, 0, vertices.Length, vertexSize, vertexDataOptions);
 			_indexBuffer.SetData<ushort>(startIndex * sizeof(ushort), indexes, 0, indexes.Length, indexDataOptions);
 			
@@ -135,21 +130,6 @@ namespace idTech4.Renderer
 			_indexCount          += indexes.Length;
 			_surface.IndexCount  += indexes.Length;
 			_surface.VertexCount += vertices.Length;
-
-			/*int currentVertexCount = _vertices.Count;
-			int currentIndexCount = _indexes.Count;
-			int vertexCount = vertices.Length;
-			int indexCount = indexes.Length;
-
-			_surface.VertexCount += vertexCount;
-			_surface.IndexCount += indexCount;
-
-			for(int i = 0; i < indexCount; i++)
-			{
-				_indexes.Add(currentVertexCount + indexes[i] - _surface.FirstVertex);
-			}
-
-			_vertices.AddRange(vertices);*/
 		}
 
 		public void BeginFrame()

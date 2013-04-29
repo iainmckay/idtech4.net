@@ -93,8 +93,8 @@ namespace idTech4.Platform.Windows
 		{
 			_renderCaps.MaxTextureAnisotropy    = 16;
 			_renderCaps.MaxTextureImageUnits    = 8;
-			_renderCaps.MaxVertexBufferElements = 80000;
-			_renderCaps.MaxIndexBufferElements  = 120000;
+			_renderCaps.MaxVertexBufferElements = 200000;
+			_renderCaps.MaxIndexBufferElements  = 200000;
 
 			if(_graphicsDeviceManager.GraphicsProfile == GraphicsProfile.HiDef)
 			{
@@ -673,22 +673,12 @@ namespace idTech4.Platform.Windows
 
 			_backendState.FaceCulling = cullType;
 		}
-
-		private BasicEffect _effect;
-
+		
 		private void DrawElementsWithCounters(idDrawSurface surface)
 		{
 			ICVarSystem cvarSystem        = idEngine.Instance.GetService<ICVarSystem>();
 			GraphicsDevice graphicsDevice = _graphicsDeviceManager.GraphicsDevice;
 
-			/*if(_effect == null)
-			{
-				_effect                    = new BasicEffect(graphicsDevice);
-				_effect.FogEnabled         = false;
-				_effect.LightingEnabled    = false;
-				_effect.TextureEnabled     = true;
-				_effect.VertexColorEnabled = false;
-			}*/
 
 			// TODO: RENDERLOG_PRINTF( "Binding Buffers: %p:%i %p:%i\n", vertexBuffer, vertOffset, indexBuffer, indexOffset );
 
@@ -729,23 +719,6 @@ namespace idTech4.Platform.Windows
 				_backendState.CurrentVertexBuffer = surface.VertexBuffer;
 				_backendState.VertexLayout        = VertexLayout.DrawVertex;
 			}
-	
-			/*TextureUnit textureUnit = _backendState.TextureUnits[_backendState.CurrentTextureUnit];
-			Texture texture         = textureUnit.CurrentTexture;
-
-			if(texture != null)
-			{
-				_effect.Texture        = (Texture2D) texture;
-				_effect.TextureEnabled = true;
-			}
-			else
-			{
-				_effect.TextureEnabled = false;
-			}*/
-			
-			/*_effect.Projection  = _viewDef.ProjectionMatrix;
-			_effect.View        = _viewDef.WorldSpace.ModelViewMatrix;
-			_effect.World       = _viewDef.WorldSpace.ModelMatrix;*/
 
 			_renderProgramManager.SetProjectionMatrix(_viewDef.ProjectionMatrix);
 			_renderProgramManager.SetModelViewMatrix(_viewDef.WorldSpace.ModelViewMatrix);
@@ -758,20 +731,7 @@ namespace idTech4.Platform.Windows
 			{
 				p.Apply();
 
-				/*graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, sizeof(ushort),
-					surface.FirstVertex, surface.VertexCount, surface.FirstIndex, surface.IndexCount / 3);*/
-
-				/*graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0,
-					surface.FirstVertex, surface.VertexCount, surface.FirstIndex, surface.IndexCount / 3);*/
-
-				//graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, surface.FirstIndex, surface.FirstVertex, surface.VertexCount, 0, surface.IndexCount / 3);
-
 				graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, surface.FirstVertex, 0, surface.VertexCount, surface.FirstIndex, surface.IndexCount / 3);
-
-				/*graphicsDevice.DrawUserIndexedPrimitives<idVertex>(PrimitiveType.TriangleList,
-						surface.Vertices, 0,
-						surface.Vertices.Length,
-						surface.Indices, 0, surface.Indices.Length / 3);*/
 			}
 		}
 

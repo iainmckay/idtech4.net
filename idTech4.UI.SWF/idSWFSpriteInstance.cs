@@ -40,6 +40,44 @@ namespace idTech4.UI.SWF
 	public class idSWFSpriteInstance
 	{
 		#region Properties
+		public float Alpha
+		{
+			get
+			{
+				if(_parent == null)
+				{
+					return 1.0f;
+				}
+
+				idSWFDisplayEntry displayEntry = _parent.FindDisplayEntry(_depth);
+
+				if((displayEntry == null) || (displayEntry.SpriteInstance != this))
+				{
+					idLog.Warning("_alpha: Couldn't find our display entry in our parents display list");
+					return 1.0f;
+				}
+
+				return displayEntry.ColorXForm.Mul.W;
+			}
+			set
+			{
+				if(_parent == null)
+				{
+					return;
+				}
+
+				idSWFDisplayEntry displayEntry = _parent.FindDisplayEntry(_depth);
+
+				if((displayEntry == null) || (displayEntry.SpriteInstance != this))
+				{
+					idLog.Warning("_alpha: Couldn't find our display entry in our parents display list" );
+					return;
+				}
+
+				displayEntry.ColorXForm.Mul.W = value;
+			}
+		}
+
 		public bool ChildrenRunning
 		{
 			get
@@ -60,11 +98,27 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public int Depth
+		{
+			get
+			{
+				return _depth;
+			}
+		}
+
 		public List<idSWFDisplayEntry> DisplayList
 		{
 			get
 			{
 				return _displayList;
+			}
+		}
+
+		public int FrameCount
+		{
+			get
+			{
+				return _frameCount;
 			}
 		}
 
@@ -88,11 +142,27 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public int ItemIndex
+		{
+			get
+			{
+				return _itemIndex;
+			}
+			set
+			{
+				_itemIndex = value;
+			}
+		}
+
 		public idMaterial MaterialOverride
 		{
 			get
 			{
 				return _materialOverride;
+			}
+			set
+			{
+				_materialOverride = value;
 			}
 		}
 
@@ -102,6 +172,10 @@ namespace idTech4.UI.SWF
 			{
 				return _materialWidth;
 			}
+			set
+			{
+				_materialWidth = value;
+			}
 		}
 
 		public ushort MaterialHeight
@@ -109,6 +183,10 @@ namespace idTech4.UI.SWF
 			get
 			{
 				return _materialHeight;
+			}
+			set
+			{
+				_materialHeight = value;
 			}
 		}
 
@@ -130,6 +208,10 @@ namespace idTech4.UI.SWF
 			{
 				return _xOffset;
 			}
+			set
+			{
+				_xOffset = value;
+			}
 		}
 
 		public float OffsetY
@@ -137,6 +219,22 @@ namespace idTech4.UI.SWF
 			get
 			{
 				return _yOffset;
+			}
+			set
+			{
+				_yOffset = value;
+			}
+		}
+
+		public idSWFScriptVariable OnEnterFrame
+		{
+			get
+			{
+				return _onEnterFrame;
+			}
+			set
+			{
+				_onEnterFrame = value;
 			}
 		}
 

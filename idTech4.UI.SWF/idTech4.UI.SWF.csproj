@@ -111,6 +111,9 @@
     <Compile Include="Scripting\idSWFScriptFunction.cs" />
     <Compile Include="Scripting\idSWFScriptFunction_Sprite.cs" />
     <Compile Include="Scripting\idSWFScriptFunction_Script.cs" />
+    <Compile Include="Scripting\idSWFScriptNativeVariable.cs" />
+    <Compile Include="Scripting\idSWFScriptNativeVariable_Nested.cs" />
+    <Compile Include="Scripting\idSWFScriptNativeVariable_Sprite.cs" />
     <Compile Include="Scripting\idSWFScriptObject.cs" />
     <Compile Include="Scripting\idSWFScriptObject_SpriteInstancePrototype.cs" />
     <Compile Include="Scripting\idSWFScriptObject_TextInstancePrototype.cs" />

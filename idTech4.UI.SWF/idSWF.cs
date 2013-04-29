@@ -50,6 +50,18 @@ namespace idTech4.UI.SWF
 		#endregion
 
 		#region Properties
+		public bool Crop
+		{
+			get
+			{
+				return _crop;
+			}
+			protected set
+			{
+				_crop = value;
+			}
+		}
+
 		public idSWFScriptObject Globals
 		{
 			get
@@ -70,6 +82,14 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public Random Random
+		{
+			get
+			{
+				return _random;
+			}
+		}
+
 		public idSWFScriptObject RootObject
 		{
 			get
@@ -77,6 +97,30 @@ namespace idTech4.UI.SWF
 				Debug.Assert(_mainSpriteInstance != null);
 
 				return _mainSpriteInstance.ScriptObject;
+			}
+		}
+
+		public bool ShowBlackBars
+		{
+			get
+			{
+				return _blackbars;
+			}
+			protected set
+			{
+				_blackbars = value;
+			}
+		}
+
+		public bool UseInhibitControl
+		{
+			get
+			{
+				return _useInhibitControl;
+			}
+			protected set
+			{
+				_useInhibitControl = value;
 			}
 		}
 		#endregion
@@ -111,6 +155,8 @@ namespace idTech4.UI.SWF
 		private bool _crop;
 		private bool _paused;
 		private bool _hasHitObject;
+
+		private bool _forceNonPCPlatform;
 
 		private idMaterial _atlasMaterial;
 		private idMaterial _guiSolid;
@@ -1679,43 +1725,56 @@ namespace idTech4.UI.SWF
 
 			/*_globals.Set("Object", scriptFunction_Object );*/
 
-			// TODO: swf shortcuts
+			idLog.Warning("TODO: swf shortcuts");
 			/*shortcutKeys = idSWFScriptObject::Alloc();
 			scriptFunction_shortcutKeys_clear.Bind( this );
 			scriptFunction_shortcutKeys_clear.Call( shortcutKeys, idSWFParmList() );
 			globals->Set( "shortcutKeys", shortcutKeys );*/
 
-			//_globals.Set("deactivate",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_deactivate, this));
-			_globals.Set("inhibitControl",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_inhibitControl, this));
-			/*_globals.Set("useInhibit",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_useInhibit, this));
-			_globals.Set("precacheSound",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_precacheSound, this));
-			_globals.Set("playSound",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_playSound, this));
-			_globals.Set("stopSounds",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_stopSounds, this));
-			_globals.Set("getPlatform",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getPlatform, this));
-			_globals.Set("getTruePlatform",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getTruePlatform, this));
-			_globals.Set("getLocalString",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getLocalString, this));
-			_globals.Set("swapPS3Buttons",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_swapPS3Buttons, this));
-			_globals.Set("strReplace",			new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_strReplace, this));
-			_globals.Set("getCVarInteger",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getCVarInteger, this));
-			_globals.Set("setCVarInteger",		new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_setCVarInteger, this));*/
+			_globals.Set("deactivate",         new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_deactivate, this));
+			_globals.Set("inhibitControl",     new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_inhibitControl, this));
+			_globals.Set("useInhibit",         new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_useInhibit, this));
+			_globals.Set("precacheSound",      new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_precacheSound, this));
+			_globals.Set("playSound",          new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_playSound, this));
+			_globals.Set("stopSounds",         new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_stopSounds, this));
+			_globals.Set("getPlatform",        new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getPlatform, this));
+			_globals.Set("getTruePlatform",    new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getTruePlatform, this));
+			_globals.Set("getLocalString",     new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getLocalString, this));
+			_globals.Set("swapPS3Buttons",     new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_swapPS3Buttons, this));
+			_globals.Set("strReplace",         new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_strReplace, this));
+			_globals.Set("getCVarInteger",     new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_getCVarInteger, this));
+			_globals.Set("setCVarInteger",     new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_setCVarInteger, this));
 
-			/*_globals.Set("acos",				scriptFunction_acos.Bind( this ) );
-			_globals.Set("cos",					scriptFunction_cos.Bind( this ) );
-			_globals.Set("sin",					scriptFunction_sin.Bind( this ) );
-			_globals.Set("round",				scriptFunction_round.Bind( this ) );
-			_globals.Set("pow",					scriptFunction_pow.Bind( this ) );
-			_globals.Set("sqrt",				scriptFunction_sqrt.Bind( this ) );
-			_globals.Set("abs",					scriptFunction_abs.Bind( this ) );
-			_globals.Set("rand",				scriptFunction_rand.Bind( this ) );
-			_globals.Set("floor",				scriptFunction_floor.Bind( this ) );
-			_globals.Set("ceil",				scriptFunction_ceil.Bind( this ) );
-			_globals.Set("toUpper",				scriptFunction_toUpper.Bind( this ) );
+			_globals.Set("acos",               new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_acos, this));
+			_globals.Set("cos",	               new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_cos, this));
+			_globals.Set("sin",	               new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_sin, this));
+			_globals.Set("round",              new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_round, this));
+			_globals.Set("pow",	               new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_pow, this));
+			_globals.Set("sqrt",               new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_sqrt, this));
+			_globals.Set("abs",                new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_abs, this));
+			_globals.Set("rand",               new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_rand, this));
+			_globals.Set("floor",              new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_floor, this));
+			_globals.Set("ceil",               new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_ceil, this));
+			_globals.Set("toUpper",	           new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_toUpper, this));
 
-			_globals.SetNative("platform",		swfScriptVar_platform.Bind( &scriptFunction_getPlatform ) );
-			_globals.SetNative("blackbars",		swfScriptVar_blackbars.Bind( this ) );
-			_globals.SetNative("cropToHeight",	swfScriptVar_crop.Bind( this ) );
-			_globals.SetNative("cropToFit",		swfScriptVar_crop.Bind( this ) );
-			_globals.SetNative("crop",			swfScriptVar_crop.Bind( this ) );*/
+			_globals.SetNative("platform",     new idSWFScriptNativeVariable_NestedReadonly<idSWF>(ScriptVariable_getPlatform, this));
+			_globals.SetNative("blackbars",    new idSWFScriptNativeVariable_Nested<idSWF>(ScriptVariable_getBlackbars, ScriptVariable_setBlackbars, this));
+			_globals.SetNative("cropToHeight", new idSWFScriptNativeVariable_Nested<idSWF>(ScriptVariable_getCrop, ScriptVariable_setCrop, this));
+			_globals.SetNative("cropToFit",    new idSWFScriptNativeVariable_Nested<idSWF>(ScriptVariable_getCrop, ScriptVariable_setCrop, this));
+			_globals.SetNative("crop",         new idSWFScriptNativeVariable_Nested<idSWF>(ScriptVariable_getCrop, ScriptVariable_setCrop, this));
+		}
+
+		public int GetPlatform()
+		{
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+
+			if((cvarSystem.GetBool("in_useJoystick") == true) || (_forceNonPCPlatform == true))
+			{
+				_forceNonPCPlatform = false;
+				return 0;
+			}
+
+			return 2;
 		}
 
 		internal void LoadFrom(ContentReader input)
@@ -1866,9 +1925,63 @@ namespace idTech4.UI.SWF
 		#endregion
 
 		#region Script Functions
+		private idSWFScriptVariable ScriptFunction_abs(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if(parms.Count != 1)
+			{
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable(idMath.Abs(parms[0].ToFloat()));
+		}
+
+		private idSWFScriptVariable ScriptFunction_acos(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if(parms.Count != 1)
+			{
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable(idMath.Acos(parms[0].ToFloat()));
+		}
+
+		private idSWFScriptVariable ScriptFunction_ceil(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if((parms.Count != 1) || (parms[0].IsNumeric == false))
+			{
+				idLog.Warning("Invalid parameters specified for ceil");
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable(idMath.Ceil(parms[0].ToFloat()));
+		}
+
+		private idSWFScriptVariable ScriptFunction_cos(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if(parms.Count != 1)
+			{
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable(idMath.Cos(parms[0].ToFloat()));
+		}
+
 		private idSWFScriptVariable ScriptFunction_deactivate(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			context.Activate(false);
+
+			return new idSWFScriptVariable();
+		}
+
+		private idSWFScriptVariable ScriptFunction_floor(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if((parms.Count != 1) || (parms[0].IsNumeric == false))
+			{
+				idLog.Warning("Invalid parameters specified for floor");
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable(idMath.Floor(parms[0].ToFloat()));
 		}
 
 		private idSWFScriptVariable ScriptFunction_inhibitControl(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
@@ -1878,9 +1991,21 @@ namespace idTech4.UI.SWF
 			return new idSWFScriptVariable();
 		}
 
+		private idSWFScriptVariable ScriptFunction_toUpper(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if((parms.Count != 1) || (parms[0].IsString == false))
+			{
+				idLog.Warning("Invalid parameters specified for toUpper");
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable(idEngine.Instance.GetService<ILocalization>().Get(parms[0].ToString()).ToUpper());
+		}
+
 		private idSWFScriptVariable ScriptFunction_useInhibit(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			context.UseInhibitControl = parms[0].ToBool();
+			return new idSWFScriptVariable();
 		}
 
 		private idSWFScriptVariable ScriptFunction_precacheSound(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
@@ -1893,6 +2018,72 @@ namespace idTech4.UI.SWF
 			throw new NotImplementedException();
 		}
 
+		private idSWFScriptVariable ScriptFunction_pow(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if(parms.Count != 2)
+			{
+				return new idSWFScriptVariable();
+			}
+
+			float value = parms[0].ToFloat();
+			float power = parms[0].ToFloat();
+
+			return new idSWFScriptVariable(idMath.Pow(value, power));
+		}
+
+		private idSWFScriptVariable ScriptFunction_rand(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			float min = 0.0f;
+			float max = 1.0f;
+
+			switch(parms.Count)
+			{
+				case 0:
+					break;
+
+				case 1:
+					max = parms[0].ToFloat();
+					break;
+
+				default:
+					min = parms[0].ToFloat();
+					max = parms[1].ToFloat();
+					break;
+			}
+
+			return new idSWFScriptVariable(min + context.Random.Next() * (max - min));
+		}
+
+		private idSWFScriptVariable ScriptFunction_round(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if(parms.Count != 1)
+			{
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable((int) (parms[0].ToFloat() + 0.5f));
+		}
+
+		private idSWFScriptVariable ScriptFunction_sin(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if(parms.Count != 1)
+			{
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable(idMath.Sin(parms[0].ToFloat()));
+		}
+
+		private idSWFScriptVariable ScriptFunction_sqrt(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			if(parms.Count != 1)
+			{
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable(idMath.Sqrt(parms[0].ToFloat()));
+		}
+
 		private idSWFScriptVariable ScriptFunction_stopSounds(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
 			throw new NotImplementedException();
@@ -1900,17 +2091,22 @@ namespace idTech4.UI.SWF
 
 		private idSWFScriptVariable ScriptFunction_getPlatform(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			return new idSWFScriptVariable(context.GetPlatform());
 		}
 
 		private idSWFScriptVariable ScriptFunction_getTruePlatform(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			return new idSWFScriptVariable(2);
 		}
 
 		private idSWFScriptVariable ScriptFunction_getLocalString(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			if(parms.Count == 0)
+			{
+				return new idSWFScriptVariable();
+			}
+
+			return new idSWFScriptVariable(idEngine.Instance.GetService<ILocalization>().Get(parms[0].ToString()));
 		}
 
 		private idSWFScriptVariable ScriptFunction_swapPS3Buttons(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
@@ -1920,17 +2116,54 @@ namespace idTech4.UI.SWF
 
 		private idSWFScriptVariable ScriptFunction_strReplace(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			if(parms.Count != 3)
+			{
+				return new idSWFScriptVariable(string.Empty);
+			}
+
+			string str    = parms[0].ToString();
+			string repStr = parms[1].ToString();
+			string val    = parms[2].ToString();
+
+			return new idSWFScriptVariable(str.Replace(repStr, val));
 		}
 
 		private idSWFScriptVariable ScriptFunction_getCVarInteger(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			return new idSWFScriptVariable(idEngine.Instance.GetService<ICVarSystem>().GetInt(parms[0].ToString()));
 		}
 
 		private idSWFScriptVariable ScriptFunction_setCVarInteger(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			idEngine.Instance.GetService<ICVarSystem>().Set(parms[0].ToString(), parms[1].ToInt32());
+			return new idSWFScriptVariable();
+		}
+		#endregion
+
+		#region Script Variables
+		private idSWFScriptVariable ScriptVariable_getBlackbars(idSWFScriptObject scriptObj, idSWF context)
+		{
+			return new idSWFScriptVariable(context.ShowBlackBars);
+		}
+
+		private void ScriptVariable_setBlackbars(idSWFScriptObject scriptObj, idSWF context, idSWFScriptVariable value)
+		{
+			context.ShowBlackBars = value.ToBool();
+		}
+
+		private idSWFScriptVariable ScriptVariable_getCrop(idSWFScriptObject scriptObj, idSWF context)
+		{
+			return new idSWFScriptVariable(context.Crop);
+		}
+
+		private void ScriptVariable_setCrop(idSWFScriptObject scriptObj, idSWF context, idSWFScriptVariable value)
+		{
+			context.Crop = value.ToBool();
+		}
+
+		private idSWFScriptVariable ScriptVariable_getPlatform(idSWFScriptObject scriptObj, idSWF context)
+		{
+			return new idSWFScriptVariable(context.GetPlatform());
 		}
 		#endregion
 	}

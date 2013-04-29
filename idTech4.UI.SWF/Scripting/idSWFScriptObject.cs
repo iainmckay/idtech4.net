@@ -131,12 +131,11 @@ namespace idTech4.UI.SWF.Scripting
 			}
 			else
 			{
-				// TODO: native
-				/*if(variable.Native != null)
+				if(variable.Native != null)
 				{
 					return variable.Native.Get(this);
 				}
-				else*/
+				else
 				{
 					return variable.Value;
 				}
@@ -153,12 +152,11 @@ namespace idTech4.UI.SWF.Scripting
 			}
 			else
 			{
-				// TODO: native
-				/*if(variable.Native != null)
+				if(variable.Native != null)
 				{
 					return variable.Native.Get(this);
 				}
-				else*/
+				else
 				{
 					return variable.Value;
 				}
@@ -310,12 +308,11 @@ namespace idTech4.UI.SWF.Scripting
 			
 			idSWFNamedVariable variable = GetVariable(index, true);
 
-			// TODO: native
-			/*if(variable.Native != null)
+			if(variable.Native != null)
 			{
 				variable.Native.Set(this, value);
 			}
-			else */if((variable.Flags & (idSWFNamedVariable.Flag_ReadOnly)) == 0)
+			else if((variable.Flags & (idSWFNamedVariable.Flag_ReadOnly)) == 0)
 			{
 				variable.Value = value;
 			}
@@ -367,14 +364,25 @@ namespace idTech4.UI.SWF.Scripting
 
 			idSWFNamedVariable variable = GetVariable(name, true);
 
-			// TODO: native
-			/*if(variable.Native != null)
+			if(variable.Native != null)
 			{
 				variable.Native.Set(this, value);
 			}
-			else*/ if((variable.Flags & idSWFNamedVariable.Flag_ReadOnly) == 0)
+			else if((variable.Flags & idSWFNamedVariable.Flag_ReadOnly) == 0)
 			{
 				variable.Value = value;
+			}
+		}
+
+		public void SetNative(string name, idSWFScriptNativeVariable native)
+		{
+			idSWFNamedVariable var = GetVariable(name, true);
+			var.Flags |= 1 << 1;
+			var.Native = native;
+
+			if(native.IsReadOnly == true)
+			{
+				var.Flags |= 1 << 1;
 			}
 		}
 
@@ -415,7 +423,7 @@ namespace idTech4.UI.SWF.Scripting
 			{
 				idSWFNamedVariable variable = _prototype.GetVariable(name, false);
 
-				if((variable != null) && (/*TODO: native (variable.Native != null) ||*/ (create == false)))
+				if((variable != null) && ((variable.Native != null) || (create == false)))
 				{
 					// If the variable is native, we want to pull it from the prototype even if we're going to set it
 					return variable;
@@ -489,7 +497,7 @@ namespace idTech4.UI.SWF.Scripting
 		public int	Index;
 		public string Name;
 		public idSWFScriptVariable Value;
-		//public idSWFScriptNativeVariable Native;
+		public idSWFScriptNativeVariable Native;
 		public int Flags;
 		#endregion
 

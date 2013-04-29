@@ -38,6 +38,24 @@ namespace idTech4.Game.Menus
 		public const int MaxMenuOptions = 6;
 		#endregion
 
+		#region Properties
+		public idMenuWidget_MenuBar MenuBar
+		{
+			get
+			{
+				return _menuBar;
+			}
+		}
+
+		public idMenuWidget Pacifier
+		{
+			get
+			{
+				return _pacifier;
+			}
+		}
+		#endregion
+
 		#region Members
 		private ShellState _state;
 		private ShellState _nextState;
@@ -169,7 +187,7 @@ namespace idTech4.Game.Menus
 							break;
 
 						case ShellCommand.Developer:
-							_nextScreen = ShellArea.Dev;
+							_nextScreen = ShellArea.Developer;
 							_transition = MainMenuTransition.Simple;
 							break;
 				
@@ -247,7 +265,8 @@ namespace idTech4.Game.Menus
 			else 
 			{
 				RegisterShellScreen<idMenuScreen_Shell_PressStart>(ShellArea.Start, this);
-				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_ROOT, idMenuScreen_Shell_Root, this );");
+				RegisterShellScreen<idMenuScreen_Shell_Root>(ShellArea.Root, this);
+
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_CAMPAIGN, idMenuScreen_Shell_Singleplayer, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_SETTINGS, idMenuScreen_Shell_Settings, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_LOAD, idMenuScreen_Shell_Load, this );");
@@ -261,14 +280,14 @@ namespace idTech4.Game.Menus
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_CONTROLS, idMenuScreen_Shell_Controls, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_KEYBOARD, idMenuScreen_Shell_Bindings, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_RESOLUTION, idMenuScreen_Shell_Resolution, this );");
-				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_CONTROLLER_LAYOUT, idMenuScreen_Shell_ControllerLayout, this );");
+				RegisterShellScreen<idMenuScreen_Shell_ControllerLayout>(ShellArea.ControllerLayout, this);
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_DEV, idMenuScreen_Shell_Dev, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_LEADERBOARDS, idMenuScreen_Shell_Leaderboards, this );");
-				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_GAMEPAD, idMenuScreen_Shell_Gamepad, this );");
+				RegisterShellScreen<idMenuScreen_Shell_GamePad>(ShellArea.GamePad, this);
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_MATCH_SETTINGS, idMenuScreen_Shell_MatchSettings, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_MODE_SELECT, idMenuScreen_Shell_ModeSelect, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_BROWSER, idMenuScreen_Shell_GameBrowser, this );");
-				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_CREDITS, idMenuScreen_Shell_Credits, this );");
+				RegisterShellScreen<idMenuScreen_Shell_Credits>(ShellArea.Credits, this);
 
 				_doom3Intro = declManager.FindMaterial("gui/intro/introloop");
 				_roeIntro   = declManager.FindMaterial("gui/intro/marsflyby");
@@ -290,13 +309,13 @@ namespace idTech4.Game.Menus
 			while(_menuBar.Children.Length < MaxMenuOptions)
 			{
 				idMenuWidget_MenuButton navButton = new idMenuWidget_MenuButton();
-				idLog.Warning("TODO: shell root");
-				/*idMenuScreen_Shell_Root rootScreen = _menuScreens[(int) ShellArea.Root] as idMenuScreen_Shell_Root;
+				
+				idMenuScreen_Shell_Root rootScreen = _menuScreens[(int) ShellArea.Root] as idMenuScreen_Shell_Root;
 
 				if(rootScreen != null)
 				{
-					navButton.RegisterEventObserver(rootScreen.HelpWidget);
-				}*/
+					idLog.Warning("TODO: navButton.RegisterEventObserver(rootScreen.HelpWidget);");
+				}
 
 				_menuBar.AddChild(navButton);
 			}
@@ -818,7 +837,7 @@ namespace idTech4.Game.Menus
 		{
 			if(_smallFrameShowing == true)
 			{
-				if((_nextScreen != ShellArea.Playstation) && (_nextScreen != ShellArea.Settings) && (_nextScreen != ShellArea.Campaign) && (_nextScreen != ShellArea.Dev))
+				if((_nextScreen != ShellArea.Playstation) && (_nextScreen != ShellArea.Settings) && (_nextScreen != ShellArea.Campaign) && (_nextScreen != ShellArea.Developer))
 				{
 					if((_nextScreen != ShellArea.Resolution) && (_nextScreen != ShellArea.GamePad) && (_nextScreen != ShellArea.Difficulty) && (_nextScreen != ShellArea.SystemOptions) && (_nextScreen != ShellArea.GameOptions) && (_nextScreen != ShellArea.NewGame) && (_nextScreen != ShellArea.Stereoscopics)
 						&& (_nextScreen != ShellArea.Controls))
@@ -829,7 +848,7 @@ namespace idTech4.Game.Menus
 			} 
 			else 
 			{
-				if((_nextScreen == ShellArea.Resolution) || (_nextScreen == ShellArea.GamePad) || (_nextScreen == ShellArea.Playstation) || (_nextScreen == ShellArea.Settings) || (_nextScreen == ShellArea.Campaign) || (_nextScreen == ShellArea.Controls) || (_nextScreen == ShellArea.Dev) || (_nextScreen == ShellArea.Difficulty))
+				if((_nextScreen == ShellArea.Resolution) || (_nextScreen == ShellArea.GamePad) || (_nextScreen == ShellArea.Playstation) || (_nextScreen == ShellArea.Settings) || (_nextScreen == ShellArea.Campaign) || (_nextScreen == ShellArea.Controls) || (_nextScreen == ShellArea.Developer) || (_nextScreen == ShellArea.Difficulty))
 				{
 					idLog.Warning("TODO: ShowSmallFrame(true);");
 				}		
@@ -885,7 +904,7 @@ namespace idTech4.Game.Menus
 		Invalid = -1,
 		Start,
 		Root,
-		Dev,
+		Developer,
 		Campaign,
 		Load,
 		Save,
