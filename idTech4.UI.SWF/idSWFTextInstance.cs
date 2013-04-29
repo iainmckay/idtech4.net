@@ -75,6 +75,8 @@ namespace idTech4.UI.SWF
 			get
 			{
 				// CURRENTLY ONLY WORKS FOR SINGLE LINE TEXTFIELDS
+
+				// TODO:
 				/*ILocalization localization = idEngine.Instance.GetService<ILocalization>();
 				
 				if((_lengthCalculated > 0) && (string.IsNullOrEmpty(_variable) == true))
@@ -152,6 +154,14 @@ namespace idTech4.UI.SWF
 			set
 			{
 				_toolTip = value;
+			}
+		}
+
+		public string Variable
+		{
+			get
+			{
+				return _variable;
 			}
 		}
 		#endregion

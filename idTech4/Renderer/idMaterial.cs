@@ -30,6 +30,9 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 
+using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Graphics;
+
 using idTech4.Services;
 using idTech4.Sound;
 using idTech4.Text;
@@ -1496,13 +1499,13 @@ namespace idTech4.Renderer
 			TextureUsage textureDepth   = TextureUsage.Default;
 			CubeFiles cubeMap           = CubeFiles.TwoD;
 
-			string imageName                          = string.Empty;
+			string imageName            = string.Empty;
 
-			NewMaterialStage newStage                 = new NewMaterialStage();
-			newStage.VertexParameters = new int[4, 4];
-			idLog.Warning("TODO: newStage.glslProgram = -1;");
+			NewMaterialStage newStage   = new NewMaterialStage();
+			newStage.VertexParameters   = new int[4, 4];
+			newStage.Effect				= null;
 
-			MaterialStage materialStage               = new MaterialStage();
+			MaterialStage materialStage     = new MaterialStage();
 			materialStage.ConditionRegister = GetExpressionConstant(1);
 			materialStage.Color.Registers = new int[4];
 			materialStage.Color.Registers[0]
@@ -3373,6 +3376,8 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Fields
+		public Effect Effect;
+
 		public int VertexProgram;
 		public int[,] VertexParameters; // evaluated register indexes.
 

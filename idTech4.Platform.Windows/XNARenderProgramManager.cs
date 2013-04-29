@@ -78,44 +78,44 @@ namespace idTech4.Platform.Windows
 			IFileSystem fileSystem = idEngine.Instance.GetService<IFileSystem>();
 
 			string[] builtins                                           = new string[(int) BuiltinShader.Count];
-			builtins[(int) BuiltinShader.Gui]                           = "gui";
-			builtins[(int) BuiltinShader.Color]                         = "color";
-			builtins[(int) BuiltinShader.SimpleShade]                   = "simpleshade";
-			builtins[(int) BuiltinShader.Textured]                      = "texture";
-			builtins[(int) BuiltinShader.TextureVertexColor]            = "texture_color";
-			builtins[(int) BuiltinShader.TextureVertexColorSkinned]     = "texture_color_skinned";
+			builtins[(int) BuiltinShader.Gui] = "gui";
+			builtins[(int) BuiltinShader.Color] = "color";
+			builtins[(int) BuiltinShader.SimpleShade] = "simpleshade";
+			builtins[(int) BuiltinShader.Textured] = "texture";
+			builtins[(int) BuiltinShader.TextureVertexColor] = "texture_color";
+			builtins[(int) BuiltinShader.TextureVertexColorSkinned] = "texture_color_skinned";
 			builtins[(int) BuiltinShader.TextureCoordinatesVertexColor] = "texture_color_texgen";
-			builtins[(int) BuiltinShader.Interaction]                   = "interaction";
-			builtins[(int) BuiltinShader.InteractionSkinned]            = "interaction_skinned";
-			builtins[(int) BuiltinShader.InteractionAmbient]            = "interactionAmbient";
-			builtins[(int) BuiltinShader.InteractionAmbientSkinned]     = "interactionAmbient_skinned";
-			builtins[(int) BuiltinShader.Environment]                   = "environment";
-			builtins[(int) BuiltinShader.EnvironmentSkinned]            = "environment_skinned";
-			builtins[(int) BuiltinShader.BumpyEnvironment]              = "bumpyEnvironment";
-			builtins[(int) BuiltinShader.BumpyEnvironmentSkinned]       = "bumpyEnvironment_skinned";
+			builtins[(int) BuiltinShader.Interaction] = "interaction";
+			builtins[(int) BuiltinShader.InteractionSkinned] = "interaction_skinned";
+			builtins[(int) BuiltinShader.InteractionAmbient] = "interactionAmbient";
+			builtins[(int) BuiltinShader.InteractionAmbientSkinned] = "interactionAmbient_skinned";
+			builtins[(int) BuiltinShader.Environment] = "environment";
+			builtins[(int) BuiltinShader.EnvironmentSkinned] = "environment_skinned";
+			builtins[(int) BuiltinShader.BumpyEnvironment] = "bumpyEnvironment";
+			builtins[(int) BuiltinShader.BumpyEnvironmentSkinned] = "bumpyEnvironment_skinned";
 
-			builtins[(int) BuiltinShader.Depth]                         = "depth";
-			builtins[(int) BuiltinShader.DepthSkinned]                  = "depth_skinned";
+			builtins[(int) BuiltinShader.Depth] = "depth";
+			builtins[(int) BuiltinShader.DepthSkinned] = "depth_skinned";
 
-			builtins[(int) BuiltinShader.Shadow]                        = "shadow";
-			builtins[(int) BuiltinShader.ShadowSkinned]                 = "shadow_skinned";
-			builtins[(int) BuiltinShader.ShadowDebug]                   = "shadowDebug";
-			builtins[(int) BuiltinShader.ShadowDebugSkinned]            = "shadowDebug_skinned";
+			builtins[(int) BuiltinShader.Shadow] = "shadow";
+			builtins[(int) BuiltinShader.ShadowSkinned] = "shadow_skinned";
+			builtins[(int) BuiltinShader.ShadowDebug] = "shadowDebug";
+			builtins[(int) BuiltinShader.ShadowDebugSkinned] = "shadowDebug_skinned";
 
-			builtins[(int) BuiltinShader.BlendLight]                    = "blendlight";
-			builtins[(int) BuiltinShader.Fog]                           = "fog";
-			builtins[(int) BuiltinShader.FogSkinned]                    = "fog_skinned";
-			builtins[(int) BuiltinShader.SkyBox]                        = "skybox";
-			builtins[(int) BuiltinShader.WobbleSky]                     = "wobblesky";
-			builtins[(int) BuiltinShader.PostProcess]                   = "postprocess";
-			builtins[(int) BuiltinShader.StereoDeGhost]                 = "stereoDeGhost";
-			builtins[(int) BuiltinShader.StereoWarp]                    = "stereoWarp";
-			builtins[(int) BuiltinShader.ZCullReconstruct]              = "zcullReconstruct";
-			builtins[(int) BuiltinShader.Bink]                          = "bink";
-			builtins[(int) BuiltinShader.BinkGui]                       = "bink_gui";
-			builtins[(int) BuiltinShader.StereoInterface]               = "stereoInterlace";
-			builtins[(int) BuiltinShader.MotionBlur]                    = "motionBlur";
-			
+			builtins[(int) BuiltinShader.BlendLight] = "blendlight";
+			builtins[(int) BuiltinShader.Fog] = "fog";
+			builtins[(int) BuiltinShader.FogSkinned] = "fog_skinned";
+			builtins[(int) BuiltinShader.SkyBox] = "skybox";
+			builtins[(int) BuiltinShader.WobbleSky] = "wobblesky";
+			builtins[(int) BuiltinShader.PostProcess] = "postprocess";
+			builtins[(int) BuiltinShader.StereoDeGhost] = "stereoDeGhost";
+			builtins[(int) BuiltinShader.StereoWarp] = "stereoWarp";
+			builtins[(int) BuiltinShader.ZCullReconstruct] = "zcullReconstruct";
+			builtins[(int) BuiltinShader.Bink] = "bink";
+			builtins[(int) BuiltinShader.BinkGui] = "bink_gui";
+			builtins[(int) BuiltinShader.StereoInterface] = "stereoInterlace";
+			builtins[(int) BuiltinShader.MotionBlur] = "motionBlur";
+
 			for(int i = 0; i < builtins.Length; i++)
 			{
 				/*vertexShaders[i].name = builtins[i].name;
@@ -134,7 +134,7 @@ namespace idTech4.Platform.Windows
 				else
 				{
 					idLog.WriteLine("...couldn't find {0}", fileName);
-				}				
+				}
 			}
 
 			// Special case handling for fastZ shaders
@@ -144,78 +144,78 @@ namespace idTech4.Platform.Windows
 			// TODO: FindGLSLProgram( "shadow.vp", builtinShaders[BUILTIN_SHADOW], -1 );
 			// TODO: FindGLSLProgram( "shadow_skinned.vp", builtinShaders[BUILTIN_SHADOW_SKINNED], -1 );
 
-			_effectUniforms[(int) RenderParameter.ScreenCorrectionFactor]     = new Vector4Uniform("g_ScreenCorrectionFactor");
-			_effectUniforms[(int) RenderParameter.WindowCoordinate]           = new Vector4Uniform("g_WindowCoordinate");
-			_effectUniforms[(int) RenderParameter.DiffuseModifier]            = new Vector4Uniform("g_DiffuseModifier");
-			_effectUniforms[(int) RenderParameter.SpecularModifier]           = new Vector4Uniform("g_SpecularModifier");
+			_effectUniforms[(int) RenderParameter.ScreenCorrectionFactor] = new Vector4Uniform("g_ScreenCorrectionFactor");
+			_effectUniforms[(int) RenderParameter.WindowCoordinate] = new Vector4Uniform("g_WindowCoordinate");
+			_effectUniforms[(int) RenderParameter.DiffuseModifier] = new Vector4Uniform("g_DiffuseModifier");
+			_effectUniforms[(int) RenderParameter.SpecularModifier] = new Vector4Uniform("g_SpecularModifier");
 
-			_effectUniforms[(int) RenderParameter.LocalLightOrigin]           = new Vector4Uniform("g_LocalLightOrigin");
-			_effectUniforms[(int) RenderParameter.LocalViewOrigin]            = new Vector4Uniform("g_LocalViewOrigin");
+			_effectUniforms[(int) RenderParameter.LocalLightOrigin] = new Vector4Uniform("g_LocalLightOrigin");
+			_effectUniforms[(int) RenderParameter.LocalViewOrigin] = new Vector4Uniform("g_LocalViewOrigin");
 
-			_effectUniforms[(int) RenderParameter.LightProjectionS]           = new Vector4Uniform("g_LightProjectionS");
-			_effectUniforms[(int) RenderParameter.LightProjectionT]           = new Vector4Uniform("g_LightProjectionT");
-			_effectUniforms[(int) RenderParameter.LightProjectionQ]           = new Vector4Uniform("g_LightProjectionQ");
-			_effectUniforms[(int) RenderParameter.LightFallOffS]              = new Vector4Uniform("g_LightFallOffS");
+			_effectUniforms[(int) RenderParameter.LightProjectionS] = new Vector4Uniform("g_LightProjectionS");
+			_effectUniforms[(int) RenderParameter.LightProjectionT] = new Vector4Uniform("g_LightProjectionT");
+			_effectUniforms[(int) RenderParameter.LightProjectionQ] = new Vector4Uniform("g_LightProjectionQ");
+			_effectUniforms[(int) RenderParameter.LightFallOffS] = new Vector4Uniform("g_LightFallOffS");
 
-			_effectUniforms[(int) RenderParameter.BumpMatrixS]                = new Vector4Uniform("g_BumpMatrixS");
-			_effectUniforms[(int) RenderParameter.BumpMatrixT]                = new Vector4Uniform("g_BumpMatrixT");
+			_effectUniforms[(int) RenderParameter.BumpMatrixS] = new Vector4Uniform("g_BumpMatrixS");
+			_effectUniforms[(int) RenderParameter.BumpMatrixT] = new Vector4Uniform("g_BumpMatrixT");
 
-			_effectUniforms[(int) RenderParameter.DiffuseMatrixS]             = new Vector4Uniform("g_DiffuseMatrixS");
-			_effectUniforms[(int) RenderParameter.DiffuseMatrixT]             = new Vector4Uniform("g_DiffuseMatrixT");
+			_effectUniforms[(int) RenderParameter.DiffuseMatrixS] = new Vector4Uniform("g_DiffuseMatrixS");
+			_effectUniforms[(int) RenderParameter.DiffuseMatrixT] = new Vector4Uniform("g_DiffuseMatrixT");
 
-			_effectUniforms[(int) RenderParameter.SpecularMatrixS]            = new Vector4Uniform("g_SpecularMatrixS");
-			_effectUniforms[(int) RenderParameter.SpecularMatrixT]            = new Vector4Uniform("g_SpecularMatrixT");
+			_effectUniforms[(int) RenderParameter.SpecularMatrixS] = new Vector4Uniform("g_SpecularMatrixS");
+			_effectUniforms[(int) RenderParameter.SpecularMatrixT] = new Vector4Uniform("g_SpecularMatrixT");
 
-			_effectUniforms[(int) RenderParameter.VertexColorModulate]        = new Vector4Uniform("g_VertexColorModulate");
-			_effectUniforms[(int) RenderParameter.VertexColorAdd]             = new Vector4Uniform("g_VertexColorAdd");
+			_effectUniforms[(int) RenderParameter.VertexColorModulate] = new Vector4Uniform("g_VertexColorModulate");
+			_effectUniforms[(int) RenderParameter.VertexColorAdd] = new Vector4Uniform("g_VertexColorAdd");
 
-			_effectUniforms[(int) RenderParameter.Color]                      = new Vector4Uniform("g_Color");
-			_effectUniforms[(int) RenderParameter.ViewOrigin]                 = new Vector4Uniform("g_ViewOrigin");
-			_effectUniforms[(int) RenderParameter.GlobalEyePosition]          = new Vector4Uniform("g_GlobalEyePosition");
+			_effectUniforms[(int) RenderParameter.Color] = new Vector4Uniform("g_Color");
+			_effectUniforms[(int) RenderParameter.ViewOrigin] = new Vector4Uniform("g_ViewOrigin");
+			_effectUniforms[(int) RenderParameter.GlobalEyePosition] = new Vector4Uniform("g_GlobalEyePosition");
 
-			_effectUniforms[(int) RenderParameter.ModelViewProjectionMatrix]  = new MatrixUniform("g_ModelViewProjectionMatrix");
-			_effectUniforms[(int) RenderParameter.ModelMatrix]                = new MatrixUniform("g_ModelMatrix");
-			_effectUniforms[(int) RenderParameter.ProjectionMatrix]           = new MatrixUniform("g_ProjectionMatrix");
-			_effectUniforms[(int) RenderParameter.ModelViewMatrix]            = new MatrixUniform("g_ModelViewMatrix");
+			_effectUniforms[(int) RenderParameter.ModelViewProjectionMatrix] = new MatrixUniform("g_ModelViewProjectionMatrix");
+			_effectUniforms[(int) RenderParameter.ModelMatrix] = new MatrixUniform("g_ModelMatrix");
+			_effectUniforms[(int) RenderParameter.ProjectionMatrix] = new MatrixUniform("g_ProjectionMatrix");
+			_effectUniforms[(int) RenderParameter.ModelViewMatrix] = new MatrixUniform("g_ModelViewMatrix");
 
-			_effectUniforms[(int) RenderParameter.TextureMatrixS]             = new Vector4Uniform("g_TextureMatrixS");
-			_effectUniforms[(int) RenderParameter.TextureMatrixT]             = new Vector4Uniform("g_TextureMatrixT");
+			_effectUniforms[(int) RenderParameter.TextureMatrixS] = new Vector4Uniform("g_TextureMatrixS");
+			_effectUniforms[(int) RenderParameter.TextureMatrixT] = new Vector4Uniform("g_TextureMatrixT");
 
-			_effectUniforms[(int) RenderParameter.Texture0]                   = new TextureUniform("g_Texture0");
-			_effectUniforms[(int) RenderParameter.Texture1]                   = new TextureUniform("g_Texture1");
-			_effectUniforms[(int) RenderParameter.Texture2]                   = new TextureUniform("g_Texture2");
-			_effectUniforms[(int) RenderParameter.Texture3]                   = new TextureUniform("g_Texture3");
-			_effectUniforms[(int) RenderParameter.Texture4]                   = new TextureUniform("g_Texture4");
-			_effectUniforms[(int) RenderParameter.Texture5]                   = new TextureUniform("g_Texture5");
-			_effectUniforms[(int) RenderParameter.Texture6]                   = new TextureUniform("g_Texture6");
-			_effectUniforms[(int) RenderParameter.Texture7]                   = new TextureUniform("g_Texture7");
+			_effectUniforms[(int) RenderParameter.Texture0] = new TextureUniform("g_Texture0");
+			_effectUniforms[(int) RenderParameter.Texture1] = new TextureUniform("g_Texture1");
+			_effectUniforms[(int) RenderParameter.Texture2] = new TextureUniform("g_Texture2");
+			_effectUniforms[(int) RenderParameter.Texture3] = new TextureUniform("g_Texture3");
+			_effectUniforms[(int) RenderParameter.Texture4] = new TextureUniform("g_Texture4");
+			_effectUniforms[(int) RenderParameter.Texture5] = new TextureUniform("g_Texture5");
+			_effectUniforms[(int) RenderParameter.Texture6] = new TextureUniform("g_Texture6");
+			_effectUniforms[(int) RenderParameter.Texture7] = new TextureUniform("g_Texture7");
 
-			_effectUniforms[(int) RenderParameter.TextureCoordinates0S]       = new Vector4Uniform("g_TextureCoordinates0S");
-			_effectUniforms[(int) RenderParameter.TextureCoordinates0T]       = new Vector4Uniform("g_TextureCoordinates0T");
-			_effectUniforms[(int) RenderParameter.TextureCoordinates0Q]       = new Vector4Uniform("g_TextureCoordinates0Q");
+			_effectUniforms[(int) RenderParameter.TextureCoordinates0S] = new Vector4Uniform("g_TextureCoordinates0S");
+			_effectUniforms[(int) RenderParameter.TextureCoordinates0T] = new Vector4Uniform("g_TextureCoordinates0T");
+			_effectUniforms[(int) RenderParameter.TextureCoordinates0Q] = new Vector4Uniform("g_TextureCoordinates0Q");
 			_effectUniforms[(int) RenderParameter.TextureCoordinates0Enabled] = new Vector4Uniform("g_TextureCoordinates0Enabled");
 
-			_effectUniforms[(int) RenderParameter.TextureCoordinates1S]       = new Vector4Uniform("g_TextureCoordinates1S");
-			_effectUniforms[(int) RenderParameter.TextureCoordinates1T]       = new Vector4Uniform("g_TextureCoordinates1T");
-			_effectUniforms[(int) RenderParameter.TextureCoordinates1Q]       = new Vector4Uniform("g_TextureCoordinates1Q");
+			_effectUniforms[(int) RenderParameter.TextureCoordinates1S] = new Vector4Uniform("g_TextureCoordinates1S");
+			_effectUniforms[(int) RenderParameter.TextureCoordinates1T] = new Vector4Uniform("g_TextureCoordinates1T");
+			_effectUniforms[(int) RenderParameter.TextureCoordinates1Q] = new Vector4Uniform("g_TextureCoordinates1Q");
 			_effectUniforms[(int) RenderParameter.TextureCoordinates1Enabled] = new Vector4Uniform("g_TextureCoordinates1Enabled");
 
-			_effectUniforms[(int) RenderParameter.WobbleSkyX]                 = new Vector4Uniform("g_WobbleSkyX");
-			_effectUniforms[(int) RenderParameter.WobbleSkyY]                 = new Vector4Uniform("g_WobbleSkyY");
-			_effectUniforms[(int) RenderParameter.WobbleSkyZ]                 = new Vector4Uniform("g_WobbleSkyZ");
+			_effectUniforms[(int) RenderParameter.WobbleSkyX] = new Vector4Uniform("g_WobbleSkyX");
+			_effectUniforms[(int) RenderParameter.WobbleSkyY] = new Vector4Uniform("g_WobbleSkyY");
+			_effectUniforms[(int) RenderParameter.WobbleSkyZ] = new Vector4Uniform("g_WobbleSkyZ");
 
-			_effectUniforms[(int) RenderParameter.OverBright]                 = new Vector4Uniform("g_OverBright");
-			_effectUniforms[(int) RenderParameter.EnableSkinning]             = new Vector4Uniform("g_EnableSkinning");
-			_effectUniforms[(int) RenderParameter.AlphaTest]                  = new Vector4Uniform("g_AlphaTest");
+			_effectUniforms[(int) RenderParameter.OverBright] = new Vector4Uniform("g_OverBright");
+			_effectUniforms[(int) RenderParameter.EnableSkinning] = new Vector4Uniform("g_EnableSkinning");
+			_effectUniforms[(int) RenderParameter.AlphaTest] = new Vector4Uniform("g_AlphaTest");
 
-			_effectUniforms[(int) RenderParameter.User1]                      = new Vector4Uniform("g_User1");
-			_effectUniforms[(int) RenderParameter.User2]                      = new Vector4Uniform("g_User2");
-			_effectUniforms[(int) RenderParameter.User3]                      = new Vector4Uniform("g_User3");
-			_effectUniforms[(int) RenderParameter.User4]                      = new Vector4Uniform("g_User4");
-			_effectUniforms[(int) RenderParameter.User5]                      = new Vector4Uniform("g_User5");
-			_effectUniforms[(int) RenderParameter.User6]                      = new Vector4Uniform("g_User6");
-			_effectUniforms[(int) RenderParameter.User7]                      = new Vector4Uniform("g_User7");
-			_effectUniforms[(int) RenderParameter.User8]                      = new Vector4Uniform("g_User8");
+			_effectUniforms[(int) RenderParameter.User1] = new Vector4Uniform("g_User1");
+			_effectUniforms[(int) RenderParameter.User2] = new Vector4Uniform("g_User2");
+			_effectUniforms[(int) RenderParameter.User3] = new Vector4Uniform("g_User3");
+			_effectUniforms[(int) RenderParameter.User4] = new Vector4Uniform("g_User4");
+			_effectUniforms[(int) RenderParameter.User5] = new Vector4Uniform("g_User5");
+			_effectUniforms[(int) RenderParameter.User6] = new Vector4Uniform("g_User6");
+			_effectUniforms[(int) RenderParameter.User7] = new Vector4Uniform("g_User7");
+			_effectUniforms[(int) RenderParameter.User8] = new Vector4Uniform("g_User8");
 
 			for(int i = 0; i < _effectUniforms.Length; i++)
 			{
@@ -264,7 +264,7 @@ namespace idTech4.Platform.Windows
 			foreach(EffectParameter effectParameter in _currentEffect.Parameters)
 			{
 				_effectUniformsByName[effectParameter.Name].Set(effectParameter);
-			}			
+			}
 		}
 
 		public void SetScreenCorrectionFactor(Vector4 value)
@@ -326,7 +326,7 @@ namespace idTech4.Platform.Windows
 		{
 			SetVector4(RenderParameter.BumpMatrixT, value);
 		}
-		
+
 		public void SetDiffuseMatrixS(Vector4 value)
 		{
 			SetVector4(RenderParameter.DiffuseMatrixS, value);
@@ -355,6 +355,16 @@ namespace idTech4.Platform.Windows
 		public void SetVertexColorAdd(Vector4 value)
 		{
 			SetVector4(RenderParameter.VertexColorAdd, value);
+		}
+
+		public void SetColor(float r, float g, float b)
+		{
+			SetColor(r, g, b, 1.0f);
+		}
+
+		public void SetColor(float r, float g, float b, float a)
+		{
+			SetColor(new Vector4(MathHelper.Clamp(r, 0, 1), MathHelper.Clamp(g, 0, 1), MathHelper.Clamp(b, 0, 1), MathHelper.Clamp(a, 0, 1)));
 		}
 
 		public void SetColor(Vector4 value)
@@ -441,7 +451,7 @@ namespace idTech4.Platform.Windows
 		{
 			SetTexture(RenderParameter.Texture7, value);
 		}
-		
+
 		public void SetTextureCoordinates0S(Vector4 value)
 		{
 			SetVector4(RenderParameter.TextureCoordinates0S, value);
@@ -551,7 +561,7 @@ namespace idTech4.Platform.Windows
 		{
 			SetVector4(RenderParameter.User8, value);
 		}
-	
+
 		private void SetVector4(RenderParameter renderParameter, Vector4 value)
 		{
 			((Vector4Uniform) _effectUniforms[(int) renderParameter]).Value = value;
@@ -718,7 +728,7 @@ namespace idTech4.Platform.Windows
 
 		public Vector4Uniform(string name, Vector4 defaultvalue)
 		{
-			this.Name         = name;
+			this.Name = name;
 			this.DefaultValue = defaultvalue;
 		}
 
@@ -741,7 +751,7 @@ namespace idTech4.Platform.Windows
 
 		public MatrixUniform(string name, Matrix defaultvalue)
 		{
-			this.Name         = name;
+			this.Name = name;
 			this.DefaultValue = defaultvalue;
 		}
 
@@ -764,7 +774,7 @@ namespace idTech4.Platform.Windows
 
 		public TextureUniform(string name, Texture defaultvalue)
 		{
-			this.Name         = name;
+			this.Name = name;
 			this.DefaultValue = defaultvalue;
 		}
 

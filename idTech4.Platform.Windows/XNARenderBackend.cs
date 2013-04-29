@@ -120,11 +120,11 @@ namespace idTech4.Platform.Windows
 			GraphicsDevice graphicsDevice = _graphicsDeviceManager.GraphicsDevice;
 
 			// load the image if necessary (FIXME: not SMP safe!)
-			// TODO: isloaded
-			/*if ( !IsLoaded() ) {
+			if(image.IsLoaded == false)
+			{
 				// load the image on demand here, which isn't our normal game operating mode
-				ActuallyLoadImage( true );
-			}*/
+				image.ActuallyLoadImage(true);
+			}
 
 			int textureUnitIndex    = _backendState.CurrentTextureUnit;
 			TextureUnit textureUnit = _backendState.TextureUnits[textureUnitIndex];
@@ -156,9 +156,11 @@ namespace idTech4.Platform.Windows
 		/// <param name="registers"></param>
 		private void BindVariableStageImage(TextureStage textureStage, float[] registers)
 		{
-			// TODO: cinematic
-			/*if ( texture->cinematic ) {
-				cinData_t cin;
+			if(textureStage.Cinematic != null)
+			{
+				idLog.Warning("TODO: cinematic");
+
+				/*cinData_t cin;
 
 				if ( r_skipDynamicTextures.GetBool() ) {
 					globalImages->defaultImage->Bind();
@@ -182,14 +184,16 @@ namespace idTech4.Platform.Windows
 					// display incorrectly.  We may want to get rid of RB_BindVariableStageImage and inline the code so that the
 					// SWF GUI case is handled better, too
 					renderProgManager.BindShader_TextureVertexColor();
-				}
-			} else {*/
+				}*/
+			} 
+			else 
+			{
 				// FIXME: see why image is invalid
 				if(textureStage.Image != null)
 				{
 					BindTexture(textureStage.Image);
 				}
-			/*}*/
+			}
 		}
 
 		private void ChangeState(MaterialStates state, bool force = false)
@@ -746,16 +750,23 @@ namespace idTech4.Platform.Windows
 			_renderProgramManager.SetProjectionMatrix(_viewDef.ProjectionMatrix);
 			_renderProgramManager.SetModelViewMatrix(_viewDef.WorldSpace.ModelViewMatrix);
 			_renderProgramManager.SetModelMatrix(_viewDef.WorldSpace.ModelMatrix);
-			_renderProgramManager.SetModelViewProjectionMatrix(_viewDef.WorldSpace.ModelMatrix * _viewDef.WorldSpace.ModelViewMatrix * _viewDef.ProjectionMatrix);
-			
+			_renderProgramManager.SetModelViewProjectionMatrix(_viewDef.WorldSpace.ModelMatrix * _viewDef.WorldSpace.ModelViewMatrix * _viewDef.ProjectionMatrix);			
 			_renderProgramManager.CommitUniforms();
 
 			foreach(EffectPass p in _renderProgramManager.Effect.CurrentTechnique.Passes)
 			{
 				p.Apply();
 
-				graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, sizeof(ushort),
+				/*graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, sizeof(ushort),
+					surface.FirstVertex, surface.VertexCount, surface.FirstIndex, surface.IndexCount / 3);*/
+
+				graphicsDevice.DrawIndexedPrimitives(PrimitiveType.TriangleList, 0,
 					surface.FirstVertex, surface.VertexCount, surface.FirstIndex, surface.IndexCount / 3);
+
+				/*graphicsDevice.DrawUserIndexedPrimitives<idVertex>(PrimitiveType.TriangleList,
+						surface.Vertices, 0,
+						surface.Vertices.Length,
+						surface.Indexes, 0, surface.Indexes.Length / 3);*/
 			}
 		}
 
@@ -1161,7 +1172,8 @@ namespace idTech4.Platform.Windows
 			}
 
 			Cull(CullType.Front);
-			idLog.WriteLine("TODO: important! Color(1.0f, 1.0f, 1.0f);");
+
+			_renderProgramManager.SetColor(1, 1, 1);
 
 			// TODO: renderLog.CloseBlock();
 			

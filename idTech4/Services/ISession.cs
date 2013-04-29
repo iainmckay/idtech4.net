@@ -45,7 +45,13 @@ namespace idTech4.Services
 		#endregion
 
 		#region State
+		#region Properties
 		SessionState State { get; }
+		#endregion
+
+		#region Methods
+		void MoveToPressStart();
+		#endregion
 		#endregion
 	}
 }

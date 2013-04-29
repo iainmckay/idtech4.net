@@ -25,6 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System.Diagnostics;
+
 using idTech4.Services;
 
 using XState = idTech4.State;
@@ -493,6 +495,32 @@ namespace idTech4
 		#endregion
 
 		#region Methods
+		public void MoveToPressStart()
+		{
+			if(_localState != XState.PressStart)
+			{
+				// TODO: Debug.Assert(_signInManager != null);
+				/*signInManager->RemoveAllLocalUsers();
+				hasShownVoiceRestrictionDialog = false;*/
+		
+				MoveToMainMenu();
+		
+				// TODO: session->FinishDisconnect();
+
+				SetState(XState.PressStart);
+			}
+		}
+
+		private void MoveToMainMenu() 
+		{
+			// TODO:
+			/*GetPartyLobby().Shutdown();
+			GetGameLobby().Shutdown();
+			GetGameStateLobby().Shutdown();*/
+
+			SetState(XState.Idle);
+		}
+
 		private bool HandleState()
 		{
 			// TODO:
@@ -544,6 +572,42 @@ namespace idTech4
 			}
 
 			return false;
+		}
+
+		private void SetState(XState newState)
+		{
+			if((int) newState == (int) _localState)
+			{
+				idLog.Warning("NET_VERBOSE_PRINT( \"NET: SetState: State SAME %s\n\", stateToString[ newState ] );");
+				return;
+			}
+
+			// Set the current state
+			idLog.Warning("TODO: NET_VERBOSE_PRINT( \"NET: SetState: State changing from %s to %s\n\", stateToString[ localState ], stateToString[ newState ] );");
+
+			if((_localState < XState.Loading) && (newState >= XState.Loading))
+			{
+				// tell lobby instances that the match has started
+				idLog.Warning("TODO: StartSessions();");
+
+				// clear certain dialog boxes we don't want to see in-game
+				idLog.Warning("TODO: common->Dialog().ClearDialog( GDM_LOBBY_DISBANDED );");	// the lobby you were previously in has disbanded
+			}
+			else if((_localState >= XState.Loading) && (newState < XState.Loading))
+			{
+				// Tell lobby instances that the match has ended
+				idLog.Warning("TODO: end match");
+				/*if ( !WasMigrationGame() ) { // Don't end the session if we are going right back into the game
+					EndSessions();
+				}*/
+			}
+
+			if((newState == XState.GameLobbyHost) || (newState == XState.GameLobbyPeer))
+			{
+				idLog.Warning("TODO: ComputeNextGameCoalesceTime();");
+			}
+
+			_localState = newState;
 		}
 		#endregion
 		#endregion

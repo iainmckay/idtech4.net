@@ -67,6 +67,10 @@ namespace idTech4.Game.Menus
 			{
 				return _moveToIndex;
 			}
+			set
+			{
+				_moveToIndex = value;
+			}
 		}
 
 		public bool ScrollLeft

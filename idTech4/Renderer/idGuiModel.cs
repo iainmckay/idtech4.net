@@ -47,6 +47,9 @@ namespace idTech4.Renderer
 		private int _vertexCount;
 		private int _indexCount;
 
+		private int _maxVertexCount;
+		private int _maxIndexCount;
+
 		private int _warningFrame;
 		#endregion
 
@@ -54,8 +57,12 @@ namespace idTech4.Renderer
 		public idGuiModel()
 		{
 			IRenderSystem renderSystem = idEngine.Instance.GetService<IRenderSystem>();
-			_vertexBuffer              = renderSystem.CreateDynamicVertexBuffer(idVertex.VertexDeclaration, renderSystem.Capabilities.MaxVertexBufferElements, BufferUsage.WriteOnly);			
-			_indexBuffer               = renderSystem.CreateDynamicIndexBuffer(IndexElementSize.SixteenBits, renderSystem.Capabilities.MaxIndexBufferElements, BufferUsage.WriteOnly);
+
+			_maxVertexCount = renderSystem.Capabilities.MaxVertexBufferElements;
+			_maxIndexCount  = renderSystem.Capabilities.MaxIndexBufferElements;
+
+			_vertexBuffer = renderSystem.CreateDynamicVertexBuffer(idVertex.VertexDeclaration, _maxVertexCount, BufferUsage.WriteOnly);			
+			_indexBuffer  = renderSystem.CreateDynamicIndexBuffer(IndexElementSize.SixteenBits, _maxIndexCount, BufferUsage.WriteOnly);
 			
 			// identity color for drawsurf register evaluation
 			for(int i = 0; i < Constants.MaxEntityMaterialParameters; i++)
@@ -82,7 +89,7 @@ namespace idTech4.Renderer
 				return;
 			}
 
-			if((indexes.Length + _indexCount) > Constants.MaxGuiIndexes)
+			if((indexes.Length + _indexCount) > _maxIndexCount)
 			{
 				if(_warningFrame != renderSystem.FrameCount)
 				{
@@ -90,10 +97,12 @@ namespace idTech4.Renderer
 					idLog.Warning("idGuiModel.AddPrimitive: MAX_INDEXES exceeded");
 				}
 
+				_indexCount = 0;
+
 				return;
 			}
 
-			if((vertices.Length + _vertexCount) > Constants.MaxGuiVertices)
+			if((vertices.Length + _vertexCount) > _maxVertexCount)
 			{
 				if(_warningFrame != renderSystem.FrameCount)
 				{
@@ -101,12 +110,14 @@ namespace idTech4.Renderer
 					idLog.Warning("idGuiModel.AddPrimitive: MAX_VERTS exceeded");
 				}
 
+				_vertexCount = 0;
+
 				return;
 			}
 
 			// break the current surface if we are changing to a new material or we can't
 			// fit the data into our allocated block
-			if((material != _surface.Material) || (state != _surface.State) /* TODO: || stereoType != surf->stereoType*/)
+			if((material != _surface.Material) || (state != _surface.State) || (stereoType != _surface.StereoType))
 			{
 				if(_surface.IndexCount > 0)
 				{
@@ -121,10 +132,18 @@ namespace idTech4.Renderer
 			int startVertex = _vertexCount;
 			int startIndex  = _indexCount;
 
-			int s = System.Runtime.InteropServices.Marshal.SizeOf(typeof(idVertex));
-			_vertexBuffer.SetData<idVertex>(_vertexCount * idVertex.VertexDeclaration.VertexStride, vertices, 0, vertices.Length, idVertex.VertexDeclaration.VertexStride, SetDataOptions.NoOverwrite);
-			_indexBuffer.SetData<ushort>(_indexCount * sizeof(ushort), indexes, 0, indexes.Length, SetDataOptions.NoOverwrite);
+			SetDataOptions dataOptions = SetDataOptions.NoOverwrite;
 
+			if(_vertexCount == 0)
+			{
+				dataOptions = SetDataOptions.Discard;
+			}
+
+			//_vertexBuffer.SetData<idVertex>(vertices, _vertexCount, vertices.Length, SetDataOptions.NoOverwrite);
+			//_indexBuffer.SetData<ushort>(indexes, _indexCount, indexes.Length, SetDataOptions.NoOverwrite);
+			_vertexBuffer.SetData<idVertex>(_vertexCount * idVertex.VertexDeclaration.VertexStride, vertices, 0, vertices.Length, idVertex.VertexDeclaration.VertexStride, dataOptions);
+			_indexBuffer.SetData<ushort>(_indexCount * sizeof(ushort), indexes, 0, indexes.Length, dataOptions);
+			
 			_vertexCount         += vertices.Length;
 			_indexCount          += indexes.Length;
 			_surface.IndexCount  += indexes.Length;
@@ -135,7 +154,7 @@ namespace idTech4.Renderer
 		{			
 			//_vertexCount = 0;
 			//_indexCount  = 0;
-
+			
 			Clear();
 		}
 
@@ -173,10 +192,10 @@ namespace idTech4.Renderer
 				}
 			}*/
 
-			viewDef.Scissor.X1       = 0;
-			viewDef.Scissor.Y1       = 0;
-			viewDef.Scissor.X2       = (short) (viewDef.Viewport.X2 - viewDef.Viewport.X1);
-			viewDef.Scissor.Y2       = (short) (viewDef.Viewport.Y2 - viewDef.Viewport.Y1);
+			viewDef.Scissor.X1 = 0;
+			viewDef.Scissor.Y1 = 0;
+			viewDef.Scissor.X2 = (short) (viewDef.Viewport.X2 - viewDef.Viewport.X1);
+			viewDef.Scissor.Y2 = (short) (viewDef.Viewport.Y2 - viewDef.Viewport.Y1);
 			
 			viewDef.ProjectionMatrix = Matrix.CreateOrthographic(Constants.ScreenWidth, Constants.ScreenHeight, -1, 1);
 			
@@ -326,12 +345,12 @@ namespace idTech4.Renderer
 			if(_surfaces.Count > 0)
 			{
 				s.Material = _surface.Material;
-				s.State = _surface.State;
+				s.State    = _surface.State;
 			}
 			else
 			{
 				s.Material = idEngine.Instance.GetService<IRenderSystem>().DefaultMaterial;
-				s.State = 0;
+				s.State    = 0;
 			}
 
 			s.IndexCount  = 0;
@@ -357,6 +376,9 @@ namespace idTech4.Renderer
 
 		public int FirstVertex;
 		public int VertexCount;
+
+		public List<idVertex> Vertices = new List<idVertex>();
+		public List<short> Indexes    = new List<short>();
 
 		public StereoDepthType StereoType;
 	}

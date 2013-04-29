@@ -150,8 +150,7 @@ namespace idTech4.Game.Menus
 
 					_menuBar.SetFocusIndex(index);
 					_menuBar.ViewIndex = index;
-
-					idLog.Warning("TODO: shell root");
+										
 					/*idMenuScreen_Shell_Root menu = _menuScreens[(int) ShellArea.Root] as idMenuScreen_Shell_Root;
 
 					if(menu != null)
@@ -499,12 +498,11 @@ namespace idTech4.Game.Menus
 
 				idLog.Warning("TODO: SetupPCOptions();");
 		
-				idLog.Warning("TODO: ActivateMenu cmdBar");
-				
-				/*if ( cmdBar != NULL ) {
-					cmdBar->ClearAllButtons();
-					cmdBar->Update();
-				}*/
+				if(_cmdBar != null)
+				{
+					idLog.Warning("TODO: cmdBar->ClearAllButtons();");
+					_cmdBar.Update();
+				}
 			}
 			else
 			{
@@ -560,31 +558,33 @@ namespace idTech4.Game.Menus
 
 				if(_nextState == ShellState.PressStart)
 				{
-					// TODO: HidePacifier();
+					idLog.Warning("TODO: HidePacifier();");
 
 					_nextScreen = ShellArea.Start;
 					_transition = MainMenuTransition.Simple;
 					_state      = _nextState;
 
-					// TODO: menuBar
-					/*if ( menuBar != NULL && gui != NULL ) {			
-						menuBar->ClearSprite();
-					}*/
+					if((_menuBar != null) && (_gui != null))
+					{
+						_menuBar.ClearSprite();
+					}
 				} 
 				else if(_nextState == ShellState.Idle)
 				{
-					idLog.Warning("TODO: nextState idle");
+					idLog.Warning("TODO: HidePacifier();");
 
-					/*HidePacifier();
-					if ( nextScreen == SHELL_AREA_START || nextScreen == SHELL_AREA_PARTY_LOBBY || nextScreen == SHELL_AREA_GAME_LOBBY || nextScreen == SHELL_AREA_INVALID )  {
-						nextScreen = SHELL_AREA_ROOT;
+					if((_nextScreen == ShellArea.Start) || (_nextScreen == ShellArea.PartyLobby) || (_nextScreen == ShellArea.GameLobby) || (_nextScreen == ShellArea.Invalid))
+					{
+						_nextScreen = ShellArea.Root;
 					}
 
-					if ( menuBar != NULL && gui != NULL ) {			
-						idSWFScriptObject & root = gui->GetRootObject();
-						menuBar->BindSprite( root );
-						SetupPCOptions();
-					}*/
+					if((_menuBar != null) && (_gui != null))
+					{
+						idSWFScriptObject root = _gui.RootObject;
+						_menuBar.BindSprite(root);
+
+						idLog.Warning("TODO: SetupPCOptions();");
+					}
 
 					_transition = MainMenuTransition.Simple;
 					_state      = _nextState;
@@ -621,16 +621,18 @@ namespace idTech4.Game.Menus
 				} 
 				else if(_nextState == ShellState.Paused)
 				{
-					idLog.Warning("TODO: nextState paused");
+					idLog.Warning("TODO: HidePacifier();");
 
-					/*HidePacifier();
-					transition = MENU_TRANSITION_SIMPLE;
+					_transition = MainMenuTransition.Simple;
 
-					if ( gameComplete ) {
-						nextScreen = SHELL_AREA_CREDITS;
-					} else {
-						nextScreen = SHELL_AREA_ROOT;
-					}*/
+					if(_gameComplete == true)
+					{
+						_nextScreen = ShellArea.Credits;
+					}
+					else
+					{
+						_nextScreen = ShellArea.Root;
+					}
 
 					_state = _nextState;
 				} 
@@ -856,7 +858,7 @@ namespace idTech4.Game.Menus
 			}
  			else
 			{
-				idLog.Warning("TODO: ShowLogo(true);");
+				ShowLogo(true);
 			}
 		}
 		#endregion

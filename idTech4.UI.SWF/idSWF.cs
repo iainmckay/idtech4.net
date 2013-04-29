@@ -58,6 +58,18 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public bool InhibitControl
+		{
+			get
+			{
+				return _inhibitControl;
+			}
+			set
+			{
+				_inhibitControl = value;
+			}
+		}
+
 		public idSWFScriptObject RootObject
 		{
 			get
@@ -82,11 +94,11 @@ namespace idTech4.UI.SWF
 
 		private Vector2	_scaleToVirtual;
 
-		private long	_lastRenderTime;
+		private long _lastRenderTime;
 
 		private bool _isActive;
 		private bool _inhibitControl;
-		private bool _useInhibtControl;
+		private bool _useInhibitControl;
 
 		// certain screens need to be rendered when the pause menu is up so if this flag is
 		// set on the gui we will allow it to render at a paused state;
@@ -156,8 +168,8 @@ namespace idTech4.UI.SWF
 			   }
 		   }*/
 
-			_useInhibtControl = true;
-			_useMouse         = true;
+			_useInhibitControl = true;
+			_useMouse          = true;
 											
 			// TODO: soundWorld = soundWorld_;
 		}
@@ -567,7 +579,7 @@ namespace idTech4.UI.SWF
 				}
 				else if(entry is idSWFEditText)
 				{
-					idLog.Warning("TODO: RenderEditText(renderSystem, display.TextInstance, renderState2, time, isSplitScreen);");
+					DrawEditText(renderSystem, display.TextInstance, renderState2, time, isSplitScreen);
 				}
 				else
 				{
@@ -580,6 +592,841 @@ namespace idTech4.UI.SWF
 				DrawMask(renderSystem, activeMasks[j], renderState, StencilDecrement);
 			}
 		}
+
+		private void DrawEditText(IRenderSystem renderSystem, idSWFTextInstance textInstance, idSWFRenderState renderState, long time, bool isSplitScreen)
+		{
+			idLog.Warning("TODO: draw edit text");
+
+			if(textInstance == null)
+			{
+				idLog.Warning("RenderEditText: textInstance == null");
+				return;
+			}
+
+			/*if(textInstance.IsVisible == false)
+			{
+				return;
+			}
+
+			ILocalization localization = idEngine.Instance.GetService<ILocalization>();
+			ICVarSystem cvarSystem     = idEngine.Instance.GetService<ICVarSystem>();
+
+			/*idSWFEditText shape = textInstance.EditText;
+
+			string text;
+
+			if(textInstance.Variable == string.Empty)
+			{
+				if(textInstance.RenderMode == idSWFTextRenderMode.Paragraph)
+				{
+					idLog.Warning("TODO: text render paragraph");
+			
+					/*if ( textInstance->NeedsGenerateRandomText() ) {
+						textInstance->StartParagraphText( Sys_Milliseconds() );
+					}
+					text = textInstance->GetParagraphText( Sys_Milliseconds() );*/
+				/*} 
+				else if((textInstance.RenderMode == idSWFTextRenderMode.RandomAppear) || (textInstance.RenderMode == idSWFTextRenderMode.RandomAppearCapitals))
+				{
+					idLog.Warning("TODO: text render random");
+
+					/*if ( textInstance->NeedsGenerateRandomText() ) {
+						textInstance->StartRandomText( Sys_Milliseconds() );
+					}
+					text = textInstance->GetRandomText( Sys_Milliseconds() );*/
+				/*} 
+				else 
+				{
+					text = localization.Get(textInstance.Text);
+				}
+			} 
+			else 
+			{
+				idSWFScriptVariable var = _globals.Get(textInstance.Variable);
+
+				if(var.IsUndefined == true)
+				{
+					text = localization.Get(textInstance.Text);
+				}
+				else
+				{
+					text = localization.Get(var.ToString());
+				}
+			}
+
+			if(text.Length == 0)
+			{
+				textInstance.SelectionStart = -1;
+				textInstance.SelectionEnd   = -1;				
+			}
+
+			// TODO: play sound
+			/*if ( textInstance->NeedsSoundPlayed() ) {
+				PlaySound( textInstance->GetSoundClip() );
+				textInstance->ClearPlaySound();
+			}*/	
+
+			// TODO: tooltips
+			/*if ( textInstance->tooltip ) {
+				FindTooltipIcons( &text );
+			} else {
+				tooltipIconList.Clear();
+			}*/
+
+			/*int selectionStart = textInstance.SelectionStart;
+			int selectionEnd   = textInstance.SelectionEnd;
+			int cursorPosition = selectionEnd;
+
+			bool inputField = false;
+			bool drawCursor = false;
+
+			idSWFScriptVariable focusWindow = _globals.Get("focusWindow");
+
+			if((focusWindow.IsObject == true) && (focusWindow.Object == textInstance.ScriptObject))
+			{
+				inputField = true;
+			}
+
+			// TODO: draw cursor
+			/*if ( inputField && ( ( idLib::frameNumber >> 4 ) & 1 ) == 0 ) {
+				cursorPos = selEnd;
+				drawCursor = true;
+			}*/
+
+			/*if(selectionStart > selectionEnd)
+			{
+				SwapValues( selStart, selEnd );
+			}
+
+			Vector2 xScaleVector = renderState.Matrix.Scale(new Vector2(1, 0));
+			Vector2 yScaleVector = renderState.Matrix.Scale(new Vector2(0, 1));
+
+			float xScale = xScaleVector.Length();
+			float yScale = yScaleVector.Length();
+
+			if(isSplitScreen == true)
+			{
+				yScaleVector *= 0.5f;
+			}
+
+			float invXScale = 1.0f / xScale;
+			float invYScale = 1.0f / yScale;
+
+			idSWFMatrix matrix = renderState.Matrix;
+			matrix.XX *= invXScale;
+			matrix.XY *= invXScale;
+			matrix.YY *= invYScale;
+			matrix.YX *= invYScale;
+
+			idSWFDictionaryEntry fontEntry = FindDictionaryEntry(shape.FontID, idSWFDictionaryType.Font);
+
+			if(fontEntry == null)
+			{
+				idLog.Warning("idSWF::DrawEditText: NULL font");
+				return;
+			}
+
+			idSWFFont swfFont = fontEntry.Font;
+			idFont fontInfo   = swfFont.FontID;
+
+			float postTransformHeight = SWFTWIP( shape->fontHeight ) * yScale;
+			float glyphScale          = postTransformHeight / 48.0f;
+			float imageScale          = postTransformHeight / 24.0f;
+	
+			textInstance.GlyphScale = glyphScale;
+
+			Vector4 defaultColor = textInstance.Color.ToVector4();
+			defaultColor = Vector4.Multiply(defaultColor, renderState.ColorXForm.Mul) + renderState.ColorXForm.Add;
+
+			if(cvarSystem.GetFloat("swf_forceAlpha") > 0.0f)
+			{
+				defaultColor.W = cvarSystem.GetFloat("swf_forceAlpha");
+			}
+
+			if(defaultColor.W <= ALPHA_EPSILON) 
+			{
+				return;
+			}
+
+			Vector4 selectionColor = defaultColor;
+			selectionColor.W *= 0.5f;
+
+			renderSystem.Color = defaultColor;
+			renderSystem.SetRenderState(StateForRenderState(renderState));
+
+			idSWFRect bounds     = new idSWFRect();
+			bounds.TopLeft.X     = xScale * (shape.Bounds.TopLeft.X + SWFTWIP( shape.LeftMargin));
+			bounds.BottomRight.X = xScale * (shape.Bounds.BottomRight.X - SWFTWIP( shape.RightMargin));
+
+			float lineSpacing = fontInfo.GetAscender(1.15f * glyphScale);
+	
+			if(shapeLeading != 0) 
+			{
+				linespacing += SWFTWIP(shape.Leading);
+			}
+
+			bounds.TopLeft.Y     = yScale * (shape.Bounds.TopLeft.Y + (1.15f * glyphScale));
+			bounds.BottomRight.Y = yScale * (shape.Bounds.BottomRight.Y);
+
+			textInstance.LineSpacing = lineSpacing;
+			textInstance.Bounds      = bounds;
+				
+			if ( shape->flags & SWF_ET_AUTOSIZE ) {
+				bounds.br.x = frameWidth;
+				bounds.br.y = frameHeight;
+			}
+	
+			if((drawCursor == true) && (cursorPosition <= 0))
+			{
+				idLog.Warning("TODO: cursor position");
+	
+				/*float yPos = 0.0f;
+				scaledGlyphInfo_t glyph;
+				fontInfo->GetScaledGlyph( glyphScale, ' ', glyph );
+				yPos = glyph.height / 2.0f;
+				DrawEditCursor( gui, bounds.tl.x, yPos, 1.0f, linespacing, matrix );*/
+			/*}
+
+			if(textInstance.IsSubtitle == true)
+			{
+				if((text == string.Empty) && (textInstance.SubtitleText == string.Empty))
+				{
+					return;
+				}
+			}
+			else if(text == string.Empty)
+			{
+				return;
+			}
+
+			float x = bounds.TopLeft.X;
+			float y = bounds.TopLeft.Y;
+
+			int maxLines = (int) ((bounds.BottomRight.Y - bounds.TopLeft.Y) / lineSpacing);
+
+			if(maxLines == 0) 
+			{
+				maxLines = 1;
+			}
+
+			textInstance.MaxLines = maxLines;
+
+	idList< idStr > textLines;
+	idStr * currentLine = &textLines.Alloc();
+
+	// tracks the last breakable character we found
+	int lastbreak = 0;
+	float lastbreakX = 0;
+
+	bool insertingImage = false;
+	int iconIndex = 0;
+
+	int charIndex = 0;
+
+	if ( textInstance->IsSubtitle() ) {
+		charIndex = textInstance->GetSubStartIndex();
+	}
+
+	while ( charIndex < text.Length() ) {
+		if ( text[ charIndex ] == '\n' ) {
+			if ( shape->flags & SWF_ET_MULTILINE ) {
+				currentLine->Append( '\n' );
+				x = bounds.tl.x;
+				y += linespacing;
+				currentLine = &textLines.Alloc();			
+				lastbreak = 0;
+				charIndex++;
+				continue;
+			} else {
+				break;
+			}
+		}
+		int glyphStart = charIndex;
+		uint32 tc = text.UTF8Char( charIndex );
+		scaledGlyphInfo_t glyph;
+		fontInfo->GetScaledGlyph( glyphScale, tc, glyph );
+		float glyphSkip = glyph.xSkip;
+		if ( textInstance->HasStroke() ) {
+			glyphSkip += ( swf_textStrokeSizeGlyphSpacer.GetFloat() * textInstance->GetStrokeWeight() * glyphScale );
+		}
+
+		tooltipIcon_t iconCheck;
+		
+		if ( iconIndex < tooltipIconList.Num() ) {
+			iconCheck = tooltipIconList[iconIndex];
+		}
+
+		float imageSkip = 0.0f;
+
+		if ( charIndex - 1 == iconCheck.startIndex ) {
+			insertingImage = true;
+			imageSkip = iconCheck.imageWidth * imageScale;
+		} else if ( charIndex - 1 == iconCheck.endIndex ) {
+			insertingImage = false;
+			iconIndex++;
+			glyphSkip = 0.0f;
+		}
+
+		if ( insertingImage ) {
+			glyphSkip = 0.0f;
+		}
+
+		if ( !inputField ) { // only break lines of text when we are not inputting data
+			if ( x + glyphSkip > bounds.br.x || x + imageSkip > bounds.br.x ) {
+				if ( shape->flags & ( SWF_ET_MULTILINE | SWF_ET_WORDWRAP ) ) {
+					if ( lastbreak > 0 ) {
+						int curLineIndex = currentLine - &textLines[0];
+						idStr * newline = &textLines.Alloc();
+						currentLine = &textLines[ curLineIndex ];
+						if ( maxLines == 1 ) {
+							currentLine->CapLength( currentLine->Length() - 3 );
+							currentLine->Append( "..." );
+							break;
+						} else {
+							*newline = currentLine->c_str() + lastbreak;
+							currentLine->CapLength( lastbreak );
+							currentLine = newline;
+							x -= lastbreakX;
+						}
+					} else {
+						currentLine = &textLines.Alloc();
+						x = bounds.tl.x;
+					}
+					lastbreak = 0;
+				} else {
+					break;
+				}
+			}
+		}
+		while ( glyphStart < charIndex && glyphStart < text.Length() ) {
+			currentLine->Append( text[ glyphStart++ ] );
+		}
+		x += glyphSkip + imageSkip;
+		if ( tc == ' ' || tc == '-' ) {
+			lastbreak = currentLine->Length();
+			lastbreakX = x;
+		}
+	}
+
+			// subtitle functionality
+			if((textInstance.IsSubtitle == true) && (textInstance.IsUpdatingSubtitle == true))
+			{
+				idLog.Warning("TODO: subtitle functionality");
+	
+				/*if ( textLines.Num() > 0 && textInstance->SubNeedsSwitch() ) {
+
+					int lastWordIndex = textInstance->GetApporoximateSubtitleBreak( time );	
+					int newEndChar = textInstance->GetSubStartIndex() + textLines[0].Length();
+
+					int wordCount = 0;
+					bool earlyOut = false;
+					for ( int index = 0; index < textLines[0].Length(); ++index ) {
+						if ( textLines[0][index] == ' ' || textLines[0][index] == '-' ) {
+							if ( index != 0 ) {
+								if ( wordCount == lastWordIndex ) {
+									newEndChar = textInstance->GetSubStartIndex() + index;
+									earlyOut = true;
+									break;
+								}
+
+								// cover the double space at the beginning of sentences
+								if ( index > 0 && textLines[0][index - 1 ] != ' ' ) {
+									wordCount++;
+								}
+							}
+						} else if ( index == textLines[0].Length() ) {
+							if ( wordCount == lastWordIndex ) {
+								newEndChar = textInstance->GetSubStartIndex() + index;
+								earlyOut = true;
+								break;
+							}
+							wordCount++;
+						}
+					}
+
+					if ( wordCount <= 0 && textLines[0].Length() > 0 ) {
+						wordCount = 1;
+					}
+			
+					if ( !earlyOut ) {
+						textInstance->LastWordChanged( wordCount, time );
+					}
+
+					textInstance->SetSubEndIndex( newEndChar, time );
+				
+					idStr subText = textLines[0].Left( newEndChar - textInstance->GetSubStartIndex() );
+					idSWFParmList parms;
+					parms.Append( subText );
+					parms.Append( textInstance->GetSpeaker().c_str() );
+					parms.Append( textInstance->GetSubAlignment() );
+					Invoke( "subtitleChanged", parms );
+					parms.Clear();
+
+					textInstance->SetSubNextStartIndex( textInstance->GetSubEndIndex() );
+					textInstance->SwitchSubtitleText( time );
+				}
+
+				if ( !textInstance->UpdateSubtitle( time ) ) {			
+					textInstance->SubtitleComplete();
+					idSWFParmList parms;
+					parms.Append( textInstance->GetSubAlignment() );
+					Invoke( "subtitleComplete", parms );
+					parms.Clear();
+					textInstance->SubtitleCleanup();
+				}*/
+			/*}
+
+			//*************************************************
+			// CALCULATE THE NUMBER OF SCROLLS LINES LEFT
+			//*************************************************
+
+			idLog.Warning("TODO: scroll lines");
+
+			/*textInstance->CalcMaxScroll( textLines.Num() - maxLines );
+
+			int c = 1;
+			int textLine = textInstance->scroll;	
+
+			if ( textLine + maxLines > textLines.Num() && maxLines < textLines.Num() ) {
+				textLine = textLines.Num() - maxLines;
+				textInstance->scroll = textLine;
+			} else if ( textLine < 0 || textLines.Num() <= maxLines ) {
+				textLine = 0;
+				textInstance->scroll = textLine;
+			} else if ( textInstance->renderMode == SWF_TEXT_RENDER_AUTOSCROLL ) {
+				textLine = textLines.Num() - maxLines;
+				textInstance->scroll = textInstance->maxscroll;
+			}*/
+
+			// END SCROLL CALCULATION
+			//*************************************************
+
+			/*int index = 0;
+
+			int startCharacter      = 0;
+			int endCharacter        = 0;
+			int inputEndChar        = 0;
+			int overallIndex        = 0;
+			int curIcon             = 0;
+			float yPrevBottomOffset = 0.0f;
+			float yOffset           = 0;
+
+			int[] strokeXOffsets    = { -1, 1, -1, 1 };
+			int[] strokeYOffsets    = { -1, -1, 1, 1 };
+
+			iconIndex               = 0;
+			
+			string inputText;
+
+			if(inputField == true)
+			{
+				idLog.Warning("TODO: input field");
+
+				/*if ( textLines.Num() > 0 ) {
+					idStr & text = textLines[0];
+					float left = bounds.tl.x;
+
+					int startCheckIndex = textInstance->GetInputStartChar();
+
+					if ( startCheckIndex >= text.Length() ) {
+						startCheckIndex = 0;
+					}
+
+					if ( cursorPos < startCheckIndex && cursorPos >= 0 ) {
+						startCheckIndex = cursorPos;
+					}
+
+					bool endFound = false;
+					int c = startCheckIndex;
+					while ( c < text.Length() ) {
+						uint32 tc = text.UTF8Char( c );
+						scaledGlyphInfo_t glyph;
+						fontInfo->GetScaledGlyph( glyphScale, tc, glyph );
+						float glyphSkip = glyph.xSkip;
+						if ( textInstance->HasStroke() ) {
+							glyphSkip += ( swf_textStrokeSizeGlyphSpacer.GetFloat() * textInstance->GetStrokeWeight() * glyphScale );
+						}
+
+						if ( left + glyphSkip > bounds.br.x ) {
+							if ( cursorPos > c && cursorPos != endCharacter ) {
+
+								float removeSize = 0.0f;
+
+								while ( removeSize < glyphSkip ) {
+									if ( endCharacter == c ) {
+										break;
+									}
+									scaledGlyphInfo_t removeGlyph;
+									fontInfo->GetScaledGlyph( glyphScale, inputText[ endCharacter++ ], removeGlyph );
+									removeSize += removeGlyph.xSkip;
+								}
+
+								left -= removeSize;
+							} else {
+								inputEndChar = c;
+								endFound = true;
+								break;
+							}
+						} 
+						inputText.AppendUTF8Char( tc );
+						left += glyphSkip;
+					}
+
+					if ( !endFound ) {
+						inputEndChar = text.Length();
+					}
+
+					startCheckIndex += endCharacter;
+					textInstance->SetInputStartCharacter( startCheckIndex );
+					endCharacter = startCheckIndex;
+				}*/
+		/*	}
+	
+			for(int t = 0; t < textLines.Count; t++)
+			{
+				if((textInstance.IsSubtitle == true) && (t > 0))
+				{
+					break;
+				}
+		
+				if(t < textLine)
+				{
+					string text = textLines[t];
+					c += text.Length();
+			
+					startCharacter = endCharacter;
+					endCharacter   = startCharacter + text.Length();
+					overallIndex   += text.Length();
+
+					idLog.Warning("TODO: tooltip icons");
+
+					// find the right icon index if we scrolled passed the previous ones
+					/*for ( int iconChar = curIcon; iconChar < tooltipIconList.Num(); ++iconChar ) {
+						if ( endCharacter > tooltipIconList[iconChar].startIndex ) {
+							curIcon++;
+						} else {
+							break;
+						}
+					}*/
+
+				/*	continue;
+				}
+
+				if(index == maxLines) 
+				{
+					break;
+				}
+
+				startCharacter = endCharacter;
+
+	/*	idStr & text = textLines[textLine];
+		int lastChar = text.Length();
+		if ( textInstance->IsSubtitle() ) {
+			lastChar = textInstance->GetSubEndIndex();
+		}
+
+		textLine++;
+
+		if ( inputField ) {
+			if ( inputEndChar == 0 ) {
+				inputEndChar += 1;
+			}
+			selStart -= startCharacter;
+			selEnd -= startCharacter;
+			cursorPos -= startCharacter;
+			endCharacter = inputEndChar;
+			lastChar = endCharacter;
+			text = text.Mid( startCharacter, endCharacter - startCharacter );
+		} else {
+
+			if ( lastChar == 0 ) {
+				// blank line so add space char
+				endCharacter = startCharacter + 1;
+			} else {
+				endCharacter = startCharacter + lastChar;
+			}
+		}
+
+		float width = 0.0f;
+		insertingImage = false;
+		int i = 0;
+		while ( i < lastChar ) {
+			if ( curIcon < tooltipIconList.Num() && tooltipIconList[curIcon].startIndex == startCharacter + i ) {
+				width += tooltipIconList[curIcon].imageWidth * imageScale;
+				i += tooltipIconList[curIcon].endIndex - tooltipIconList[curIcon].startIndex - 1;
+				curIcon++;
+			} else {
+				if ( i < text.Length() ) {
+					scaledGlyphInfo_t glyph;
+					fontInfo->GetScaledGlyph( glyphScale, text.UTF8Char( i ), glyph );
+					width += glyph.xSkip;
+					if ( textInstance->HasStroke() ) {
+						width += ( swf_textStrokeSizeGlyphSpacer.GetFloat() * textInstance->GetStrokeWeight() * glyphScale );
+					}
+				} else {
+					i++;
+				}
+			}
+		}
+
+		y = bounds.tl.y + ( index * linespacing );
+
+		float biggestGlyphHeight = 0.0f;		*/
+		/*for ( int image = 0; image < tooltipIconList.Num(); ++image ) {
+			if ( tooltipIconList[image].startIndex >= startCharacter && tooltipIconList[image].endIndex < endCharacter ) {
+				biggestGlyphHeight = tooltipIconList[image].imageHeight > biggestGlyphHeight ? tooltipIconList[image].imageHeight : biggestGlyphHeight;
+			}
+		}*/
+
+		/*float yBottomOffset = 0.0f;
+		float yTopOffset = 0.0f;
+
+		if ( biggestGlyphHeight > 0.0f ) {
+		
+			float topSpace = 0.0f;
+			float bottomSpace = 0.0f;
+
+			int idx = 0;
+			scaledGlyphInfo_t glyph;
+			fontInfo->GetScaledGlyph( glyphScale, text.UTF8Char( idx ), glyph );
+
+			topSpace = ( ( biggestGlyphHeight * imageScale ) - glyph.height ) / 2.0f;
+
+			bottomSpace = topSpace;
+
+			if ( topSpace > 0.0f && t != 0 ) {
+				yTopOffset += topSpace;
+			}
+
+			if ( bottomSpace > 0.0f ) {
+				yBottomOffset += bottomSpace;
+			}
+		} else {
+			yBottomOffset = 0.0f;
+		}
+
+		if ( t != 0 ) {
+			if ( yPrevBottomOffset > 0 || yTopOffset > 0 ) {
+				yOffset += yTopOffset > yPrevBottomOffset ? yTopOffset : yPrevBottomOffset;
+			}
+		}
+
+		y += yOffset;		
+		yPrevBottomOffset = yBottomOffset;		
+
+		float extraSpace = 0.0f;
+		switch ( shape->align ) {
+		case SWF_ET_ALIGN_LEFT:
+			x = bounds.tl.x;
+			break;
+		case SWF_ET_ALIGN_RIGHT:
+			x = bounds.br.x - width;
+			break;
+		case SWF_ET_ALIGN_CENTER:
+			x = ( bounds.tl.x + bounds.br.x - width ) * 0.5f;
+			break;
+		case SWF_ET_ALIGN_JUSTIFY:
+			x = bounds.tl.x;
+			if ( width > ( bounds.br.x - bounds.tl.x ) * 0.5f && index < textLines.Num() - 1 ) {
+				extraSpace = ( ( bounds.br.x - bounds.tl.x ) - width ) / ( (float) lastChar - 1.0f );
+			}
+			break;
+		}
+
+		tooltipIcon_t icon;
+		insertingImage = false;
+
+		// find the right icon index if we scrolled passed the previous ones
+		for ( int iconChar = iconIndex; iconChar < tooltipIconList.Num(); ++iconChar ) {
+			if ( overallIndex > tooltipIconList[iconChar].startIndex ) {
+				iconIndex++;
+			} else {
+				break;
+			}
+		}
+
+		float baseLine = y + ( fontInfo->GetAscender( glyphScale ) );
+
+		i = 0;
+		int overallLineIndex = 0;
+		idVec4 textColor = defaultColor;
+		while ( i < lastChar ) {		
+
+			if ( i >= text.Length() ) {
+				break;
+			}
+
+			// Support colors
+			if ( !textInstance->ignoreColor ) {
+				if ( text[ i ] == C_COLOR_ESCAPE ) {
+					if ( idStr::IsColor( text.c_str() + i++ ) ) {
+						if ( text[ i ] == C_COLOR_DEFAULT ) {
+							i++;
+							textColor = defaultColor;
+						} else {
+							textColor = idStr::ColorForIndex( text[ i++ ] );
+							textColor.w = defaultColor.w;
+						}
+						continue;
+					}
+				}
+			}
+
+			uint32 character = text.UTF8Char( i );
+
+			if ( character == '\n' ) {
+				c++;
+				overallIndex += i - overallLineIndex;
+				overallLineIndex = i;;
+				continue;
+			}
+
+			// Skip a single leading space
+			if ( character == ' ' && i == 1 ) {
+				c++;
+				overallIndex += i - overallLineIndex;
+				overallLineIndex = i;
+				continue;
+			}
+
+			if ( iconIndex <  tooltipIconList.Num() ) {
+				icon = tooltipIconList[iconIndex];
+			}
+			
+			if ( overallIndex == icon.startIndex ) {
+				insertingImage = true;
+
+				scaledGlyphInfo_t glyph;
+				fontInfo->GetScaledGlyph( glyphScale, character, glyph );
+
+				float imageHeight = icon.imageHeight * imageScale;
+				float glyphHeight = glyph.height;
+
+				float imageY = 0.0f;
+				if ( icon.baseline == 0 ) {
+					imageY = baseLine - glyph.top;
+					imageY += ( glyphHeight - imageHeight ) * 0.5f;
+					imageY += 2.0f;
+				} else {
+					imageY = ( y + glyphHeight ) - ( ( icon.imageHeight * imageScale ) - ( glyphHeight ) );	
+				} 
+				
+				float imageX = x + glyph.left;
+				float imageW = icon.imageWidth * imageScale;
+				float imageH = icon.imageHeight * imageScale;
+
+				idVec2 topl = matrix.Transform( idVec2( imageX, imageY ) );
+				idVec2 topr = matrix.Transform( idVec2( imageX + imageW, imageY ) );
+				idVec2 br = matrix.Transform( idVec2( imageX + imageW, imageY + imageH ) );
+				idVec2 bl = matrix.Transform( idVec2( imageX, imageY + imageH ) );
+
+				float s1 = 0.0f;
+				float t1 = 0.0f;
+				float s2 = 1.0f;
+				float t2 = 1.0f;
+
+				//uint32 color = gui->GetColor();
+				idVec4 imgColor = colorWhite;
+				imgColor.w = defaultColor.w;
+				gui->SetColor( imgColor );
+				DrawStretchPic( idVec4( topl.x, topl.y, s1, t1 ), idVec4( topr.x, topr.y, s2, t1 ), idVec4( br.x, br.y, s2, t2 ), idVec4( bl.x, bl.y, s1, t2 ), icon.material );
+				gui->SetColor( defaultColor );
+
+				x += icon.imageWidth * imageScale;
+				x += extraSpace;
+
+			} else if ( overallIndex == icon.endIndex ) {
+				insertingImage = false;
+				iconIndex++;	
+			}
+
+			if ( insertingImage ) {
+				overallIndex += i - overallLineIndex;
+				overallLineIndex = i;
+				continue;
+			}
+
+			// the glyphs texcoords assume nearest filtering, to get proper
+			// bilinear support we need to go an extra half texel on each side
+			scaledGlyphInfo_t glyph;
+			fontInfo->GetScaledGlyph( glyphScale, character, glyph );
+
+			float glyphSkip = glyph.xSkip;
+			if ( textInstance->HasStroke() ) {
+				glyphSkip += ( swf_textStrokeSizeGlyphSpacer.GetFloat() * textInstance->GetStrokeWeight() * glyphScale );
+			}
+
+			float glyphW = glyph.width + 1.0f;	// +1 for bilinear half texel on each side
+			float glyphH = glyph.height + 1.0f;
+
+			float glyphY = baseLine - glyph.top;
+			float glyphX = x + glyph.left;
+
+			idVec2 topl = matrix.Transform( idVec2( glyphX, glyphY ) );
+			idVec2 topr = matrix.Transform( idVec2( glyphX + glyphW, glyphY ) );
+			idVec2 br = matrix.Transform( idVec2( glyphX + glyphW, glyphY + glyphH ) );
+			idVec2 bl = matrix.Transform( idVec2( glyphX, glyphY + glyphH ) );
+
+			float s1 = glyph.s1;
+			float t1 = glyph.t1;
+			float s2 = glyph.s2;
+			float t2 = glyph.t2;
+			if ( c > selStart && c <= selEnd ) {
+				idVec2 topl = matrix.Transform( idVec2( x, y ) );
+				idVec2 topr = matrix.Transform( idVec2( x + glyphSkip, y ) );
+				idVec2 br = matrix.Transform( idVec2( x + glyphSkip, y + linespacing ) );
+				idVec2 bl = matrix.Transform( idVec2( x, y + linespacing ) );
+				gui->SetColor( selColor );
+				DrawStretchPic( idVec4( topl.x, topl.y, 0, 0 ), idVec4( topr.x, topr.y, 1, 0 ), idVec4( br.x, br.y, 1, 1 ), idVec4( bl.x, bl.y, 0, 1 ), white );
+				gui->SetColor( textColor );
+			}
+
+			if ( textInstance->GetHasDropShadow() ) {
+			
+				float dsY = glyphY + glyphScale * 2.0f;
+				float dsX = glyphX + glyphScale * 2.0f;
+
+				idVec2 dstopl = matrix.Transform( idVec2( dsX, dsY ) );
+				idVec2 dstopr = matrix.Transform( idVec2( dsX + glyphW, dsY ) );
+				idVec2 dsbr = matrix.Transform( idVec2( dsX + glyphW, dsY + glyphH ) );
+				idVec2 dsbl = matrix.Transform( idVec2( dsX, dsY + glyphH ) );
+
+				idVec4 dsColor = colorBlack;
+				dsColor.w = defaultColor.w;
+				gui->SetColor( dsColor );
+				DrawStretchPic( idVec4( dstopl.x, dstopl.y, s1, t1 ), idVec4( dstopr.x, dstopr.y, s2, t1 ), idVec4( dsbr.x, dsbr.y, s2, t2 ), idVec4( dsbl.x, dsbl.y, s1, t2 ), glyph.material );
+				gui->SetColor( textColor );
+			} else if ( textInstance->HasStroke() ) {
+				
+				idVec4 strokeColor = colorBlack;
+				strokeColor.w = textInstance->GetStrokeStrength() * defaultColor.w;
+				gui->SetColor( strokeColor );
+				for ( int index = 0; index < 4; ++index ) {
+					float xPos = glyphX + ( ( strokeXOffsets[ index ] * textInstance->GetStrokeWeight() ) * glyphScale );
+					float yPos = glyphY + ( ( strokeYOffsets[ index ] * textInstance->GetStrokeWeight() ) * glyphScale );
+					idVec2 topLeft = matrix.Transform( idVec2( xPos, yPos ) );
+					idVec2 topRight = matrix.Transform( idVec2( xPos + glyphW, yPos ) );
+					idVec2 botRight = matrix.Transform( idVec2( xPos + glyphW, yPos + glyphH ) );
+					idVec2 botLeft = matrix.Transform( idVec2( xPos, yPos + glyphH ) );					
+					DrawStretchPic( idVec4( topLeft.x, topLeft.y, s1, t1 ), idVec4( topRight.x, topRight.y, s2, t1 ), idVec4( botRight.x, botRight.y, s2, t2 ), idVec4( botLeft.x, botLeft.y, s1, t2 ), glyph.material );					
+				}
+				gui->SetColor( textColor );
+			}
+
+			DrawStretchPic( idVec4( topl.x, topl.y, s1, t1 ), idVec4( topr.x, topr.y, s2, t1 ), idVec4( br.x, br.y, s2, t2 ), idVec4( bl.x, bl.y, s1, t2 ), glyph.material );
+			x += glyphSkip;
+			x += extraSpace;
+			if ( cursorPos == c ) {
+				DrawEditCursor( gui, x - 1.0f, y, 1.0f, linespacing, matrix );
+			}
+			c++;
+			overallIndex += i - overallLineIndex;
+			overallLineIndex = i;
+		}
+
+		index++;
+	}*/
+}
 
 		private void DrawMask(IRenderSystem renderSystem, idSWFDisplayEntry mask, idSWFRenderState renderState, int stencilMode)
 		{
@@ -632,7 +1479,7 @@ namespace idTech4.UI.SWF
 				}
 				else if(fill.Style.Type == 0)
 				{
-					material = _guiSolid;
+					material  = _guiSolid;
 					color.Mul = fill.Style.StartColor.ToVector4();
 				} 
 				else if((fill.Style.Type == 4) && (fill.Style.BitmapID != 65535)) 
@@ -642,14 +1489,11 @@ namespace idTech4.UI.SWF
 					material          = _atlasMaterial;
 					Vector2 atlasSize = new Vector2(material.ImageWidth, material.ImageHeight);
 
-					for(int i = 0; i < 2; i++)
-					{
-						size.Set(i, entry.ImageSize.Get(i));
+					size = entry.ImageSize;
 
-						atlasScale.Set(i, (float) size.Get(i) / atlasSize.Get(i));
-						atlasBias.Set(i, (float) entry.ImageAtlasOffset.Get(i) / atlasSize.Get(i));
-					}
-
+					atlasScale = size / atlasSize;
+					atlasBias  = entry.ImageAtlasOffset / atlasSize;
+					
 					// de-normalize color channels after DXT decompression
 					color.Mul = entry.ChannelScale;
 					useAtlas  = true;
@@ -699,9 +1543,9 @@ namespace idTech4.UI.SWF
 					Vector2 xy = fill.StartVertices[j];
 				
 					verts[j].Clear();
-					verts[j].Position   = new Vector3(renderState.Matrix.Transform(xy) * _scaleToVirtual, 0);
-					verts[j].Color      = colorMul;
-					verts[j].Color2     = colorAdd;
+					verts[j].Position = new Vector3(renderState.Matrix.Transform(xy) * _scaleToVirtual, 0);
+					verts[j].Color    = colorMul;
+					verts[j].Color2   = colorAdd;
 
 					// for some reason I don't understand, having texcoords
 					// in the range of 2000 or so causes what should be solid
@@ -724,7 +1568,7 @@ namespace idTech4.UI.SWF
 						// inset the tc - the gui may use a vmtr and the tc might end up
 						// crossing page boundaries if using [0.0, 1.0]
 						st.X = MathHelper.Clamp(st.X, 0.001f, 0.999f);
-						st.X = MathHelper.Clamp(st.Y, 0.001f, 0.999f);
+						st.Y = MathHelper.Clamp(st.Y, 0.001f, 0.999f);
 
 						verts[j].TextureCoordinates = new HalfVector2(st);
 					}
@@ -732,49 +1576,46 @@ namespace idTech4.UI.SWF
 				
 				renderSystem.AddPrimitive(verts, indexes, material, renderState.StereoDepth);
 			}
-
-			if(shape.Lines.Length > 0)
+			
+			for(int i = 0; i < shape.Lines.Length; i++)
 			{
-				idLog.Warning("TODO: DrawShape LineDraws");
+				idSWFShapeDrawLine line = shape.Lines[i];
+				
+				idSWFColorXForm color = new idSWFColorXForm();
+				color.Mul = line.Style.StartColor.ToVector4();
+				color = color.Multiply(renderState.ColorXForm);
+
+				if(cvarSystem.GetFloat("swf_forceAlpha") > 0.0f)
+				{
+					color.Mul.W = cvarSystem.GetFloat("swf_forceAlpha");
+					color.Add.W = 0.0f;
+				}
+
+				if((color.Mul.W + color.Add.W) <= AlphaEpsilon)
+				{
+					continue;
+				}
+								
+				renderSystem.SetRenderState(StateForRenderState(renderState) | (ulong) MaterialStates.PolygonLineMode);
+
+				idVertex[] verts = new idVertex[line.StartVertices.Length];
+				ushort[] indexes = line.Indices;
+
+				for(int j = 0; j < line.StartVertices.Length; j++)
+				{
+					Vector2 xy = line.StartVertices[j];
+				
+					verts[j].Clear();
+					verts[j].Position = new Vector3(renderState.Matrix.Transform(xy) * _scaleToVirtual, 0);
+					verts[j].Color    = new Color(color.Mul);
+					verts[j].Color2   = new Color(color.Add.X * 0.5f + 0.5f, 
+						color.Add.Y * 0.5f + 0.5f, 
+						color.Add.Z * 0.5f + 0.5f, 
+						color.Add.W * 0.5f + 0.5f);
+					
+					renderSystem.AddPrimitive(verts, indexes, _white, renderState.StereoDepth);
+				}
 			}
-
-			/*for ( int i = 0; i < shape->lineDraws.Num(); i++ ) {
-				const idSWFShapeDrawLine & line = shape->lineDraws[i];
-				swfColorXform_t color;
-				color.mul = line.style.startColor.ToVec4();
-				color = color.Multiply( renderState.cxf );
-				if ( swf_forceAlpha.GetFloat() > 0.0f ) {
-					color.mul.w = swf_forceAlpha.GetFloat();
-					color.add.w = 0.0f;
-				}
-				if ( ( color.mul.w + color.add.w ) <= ALPHA_EPSILON ) {
-					continue;
-				}
-				uint32 packedColorM = LittleLong( PackColor( color.mul ) );
-				uint32 packedColorA = LittleLong( PackColor( ( color.add * 0.5f ) + idVec4( 0.5f ) ) ); // Compress from -1..1 to 0..1
-
-				gui->SetGLState( GLStateForRenderState( renderState ) | GLS_POLYMODE_LINE );
-
-				idDrawVert * verts = gui->AllocTris( line.startVerts.Num(), line.indices.Ptr(), line.indices.Num(), white, renderState.stereoDepth );	
-				if ( verts == NULL ) {
-					continue;
-				}
-
-				for ( int j = 0; j < line.startVerts.Num(); j++ ) {
-					const idVec2 & xy = line.startVerts[j];
-
-					ALIGNTYPE16 idDrawVert tempVert;
-
-					tempVert.Clear();
-					tempVert.xyz.ToVec2() = renderState.matrix.Transform( xy ).Scale( scaleToVirtual );
-					tempVert.xyz.z = 0.0f;
-					tempVert.SetTexCoord( 0.0f, 0.0f );
-					tempVert.SetNativeOrderColor( packedColorM );
-					tempVert.SetNativeOrderColor2( packedColorA );
-
-					WriteDrawVerts16( & verts[j], & tempVert, 1 );
-				}
-			}*/
 		}
 
 		private void DrawStretchPicture(float x, float y, float width, float height, float s1, float t1, float s2, float t2, idMaterial material)
@@ -1032,7 +1873,8 @@ namespace idTech4.UI.SWF
 
 		private idSWFScriptVariable ScriptFunction_inhibitControl(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			idLog.Warning("TODO: ScriptFunction_inhibitControl");
+			context.InhibitControl = parms[0].ToBool();
+
 			return new idSWFScriptVariable();
 		}
 

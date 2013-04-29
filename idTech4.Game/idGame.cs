@@ -71,6 +71,7 @@ namespace idTech4.Game
 			uiManager.SetDrawingContext();
 
 			idLog.Warning("TODO: idGame.Draw");
+			return false;
 			/*idPlayer *player = static_cast<idPlayer *>(entities[ clientNum ]);
 
 			if ( ( player == NULL ) || ( player->GetRenderView() == NULL ) ) {
@@ -379,6 +380,7 @@ namespace idTech4.Game
 						return i;
 					}
 				}*/
+
 				return 0;
 			}
 		}

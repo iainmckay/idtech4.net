@@ -151,6 +151,10 @@ namespace idTech4
 		private long _engineHzDenominator = 100 * 60;
 
 		private bool _isJapaneseSKU;
+		
+		private CurrentGame _currentGame;
+		private CurrentGame _idealCurrentGame; // defer game switching so that bad things don't happen in the middle of the frame.
+		private idMaterial _doomClassicMaterial;
 
 		// com_speeds times
 		private int	_speeds_GameFrameCount;	    // total number of game frames that were run
@@ -609,11 +613,12 @@ namespace idTech4
 			// done before Com/Sys_Init since we need this for error output
 			/*idLog.WriteLine("TODO: Sys_CreateConsole();");
 
-			idLog.WriteLine("TODO: optimalPCTBuffer( 0.5f );");
-			idLog.WriteLine("TODO: currentGame( DOOM3_BFG );");
-			idLog.WriteLine("TODO: idealCurrentGame( DOOM3_BFG );");
+			idLog.WriteLine("TODO: optimalPCTBuffer( 0.5f );");*/
 
-			idLog.WriteLine("TODO: snapCurrent.localTime = -1;");
+			_currentGame      = CurrentGame.Doom3BFG;
+			_idealCurrentGame = CurrentGame.Doom3BFG;
+
+			/*idLog.WriteLine("TODO: snapCurrent.localTime = -1;");
 			idLog.WriteLine("TODO: snapPrevious.localTime = -1;");
 			idLog.WriteLine("TODO: snapCurrent.serverTime = -1;");
 			idLog.WriteLine("TODO: snapPrevious.serverTime = -1;");
@@ -791,6 +796,7 @@ namespace idTech4
 				ISession session		                   = this.GetService<ISession>();
 
 				int legalMinTime = 4000;
+				legalMinTime = 0;
 				bool showVideo   = ((cvarSystem.GetBool("com_skipIntroVideos") == false) && (fileSystem.UsingResourceFiles == true));
 
 				if(showVideo == true)
@@ -827,13 +833,12 @@ namespace idTech4
 				// the render back end still has work to do
 
 				// init the user command input code
-				/*usercmdGen->Init();
+				/* TODO: usercmdGen->Init();
 
 				Sys_SetRumble( 0, 0, 0 );*/
 
 				// initialize the user interfaces
 				userInterfaceManager.Init();
-
 
 				// startup the script debugger
 				// DebuggerServerInit();
@@ -912,9 +917,10 @@ namespace idTech4
 
 				fileSystem.EndLevelLoad();
 
-				/*// Initialize support for Doom classic.
-				doomClassicMaterial = declManager->FindMaterial( "_doomClassic" );
-				idImage *image = globalImages->GetImage( "_doomClassic" );
+				// initialize support for Doom classic.				
+				//_doomClassicMaterial = declManager.FindMaterial("_doomClassic");
+				
+				/*idImage *image = globalImages->GetImage( "_doomClassic" );
 				if ( image != NULL ) {
 					idImageOpts opts;
 					opts.format = FMT_RGBA8;
@@ -1062,7 +1068,7 @@ namespace idTech4
 				// reset to english and try to load again
 				cvarSystem.Set("sys_lang", idLanguage.English);
 
-				langName = cvarSystem.GetString("sys_lang");
+				langName            = cvarSystem.GetString("sys_lang");
 				currentLanguageList = langFiles.Where(c => c.StartsWith(langName)).ToArray();
 			}
 
@@ -1086,7 +1092,7 @@ namespace idTech4
 
 			// from executable directory first - this is handy for developement
 			string dllName = Path.GetDirectoryName(Assembly.GetEntryAssembly().Location);
-			dllName = Path.Combine(dllName, "idTech4.Game.dll");
+			dllName        = Path.Combine(dllName, "idTech4.Game.dll");
 
 			if(File.Exists(dllName) == false)
 			{
@@ -1222,8 +1228,78 @@ namespace idTech4
 			_commandLineArguments = argList.ToArray();
 		}
 
+		private void PerformGameSwitch()
+		{
+			// if the session state is past the menu, we should be in Doom 3.
+			// this will happen if, for example, we accept an invite while playing
+			// Doom or Doom 2.
+			ISession session       = GetService<ISession>();
+			ICVarSystem cvarSystem = GetService<ICVarSystem>();
+
+			if(session.State > SessionState.Idle)
+			{
+				_idealCurrentGame = CurrentGame.Doom3BFG;
+			}
+
+			if(_currentGame == _idealCurrentGame)
+			{
+				return;
+			}
+			
+			if((_idealCurrentGame == CurrentGame.DoomClassic) || (_idealCurrentGame == CurrentGame.Doom2Classic))
+			{
+				idLog.Warning("TODO: switch to doom classic");
+
+				// Pause Doom 3 sound.
+				/*if ( menuSoundWorld != NULL ) {
+					menuSoundWorld->Pause();
+				}
+
+				DoomLib::skipToNew = false;
+				DoomLib::skipToLoad = false;
+
+				// Reset match parameters for the classics.
+				DoomLib::matchParms = idMatchParameters();
+
+				// The classics use the usercmd manager too, clear it.
+				userCmdMgr.SetDefaults();
+
+				// Classics need a local user too.
+				session->UpdateSignInManager();
+				session->GetSignInManager().RegisterLocalUser( 0 );
+
+				com_engineHz_denominator = 100LL * DOOM_CLASSIC_HZ;
+				com_engineHz_latched = DOOM_CLASSIC_HZ;
+
+				DoomLib::SetCurrentExpansion( idealCurrentGame );*/
+			}
+			else if(_idealCurrentGame == CurrentGame.Doom3BFG)
+			{
+				idLog.Warning("TODO: DoomLib::Interface.Shutdown();");
+
+				_engineHzDenominator = (long) (100L * cvarSystem.GetFloat("com_engineHz"));
+				_engineHzLatched     = cvarSystem.GetFloat("com_engineHz");
+		
+				// don't MoveToPressStart if we have an invite, we need to go directly to the lobby
+				if(session.State <= SessionState.Idle)
+				{
+					session.MoveToPressStart();
+				}
+
+				// unpause Doom 3 sound
+				idLog.Warning("TODO: unpause sound");
+				
+				/*if ( menuSoundWorld != NULL ) {
+					menuSoundWorld->UnPause();
+				}*/
+			}
+
+			_currentGame = _idealCurrentGame;
+		}
+
 		private void RenderSplash()
 		{
+			return;
 			IRenderSystem renderSystem = GetService<IRenderSystem>();
 
 			float sysWidth     = renderSystem.Width * renderSystem.PixelAspect;
@@ -1544,14 +1620,14 @@ namespace idTech4
 				/*if ( com_forceGenericSIMD.IsModified() ) {
 					idSIMD::InitProcessor( "doom", com_forceGenericSIMD.GetBool() );
 					com_forceGenericSIMD.ClearModified();
-				}
+				}*/
 
 				// Do the actual switch between Doom 3 and the classics here so
 				// that things don't get confused in the middle of the frame.
 				PerformGameSwitch();
 
 				// pump all the events
-				Sys_GenerateEvents();
+				/*Sys_GenerateEvents();
 
 				// write config file if anything changed
 				WriteConfiguration(); 
@@ -1849,11 +1925,11 @@ namespace idTech4
 
 				// make sure the game / draw thread has completed
 				// This may block if the game is taking longer than the render back end
-				/*gameThread.WaitForThread();
+				_gameThread.WaitForThread();
 
 				// Send local usermds to the server.
 				// This happens after the game frame has run so that prediction data is up to date.
-				SendUsercmds( Game()->GetLocalClientNum() );*/
+				/*SendUsercmds( Game()->GetLocalClientNum() );*/
 
 				// Now that we have an updated game frame, we can send out new snapshots to our clients
 				session.Pump(); // Pump to get updated usercmds to relay
@@ -1923,7 +1999,7 @@ namespace idTech4
 			{
 				Thread.Sleep(cvarSystem.GetInt("com_sleepDraw"));
 			}
-			
+
 			// TODO: loadGui
 			/*if ( loadGUI != NULL ) 
 			{
@@ -1997,6 +2073,7 @@ namespace idTech4
 			} 
 			else 
 			{
+				idLog.Warning("DRAWING NOOOOOOOOOOOOOOOOOOOOOOTHIN");
 				renderSystem.Color = new Color(0, 0, 0, 1);
 				renderSystem.DrawStretchPicture(0, 0, Constants.ScreenWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
 			}
@@ -2023,6 +2100,13 @@ namespace idTech4
 		{
 			//base.Draw(gameTime);		
 		}
+	}
+
+	public enum CurrentGame
+	{
+		DoomClassic,
+		Doom2Classic,
+		Doom3BFG
 	}
 
 	public enum ErrorType

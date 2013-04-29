@@ -422,7 +422,6 @@ namespace idTech4.UI.SWF.Scripting
 
 		public override string ToString()
 		{
-
 			switch(_type)
 			{
 				case ScriptVariableType.StringID:

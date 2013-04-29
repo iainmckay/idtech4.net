@@ -40,7 +40,7 @@ namespace idTech4
 			#region Common
 			cvarSystem.Register("developer",				"0", "developer mode",											CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);
 			cvarSystem.Register("logFile",					"0", 0, 2, "1 = buffer log, 2 = flush after each print",		CVarFlags.System | CVarFlags.NoCheat, new ArgCompletion_Integer(0, 2));
-			cvarSystem.Register("logFileName",				"qconsole.log", "name of log file, if empty, qconsole.log will be used", CVarFlags.System | CVarFlags.NoCheat);
+			cvarSystem.Register("logFileName",				"qconsole2.log", "name of log file, if empty, qconsole.log will be used", CVarFlags.System | CVarFlags.NoCheat);
 
 #if ID_RETAIL
 			cvarSystem.Register("com_allowConsole",			"0", "allow toggling console with the tilde key",				CVarFlags.Bool | CVarFlags.System | CVarFlags.Init);

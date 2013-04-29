@@ -88,7 +88,7 @@ namespace idTech4
 			throw new ArgumentOutOfRangeException("component");
 		}
 
-		public static void Set(this Vector2 v, int component, float value)
+		/*public static void Set(this Vector2 v, int component, float value)
 		{
 			if(component == 0)
 			{
@@ -98,11 +98,11 @@ namespace idTech4
 			{
 				v.Y = value;
 			}
-		}
+		}*/
 		#endregion
 
 		#region Vector3
-		public static void Set(this Vector3 v, int component, float value)
+		/*public static void Set(this Vector3 v, int component, float value)
 		{
 			if(component == 0)
 			{
@@ -116,11 +116,11 @@ namespace idTech4
 			{
 				v.Z = value;
 			}
-		}
+		}*/
 		#endregion
 
 		#region Vector4
-		public static void Set(this Vector4 v, int component, float value)
+		/*public static void Set(this Vector4 v, int component, float value)
 		{
 			if(component == 0)
 			{
@@ -138,7 +138,7 @@ namespace idTech4
 			{
 				v.W = value;
 			}
-		}
+		}*/
 		#endregion
 	}
 }

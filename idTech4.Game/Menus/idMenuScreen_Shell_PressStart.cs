@@ -64,21 +64,23 @@ namespace idTech4.Game.Menus
 			}
 
 			SetSpritePath("menuStart");
+			
+			_itemList = new idMenuWidget_Carousel();
+			_itemList.SetSpritePath(this.SpritePath, "info", "options");
+			_itemList.VisibleOptionCount = 3;
 
-			idLog.Warning("TODO: swf carousel");
+			for(int i = 0; i < 3; i++)
+			{
+				idMenuWidget_Button buttonWidget = new idMenuWidget_Button();
+				buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.PressFocused, _itemList.Children.Length);
+				buttonWidget.Initialize(data);
 
-			/*itemList = new (TAG_SWF) idMenuWidget_Carousel();
-			itemList->SetSpritePath( GetSpritePath(), "info", "options" );
-			itemList->SetNumVisibleOptions( NUM_GAME_SELECTIONS_VISIBLE );
-			while ( itemList->GetChildren().Num() < NUM_GAME_SELECTIONS_VISIBLE ) {
-				idMenuWidget_Button * const buttonWidget = new (TAG_SWF) idMenuWidget_Button();
-				buttonWidget->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_PRESS_FOCUSED, itemList->GetChildren().Num() );
-				buttonWidget->Initialize( data );
-				itemList->AddChild( buttonWidget );
+				_itemList.AddChild(buttonWidget);
 			}
-			itemList->Initialize( data );
 
-			AddChild( itemList );*/
+			_itemList.Initialize(data);
+
+			AddChild(_itemList);
 
 			idLog.Warning("swf events");
 			/*AddEventAction( WIDGET_EVENT_SCROLL_LEFT ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_SCROLL_LEFT_START_REPEATER, WIDGET_EVENT_SCROLL_LEFT ) );
@@ -169,8 +171,8 @@ namespace idTech4.Game.Menus
 					{
 						_itemList.Images = coverIcons;
 						_itemList.SetFocusIndex(1, true);
-						_itemList.ViewIndex = 1;
-						_itemList.MoveToIndex(1);
+						_itemList.ViewIndex         = 1;
+						_itemList.MoveToIndexTarget = 1;
 					}
 
 					if(_startButton != null)
@@ -300,26 +302,36 @@ namespace idTech4.Game.Menus
 				return true;
 			}
 
-			idLog.Warning("TODO: OnScrollHorizontal");
-
-			/*if ( itemList->GetMoveDiff() > 0 ) {
-				itemList->MoveToIndex( itemList->GetMoveToIndex(), true );
+			if(_itemList.MoveDiff > 0)
+			{
+				_itemList.MoveToIndex(_itemList.MoveToIndexTarget, true);
 			}
 
-			int direction = parms[0].ToInteger();
-			if ( direction == 1 ) {					
-				if ( itemList->GetViewIndex() == itemList->GetTotalNumberOfOptions() - 1 ) {
+			idSWFParameterList parameters = action.Parameters;
+			int direction                 = parameters[0].ToInt32();
+
+			if(direction == 1) 
+			{					
+				if(_itemList.ViewIndex == (_itemList.TotalNumberOfOptions - 1)) 
+				{
 					return true;
-				} else {
-					itemList->MoveToIndex( 1 );
+				} 
+				else
+				{
+					_itemList.MoveToIndex(1);
 				}
-			} else {
-				if ( itemList->GetViewIndex() == 0 ) {
+			} 
+			else 
+			{
+				if(_itemList.ViewIndex == 0) 
+				{
 					return true;
-				} else {
-					itemList->MoveToIndex( ( itemList->GetNumVisibleOptions() / 2 ) + 1 );
+				} 
+				else 
+				{
+					_itemList.MoveToIndex((_itemList.VisibleOptionCount / 2 ) + 1);
 				}
-			}	*/
+			}
 
 			return true;
 		}

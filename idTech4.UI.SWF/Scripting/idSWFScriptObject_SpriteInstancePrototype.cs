@@ -89,7 +89,18 @@ namespace idTech4.UI.SWF.Scripting
 
 		private idSWFScriptVariable ScriptFunction_gotoAndPlay(idSWFScriptObject scriptObj, idSWFSpriteInstance spriteInstance, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			if(parms.Count > 0)
+			{
+				spriteInstance.ClearActions();
+				spriteInstance.RunTo(spriteInstance.FindFrame(parms[0].ToString()));
+				spriteInstance.Play();
+			}
+			else
+			{
+				idLog.Warning("gotoAndPlay: expected 1 paramater");
+			}
+
+			return new idSWFScriptVariable();
 		}
 
 		private idSWFScriptVariable ScriptFunction_gotoAndStop(idSWFScriptObject scriptObj, idSWFSpriteInstance spriteInstance, idSWFParameterList parms)

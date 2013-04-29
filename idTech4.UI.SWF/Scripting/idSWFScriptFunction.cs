@@ -25,6 +25,7 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
 using System.Collections.Generic;
 
 namespace idTech4.UI.SWF.Scripting
@@ -46,7 +47,7 @@ namespace idTech4.UI.SWF.Scripting
 		#endregion
 	}
 
-	public class idSWFParameterList
+	public class idSWFParameterList : ICloneable
 	{
 		#region Properties
 		public int Count
@@ -83,6 +84,11 @@ namespace idTech4.UI.SWF.Scripting
 		public idSWFParameterList(int count)
 		{
 			_list = new List<idSWFScriptVariable>(count);
+			
+			for(int i = 0; i < count; i++)
+			{
+				_list.Add(new idSWFScriptVariable());
+			}
 		}
 		#endregion
 
@@ -115,6 +121,20 @@ namespace idTech4.UI.SWF.Scripting
 			_list.Clear();
 		}
 		#endregion
+
+		#region ICloneable implementation
+		public object Clone()
+		{
+			idSWFParameterList list = new idSWFParameterList(_list.Count);
+
+			for(int i = 0; i < _list.Count; i++)
+			{
+				list[i] = (idSWFScriptVariable) _list[i].Clone();
+			}
+
+			return list;
+		}
+		#endregion
 	}
 
 	public class idSWFStack : List<idSWFScriptVariable>
@@ -124,6 +144,10 @@ namespace idTech4.UI.SWF.Scripting
 			get
 			{
 				return this[this.Count - 1];
+			}
+			set
+			{
+				this[this.Count - 1] = value;
 			}
 		}
 

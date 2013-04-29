@@ -419,7 +419,7 @@ namespace idTech4.UI.SWF
 		public void PlayFrame(string name)
 		{
 			idSWFParameterList parms = new idSWFParameterList(1);
-			parms.Add(name);
+			parms[0].Set(name);
 
 			PlayFrame(parms);
 		}
@@ -427,7 +427,7 @@ namespace idTech4.UI.SWF
 		public void PlayFrame(int num)
 		{
 			idSWFParameterList parms = new idSWFParameterList(1);
-			parms.Add(num);
+			parms[0].Set(num);
 
 			PlayFrame(parms);
 		}
@@ -457,7 +457,7 @@ namespace idTech4.UI.SWF
 		public void StopFrame(string name)
 		{
 			idSWFParameterList parameters = new idSWFParameterList(1);
-			parameters.Add(name);
+			parameters[0].Set(name);
 
 			StopFrame(parameters);
 		}
@@ -465,7 +465,7 @@ namespace idTech4.UI.SWF
 		public void StopFrame(int index)
 		{
 			idSWFParameterList parameters = new idSWFParameterList(1);
-			parameters.Add(index);
+			parameters[0].Set(index);
 
 			StopFrame(parameters);
 		}
@@ -669,6 +669,11 @@ namespace idTech4.UI.SWF
 			}
 
 			return display;
+		}
+
+		public void ClearActions()
+		{
+			_actions.Clear();
 		}
 
 		public idSWFDisplayEntry FindDisplayEntry(int depth)

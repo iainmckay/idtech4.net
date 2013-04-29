@@ -170,12 +170,15 @@ namespace idTech4.UI.SWF
 			_currentByte = regCurrentByte;
 
 			idSWFColorXForm colorXForm = new idSWFColorXForm();
+			colorXForm.Mul.X = Fixed8(m[0]);
+			colorXForm.Mul.Y = Fixed8(m[1]);
+			colorXForm.Mul.Z = Fixed8(m[2]);
+			colorXForm.Mul.W = Fixed8(m[3]);
 
-			for(int i = 0; i < 4; i++)
-			{
-				colorXForm.Mul.Set(i, Fixed8(m[i]));
-				colorXForm.Add.Set(i, Fixed8(a[i]));
-			}
+			colorXForm.Add.X = Fixed8(a[0]);
+			colorXForm.Add.Y = Fixed8(a[1]);
+			colorXForm.Add.Z = Fixed8(a[2]);
+			colorXForm.Add.W = Fixed8(a[3]);
 
 			return colorXForm;
 		}

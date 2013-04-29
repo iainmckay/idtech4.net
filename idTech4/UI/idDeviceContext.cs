@@ -65,12 +65,12 @@ namespace idTech4.UI
 			IDeclManager declManager   = idEngine.Instance.GetService<IDeclManager>();
 			IRenderSystem renderSystem = idEngine.Instance.GetService<IRenderSystem>();
 
-			_xScale = 1.0f;
-			_yScale = 1.0f;
+			_xScale  = 1.0f;
+			_yScale  = 1.0f;
 			_xOffset = 0.0f;
 			_yOffset = 0.0f;
 
-			_whiteImage = declManager.FindMaterial("guis/assets/white.tga");
+			_whiteImage      = declManager.FindMaterial("guis/assets/white");
 			_whiteImage.Sort = (float) MaterialSort.Gui;
 
 			/*activeFont = renderSystem->RegisterFont( "" );

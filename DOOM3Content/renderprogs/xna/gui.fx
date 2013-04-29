@@ -19,31 +19,28 @@ struct VertexShaderInput
 struct VertexShaderOutput
 {
     float4 Position  : POSITION0;
-	float2 TexCoord1 : TEXCOORD0;
-	float4 TexCoord2 : TEXCOORD1;
+	float2 TexCoord0 : TEXCOORD0;
+	float4 TexCoord1 : TEXCOORD1;
 	float4 Color     : COLOR0;
 };
 
 VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 {
-	//input.Color = float4(0, 0, 1, 1);
-
     VertexShaderOutput output;
 	output.Position  = mul(input.Position , g_ModelViewProjectionMatrix);
-	output.TexCoord1  = input.TexCoord;
-	output.TexCoord2 = (input.Color * 2) - 1;
-	output.Color     = input.Color;
+	output.TexCoord0 = input.TexCoord;
+	output.TexCoord1 = (input.Color2 * 2) - 1;
+	output.Color     = float4(1,1,1,1); //input.Color;
 
     return output;
 }
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float4 color = (tex2D(g_TextureSampler0 , input.TexCoord1) * input.Color) + input.TexCoord2;
-	color.xyz = color.xyz * color.w;
-
-	//color = tex2D(g_TextureSampler0 , input.TexCoord1);
-
+	float4 color = (tex2D(g_TextureSampler0 , input.TexCoord0) * input.Color) + input.TexCoord1;
+	color.xyz    = color.xyz * color.w;
+	color.w      = color.w;
+	
 	return color;
 }
 

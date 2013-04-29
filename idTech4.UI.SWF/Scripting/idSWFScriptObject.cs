@@ -247,17 +247,13 @@ namespace idTech4.UI.SWF.Scripting
 		public idSWFScriptVariable GetNestedVariable(string arg1, string arg2 = null, string arg3 = null, string arg4 = null, string arg5 = null, string arg6 = null)
 		{
 			List<string> list = new List<string>(new string[] {arg1, arg2, arg3, arg4, arg5, arg6});
+			list.RemoveAll(x => x == null);
 
 			idSWFScriptObject baseObject = this;
 			idSWFScriptVariable retVal   = new idSWFScriptVariable();
 
 			for(int i = 0; i < list.Count; ++i)
 			{
-				if(list[i] == null)
-				{
-					break;
-				}
-
 				idSWFScriptVariable var = baseObject.Get(list[i]);
 
 				// when at the end of object path just use the latest value as result

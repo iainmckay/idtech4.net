@@ -64,7 +64,12 @@ namespace idTech4.UI.SWF.Scripting
 		#region Constructor
 		public idSWFScriptFunction_Script(List<idSWFScriptObject> scope, idSWFSpriteInstance defaultSprite)
 		{
-			_registers     = new List<idSWFScriptVariable>(4);
+			_registers = new List<idSWFScriptVariable>(4);
+			_registers.Add(new idSWFScriptVariable());
+			_registers.Add(new idSWFScriptVariable());
+			_registers.Add(new idSWFScriptVariable());
+			_registers.Add(new idSWFScriptVariable());
+
 			_defaultSprite = defaultSprite;
 
 			SetScope(scope);			
@@ -130,13 +135,16 @@ namespace idTech4.UI.SWF.Scripting
 						_callStackLevel--;
 						return new idSWFScriptVariable();
 
-			/*case Action_NextFrame:
-				if ( verify( currentTarget != NULL ) ) {
-					currentTarget->NextFrame();
-				} else if ( swf_debug.GetInteger() > 0 ) {
-					idLib::Printf( "SWF: no target movie clip for nextFrame\n" );
-				}
-				break;*/
+					case idSWFAction.NextFrame:
+						if(currentTarget != null)
+						{
+							currentTarget.NextFrame();
+						}
+						else if(cvarSystem.GetInt("swf_debug") > 0)
+						{
+							idLog.Warning("SWF: no target movie clip for nextFrame");
+						}
+						break;
 
 					case idSWFAction.PrevFrame:
 						if(currentTarget != null)
@@ -178,18 +186,20 @@ namespace idTech4.UI.SWF.Scripting
 						break;
 
 					case idSWFAction.GotoFrame:
-						Debug.Assert(recordLength == 2);
-
-						int frameNum = bitStream.ReadUInt16() + 1;
-
-						if(currentTarget != null)
 						{
-							currentTarget.RunTo(frameNum);
+							Debug.Assert(recordLength == 2);
+
+							int frameNum = bitStream.ReadUInt16() + 1;
+
+							if(currentTarget != null)
+							{
+								currentTarget.RunTo(frameNum);
+							}
+							else if(cvarSystem.GetInt("swf_debug") > 0)
+							{
+								idLog.WriteLine("SWF: no target movie clip for runTo {0}", frameNum);
+							}
 						}
-						else if(cvarSystem.GetInt("swf_debug") > 0)
-						{
-							idLog.WriteLine("SWF: no target movie clip for runTo {0}", frameNum);
-						}				
 						break;
 			/*}
 			case Action_SetTarget: {
@@ -212,24 +222,26 @@ namespace idTech4.UI.SWF.Scripting
 			}*/
 
 					case idSWFAction.Push:
-						idSWFBitStream pushStream = new idSWFBitStream(bitStream.ReadData(recordLength));
-
-						while(pushStream.Position < pushStream.Length)
 						{
-							byte type = pushStream.ReadByte();
+							idSWFBitStream pushStream = new idSWFBitStream(bitStream.ReadData(recordLength));
 
-							switch(type)
+							while(pushStream.Position < pushStream.Length)
 							{
-								case 0: stack.Alloc().Set(pushStream.ReadString()); break;
-								case 1: throw new NotImplementedException(); //stack.Alloc().Set(pushStream.ReadSingle()); break;
-								case 2: stack.Alloc().SetNull(); break;
-								case 3: stack.Alloc().SetUndefined(); break;
-								case 4: stack.Add((idSWFScriptVariable) _registers[pushStream.ReadByte()].Clone()); break;
-								case 5: stack.Alloc().Set(pushStream.ReadByte() != 0); break;
-								case 6: stack.Alloc().Set((float) pushStream.ReadDouble()); break;
-								case 7: stack.Alloc().Set(pushStream.ReadInt32()); break;
-								case 8: stack.Alloc().Set(_constants.Get(pushStream.ReadByte())); break;
-								case 9: stack.Alloc().Set(_constants.Get(pushStream.ReadUInt16())); break;
+								byte type = pushStream.ReadByte();
+
+								switch(type)
+								{
+									case 0: stack.Alloc().Set(pushStream.ReadString()); break;
+									case 1: throw new NotImplementedException(); //stack.Alloc().Set(pushStream.ReadSingle()); break;
+									case 2: stack.Alloc().SetNull(); break;
+									case 3: stack.Alloc().SetUndefined(); break;
+									case 4: stack.Add((idSWFScriptVariable) _registers[pushStream.ReadByte()].Clone()); break;
+									case 5: stack.Alloc().Set(pushStream.ReadByte() != 0); break;
+									case 6: stack.Alloc().Set((float) pushStream.ReadDouble()); break;
+									case 7: stack.Alloc().Set(pushStream.ReadInt32()); break;
+									case 8: stack.Alloc().Set(_constants.Get(pushStream.ReadByte())); break;
+									case 9: stack.Alloc().Set(_constants.Get(pushStream.ReadUInt16())); break;
+								}
 							}
 						}
 						break;
@@ -327,21 +339,23 @@ namespace idTech4.UI.SWF.Scripting
 			}*/
 
 					case idSWFAction.GetVariable:
-						string variableName = stack.A.ToString();
-
-						for(int i = _scope.Count - 1; i >= 0; i--)
 						{
-							stack.A.Set(_scope[i].Get(variableName).ToString());
+							string variableName = stack.A.ToString();
 
-							if(stack.A.IsUndefined == false)
+							for(int i = _scope.Count - 1; i >= 0; i--)
 							{
-								break;
-							}
-						}
+								stack.A = (idSWFScriptVariable) _scope[i].Get(variableName).Clone();
 
-						if((stack.A.IsUndefined == true) && (cvarSystem.GetInt("swf_debug") > 1))
-						{
-							idLog.WriteLine("SWF: unknown variable {0}", variableName);
+								if(stack.A.IsUndefined == false)
+								{
+									break;
+								}
+							}
+
+							if((stack.A.IsUndefined == true) && (cvarSystem.GetInt("swf_debug") > 1))
+							{
+								idLog.WriteLine("SWF: unknown variable {0}", variableName);
+							}
 						}
 						break;
 			/*}
@@ -424,92 +438,117 @@ namespace idTech4.UI.SWF.Scripting
 				break;*/
 
 					case idSWFAction.CallFunction:
-						string functionName = stack.A.ToString();
-
-						idSWFScriptVariable function = null;
-						idSWFScriptObject obj        = null;
-
-						for(int i = _scope.Count - 1; i >= 0; i--)
 						{
-							function = _scope[i].Get(functionName);
+							string functionName = stack.A.ToString();
 
-							if(function.IsUndefined == false)
+							idSWFScriptVariable function = null;
+							idSWFScriptObject obj        = null;
+
+							for(int i = _scope.Count - 1; i >= 0; i--)
 							{
-								obj = _scope[i];
-								break;
+								function = _scope[i].Get(functionName);
+
+								if(function.IsUndefined == false)
+								{
+									obj = _scope[i];
+									break;
+								}
+							}
+
+							stack.Pop(1);
+
+							idSWFParameterList parms = new idSWFParameterList(stack.A.ToInt32());
+
+							stack.Pop(1);
+
+							for(int i = 0; i < parms.Count; i++)
+							{
+								parms[i] = (idSWFScriptVariable) stack.A.Clone();
+								stack.Pop(1);
+							}
+
+							if(function.IsFunction == true)
+							{
+								stack.Add(function.Function.Invoke(obj, parms));
+							}
+							else
+							{
+								if(cvarSystem.GetInt("swf_debug") > 0)
+								{
+									idLog.WriteLine("SWF: unknown function {0}", functionName);
+									stack.Alloc().SetUndefined();
+								}
 							}
 						}
+						break;
 
-						stack.Pop(1);
-
-						idSWFParameterList parms = new idSWFParameterList(stack.A.ToInt32());
-
-						stack.Pop(1);
-
-						for(int i = 0; i < parms.Count; i++)
+					case idSWFAction.CallMethod:
 						{
-							parms[i] = (idSWFScriptVariable) stack.A.Clone();
-							stack.Pop(1);
-						}
+							string functionName = stack.A.ToString();
 
-						if(function.IsFunction == true)
-						{
-							stack.Add((idSWFScriptVariable) function.Function.Invoke(obj, parms).Clone());
-						}
-						else
-						{
-							if(cvarSystem.GetInt("swf_debug") > 0)
+							// if the top stack is undefined but there is an object, it's calling the constructor
+							if((functionName == string.Empty) || (stack.A.IsUndefined == true) || (stack.A.IsNull == true))
 							{
-								idLog.WriteLine("SWF: unknown function {0}", functionName);
+								functionName = "__constructor__";
+							}
+
+							idSWFScriptObject obj        = null;
+							idSWFScriptVariable function = null;
+
+							if(stack.B.IsObject == true)
+							{
+								obj = stack.B.Object;
+								function = obj.Get(functionName);
+
+								if(function.IsFunction == false)
+								{
+									if(cvarSystem.GetInt("swf_debug") > 1)
+									{
+										idLog.WriteLine("SWF: unknown method {0} on {1}", functionName, obj.GetDefaultValue(true).ToString());
+									}
+								}
+							}
+							else
+							{
+								if(cvarSystem.GetInt("swf_debug") > 1)
+								{
+									idLog.WriteLine("SWF: NULL object for method {0}", functionName);									
+								}
+							}
+
+							stack.Pop(2);
+
+							idSWFParameterList parms = new idSWFParameterList(stack.A.ToInt32());
+
+							stack.Pop(1);
+
+							for(int i = 0; i < parms.Count; i++)
+							{
+								parms[i] = stack.A;
+								stack.Pop(1);
+							}
+
+							if(function.IsFunction == true)
+							{
+								stack.Add(function.Function.Invoke(obj, parms));
+							}
+							else
+							{
 								stack.Alloc().SetUndefined();
 							}
 						}
 						break;
-			
-			/*case Action_CallMethod: {
-				idStr functionName = stack.A().ToString();
-				// If the top stack is undefined but there is an object, it's calling the constructor
-				if ( functionName.IsEmpty() || stack.A().IsUndefined() || stack.A().IsNULL() ) {
-					functionName = "__constructor__";
-				}
-				idSWFScriptObject * object = NULL;
-				idSWFScriptVar function;
-				if ( stack.B().IsObject() ) {
-					object = stack.B().GetObject();
-					function = object->Get( functionName );
-					if ( !function.IsFunction() ) {
-						idLib::PrintfIf( swf_debug.GetInteger() > 1, "SWF: unknown method %s on %s\n", functionName.c_str(), object->DefaultValue( true ).ToString().c_str() );
-					}
-				} else {
-					idLib::PrintfIf( swf_debug.GetInteger() > 1, "SWF: NULL object for method %s\n", functionName.c_str() );
-				}
 
-				stack.Pop( 2 );
-
-				idSWFParmList parms;
-				parms.SetNum( stack.A().ToInteger() );
-				stack.Pop( 1 );
-				for ( int i = 0; i < parms.Num(); i++ ) {
-					parms[i] = stack.A();
-					stack.Pop( 1 );
-				}
-
-				if ( function.IsFunction() ) {
-					stack.Alloc() = function.GetFunction()->Call( object, parms );
-				} else {
-					stack.Alloc().SetUndefined();
-				}
-				break;
-			}*/
-
-					case idSWFAction.ConstantPool:						
-						ushort constantCount = bitStream.ReadUInt16();
-
-						_constants.Clear();
-
-						for(int i = 0; i < constantCount; i++)
+					case idSWFAction.ConstantPool:		
 						{
-							_constants.Add(bitStream.ReadString());
+							ushort constantCount = bitStream.ReadUInt16();
+
+							_constants.Clear();
+
+							for(int i = 0; i < constantCount; i++)
+							{
+								_constants.Add(bitStream.ReadString());
+							}
 						}
 						break;
 
@@ -1036,7 +1075,7 @@ namespace idTech4.UI.SWF.Scripting
 				preloadReg++;
 			}
 
-			if((_flags & (1ul << 1)) != 0)
+			if((_flags & (1ul << 1)) == 0)
 			{
 				// create "this"
 				locals.Set("this", new idSWFScriptVariable(scriptObj));
@@ -1060,7 +1099,7 @@ namespace idTech4.UI.SWF.Scripting
 				preloadReg++;				
 			}
 
-			if((_flags & (1ul << 3)) != 0)
+			if((_flags & (1ul << 3)) == 0)
 			{
 				idSWFScriptObject arguments = new idSWFScriptObject();
 
@@ -1084,7 +1123,7 @@ namespace idTech4.UI.SWF.Scripting
 				preloadReg++;
 			}
 
-			if((_flags & (1ul << 5)) != 0)
+			if((_flags & (1ul << 5)) == 0)
 			{
 				// create "super"
 				locals.Set("super", new idSWFScriptVariable(scriptObj.Prototype));

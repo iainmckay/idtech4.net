@@ -417,7 +417,6 @@ namespace idTech4.Renderer
 			idLog.Warning("R_InitDrawSurfFromTri( tr.testImageSurface_, *tr.testImageTriangles );");
 
 			// reset render crop to be the full screen
-			// TODO: important! render crop
 			_renderCrops[0].X1 = 0;
 			_renderCrops[0].Y1 = 0;
 			_renderCrops[0].X2 = (short) (this.Width - 1);

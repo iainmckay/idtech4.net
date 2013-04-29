@@ -310,7 +310,7 @@ namespace idTech4.Game.Menus
 
 			int oldIndex = _focusIndex;
 
-			Debug.Assert((index >= 0) && (index < this.Children.Length)); //&& oldIndex >= 0 && oldIndex < GetChildren().Num() );
+			Debug.Assert((index >= 0) && (index < this.Children.Length)/* && (oldIndex >= 0) && (oldIndex < this.Children.Length)*/);
 
 			_focusIndex = index;
 
@@ -329,11 +329,12 @@ namespace idTech4.Game.Menus
 			// need to mark the widget as having lost focus
 			if((oldIndex != index) && (oldIndex >= 0) && (oldIndex < this.Children.Length) && (GetChildByIndex(oldIndex).State != WidgetState.Hidden))
 			{
-				idLog.Warning("TODO: GetChildByIndex( oldIndex ).ReceiveEvent( idWidgetEvent( WIDGET_EVENT_FOCUS_OFF, 0, NULL, parms ) );");
+				GetChildByIndex(oldIndex).ReceiveEvent(new idWidgetEvent(WidgetEventType.FocusOff, 0, null, parameters));
 			}
 
-			//assert( GetChildByIndex( index ).GetState() != WIDGET_STATE_HIDDEN );
-			idLog.Warning("TODO: GetChildByIndex( index ).ReceiveEvent( idWidgetEvent( WIDGET_EVENT_FOCUS_ON, 0, NULL, parms ) );");
+			//Debug.Assert(GetChildByIndex(index).State != WidgetState.Hidden);
+
+			GetChildByIndex(index).ReceiveEvent(new idWidgetEvent(WidgetEventType.FocusOn, 0, null, parameters));
 		}
 		#endregion
 		#endregion
@@ -699,13 +700,14 @@ namespace idTech4.Game.Menus
 		#region Constructors
 		public idWidgetAction()
 		{
-			_action = WidgetActionType.None;
+			_action     = WidgetActionType.None;
+			_parameters = new idSWFParameterList();
 		}
 
 		public idWidgetAction(idWidgetAction src)
 		{
 			_action         = src.Type;
-			_parameters     = src.Parameters;
+			_parameters     = (idSWFParameterList) src.Parameters.Clone();
 			_scriptFunction = src.ScriptFunction;
 		}
 		#endregion
@@ -772,9 +774,14 @@ namespace idTech4.Game.Menus
 			_parameters.Clear();
 		}
 
+		public void Set(WidgetActionType type, int value)
+		{
+			Set(type, new idSWFScriptVariable(value));
+		}
+
 		public void Set(WidgetActionType type, idSWFScriptVariable var)
 		{
-			_action = _action;
+			_action = type;
 
 			_parameters.Clear();
 			_parameters.Add(var);
@@ -782,7 +789,7 @@ namespace idTech4.Game.Menus
 
 		public void Set(WidgetActionType type, idSWFScriptVariable var1, idSWFScriptVariable var2)
 		{
-			_action = _action;
+			_action = type;
 
 			_parameters.Clear();
 			_parameters.Add(var1);
@@ -791,7 +798,7 @@ namespace idTech4.Game.Menus
 
 		public void Set(WidgetActionType type, idSWFScriptVariable var1, idSWFScriptVariable var2, idSWFScriptVariable var3)
 		{
-			_action = _action;
+			_action = type;
 
 			_parameters.Clear();
 			_parameters.Add(var1);
@@ -801,7 +808,7 @@ namespace idTech4.Game.Menus
 
 		public void Set(WidgetActionType type, idSWFScriptVariable var1, idSWFScriptVariable var2, idSWFScriptVariable var3, idSWFScriptVariable var4)
 		{
-			_action = _action;
+			_action = type;
 
 			_parameters.Clear();
 			_parameters.Add(var1);

@@ -181,6 +181,40 @@ namespace idTech4.UI.SWF
 
 	public class idSWFShapeDrawLine
 	{
+		#region Properties
+		public Vector2[] EndVertices
+		{
+			get
+			{
+				return _endVertices;
+			}
+		}
+
+		public ushort[] Indices
+		{
+			get
+			{
+				return _indices;
+			}
+		}
+
+		public idSWFLineStyle Style
+		{
+			get
+			{
+				return _style;
+			}
+		}
+
+		public Vector2[] StartVertices
+		{
+			get
+			{
+				return _startVertices;
+			}
+		}
+		#endregion
+
 		#region Members
 		private idSWFLineStyle _style = new idSWFLineStyle();
 
@@ -300,6 +334,40 @@ namespace idTech4.UI.SWF
 
 	public class idSWFLineStyle
 	{
+		#region Properties
+		public idSWFColorRGBA EndColor
+		{
+			get
+			{
+				return _endColor;
+			}
+		}
+
+		public ushort EndWidth
+		{
+			get
+			{
+				return _endWidth;
+			}
+		}
+
+		public idSWFColorRGBA StartColor
+		{
+			get
+			{
+				return _endColor;
+			}
+		}
+
+		public ushort StartWidth
+		{
+			get
+			{
+				return _startWidth;
+			}
+		}
+		#endregion
+
 		#region Members
 		private ushort _startWidth = 20;
 		private ushort _endWidth   = 20;
