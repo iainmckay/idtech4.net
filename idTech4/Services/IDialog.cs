@@ -25,11 +25,11 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-namespace idTech4.Game
+namespace idTech4.Services
 {
-	public class GameConstants
+	public interface IDialog
 	{
-		public const int MaxScreenAreas    = 32;
-		public const int DefaultRepeatTime = 150;
+		bool IsActive { get; }
+		void Init();
 	}
 }

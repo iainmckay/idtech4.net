@@ -30,8 +30,37 @@ using idTech4.UI.SWF.Scripting;
 
 namespace idTech4.Game.Menus
 {
+	/// <summary>
+	/// Provides a paged view of this widgets children.  
+	/// </summary>
+	/// <remarks>
+	/// Each child is expected to take on the following naming scheme.  Children 
+	/// outside of the given window size (NumVisibleOptions) are not rendered,
+	/// and will affect which type of arrow indicators are shown.
+	/// <para/>
+	/// This transparently supports the "UseCircleForAccept" behavior that we need for Japanese PS3 SKU.
+	/// <para/>
+	/// SWF object structure
+	/// --------------------
+	/// COMMANDBAR
+	/// 	joy#
+	/// 		img (Frames: platform)
+	/// 		txt_info (Text)
+	/// </remarks>
 	public class idMenuWidget_CommandBar : idMenuWidget
 	{
+		#region Constants
+		private const int MaxButtons = 6;
+		private static readonly string[] ButtonNames = {
+			"joy1",
+			"joy2",
+			"joy3",
+			"joy4",
+			"joy10",
+			"tab"
+		};
+		#endregion
+
 		#region Properties
 		public Alignment Alignment
 		{
@@ -47,15 +76,37 @@ namespace idTech4.Game.Menus
 		#endregion
 
 		#region Members
-		// TODO: idStaticList< buttonInfo_t, MAX_BUTTONS >	buttons;
+		private ButtonInfo[] _buttons;
 		private Alignment _alignment;
 		#endregion
 
 		#region Constructor
-		public idMenuWidget_CommandBar() : base()
+		public idMenuWidget_CommandBar() 
+			: base()
 		{
 			_alignment = Alignment.Left;
-			// TODO: buttons.SetNum( MAX_BUTTONS );
+			_buttons   = new ButtonInfo[MaxButtons];
+
+			for(int index = 0; index < MaxButtons; ++index)
+			{
+				_buttons[index] = new ButtonInfo();
+			}
+		}
+		#endregion
+
+		#region Methods
+		public void ClearAllButtons()
+		{
+			for(int index = 0; index < MaxButtons; ++index)
+			{
+				_buttons[index].Label = string.Empty;
+				_buttons[index].Action.Set(WidgetActionType.None);
+			}
+		}
+
+		public ButtonInfo GetButton(Button button)
+		{
+			return _buttons[(int) button];
 		}
 		#endregion
 
@@ -73,37 +124,37 @@ namespace idTech4.Game.Menus
 			{
 				return;
 			}
-
-			idLog.Warning("TODO: command bar update");
-
-			/*int basePadding      = 35;
+			
+			int basePadding      = 35;
 			int perButtonPadding = 65;
 			int alignmentScale   = (this.Alignment == Menus.Alignment.Left) ? 1 : -1;
 			int xPosition        = alignmentScale * basePadding;
 			
 			// setup the button order.
-			idStaticList< button_t, MAX_BUTTONS > buttonOrder;
-			for ( int i = 0; i < buttonOrder.Max(); ++i ) {
-				buttonOrder.Append( static_cast< button_t >( i ) );
+			Button[] buttonOrder = new Button[MaxButtons];
+
+			for(int i = 0; i < buttonOrder.Length; ++i)
+			{
+				buttonOrder[i] = (Button) i;
 			}
 
 			// NOTE: Special consideration is done for JPN PS3 where the standard accept button is
 			// swapped with the standard back button.  i.e. In US: X = Accept, O = Back, but in JPN
 			// X = Back, O = Accept.
-			// TODO
-			/*if ( GetSWFObject()->UseCircleForAccept() ) {
-				buttonOrder[ BUTTON_JOY2 ] = BUTTON_JOY1;
-				buttonOrder[ BUTTON_JOY1 ] = BUTTON_JOY2;
-			}*/
+			if(this.SWFObject.UseCircleForAccept == true)
+			{
+				buttonOrder[(int) Button.Joystick2] = Button.Joystick1;
+				buttonOrder[(int) Button.Joystick1] = Button.Joystick2;
+			}
 
 			// FIXME: handle animating in of the button bar?
-			/*this.Sprite.IsVisible = true;
+			this.Sprite.IsVisible = true;
 
 			string shortcutName;
 
-			for(int i = 0; i < buttonOrder.Count; ++i)
+			for(int i = 0; i < buttonOrder.Length; ++i)
 			{
-				string buttonName              = BUTTON_NAMES[buttonOrder[i]];
+				string buttonName = ButtonNames[(int) buttonOrder[i]];
 
 				idSWFSpriteInstance buttonSprite = this.Sprite.ScriptObject.GetSprite(buttonName);
 
@@ -127,66 +178,72 @@ namespace idTech4.Game.Menus
 				}
 
 
-				if(buttons[i].Action.Type != WidgetActionType.None)
+				if(_buttons[i].Action.Type != WidgetActionType.None)
 				{
-					idLog.Warning("TODO: button action");
-			
-					/*idSWFScriptObject * const shortcutKeys = GetSWFObject()->GetGlobal( "shortcutKeys" ).GetObject();
-					if ( verify( shortcutKeys != NULL ) ) {
-						buttonSprite->GetScriptObject()->Set( "onPress", new WrapWidgetSWFEvent( this, WIDGET_EVENT_COMMAND, i ) );
+					idSWFScriptObject shortcutKeys = this.SWFObject.GetGlobal("shortcutKeys").Object;
+
+					if(shortcutKeys != null)
+					{
+						buttonSprite.ScriptObject.Set("onPress", new idWrapWidgetEvent(this, WidgetEventType.Command, i));
 
 						// bind the main action - need to use all caps here because shortcuts are stored that way
-						shortcutName = buttonName;
-						shortcutName.ToUpper();
-						shortcutKeys->Set( shortcutName, buttonSprite->GetScriptObject()  );
+						shortcutName = buttonName.ToUpper();
+
+						shortcutKeys.Set(shortcutName, buttonSprite.ScriptObject);
 
 						// Some other keys have additional bindings. Remember that the button here is
 						// actually the virtual button, and the physical button could be swapped based
 						// on the UseCircleForAccept business on JPN PS3.
-						switch ( i ) {
-							case BUTTON_JOY1: {
-								shortcutKeys->Set( "ENTER", buttonSprite->GetScriptObject() );
+						switch((Button) i) 
+						{
+							case Button.Joystick1:
+								shortcutKeys.Set("ENTER", buttonSprite.ScriptObject);
 								break;
-							}
-							case BUTTON_JOY2: {
-								shortcutKeys->Set( "ESCAPE", buttonSprite->GetScriptObject() );
-								shortcutKeys->Set( "BACKSPACE", buttonSprite->GetScriptObject() );
+
+							case Button.Joystick2:
+								shortcutKeys.Set("ESCAPE", buttonSprite.ScriptObject);
+								shortcutKeys.Set("BACKSPACE", buttonSprite.ScriptObject);
 								break;
-							}
-							case BUTTON_TAB: {
-								shortcutKeys->Set( "K_TAB", buttonSprite->GetScriptObject() );
+							
+							case Button.Tab:
+								shortcutKeys.Set("K_TAB", buttonSprite.ScriptObject);
 								break;
-							}
 						}
 					}
 
-					if ( buttons[ i ].label.IsEmpty() ) {
-						buttonSprite->SetVisible( false );
-					} else {
-						imageSprite->SetVisible( true );
-						imageSprite->StopFrame( menuData->GetPlatform() + 1 );
-						buttonSprite->SetVisible( true );
-						buttonSprite->SetXPos( xPos );
-						buttonText->SetText( buttons[ i ].label );
-						xPos += ALIGNMENT_SCALE * ( buttonText->GetTextLength() + PER_BUTTON_PADDING );
-					}	*//*		
+					if(_buttons[i].Label == string.Empty)
+					{
+						buttonSprite.IsVisible = false;
+					}
+					else
+					{
+						imageSprite.IsVisible = true;
+						imageSprite.StopFrame(_menuData.GetPlatform() + 1);
+
+						buttonSprite.IsVisible = true;
+						buttonSprite.PositionX = xPosition;
+						buttonText.Text        = _buttons[i].Label;
+
+						xPosition += (int) (alignmentScale * (buttonText.TextLength + perButtonPadding));
+					}
 				}
 				else
 				{
 					buttonSprite.IsVisible = false;
 
-					idLog.Warning("TODO: idSWFScriptObject shortcutKeys = this.SWFObject.GetGlobal(\"shortcutKeys\").Object;");
+					idSWFScriptObject shortcutKeys = this.SWFObject.GetGlobal("shortcutKeys").Object;
 
-					/*idSWFScriptObject * const shortcutKeys = GetSWFObject()->GetGlobal( "shortcutKeys" ).GetObject();
-					if ( verify( shortcutKeys != NULL ) ) {
-						buttonSprite->GetScriptObject()->Set( "onPress", NULL );
+					if(shortcutKeys != null)
+					{
+						buttonSprite.ScriptObject.SetNull("onPress");
+
 						 // bind the main action - need to use all caps here because shortcuts are stored that way
-						shortcutName = buttonName;
-						shortcutName.ToUpper();
-						shortcutKeys->Set( shortcutName, buttonSprite->GetScriptObject()  );
-					}*//*
+						shortcutName = buttonName.ToUpper();
+
+						shortcutKeys.Set(shortcutName, buttonSprite.ScriptObject);
+					}
 				}
-			}*/
+			}
 		}
 
 		public override bool ExecuteEvent(idWidgetEvent ev)
@@ -223,5 +280,17 @@ namespace idTech4.Game.Menus
 		Joystick4,
 		Joystick10,
 		Tab
+	}
+
+	public class ButtonInfo
+	{
+		public string Label;			// empty labels are treated as hidden buttons
+		public idWidgetAction Action;
+
+		public ButtonInfo()
+		{
+			this.Action = new idWidgetAction();
+			this.Action.Set(WidgetActionType.None);
+		}
 	}
 }

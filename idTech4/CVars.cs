@@ -86,6 +86,10 @@ namespace idTech4
 			cvarSystem.Register("decl_show", "0", 0, 2, "set to 1 to print parses, 2 to also print references", CVarFlags.System, new ArgCompletion_Integer(0, 2));
 			#endregion
 
+			#region Dialog
+			cvarSystem.Register("popupDialog_debug",			"0", "display debug spam",		CVarFlags.Bool | CVarFlags.Archive);
+			#endregion
+
 			#region Filesystem
 			cvarSystem.Register("fs_basepath",					"", "",												CVarFlags.System | CVarFlags.Init);
 			cvarSystem.Register("fs_buildresources",			"0", "copy every file touched to a resource file",	CVarFlags.System | CVarFlags.Init | CVarFlags.Bool);
@@ -322,7 +326,7 @@ idCVar net_inviteOnly( "net_inviteOnly", "1", CVAR_BOOL | CVAR_ARCHIVE, "whether
 			
 		
 
-			idCVar popupDialog_debug( "popupDialog_debug", "0", CVAR_BOOL | CVAR_ARCHIVE, "display debug spam" );
+			
 
 			idCVar dialog_saveClearLevel( "dialog_saveClearLevel", "1000", CVAR_INTEGER, "Time required to show long message" );
 

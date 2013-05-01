@@ -25,6 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System.Collections.Generic;
+
 using idTech4.Renderer;
 using idTech4.Services;
 using idTech4.UI.SWF;
@@ -39,6 +41,14 @@ namespace idTech4.Game.Menus
 		#endregion
 
 		#region Properties
+		public bool IsPacifierVisible
+		{
+			get
+			{
+				return ((_pacifier != null) && (_pacifier.Sprite != null)) ? _pacifier.Sprite.IsVisible : false;
+			}
+		}
+
 		public idMenuWidget_MenuBar MenuBar
 		{
 			get
@@ -87,7 +97,7 @@ namespace idTech4.Game.Menus
 		private idMaterial _roeIntro;
 		private idMaterial _lmIntro;
 		private idMaterial _marsRotation;
-		// TODO: idList< idStr, TAG_IDLIB_LIST_MENU>			navOptions;
+		private List<string> _navOptions;
 		#endregion
 
 		#region Constructor
@@ -97,11 +107,13 @@ namespace idTech4.Game.Menus
 			_state             = ShellState.Invalid;
 			_nextState         = ShellState.Invalid;
 			_backgroundShowing = true;
+
+			_navOptions = new List<string>();
 		}
 		#endregion
 
 		#region Events
-		public bool HandleAction(idWidgetAction action, idWidgetEvent ev, idMenuWidget widget, bool forceHandled = false)
+		public override bool HandleAction(idWidgetAction action, idWidgetEvent ev, idMenuWidget widget, bool forceHandled = false)
 		{
 			if(_activeScreen == ShellArea.Invalid)
 			{
@@ -115,7 +127,8 @@ namespace idTech4.Game.Menus
 
 			if(ev.Type == WidgetEventType.Command)
 			{
-				/*if ( activeScreen == SHELL_AREA_ROOT && navOptions.Num() > 0 ) {
+				/*if((_activeScreen == ShellArea.Root) && (_navOptions.Count > 0))
+				{
 					return true;
 				}*/
 
@@ -168,13 +181,13 @@ namespace idTech4.Game.Menus
 
 					_menuBar.SetFocusIndex(index);
 					_menuBar.ViewIndex = index;
-										
-					/*idMenuScreen_Shell_Root menu = _menuScreens[(int) ShellArea.Root] as idMenuScreen_Shell_Root;
+					
+					idMenuScreen_Shell_Root menu = _menuScreens[(int) ShellArea.Root] as idMenuScreen_Shell_Root;
 
 					if(menu != null)
 					{
 						menu.RootIndex = index;
-					}*/
+					}
 
 					switch(cmd)
 					{
@@ -314,7 +327,7 @@ namespace idTech4.Game.Menus
 
 				if(rootScreen != null)
 				{
-					idLog.Warning("TODO: navButton.RegisterEventObserver(rootScreen.HelpWidget);");
+					navButton.RegisterEventObserver(rootScreen.HelpWidget);
 				}
 
 				_menuBar.AddChild(navButton);
@@ -417,6 +430,178 @@ namespace idTech4.Game.Menus
 			// TODO: _introGui.Dispose();
 			_introGui = null;
 		}
+
+		public void SetupPCOptions()
+		{
+			if(_inGame == true)
+			{
+				return;
+			}
+
+			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
+			_navOptions.Clear();
+
+			if((GetPlatform() == 2) && (_menuBar != null))
+			{
+				if(cvarSystem.GetBool("g_demoMode") == true)
+				{
+					_navOptions.Add("START DEMO"); // START DEMO
+			
+					if(cvarSystem.GetInt("g_demoMode") == 2)
+					{
+						_navOptions.Add("START PRESS DEMO");	// START DEMO
+					}
+			
+					_navOptions.Add("#str_swf_settings");	// settings
+					_navOptions.Add("#str_swf_quit");	// quit
+
+					idMenuWidget_MenuButton buttonWidget = null;
+					int index                            = 0;
+
+					buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+					if(buttonWidget != null)
+					{
+						buttonWidget.ClearEventActions();
+						buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Demo0, index);
+						buttonWidget.Description = "Launch the demo";
+					}
+
+					if(cvarSystem.GetInt("g_demoMode") == 2)
+					{
+						index++;
+						buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+						if(buttonWidget != null)
+						{
+							buttonWidget.ClearEventActions();
+							buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Demo1, index);
+							buttonWidget.Description = "Launch the press Demo";
+						}
+					}
+			
+					index++;
+					buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+					if(buttonWidget != null)
+					{
+						buttonWidget.ClearEventActions();
+						buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Settings, index);
+						buttonWidget.Description = "#str_02206";
+					}
+					
+					index++;
+					buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+					if(buttonWidget != null)
+					{
+						buttonWidget.ClearEventActions();
+						buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Quit, index);
+						buttonWidget.Description = "#str_01976";
+					}
+				}
+				else
+				{
+#if !ID_RETAIL
+					_navOptions.Add("DEV");
+#endif
+
+					_navOptions.Add("#str_swf_campaign");	 // singleplayer
+					_navOptions.Add("#str_swf_multiplayer"); // multiplayer
+					_navOptions.Add("#str_swf_settings");    // settings
+					_navOptions.Add("#str_swf_credits");     // credits
+					_navOptions.Add("#str_swf_quit");        // quit
+
+			
+					idMenuWidget_MenuButton buttonWidget = null;
+					int index = 0;
+
+#if !ID_RETAIL
+					buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+					if(buttonWidget != null)
+					{
+						buttonWidget.ClearEventActions();
+						buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Developer, index);
+						buttonWidget.Description = "View a list of maps available for play";
+					}
+
+					index++;
+#endif
+
+					buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+					if(buttonWidget != null)
+					{
+						buttonWidget.ClearEventActions();
+						buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Campaign, index);
+						buttonWidget.Description = "#str_swf_campaign_desc";
+					}
+	
+					index++;
+					buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+					if(buttonWidget != null)
+					{
+						buttonWidget.ClearEventActions();
+						buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Multiplayer, index);
+						buttonWidget.Description = "#str_02215";
+					}
+
+					index++;
+					buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+					if(buttonWidget != null)
+					{
+						buttonWidget.ClearEventActions();
+						buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Settings, index);
+						buttonWidget.Description = "#str_02206";
+					}	
+
+					index++;
+					buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+					if(buttonWidget != null)
+					{
+						buttonWidget.ClearEventActions();
+						buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Credits, index);
+						buttonWidget.Description = "#str_02219";
+					}	
+		
+					index++;
+					buttonWidget = _menuBar.GetChildByIndex(index) as idMenuWidget_MenuButton;
+
+					if(buttonWidget != null)
+					{
+						buttonWidget.ClearEventActions();
+						buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) ShellCommand.Quit, index);
+						buttonWidget.Description = "#str_01976";
+					}	
+				}
+			}
+
+			if((_menuBar != null) && (_gui != null))
+			{
+				idSWFScriptObject root = _gui.RootObject;
+
+				if(_menuBar.BindSprite(root) == true)
+				{
+					_menuBar.Sprite.IsVisible = true;
+					_menuBar.SetListHeadings(_navOptions);
+					_menuBar.Update();	
+			
+					idMenuScreen_Shell_Root menu = _menuScreens[(int) ShellArea.Root] as idMenuScreen_Shell_Root;
+
+					if(menu != null)
+					{
+						int activeIndex = menu.RootIndex;
+
+						_menuBar.ViewIndex = activeIndex;
+						_menuBar.SetFocusIndex(activeIndex);		
+					}
+				}
+			}
+		}
 		#endregion
 
 		#region State
@@ -491,41 +676,46 @@ namespace idTech4.Game.Menus
 
 						if(mars != null)
 						{
-							idLog.Warning("TODO: ActivateMenu mars");
-				
-							/*mars->stereoDepth = STEREO_DEPTH_TYPE_FAR;
+							mars.StereoDepth = StereoDepthType.Far;
 
-							idSWFSpriteInstance * planet = mars->GetScriptObject()->GetNestedSprite( "planet" );
+							idSWFSpriteInstance planet = mars.ScriptObject.GetNestedSprite("planet");
 
-							if ( marsRotation != NULL && planet != NULL ) {
-								const idMaterial * mat = marsRotation;
-								if ( mat != NULL ) {
-									int c = mat->GetNumStages();
-									for ( int i = 0; i < c; i++ ) {
-										const shaderStage_t *stage = mat->GetStage( i );
-										if ( stage != NULL && stage->texture.cinematic ) {
-											stage->texture.cinematic->ResetTime( Sys_Milliseconds() );
+							if((_marsRotation != null) && (planet != null))
+							{
+								idMaterial mat = _marsRotation;
+
+								if(mat != null)
+								{
+									int c = mat.StageCount;
+
+									for( int i = 0; i < c; i++) 
+									{
+										MaterialStage stage = mat.GetStage(i);
+
+										if((stage != null) && (stage.Texture.Cinematic != null))
+										{
+											idLog.Warning("TODO stage->texture.cinematic->ResetTime( Sys_Milliseconds() );");
 										}
 									}
 								}
 
-								planet->SetMaterial( mat );
-							}*/
+								planet.SetMaterial(mat);
+							}
 						}
 					}
 				}
 
-				idLog.Warning("TODO: SetupPCOptions();");
+				SetupPCOptions();
 		
 				if(_cmdBar != null)
 				{
-					idLog.Warning("TODO: cmdBar->ClearAllButtons();");
+					_cmdBar.ClearAllButtons();
 					_cmdBar.Update();
 				}
 			}
 			else
 			{
-				idLog.Warning("TODO: ClearWidgetActionRepeater();");
+				ClearWidgetActionRepeater();
 
 				_nextScreen   = ShellArea.Invalid;
 				_activeScreen = ShellArea.Invalid;
@@ -540,28 +730,38 @@ namespace idTech4.Game.Menus
 			}
 		}
 
+		public void HidePacifier()
+		{
+			if(this.Pacifier != null)
+			{
+				this.Pacifier.Hide();
+			}
+		}
+
 		public override void Update()
 		{			
-//#if defined ( ID_360 )
-//	if ( deviceRequestedSignal.Wait( 0 ) ) {
-//		// This clears the delete save dialog to catch the case of a delete confirmation for an old device after we've changed the device.
-//		common->Dialog().ClearDialog( GDM_DELETE_SAVE );
-//		common->Dialog().ClearDialog( GDM_DELETE_CORRUPT_SAVEGAME );
-//		common->Dialog().ClearDialog( GDM_RESTORE_CORRUPT_SAVEGAME );
-//		common->Dialog().ClearDialog( GDM_LOAD_DAMAGED_FILE );
-//		common->Dialog().ClearDialog( GDM_OVERWRITE_SAVE );
-//
-//	}
-//#endif
+#if ID_360
+	if ( deviceRequestedSignal.Wait( 0 ) ) {
+		// This clears the delete save dialog to catch the case of a delete confirmation for an old device after we've changed the device.
+		common->Dialog().ClearDialog( GDM_DELETE_SAVE );
+		common->Dialog().ClearDialog( GDM_DELETE_CORRUPT_SAVEGAME );
+		common->Dialog().ClearDialog( GDM_RESTORE_CORRUPT_SAVEGAME );
+		common->Dialog().ClearDialog( GDM_LOAD_DAMAGED_FILE );
+		common->Dialog().ClearDialog( GDM_OVERWRITE_SAVE );
+
+	}
+#endif
 			if((_gui == null) || (_gui.IsActive == false))
 			{
 				return;
 			}
 
-			// TODO: widget
-			/*if ( ( IsPacifierVisible() || common->Dialog().IsDialogActive() ) && actionRepeater.isActive ) {
+			IDialog dialog = idEngine.Instance.GetService<IDialog>();
+			
+			if(((this.IsPacifierVisible == true) || (dialog.IsActive == true)) && (_actionRepeater.IsActive == true)) 
+			{
 				ClearWidgetActionRepeater();
-			} */
+			} 
 
 			if(_nextState != _state)
 			{	
@@ -602,7 +802,7 @@ namespace idTech4.Game.Menus
 						idSWFScriptObject root = _gui.RootObject;
 						_menuBar.BindSprite(root);
 
-						idLog.Warning("TODO: SetupPCOptions();");
+						SetupPCOptions();
 					}
 
 					_transition = MainMenuTransition.Simple;
@@ -612,7 +812,7 @@ namespace idTech4.Game.Menus
 				{
 					idLog.Warning("TODO: nextState party lobby");
 
-					/*HidePacifier();*/
+					HidePacifier();
 
 					_nextState  = ShellState.PartyLobby;
 					_transition = MainMenuTransition.Simple;
@@ -622,8 +822,9 @@ namespace idTech4.Game.Menus
 				{
 					idLog.Warning("TODO: nextState game lobby");
 					
-					/*HidePacifier();
-					if ( state != SHELL_STATE_IN_GAME ) {
+					HidePacifier();
+					
+					/*if ( state != SHELL_STATE_IN_GAME ) {
 						timeRemaining = WAIT_START_TIME_LONG;
 						idMatchParameters matchParameters = session->GetActivePlatformLobbyBase().GetMatchParms();*/
 						/*if ( MatchTypeIsPrivate( matchParameters.matchFlags ) && ActiveScreen() == SHELL_AREA_PARTY_LOBBY ) {
@@ -640,7 +841,7 @@ namespace idTech4.Game.Menus
 				} 
 				else if(_nextState == ShellState.Paused)
 				{
-					idLog.Warning("TODO: HidePacifier();");
+					HidePacifier();
 
 					_transition = MainMenuTransition.Simple;
 
@@ -673,7 +874,7 @@ namespace idTech4.Game.Menus
 
 			if(_activeScreen != _nextScreen)
 			{
-				// TODO: ClearWidgetActionRepeater();
+				ClearWidgetActionRepeater();
 				UpdateBackgroundState();
 
 				if(_nextScreen == ShellArea.Invalid)
@@ -709,7 +910,7 @@ namespace idTech4.Game.Menus
 
 					if((_nextScreen > ShellArea.Invalid) && (_nextScreen < ShellArea.AreaCount) && (_menuScreens[(int) _nextScreen] != null))
 					{
-						idLog.Warning("TODO: _menuScreens[(int) _nextScreen].UpdateCommands();");
+						_menuScreens[(int) _nextScreen].UpdateCommands();
 						_menuScreens[(int) _nextScreen].ShowScreen(_transition);
 					}
 				}
@@ -720,12 +921,16 @@ namespace idTech4.Game.Menus
 
 			if((_cmdBar != null) && (_cmdBar.Sprite != null))
 			{
-				// TODO: dialog
-				/*if ( common->Dialog().IsDialogActive() ) {		
-					cmdBar->GetSprite()->SetVisible( false );
-				} else {*/
+				IDialog systemDialog = idEngine.Instance.GetService<IDialog>();
+
+				if(systemDialog.IsActive == true)
+				{
+					_cmdBar.Sprite.IsVisible = false;
+				} 
+				else 
+				{
 					_cmdBar.Sprite.IsVisible = true;
-				//}
+				}
 			}
 
 			base.Update();

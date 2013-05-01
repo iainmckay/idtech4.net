@@ -40,6 +40,14 @@ namespace idTech4.Game.Menus
 		#endregion
 
 		#region Properties
+		public idMenuWidget_Help HelpWidget
+		{
+			get
+			{
+				return _helpWidget;
+			}
+		}
+
 		public int RootIndex
 		{
 			get
@@ -63,6 +71,7 @@ namespace idTech4.Game.Menus
 
 		#region Members
 		private idMenuWidget_DynamicList _options;
+		private idMenuWidget_Help _helpWidget;
 		#endregion
 
 		#region Constructor
@@ -290,34 +299,35 @@ namespace idTech4.Game.Menus
 
 			AddChild(_options);
 
-			idLog.Warning("TODO: Shell_Root initialize");
+			_helpWidget = new idMenuWidget_Help();
+			_helpWidget.SetSpritePath(this.SpritePath, "info", "helpTooltip");
+			
+			AddChild(_helpWidget);
 
-			/*helpWidget = new ( TAG_SWF ) idMenuWidget_Help();
-			helpWidget->SetSpritePath( GetSpritePath(), "info", "helpTooltip" );
-			AddChild( helpWidget );
+			while(_options.Children.Length < MainOptionCount)
+			{
+				idMenuWidget_Button buttonWidget = new idMenuWidget_Button();
+				buttonWidget.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.PressFocused, _options.Children.Length);
+				buttonWidget.Initialize(data);				
+				buttonWidget.RegisterEventObserver(_helpWidget);
+				
+				_options.AddChild(buttonWidget);
+			}
 
-			while ( options->GetChildren().Num() < NUM_MAIN_OPTIONS ) {
-				idMenuWidget_Button * const buttonWidget = new (TAG_SWF) idMenuWidget_Button();
-				buttonWidget->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_PRESS_FOCUSED, options->GetChildren().Num() );
-				buttonWidget->Initialize( data );
-				buttonWidget->RegisterEventObserver( helpWidget );
-				options->AddChild( buttonWidget );
-			}*/
+			_options.AddEventAction(WidgetEventType.ScrollDown).Set(new idWidgetActionHandler(_options,                 WidgetActionType.ScrollDownStartRepeater, WidgetEventType.ScrollDown));
+			_options.AddEventAction(WidgetEventType.ScrollUp).Set(new idWidgetActionHandler(_options,                   WidgetActionType.ScrollUpStartRepeater,   WidgetEventType.ScrollUp));
+			_options.AddEventAction(WidgetEventType.ScrollDownRelease).Set(new idWidgetActionHandler(_options,          WidgetActionType.StopRepeater,            WidgetEventType.ScrollDownRelease));
+			_options.AddEventAction(WidgetEventType.ScrollUpRelease).Set(new idWidgetActionHandler(_options,            WidgetActionType.StopRepeater,            WidgetEventType.ScrollUpRelease));
+			_options.AddEventAction(WidgetEventType.ScrollLeftStickDown).Set(new idWidgetActionHandler(_options,        WidgetActionType.ScrollDownStartRepeater, WidgetEventType.ScrollLeftStickDown));
+			_options.AddEventAction(WidgetEventType.ScrollLeftStickUp).Set(new idWidgetActionHandler(_options,          WidgetActionType.ScrollUpStartRepeater,   WidgetEventType.ScrollLeftStickUp));
+			_options.AddEventAction(WidgetEventType.ScrollLeftStickDownRelease).Set(new idWidgetActionHandler(_options, WidgetActionType.StopRepeater,            WidgetEventType.ScrollLeftStickDownRelease));
+			_options.AddEventAction(WidgetEventType.ScrollLeftStickUpRelease).Set(new idWidgetActionHandler(_options,   WidgetActionType.StopRepeater,            WidgetEventType.ScrollLeftStickUpRelease));
 
-			/*options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_DOWN_START_REPEATER, WIDGET_EVENT_SCROLL_DOWN ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_UP ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_UP_START_REPEATER, WIDGET_EVENT_SCROLL_UP ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_DOWN_RELEASE ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_UP_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_UP_RELEASE ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN_LSTICK ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_DOWN_START_REPEATER, WIDGET_EVENT_SCROLL_DOWN_LSTICK ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_UP_LS-TICK ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_UP_START_REPEATER, WIDGET_EVENT_SCROLL_UP_LSTICK ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN_LSTICK_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_DOWN_LSTICK_RELEASE ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_UP_LSTICK_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_UP_LSTICK_RELEASE ) );
-
-			AddEventAction( WIDGET_EVENT_SCROLL_RIGHT ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_SCROLL_RIGHT_START_REPEATER, WIDGET_EVENT_SCROLL_RIGHT ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_RIGHT_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_RIGHT_RELEASE ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_LEFT ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_SCROLL_LEFT_START_REPEATER, WIDGET_EVENT_SCROLL_LEFT ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_LEFT_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_LEFT_RELEASE ) );
-			AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_PRESS_FOCUSED, 0 );*/
+			AddEventAction(WidgetEventType.ScrollRight).Set(new idWidgetActionHandler(this,        WidgetActionType.ScrollRightStartRepeater, WidgetEventType.ScrollRight));
+			AddEventAction(WidgetEventType.ScrollRightRelease).Set(new idWidgetActionHandler(this, WidgetActionType.StopRepeater,             WidgetEventType.ScrollRightRelease));
+			AddEventAction(WidgetEventType.ScrollLeft).Set(new idWidgetActionHandler(this,         WidgetActionType.ScrollLeftStartRepeater,  WidgetEventType.ScrollLeft));
+			AddEventAction(WidgetEventType.ScrollLeftRelease).Set(new idWidgetActionHandler(this,  WidgetActionType.StopRepeater,             WidgetEventType.ScrollLeftRelease));
+			AddEventAction(WidgetEventType.Press).Set(WidgetActionType.PressFocused, 0);
 		}
 
 		public override void ShowScreen(MainMenuTransition transitionType)

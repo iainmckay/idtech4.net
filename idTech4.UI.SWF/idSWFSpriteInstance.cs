@@ -122,6 +122,14 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public bool IsPlaying
+		{
+			get
+			{
+				return _isPlaying;
+			}
+		}
+
 		public bool IsVisible
 		{
 			get
@@ -471,6 +479,17 @@ namespace idTech4.UI.SWF
 			idLog.Warning("Could not find frame '{0}' in sprite '{1}'", labelName, this.Name);
 
 			return _currentFrame;
+		}
+
+		/// <summary>
+		/// Checks if the current frame is between the given inclusive range.
+		/// </summary>
+		/// <param name="frame1"></param>
+		/// <param name="frame2"></param>
+		/// <returns></returns>
+		public bool IsBetweenFrames(string frame1, string frame2)
+		{
+			return ((_currentFrame >= FindFrame(frame1)) && (_currentFrame <= FindFrame(frame2)));
 		}
 
 		public void NextFrame()

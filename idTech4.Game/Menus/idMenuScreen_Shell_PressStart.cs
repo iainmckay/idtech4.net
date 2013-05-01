@@ -82,22 +82,21 @@ namespace idTech4.Game.Menus
 
 			AddChild(_itemList);
 
-			idLog.Warning("swf events");
-			/*AddEventAction( WIDGET_EVENT_SCROLL_LEFT ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_SCROLL_LEFT_START_REPEATER, WIDGET_EVENT_SCROLL_LEFT ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_RIGHT ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_SCROLL_RIGHT_START_REPEATER, WIDGET_EVENT_SCROLL_RIGHT ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_LEFT_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_LEFT_RELEASE ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_RIGHT_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_RIGHT_RELEASE ) );
+			AddEventAction(WidgetEventType.ScrollLeft).Set(new idWidgetActionHandler(this,                 WidgetActionType.ScrollLeftStartRepeater,  WidgetEventType.ScrollLeft));
+			AddEventAction(WidgetEventType.ScrollRight).Set(new idWidgetActionHandler(this,                WidgetActionType.ScrollRightStartRepeater, WidgetEventType.ScrollRight));
+			AddEventAction(WidgetEventType.ScrollLeftRelease).Set(new idWidgetActionHandler(this,          WidgetActionType.StopRepeater,             WidgetEventType.ScrollLeftRelease));
+			AddEventAction(WidgetEventType.ScrollRightRelease).Set(new idWidgetActionHandler(this,         WidgetActionType.StopRepeater,             WidgetEventType.ScrollRightRelease));			
 
-			AddEventAction( WIDGET_EVENT_SCROLL_UP ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_SCROLL_UP_START_REPEATER, WIDGET_EVENT_SCROLL_UP ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_DOWN ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_SCROLL_DOWN_START_REPEATER, WIDGET_EVENT_SCROLL_DOWN ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_UP_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_UP_RELEASE ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_DOWN_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_DOWN_RELEASE ) );
+			AddEventAction(WidgetEventType.ScrollUp).Set(new idWidgetActionHandler(this,                   WidgetActionType.ScrollUpStartRepeater,    WidgetEventType.ScrollUp));
+			AddEventAction(WidgetEventType.ScrollDown).Set(new idWidgetActionHandler(this,                 WidgetActionType.ScrollDownStartRepeater,  WidgetEventType.ScrollDown));
+			AddEventAction(WidgetEventType.ScrollUpRelease).Set(new idWidgetActionHandler(this,            WidgetActionType.StopRepeater,             WidgetEventType.ScrollUpRelease));
+			AddEventAction(WidgetEventType.ScrollDownRelease).Set(new idWidgetActionHandler(this,          WidgetActionType.StopRepeater,             WidgetEventType.ScrollDownRelease));			
 
-			AddEventAction( WIDGET_EVENT_SCROLL_LEFT_LSTICK ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_SCROLL_LEFT_START_REPEATER, WIDGET_EVENT_SCROLL_LEFT_LSTICK ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_RIGHT_LSTICK ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_SCROLL_RIGHT_START_REPEATER, WIDGET_EVENT_SCROLL_RIGHT_LSTICK ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_LEFT_LSTICK_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_LEFT_LSTICK_RELEASE ) );
-			AddEventAction( WIDGET_EVENT_SCROLL_RIGHT_LSTICK_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( this, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_RIGHT_LSTICK_RELEASE ) );*/
-
+			AddEventAction(WidgetEventType.ScrollLeftStickDown).Set(new idWidgetActionHandler(this,        WidgetActionType.ScrollDownStartRepeater,  WidgetEventType.ScrollLeftStickDown));
+			AddEventAction(WidgetEventType.ScrollLeftStickUp).Set(new idWidgetActionHandler(this,          WidgetActionType.ScrollUpStartRepeater,    WidgetEventType.ScrollLeftStickUp));
+			AddEventAction(WidgetEventType.ScrollLeftStickDownRelease).Set(new idWidgetActionHandler(this, WidgetActionType.StopRepeater,             WidgetEventType.ScrollLeftStickDownRelease));
+			AddEventAction(WidgetEventType.ScrollLeftStickUpRelease).Set(new idWidgetActionHandler(this,   WidgetActionType.StopRepeater,             WidgetEventType.ScrollLeftStickUpRelease));
+			
 			_doomCover  = declManager.FindMaterial("guis/assets/mainmenu/doom_cover");
 			_doom2Cover = declManager.FindMaterial("guis/assets/mainmenu/doom2_cover");
 			_doom3Cover = declManager.FindMaterial("guis/assets/mainmenu/doom3_cover");
@@ -116,19 +115,21 @@ namespace idTech4.Game.Menus
 			{
 				if(_menuData != null)
 				{
-					idLog.Warning("TODO: swf press start update");
-					/*idMenuWidget_CommandBar cmdBar = _menuData.CommandBar;
+					idMenuWidget_CommandBar cmdBar = _menuData.CommandBar;
 
 					if(cmdBar != null)
 					{
 						cmdBar.ClearAllButtons();
-						/*idMenuWidget_CommandBar::buttonInfo_t * buttonInfo;
-						buttonInfo = cmdBar->GetButton( idMenuWidget_CommandBar::BUTTON_JOY1 );
-						if ( menuData->GetPlatform() != 2 ) {
-							buttonInfo->label = "#str_SWF_SELECT";
+						
+						ButtonInfo buttonInfo = cmdBar.GetButton(Button.Joystick1);
+
+						if(_menuData.GetPlatform() != 2)
+						{
+							buttonInfo.Label = "#str_SWF_SELECT";
 						}
-						buttonInfo->action.Set( WIDGET_ACTION_PRESS_FOCUSED );
-					}	*/	
+
+						buttonInfo.Action.Set(WidgetActionType.PressFocused);
+					}
 				}
 			}
 

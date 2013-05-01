@@ -155,16 +155,15 @@ namespace idTech4.Game.Menus
 			_backButton.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.GoBack);
 
 			AddChild(_backButton);
-
-			idLog.Warning("TODO: Shell_ControllerLayout initialize");
-
-			/*idMenuWidget_ControlButton * control = new (TAG_SWF) idMenuWidget_ControlButton();
-			control->SetOptionType( OPTION_BUTTON_FULL_TEXT_SLIDER );
-			control->SetLabel( "CONTROL LAYOUT" );	// Auto Weapon Reload
-			control->SetDataSource( &layoutData, idMenuDataSource_LayoutSettings::LAYOUT_FIELD_LAYOUT );
-			control->SetupEvents( DEFAULT_REPEAT_TIME, options->GetChildren().Num() );
-			control->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_PRESS_FOCUSED, options->GetChildren().Num() );
-			options->AddChild( control );*/
+			
+			idMenuWidget_ControlButton control = new idMenuWidget_ControlButton();
+			control.OptionType = MenuOptionType.ButtonFullTextSlider;
+			control.Label = "CONTROL LAYOUT";	// Auto Weapon Reload
+			idLog.Warning("TODO: control.SetDataSource(layoutData, Layo control->SetDataSource( &layoutData, idMenuDataSource_LayoutSettings::LAYOUT_FIELD_LAYOUT );");
+			control.SetupEvents(GameConstants.DefaultRepeatTime, _options.Children.Length);
+			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.PressFocused, _options.Children.Length);
+			
+			_options.AddChild(control);
 		}
 
 		public override void ShowScreen(MainMenuTransition transitionType)
@@ -196,18 +195,19 @@ namespace idTech4.Game.Menus
 
 				if(cmdBar != null)
 				{
-					idLog.Warning("TODO: Shell_ControllerLayout update");
+					cmdBar.ClearAllButtons();
 
-					/*cmdBar->ClearAllButtons();
-					idMenuWidget_CommandBar::buttonInfo_t * buttonInfo;			
-					buttonInfo = cmdBar->GetButton( idMenuWidget_CommandBar::BUTTON_JOY2 );
-					if ( menuData->GetPlatform() != 2 ) {
-						buttonInfo->label = "#str_00395";
+					ButtonInfo buttonInfo = cmdBar.GetButton(Button.Joystick2);
+
+					if(_menuData.GetPlatform() != 2)
+					{
+						buttonInfo.Label = "#str_00395";
 					}
-					buttonInfo->action.Set( WIDGET_ACTION_GO_BACK );
 
-					buttonInfo = cmdBar->GetButton( idMenuWidget_CommandBar::BUTTON_JOY1 );
-					buttonInfo->action.Set( WIDGET_ACTION_PRESS_FOCUSED );*/
+					buttonInfo.Action.Set(WidgetActionType.GoBack);
+
+					buttonInfo = cmdBar.GetButton(Button.Joystick1);
+					buttonInfo.Action.Set(WidgetActionType.PressFocused);
 				}		
 			}
 

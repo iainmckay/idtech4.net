@@ -33,6 +33,28 @@ using idTech4.UI.SWF.Scripting;
 
 namespace idTech4.Game.Menus
 {
+	/// <summary>
+	/// 
+	/// </summary>
+	/// <remarks>
+	/// SWF object structure
+	/// --------------------
+	/// BUTTON (Frames: up, over, out, down, release, disabled, sel_up, sel_over, sel_out, sel_down, sel_release, selecting, unselecting)
+	/// 	txtOption
+	/// 		txtValue (Text)
+	/// 	optionType (Frames: One per mainMenuOption_t enum)
+	/// 		sliderBar
+	/// 			bar (Frames: 1-100 for percentage filled)
+	/// 			btnLess
+	/// 			btnMore
+	/// 		sliderText
+	/// 			txtVal (Text)
+	/// 			btnLess
+	/// 			btnMore
+	/// <para/>
+	/// Future work:
+	/// - Perhaps this should be called "MultiButton", since it merges additional controls with a standard button?
+	/// </remarks>
 	public class idMenuWidget_Button : idMenuWidget
 	{
 		#region Properties
@@ -333,16 +355,18 @@ namespace idTech4.Game.Menus
 			}
 
 			// events
-			idLog.Warning("TODO: spriteObject->Set( \"onPress\", new ( TAG_SWF ) WrapWidgetSWFEvent( this, WIDGET_EVENT_PRESS, 0 ) );");
-			idLog.Warning("TODO: spriteObject->Set( \"onRelease\", new ( TAG_SWF ) WrapWidgetSWFEvent( this, WIDGET_EVENT_RELEASE, 0 ) );");
+			spriteObject.Set("onPress",   new idWrapWidgetEvent(this, WidgetEventType.Press, 0));
+			spriteObject.Set("onRelease", new idWrapWidgetEvent(this, WidgetEventType.Release, 0));
 
-			/*idSWFScriptObject * hitBox = spriteObject->GetObject( "hitBox" );
-			if ( hitBox == NULL ) {
+			idSWFScriptObject hitBox = spriteObject.GetObject("hitBox");
+			
+			if(hitBox == null) 
+			{
 				hitBox = spriteObject;
 			}
 
-			hitBox->Set( "onRollOver", new ( TAG_SWF ) WrapWidgetSWFEvent( this, WIDGET_EVENT_ROLL_OVER, 0 ) );
-			hitBox->Set( "onRollOut", new ( TAG_SWF ) WrapWidgetSWFEvent( this, WIDGET_EVENT_ROLL_OUT, 0 ) );*/
+			hitBox.Set("onRollOver", new idWrapWidgetEvent(this, WidgetEventType.RollOver, 0));
+			hitBox.Set("onRollOut",  new idWrapWidgetEvent(this, WidgetEventType.RollOut, 0));
 		}
 		#endregion
 	}

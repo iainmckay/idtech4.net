@@ -41,6 +41,8 @@ namespace idTech4.Services
 		/// Initialize the game for the first time.
 		/// </summary>
 		void Init();
+
+		IDialog CreateDialog();
 		#endregion
 
 		#region Main Menu

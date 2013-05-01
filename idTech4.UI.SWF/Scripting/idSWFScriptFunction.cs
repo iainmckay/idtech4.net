@@ -32,6 +32,20 @@ namespace idTech4.UI.SWF.Scripting
 {
 	public abstract class idSWFScriptFunction
 	{
+		#region Properties
+		public virtual idSWFScriptObject Prototype
+		{
+			get
+			{
+				return null;
+			}
+			set
+			{
+
+			}
+		}
+		#endregion
+
 		#region Members
 		protected List<idSWFParameterInfo> _parameters = new List<idSWFParameterInfo>();
 		#endregion

@@ -111,18 +111,18 @@ namespace idTech4.Game.Menus
 
 				if(textObj != null)
 				{
-					idLog.Warning("TODO: menu button events");
+					textObj.Set("onPress",   new idWrapWidgetEvent(this, WidgetEventType.Press, 0));
+					textObj.Set("onRelease", new idWrapWidgetEvent(this, WidgetEventType.Release, 0));
 
-					/*textObj->Set( "onPress", new ( TAG_SWF ) WrapWidgetSWFEvent( this, WIDGET_EVENT_PRESS, 0 ) );
-					textObj->Set( "onRelease", new ( TAG_SWF ) WrapWidgetSWFEvent( this, WIDGET_EVENT_RELEASE, 0 ) );
-
-					idSWFScriptObject * hitBox = spriteObject->GetObject( "hitBox" );
-					if ( hitBox == NULL ) {
+					idSWFScriptObject hitBox = spriteObject.GetObject("hitBox");
+					
+					if(hitBox == null)
+					{
 						hitBox = textObj;
 					}
 
-					hitBox->Set( "onRollOver", new ( TAG_SWF ) WrapWidgetSWFEvent( this, WIDGET_EVENT_ROLL_OVER, 0 ) );
-					hitBox->Set( "onRollOut", new ( TAG_SWF ) WrapWidgetSWFEvent( this, WIDGET_EVENT_ROLL_OUT, 0 ) );*/
+					hitBox.Set("onRollOver", new idWrapWidgetEvent(this, WidgetEventType.RollOver, 0));
+					hitBox.Set("onRollOut",  new idWrapWidgetEvent(this, WidgetEventType.RollOut, 0));
 				}
 			}
 		}

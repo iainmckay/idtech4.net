@@ -97,6 +97,7 @@
     <Compile Include="idGameEdit.cs" />
     <Compile Include="Menus\idMenuDataSource.cs" />
     <Compile Include="Menus\idMenuHandler.cs" />
+    <Compile Include="Menus\idDialog.cs" />
     <Compile Include="Menus\idMenuHandler_Shell.cs" />
     <Compile Include="Menus\idMenuScreen.cs" />
     <Compile Include="Menus\idMenuScreen_Shell_ControllerLayout.cs" />
@@ -108,7 +109,9 @@
     <Compile Include="Menus\idMenuWidget_Button.cs" />
     <Compile Include="Menus\idMenuWidget_Carousel.cs" />
     <Compile Include="Menus\idMenuWidget_CommandBar.cs" />
+    <Compile Include="Menus\idMenuWidget_ControlButton.cs" />
     <Compile Include="Menus\idMenuWidget_DynamicList.cs" />
+    <Compile Include="Menus\idMenuWidget_Help.cs" />
     <Compile Include="Menus\idMenuWidget_List.cs" />
     <Compile Include="Menus\idMenuWidget_MenuBar.cs" />
     <Compile Include="Menus\idMenuWidget_MenuButton.cs" />

@@ -274,6 +274,30 @@ namespace idTech4.UI.SWF.Scripting
 			return retVal;
 		}
 
+		public idSWFScriptObject GetObject(int index)
+		{
+			idSWFScriptVariable var = Get(index);
+
+			if(var.IsObject == true)
+			{
+				return var.Object;
+			}
+
+			return null;
+		}
+
+		public idSWFScriptObject GetObject(string name)
+		{
+			idSWFScriptVariable var = Get(name);
+
+			if(var.IsObject == true)
+			{
+				return var.Object;
+			}
+
+			return null;
+		}
+
 		public idSWFSpriteInstance GetSprite(int index)
 		{
 			return Get(index).ToSprite();
@@ -283,7 +307,19 @@ namespace idTech4.UI.SWF.Scripting
 		{
 			return Get(name).ToSprite();
 		}
-	
+
+		public idSWFTextInstance GetText(string name)
+		{
+			idSWFScriptVariable var = Get(name);
+
+			if(var.IsObject == true)
+			{
+				return var.Object.Text;
+			}
+
+			return null;
+		}
+
 		public void Set(int index, idSWFScriptVariable value)
 		{
 			if(index < 0)
@@ -318,6 +354,11 @@ namespace idTech4.UI.SWF.Scripting
 			}
 		}
 
+		public void Set(string name, string value)
+		{
+			Set(name, new idSWFScriptVariable(value));
+		}
+
 		public void Set(string name, idSWFScriptFunction value)
 		{
 			Set(name, new idSWFScriptVariable(value));
@@ -329,6 +370,16 @@ namespace idTech4.UI.SWF.Scripting
 		}
 
 		public void Set(string name, idSWFScriptVariable value)
+		{
+			SetInternal(name, value);
+		}
+
+		public void SetNull(string name)
+		{
+			SetInternal(name, null);
+		}
+
+		private void SetInternal(string name, idSWFScriptVariable value)
 		{
 			if(_objectType == ObjectType.Array)
 			{
@@ -373,7 +424,7 @@ namespace idTech4.UI.SWF.Scripting
 				variable.Value = value;
 			}
 		}
-
+		
 		public void SetNative(string name, idSWFScriptNativeVariable native)
 		{
 			idSWFNamedVariable var = GetVariable(name, true);
@@ -469,7 +520,7 @@ namespace idTech4.UI.SWF.Scripting
 			variable.Flags              = idSWFNamedVariable.Flag_DontEnum;
 		}
 
-		private void Clear()
+		public void Clear()
 		{
 			_variables.Clear();
 			_variablesByName.Clear();

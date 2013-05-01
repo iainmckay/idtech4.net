@@ -166,6 +166,11 @@ namespace idTech4.Game
 			lastCmdRunTimeOnServer.Zero();*/
 		}
 
+		public IDialog CreateDialog()
+		{
+			return new idDialog();
+		}
+
 		/// <summary>
 		/// Initialize the game for the first time.
 		/// </summary>
@@ -176,7 +181,7 @@ namespace idTech4.Game
 			ICommandSystem cmdSystem = idEngine.Instance.GetService<ICommandSystem>();
 
 			// we're using SWF's for this game
-			idSWFManager swfManager  = new idSWFManager();
+			idSWFManager swfManager = new idSWFManager();
 			swfManager.Initialize();
 
 			idEngine.Instance.Services.AddService(typeof(idSWFManager), swfManager);

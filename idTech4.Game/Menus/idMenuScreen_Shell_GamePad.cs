@@ -72,12 +72,11 @@ namespace idTech4.Game.Menus
 			_options.Initialize(data);
 
 			AddChild(_options);
-
-			idLog.Warning("TODO: Shell_GamePad initialize");
-
-			/*idMenuWidget_Help * const helpWidget = new ( TAG_SWF ) idMenuWidget_Help();
-			helpWidget->SetSpritePath( GetSpritePath(), "info", "helpTooltip" );
-			AddChild( helpWidget );*/
+			
+			idMenuWidget_Help helpWidget = new idMenuWidget_Help();
+			helpWidget.SetSpritePath(this.SpritePath, "info", "helpTooltip");
+			
+			AddChild(helpWidget);
 			
 			_buttonBack = new idMenuWidget_Button();
 			_buttonBack.Initialize(data);
@@ -86,89 +85,98 @@ namespace idTech4.Game.Menus
 			_buttonBack.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.GoBack);
 
 			AddChild(_buttonBack);
+			
+			idMenuWidget_ControlButton control;
 
-			/*idMenuWidget_ControlButton * control;
-		#ifndef ID_PC
-			control = new (TAG_SWF) idMenuWidget_ControlButton();
-			control->SetOptionType( OPTION_BUTTON_TEXT );
-			control->SetLabel( "#str_swf_gamepad_config" );	// Gamepad Configuration
-			control->SetDescription( "#str_swf_config_desc" );
-			control->RegisterEventObserver( helpWidget );
-			control->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_COMMAND, GAMEPAD_CMD_CONFIG );	
-			options->AddChild( control );
-		#endif
+#if !ID_PC
+			control             = new idMenuWidget_ControlButton();
+			control.OptionType  = MenuOptionType.ButtonText;
+			control.Label       = "#str_swf_gamepad_config";	// Gamepad Configuration
+			control.Description = "#str_swf_config_desc";
+			control.RegisterEventObserver(helpWidget);
+			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) GamePadMenuCommands.Configuration);	
+			
+			_options.AddChild(control);
+#endif
 
-			control = new (TAG_SWF) idMenuWidget_ControlButton();
-			control->SetOptionType( OPTION_SLIDER_TOGGLE );
-			control->SetLabel( "#str_swf_lefty_flip" );
-			control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_LEFTY );
-			control->SetupEvents( DEFAULT_REPEAT_TIME, options->GetChildren().Num() );
-			control->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_COMMAND, GAMEPAD_CMD_LEFTY );
-			control->RegisterEventObserver( helpWidget );
-			options->AddChild( control );
+			control             = new idMenuWidget_ControlButton();
+			control.OptionType  = MenuOptionType.SliderToggle;
+			control.Label       = "#str_swf_lefty_flip";
+			idLog.Warning("TODO: control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_LEFTY );");
+			control.SetupEvents(GameConstants.DefaultRepeatTime, _options.Children.Length);
+			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) GamePadMenuCommands.Lefty);
+			control.RegisterEventObserver(helpWidget);
+			
+			_options.AddChild(control);
+			
+			control             = new idMenuWidget_ControlButton();
+			control.OptionType  = MenuOptionType.SliderToggle;
+			control.Label       = "#str_swf_invert_gamepad";
+			idLog.Warning("TODO: control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_INVERT );");
+			control.SetupEvents(GameConstants.DefaultRepeatTime, _options.Children.Length);
+			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) GamePadMenuCommands.Invert);
+			control.RegisterEventObserver(helpWidget);
+			
+			_options.AddChild(control);
+			
+			control             = new idMenuWidget_ControlButton();
+			control.OptionType  = MenuOptionType.SliderToggle;
+			control.Label       = "#str_swf_vibration";
+			idLog.Warning("TODO: control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_VIBRATE );");
+			control.SetupEvents(GameConstants.DefaultRepeatTime, _options.Children.Length);
+			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) GamePadMenuCommands.Vibrate);
+			control.RegisterEventObserver(helpWidget);
+			
+			_options.AddChild(control);
 
-			control = new (TAG_SWF) idMenuWidget_ControlButton();
-			control->SetOptionType( OPTION_SLIDER_TOGGLE );
-			control->SetLabel( "#str_swf_invert_gamepad" );
-			control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_INVERT );
-			control->SetupEvents( DEFAULT_REPEAT_TIME, options->GetChildren().Num() );
-			control->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_COMMAND, GAMEPAD_CMD_INVERT );
-			control->RegisterEventObserver( helpWidget );
-			options->AddChild( control );
+			control             = new idMenuWidget_ControlButton();
+			control.OptionType  = MenuOptionType.SliderBar;
+			control.Label       = "#str_swf_hor_sens";
+			idLog.Warning("TODO: control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_HOR_SENS );");
+			control.SetupEvents(2, _options.Children.Length);
+			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) GamePadMenuCommands.HorizontalSensitivity);
+			control.RegisterEventObserver(helpWidget);
+			
+			_options.AddChild(control);
 
-			control = new (TAG_SWF) idMenuWidget_ControlButton();
-			control->SetOptionType( OPTION_SLIDER_TOGGLE );
-			control->SetLabel( "#str_swf_vibration" );
-			control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_VIBRATE );
-			control->SetupEvents( DEFAULT_REPEAT_TIME, options->GetChildren().Num() );
-			control->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_COMMAND, GAMEPAD_CMD_VIBRATE );
-			control->RegisterEventObserver( helpWidget );
-			options->AddChild( control );
+			control             = new idMenuWidget_ControlButton();
+			control.OptionType  = MenuOptionType.SliderBar;
+			control.Label       = "#str_swf_vert_sens";
+			idLog.Warning("TODO: control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_VERT_SENS );");
+			control.SetupEvents(2, _options.Children.Length);
+			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) GamePadMenuCommands.VerticalSensitivity);
+			control.RegisterEventObserver(helpWidget);
+			
+			_options.AddChild(control);
 
-			control = new (TAG_SWF) idMenuWidget_ControlButton();
-			control->SetOptionType( OPTION_SLIDER_BAR );
-			control->SetLabel( "#str_swf_hor_sens" );
-			control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_HOR_SENS );
-			control->SetupEvents( 2, options->GetChildren().Num() );
-			control->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_COMMAND, GAMEPAD_CMD_HOR_SENS );
-			control->RegisterEventObserver( helpWidget );
-			options->AddChild( control );
+			control             = new idMenuWidget_ControlButton();
+			control.OptionType  = MenuOptionType.SliderToggle;
+			control.Label       = "#str_swf_joy_gammaLook";
+			idLog.Warning("TODO: control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_ACCELERATION );");
+			control.SetupEvents(GameConstants.DefaultRepeatTime, _options.Children.Length);
+			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) GamePadMenuCommands.Acceleration);
+			control.RegisterEventObserver(helpWidget);
+			
+			_options.AddChild(control);
+			
+			control             = new idMenuWidget_ControlButton();
+			control.OptionType  = MenuOptionType.SliderToggle;
+			control.Label       = "#str_swf_joy_mergedThreshold";
+			idLog.Warning("TODO: control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_THRESHOLD );");
+			control.SetupEvents(GameConstants.DefaultRepeatTime, _options.Children.Length);
+			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.Command, (int) GamePadMenuCommands.Threshold);
+			control.RegisterEventObserver(helpWidget);
+			
+			_options.AddChild(control);
 
-			control = new (TAG_SWF) idMenuWidget_ControlButton();
-			control->SetOptionType( OPTION_SLIDER_BAR );
-			control->SetLabel( "#str_swf_vert_sens" );
-			control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_VERT_SENS );
-			control->SetupEvents( 2, options->GetChildren().Num() );
-			control->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_COMMAND, GAMEPAD_CMD_VERT_SENS );
-			control->RegisterEventObserver( helpWidget );
-			options->AddChild( control );
-
-			control = new (TAG_SWF) idMenuWidget_ControlButton();
-			control->SetOptionType( OPTION_SLIDER_TOGGLE );
-			control->SetLabel( "#str_swf_joy_gammaLook" );
-			control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_ACCELERATION );
-			control->SetupEvents( DEFAULT_REPEAT_TIME, options->GetChildren().Num() );
-			control->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_COMMAND, GAMEPAD_CMD_ACCELERATION );
-			control->RegisterEventObserver( helpWidget );
-			options->AddChild( control );
-
-			control = new (TAG_SWF) idMenuWidget_ControlButton();
-			control->SetOptionType( OPTION_SLIDER_TOGGLE );
-			control->SetLabel( "#str_swf_joy_mergedThreshold" );
-			control->SetDataSource( &gamepadData, idMenuDataSource_GamepadSettings::GAMEPAD_FIELD_THRESHOLD );
-			control->SetupEvents( DEFAULT_REPEAT_TIME, options->GetChildren().Num() );
-			control->AddEventAction( WIDGET_EVENT_PRESS ).Set( WIDGET_ACTION_COMMAND, GAMEPAD_CMD_THRESHOLD );
-			control->RegisterEventObserver( helpWidget );
-			options->AddChild( control );*/
-
-			/*options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_DOWN_START_REPEATER, WIDGET_EVENT_SCROLL_DOWN ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_UP ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_UP_START_REPEATER, WIDGET_EVENT_SCROLL_UP ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_DOWN_RELEASE ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_UP_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_UP_RELEASE ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN_LSTICK ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_DOWN_START_REPEATER, WIDGET_EVENT_SCROLL_DOWN_LSTICK ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_UP_LSTICK ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_SCROLL_UP_START_REPEATER, WIDGET_EVENT_SCROLL_UP_LSTICK ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_DOWN_LSTICK_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_DOWN_LSTICK_RELEASE ) );
-			options->AddEventAction( WIDGET_EVENT_SCROLL_UP_LSTICK_RELEASE ).Set( new (TAG_SWF) idWidgetActionHandler( options, WIDGET_ACTION_EVENT_STOP_REPEATER, WIDGET_EVENT_SCROLL_UP_LSTICK_RELEASE ) );*/
+			_options.AddEventAction(WidgetEventType.ScrollDown).Set(new idWidgetActionHandler(_options,                 WidgetActionType.ScrollDownStartRepeater, WidgetEventType.ScrollDown));
+			_options.AddEventAction(WidgetEventType.ScrollUp).Set(new idWidgetActionHandler(_options,                   WidgetActionType.ScrollUpStartRepeater,   WidgetEventType.ScrollUp));
+			_options.AddEventAction(WidgetEventType.ScrollDownRelease).Set(new idWidgetActionHandler(_options,          WidgetActionType.StopRepeater,            WidgetEventType.ScrollDownRelease));
+			_options.AddEventAction(WidgetEventType.ScrollUpRelease).Set(new idWidgetActionHandler(_options,            WidgetActionType.StopRepeater,            WidgetEventType.ScrollUpRelease));
+			_options.AddEventAction(WidgetEventType.ScrollLeftStickDown).Set(new idWidgetActionHandler(_options,        WidgetActionType.ScrollDownStartRepeater, WidgetEventType.ScrollLeftStickDown));
+			_options.AddEventAction(WidgetEventType.ScrollLeftStickUp).Set(new idWidgetActionHandler(_options,          WidgetActionType.ScrollUpStartRepeater,   WidgetEventType.ScrollLeftStickUp));
+			_options.AddEventAction(WidgetEventType.ScrollLeftStickDownRelease).Set(new idWidgetActionHandler(_options, WidgetActionType.StopRepeater,            WidgetEventType.ScrollLeftStickDownRelease));
+			_options.AddEventAction(WidgetEventType.ScrollLeftStickUpRelease).Set(new idWidgetActionHandler(_options,   WidgetActionType.StopRepeater,            WidgetEventType.ScrollLeftStickUpRelease));
 		}
 
 		public override void ShowScreen(MainMenuTransition transitionType)
@@ -295,7 +303,7 @@ namespace idTech4.Game.Menus
 
 				if(handler != null)
 				{
-					idLog.Warning("TODO: handler->SetupPCOptions();");
+					handler.SetupPCOptions();
 				}
 			}
 
@@ -356,5 +364,20 @@ namespace idTech4.Game.Menus
 			base.Update();
 		}
 		#endregion
+	}
+
+	public enum GamePadMenuCommands
+	{
+#if !ID_PC
+		Configuration,
+#endif
+
+		Lefty,
+		Invert,
+		Vibrate,
+		HorizontalSensitivity,
+		VerticalSensitivity,
+		Acceleration,
+		Threshold
 	}
 }

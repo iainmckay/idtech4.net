@@ -134,6 +134,7 @@
     <Compile Include="Services\IConsole.cs" />
     <Compile Include="Services\ICVarSystem.cs" />
     <Compile Include="Services\IDeclManager.cs" />
+    <Compile Include="Services\IDialog.cs" />
     <Compile Include="Services\IFileSystem.cs" />
     <Compile Include="Services\IGame.cs" />
     <Compile Include="Services\IGameEdit.cs" />

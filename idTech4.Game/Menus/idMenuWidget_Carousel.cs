@@ -85,6 +85,11 @@ namespace idTech4.Game.Menus
 		{
 			get
 			{
+				if(_imageList == null)
+				{
+					return 0;
+				}
+
 				return _imageList.Length;
 			}
 		}
@@ -128,7 +133,7 @@ namespace idTech4.Game.Menus
 		public idMenuWidget_Carousel()
 			: base()
 		{
-			
+				
 		}
 		#endregion
 
@@ -274,51 +279,10 @@ namespace idTech4.Game.Menus
 		{
 			base.Initialize(data);
 
-			idLog.Warning("TODO: carousel refresh");
-
-			/*class idCarouselRefresh : public idSWFScriptFunction_RefCounted {
-			public:
-				idCarouselRefresh( idMenuWidget_Carousel * _widget ) :
-					widget( _widget ) {
-					}
-
-					idSWFScriptVar Call( idSWFScriptObject * thisObject, const idSWFParmList & parms ) {
-
-						if ( widget == NULL ) {
-							return idSWFScriptVar();
-						}
-
-						if ( widget->GetMoveDiff() != 0 ) {
-							int diff = widget->GetMoveDiff();
-							diff--;
-
-							if ( widget->GetScrollLeft() ) {
-								widget->SetViewIndex( widget->GetViewIndex() - 1 );
-							} else {
-								widget->SetViewIndex( widget->GetViewIndex() + 1 );
-							}
-
-							if ( diff > 0 ) {
-								if ( widget->GetScrollLeft() ) {
-									widget->MoveToIndex( ( widget->GetNumVisibleOptions() / 2 ) + diff );
-								} else {
-									widget->MoveToIndex( diff );
-								}
-							} else {
-								widget->SetMoveDiff( 0 );
-							}
-						} 
-
-						widget->Update();
-						return idSWFScriptVar();
-					}
-			private:
-				idMenuWidget_Carousel *	widget;
-			};	
-
-			if ( GetSWFObject() != NULL ) {
-				GetSWFObject()->SetGlobal( "refreshCarousel", new idCarouselRefresh( this ) );
-			}*/
+			if(this.SWFObject != null) 
+			{
+				this.SWFObject.SetGlobal("refreshCarousel", new idCarouselRefresh(this));
+			}
 		}
 	
 		public override void Update()
@@ -358,7 +322,7 @@ namespace idTech4.Game.Menus
 					else 
 					{
 						idMenuWidget_Button button = (idMenuWidget_Button) child;
-						button.Image = _imageList[listIndex];
+						button.Image               = _imageList[listIndex];
 
 						child.Update();
 
@@ -378,6 +342,67 @@ namespace idTech4.Game.Menus
 		public override bool HandleAction(idWidgetAction action, idWidgetEvent ev, idMenuWidget widget, bool forceHandled = false)
 		{
 			 return base.HandleAction(action, ev, widget, forceHandled);
+		}
+		#endregion
+
+		#region Carousel
+		private class idCarouselRefresh : idSWFScriptFunction
+		{
+			#region Members
+			private idMenuWidget_Carousel _widget;
+			#endregion
+
+			#region Constructor
+			public idCarouselRefresh(idMenuWidget_Carousel widget)
+			{
+				_widget = widget;
+			}
+			#endregion
+
+			#region idSWFScriptFunction implementation
+			public override idSWFScriptVariable Invoke(idSWFScriptObject scriptObj, idSWFParameterList parms)
+			{
+				if(_widget == null)
+				{
+					return new idSWFScriptVariable();
+				}
+
+				if(_widget.MoveDiff != 0)
+				{
+					int diff = _widget.MoveDiff;
+					diff--;
+
+					if(_widget.ScrollLeft == true)
+					{
+						_widget.ViewIndex = _widget.ViewIndex - 1;
+					}
+					else
+					{
+						_widget.ViewIndex = _widget.ViewIndex + 1;
+					}
+
+					if(diff > 0)
+					{
+						if(_widget.ScrollLeft == true)
+						{
+							_widget.MoveToIndexTarget = (_widget.VisibleOptionCount / 2) + diff;
+						}
+						else
+						{
+							_widget.MoveToIndexTarget = diff;
+						}
+					}
+					else
+					{
+						_widget.MoveDiff = 0;
+					}
+				}
+
+				_widget.Update();
+
+				return new idSWFScriptVariable();
+			}
+			#endregion
 		}
 		#endregion
 	}

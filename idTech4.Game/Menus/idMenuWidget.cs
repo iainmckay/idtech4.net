@@ -627,8 +627,8 @@ namespace idTech4.Game.Menus
 			this.Sprite.IsVisible = true;
 
 			int currentFrame = this.Sprite.CurrentFrame;
-			int findFrame = this.Sprite.FindFrame("rollOn");
-			int idleFrame = this.Sprite.FindFrame("idle");
+			int findFrame    = this.Sprite.FindFrame("rollOn");
+			int idleFrame    = this.Sprite.FindFrame("idle");
 
 			if((currentFrame == findFrame) || ((currentFrame > 1) && (currentFrame <= idleFrame)))
 			{
@@ -779,6 +779,11 @@ namespace idTech4.Game.Menus
 			Set(type, new idSWFScriptVariable(value));
 		}
 
+		public void Set(WidgetActionType type, int value, int value2)
+		{
+			Set(type, new idSWFScriptVariable(value), new idSWFScriptVariable(value2));
+		}
+
 		public void Set(WidgetActionType type, idSWFScriptVariable var)
 		{
 			_action = type;
@@ -804,6 +809,11 @@ namespace idTech4.Game.Menus
 			_parameters.Add(var1);
 			_parameters.Add(var2);
 			_parameters.Add(var3);
+		}
+
+		public void Set(WidgetActionType type, int var1, int var2, int var3, int var4)
+		{
+			Set(type, new idSWFScriptVariable(var1), new idSWFScriptVariable(var2), new idSWFScriptVariable(var3), new idSWFScriptVariable(var4));
 		}
 
 		public void Set(WidgetActionType type, idSWFScriptVariable var1, idSWFScriptVariable var2, idSWFScriptVariable var3, idSWFScriptVariable var4)
@@ -878,6 +888,142 @@ namespace idTech4.Game.Menus
 		#endregion
 	}
 
+	public class idWrapWidgetEvent : idSWFScriptFunction
+	{
+		#region Members
+		private idMenuWidget _targetWidget;
+		private WidgetEventType _targetEvent;
+		private int _targetEventArg;
+		#endregion
+
+		#region Constructor
+		public idWrapWidgetEvent(idMenuWidget widget, WidgetEventType eventType, int eventArg)
+			: base()
+		{
+			_targetWidget   = widget;
+			_targetEvent    = eventType;
+			_targetEventArg = eventArg;
+		}
+		#endregion
+
+		#region idSWFScriptFunction implementation
+		public override idSWFScriptVariable Invoke(idSWFScriptObject scriptObj, idSWFParameterList parms)
+		{
+ 			_targetWidget.ReceiveEvent(new idWidgetEvent(_targetEvent, _targetEventArg, scriptObj, parms));
+
+			return new idSWFScriptVariable();
+		}
+		#endregion
+	}
+
+	public class idWidgetActionHandler : idSWFScriptFunction 
+	{
+		#region Members
+		private idMenuWidget _targetWidget;
+		private WidgetEventType _targetEvent;
+		private WidgetActionType _type;
+		#endregion
+	
+		#region Constructor
+		public idWidgetActionHandler(idMenuWidget widget, WidgetActionType action, WidgetEventType ev)
+			: base()
+		{
+			_targetWidget = widget;
+			_type         = action;
+			_targetEvent  = ev;
+		}
+		#endregion
+
+		#region idSWFScriptFunction implementation
+		public override idSWFScriptVariable Invoke(idSWFScriptObject scriptObject, idSWFParameterList parms)
+		{
+			idWidgetAction action = new idWidgetAction();
+			bool handled = false;
+
+			switch(_type)
+			{
+				case WidgetActionType.ScrollDownStartRepeater:
+					action.Set(WidgetActionType.StartRepeater, (int) WidgetActionType.ScrollVertical, 1);
+					handled = true;
+					break;
+
+				case WidgetActionType.ScrollUpStartRepeater:
+					action.Set(WidgetActionType.StartRepeater, (int) WidgetActionType.ScrollVertical, -1);
+					handled = true;
+					break;
+
+				case WidgetActionType.ScrollDownStartRepeaterVariable:
+					action.Set(WidgetActionType.StartRepeater, (int) WidgetActionType.ScrollVerticalVariable, 1);
+					handled = true;
+					break;
+
+				case WidgetActionType.ScrollUpStartRepeaterVariable:
+					action.Set(WidgetActionType.StartRepeater, (int) WidgetActionType.ScrollVerticalVariable, -1);
+					handled = true;
+					break;
+
+				case WidgetActionType.ScrollPageDownStartRepeater:
+					action.Set(WidgetActionType.StartRepeater, (int) WidgetActionType.ScrollPage, 1);
+					handled = true;
+					break;
+
+				case WidgetActionType.ScrollPageUpStartRepeater:
+					action.Set(WidgetActionType.StartRepeater, (int) WidgetActionType.ScrollPage, -1);
+					handled = true;
+					break;
+
+				case WidgetActionType.StopRepeater:
+					action.Set(WidgetActionType.StopRepeater);
+					handled = true;
+					break;
+
+				case WidgetActionType.TabNext:
+					action.Set(WidgetActionType.ScrollTab, 1);
+					handled = true;
+					break;
+
+				case WidgetActionType.TabPrevious:
+					action.Set(WidgetActionType.ScrollTab, -1);
+					handled = true;
+					break;
+
+				case WidgetActionType.Joystick3OnPress:
+					action.Set(WidgetActionType.Joystick3OnPress);
+					handled = true;
+					break;
+
+				case WidgetActionType.ScrollLeftStartRepeater:
+					action.Set(WidgetActionType.StartRepeater, (int) WidgetActionType.ScrollHorizontal, -1);
+					handled = true;
+					break;
+
+				case WidgetActionType.ScrollRightStartRepeater:
+					action.Set(WidgetActionType.StartRepeater, (int) WidgetActionType.ScrollHorizontal, 1);
+					handled = true;
+					break;
+
+				case WidgetActionType.DragStart:
+					action.Set(WidgetActionType.ScrollDrag);
+					handled = true;
+					break;
+
+				case WidgetActionType.DragStop:
+					action.Set(WidgetActionType.DragStop);
+					handled = true;
+					break;
+			}
+
+			if(handled == true)
+			{
+				_targetWidget.HandleAction(action, new idWidgetEvent(_targetEvent, 0, scriptObject, parms), _targetWidget);
+			}
+
+			return new idSWFScriptVariable();
+		}
+		#endregion
+	}
+
+
 	public enum WidgetState
 	{
 		Hidden,
@@ -885,6 +1031,17 @@ namespace idTech4.Game.Menus
 		Selecting,
 		Selected,
 		Disabled
+	}
+
+	public enum MenuOptionType
+	{
+		Invalid = -1,
+		ButtonText,
+		SliderBar,
+		SliderText,
+		SliderToggle,
+		ButtonInfo,
+		ButtonFullTextSlider
 	}
 
 	public enum WidgetEventType
@@ -979,6 +1136,19 @@ namespace idTech4.Game.Menus
 		PdaClose,
 		Refresh,
 		MutePlayer,
+
+		ScrollUpStartRepeater,
+		ScrollUpStartRepeaterVariable,
+		ScrollDownStartRepeater,
+		ScrollDownStartRepeaterVariable,
+		ScrollLeftStartRepeater,
+		ScrollRightStartRepeater,
+		ScrollPageDownStartRepeater,
+		ScrollPageUpStartRepeater,
+		TabNext,
+		TabPrevious,
+		DragStart,
+		DragStop
 	}
 
 	public enum ScrollType

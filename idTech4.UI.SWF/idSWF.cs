@@ -100,6 +100,14 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public idSWFScriptObject ShortcutKeys
+		{
+			get
+			{
+				return _shortcutKeys;
+			}
+		}
+
 		public bool ShowBlackBars
 		{
 			get
@@ -109,6 +117,14 @@ namespace idTech4.UI.SWF
 			protected set
 			{
 				_blackbars = value;
+			}
+		}
+
+		public bool UseCircleForAccept
+		{
+			get
+			{
+				return false;
 			}
 		}
 
@@ -1718,19 +1734,18 @@ namespace idTech4.UI.SWF
 		#region Loading
 		private void CreateGlobals()
 		{
-			idLog.Warning("TODO: swf globals");
-
 			_globals = new idSWFScriptObject();
 			_globals.Set("_global", _globals);
 
-			/*_globals.Set("Object", scriptFunction_Object );*/
+			_globals.Set("Object",             new idSWFScriptFunction_Object());
 
-			idLog.Warning("TODO: swf shortcuts");
-			/*shortcutKeys = idSWFScriptObject::Alloc();
-			scriptFunction_shortcutKeys_clear.Bind( this );
-			scriptFunction_shortcutKeys_clear.Call( shortcutKeys, idSWFParmList() );
-			globals->Set( "shortcutKeys", shortcutKeys );*/
+			_shortcutKeys = new idSWFScriptObject();
 
+			ScriptFunction_clearShortcutKeys(_shortcutKeys, this, new idSWFParameterList());
+
+			_globals.Set("shortcutKeys",       _shortcutKeys);
+
+			_globals.Set("shortcutKeys_clear", new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_clearShortcutKeys, this));
 			_globals.Set("deactivate",         new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_deactivate, this));
 			_globals.Set("inhibitControl",     new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_inhibitControl, this));
 			_globals.Set("useInhibit",         new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_useInhibit, this));
@@ -1775,6 +1790,26 @@ namespace idTech4.UI.SWF
 			}
 
 			return 2;
+		}
+
+		public idSWFScriptVariable GetGlobal(string name)
+		{
+			return _globals.Get(name);
+		}
+
+		public void SetGlobal(string name, int value)
+		{
+			SetGlobal(name, new idSWFScriptVariable(value));
+		}
+
+		public void SetGlobal(string name, idSWFScriptFunction value)
+		{
+			_globals.Set(name, value);
+		}
+
+		public void SetGlobal(string name, idSWFScriptVariable value)
+		{
+			_globals.Set(name, value);
 		}
 
 		internal void LoadFrom(ContentReader input)
@@ -1956,6 +1991,45 @@ namespace idTech4.UI.SWF
 			return new idSWFScriptVariable(idMath.Ceil(parms[0].ToFloat()));
 		}
 
+		private idSWFScriptVariable ScriptFunction_clearShortcutKeys(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
+		{
+			idSWFScriptObject obj = context.ShortcutKeys;
+			obj.Clear();
+
+			// TODO: obj.Set("clear",            this);
+			obj.Set("JOY1",             "ENTER");
+			obj.Set("JOY2",             "BACKSPACE");
+			obj.Set("JOY3",             "START");
+			obj.Set("JOY5",             "LB");
+			obj.Set("JOY6",             "RB");
+			obj.Set("JOY9",             "START");
+			obj.Set("JOY10",            "BACKSPACE");
+			obj.Set("JOY_DPAD_UP",      "UP");
+			obj.Set("JOY_DPAD_DOWN",    "DOWN");
+			obj.Set("JOY_DPAD_LEFT",    "LEFT");
+			obj.Set("JOY_DPAD_RIGHT",   "RIGHT");
+			obj.Set("JOY_STICK1_UP",    "STICK1_UP");
+			obj.Set("JOY_STICK1_DOWN",  "STICK1_DOWN");
+			obj.Set("JOY_STICK1_LEFT",  "STICK1_LEFT");
+			obj.Set("JOY_STICK1_RIGHT", "STICK1_RIGHT");
+			obj.Set("JOY_STICK2_UP",    "STICK2_UP");
+			obj.Set("JOY_STICK2_DOWN",  "STICK2_DOWN");
+			obj.Set("JOY_STICK2_LEFT",  "STICK2_LEFT");
+			obj.Set("JOY_STICK2_RIGHT", "STICK2_RIGHT");
+			obj.Set("KP_ENTER",         "ENTER");
+			obj.Set("MWHEELDOWN",       "MWHEEL_DOWN");
+			obj.Set("MWHEELUP",         "MWHEEL_UP");
+			obj.Set("K_TAB",            "TAB");
+			
+			// FIXME: I'm an RTARD and didn't realize the keys all have "ARROW" after them
+			obj.Set("LEFTARROW",        "LEFT");
+			obj.Set("RIGHTARROW",       "RIGHT");
+			obj.Set("UPARROW",          "UP");
+			obj.Set("DOWNARROW",        "DOWN");
+
+			return new idSWFScriptVariable();
+		}
+
 		private idSWFScriptVariable ScriptFunction_cos(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
 			if(parms.Count != 1)
@@ -2111,7 +2185,7 @@ namespace idTech4.UI.SWF
 
 		private idSWFScriptVariable ScriptFunction_swapPS3Buttons(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
 		{
-			throw new NotImplementedException();
+			return new idSWFScriptVariable(context.UseCircleForAccept);
 		}
 
 		private idSWFScriptVariable ScriptFunction_strReplace(idSWFScriptObject scriptObj, idSWF context, idSWFParameterList parms)
@@ -2164,6 +2238,42 @@ namespace idTech4.UI.SWF
 		private idSWFScriptVariable ScriptVariable_getPlatform(idSWFScriptObject scriptObj, idSWF context)
 		{
 			return new idSWFScriptVariable(context.GetPlatform());
+		}
+		#endregion
+
+		#region ScriptFunction_object
+		private class idSWFScriptFunction_Object : idSWFScriptFunction
+		{
+			#region Members
+			private idSWFScriptObject _object;
+			#endregion
+
+			#region Constructor
+			public idSWFScriptFunction_Object() 
+				: base()
+			{
+				_object = new idSWFScriptObject();
+			}
+			#endregion
+
+			#region idSWFScriptFunction implementation
+			public override idSWFScriptObject Prototype
+			{
+				get
+				{
+					return _object;
+				}
+				set
+				{
+					Debug.Assert(false);
+				}
+			}
+
+			public override idSWFScriptVariable Invoke(idSWFScriptObject scriptObj, idSWFParameterList parms)
+			{
+				return new idSWFScriptVariable();
+			}
+			#endregion
 		}
 		#endregion
 	}

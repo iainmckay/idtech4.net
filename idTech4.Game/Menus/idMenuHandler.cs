@@ -89,10 +89,10 @@ namespace idTech4.Game.Menus
 
 		protected List<idMenuWidget> _children = new List<idMenuWidget>();
 		protected idMenuScreen[] _menuScreens  = new idMenuScreen[GameConstants.MaxScreenAreas];
-		// TODO
-		/*actionRepeater_t			actionRepeater;
+		
+		protected ActionRepeater _actionRepeater = new ActionRepeater();
 	
-		idStaticList< idStr, NUM_GUI_SOUNDS >		sounds;*/
+		/*idStaticList< idStr, NUM_GUI_SOUNDS >		sounds;*/
 
 		protected idMenuWidget_CommandBar _cmdBar;
 		#endregion
@@ -129,7 +129,7 @@ namespace idTech4.Game.Menus
 		#endregion
 
 		#region Events
-		public bool HandleAction(idWidgetAction action, idWidgetEvent ev, idMenuWidget widget, bool forceHandled = false)
+		public virtual bool HandleAction(idWidgetAction action, idWidgetEvent ev, idMenuWidget widget, bool forceHandled = false)
 		{
 			WidgetActionType actionType   = action.Type;
 			idSWFParameterList parameters = action.Parameters;
@@ -179,7 +179,7 @@ namespace idTech4.Game.Menus
 					return true;
 				
 				case WidgetActionType.StopRepeater:
-					idLog.Warning("TODO: ClearWidgetActionRepeater();");
+					ClearWidgetActionRepeater();
 					return true;				
 			}
 
@@ -247,8 +247,8 @@ namespace idTech4.Game.Menus
 				return;
 			}
 
-			_gui.Globals.Set("updateMenuDisplay",	new idSWFScriptFunction_UpdateMenuDisplay(_gui, this));
-			_gui.Globals.Set("activateMenus",		new idSWFScriptFunction_ActivateMenus(this));
+			_gui.Globals.Set("updateMenuDisplay", new idSWFScriptFunction_UpdateMenuDisplay(_gui, this));
+			_gui.Globals.Set("activateMenus",     new idSWFScriptFunction_ActivateMenus(this));
 
 			_gui.Activate(show);
 		}
@@ -280,7 +280,7 @@ namespace idTech4.Game.Menus
 		#region Frame
 		public virtual void Update()
 		{
-			// TODO: PumpWidgetActionRepeater();
+			PumpWidgetActionRepeater();
 
 			if((_gui != null) && (_gui.IsActive == true))
 			{
@@ -307,6 +307,98 @@ namespace idTech4.Game.Menus
 			}
 
 			UpdateChildren();
+		}
+		#endregion
+
+		#region ActionRepeater
+		protected void StartWidgetActionRepeater(idMenuWidget widget, idWidgetAction action, idWidgetEvent ev)
+		{
+			if((_actionRepeater.IsActive == true) && (_actionRepeater.Action == action))
+			{
+				return;	// don't attempt to reactivate an already active repeater
+			}
+
+			_actionRepeater.IsActive        = true;
+			_actionRepeater.Action          = action;
+			_actionRepeater.Widget          = widget;
+			_actionRepeater.Event           = ev;
+			_actionRepeater.RepetitionCount = 0;
+			_actionRepeater.NextRepeatTime  = 0;
+			_actionRepeater.ScreenIndex     = _activeScreen;	// repeaters are cleared between screens
+
+			if(action.Parameters.Count == 2)
+			{
+				_actionRepeater.RepeatDelay = action.Parameters[1].ToInt32();
+			}
+			else
+			{
+				_actionRepeater.RepeatDelay = GameConstants.DefaultRepeatTime;
+			}
+
+			// do the first event immediately
+			PumpWidgetActionRepeater();
+		}
+
+		protected void PumpWidgetActionRepeater()
+		{
+			if(_actionRepeater.IsActive == false)
+			{
+				return;
+			}
+
+			if((_activeScreen != _actionRepeater.ScreenIndex) || (_nextScreen != _activeScreen)) 
+			{ // || common->IsDialogActive() ) {
+				_actionRepeater.IsActive = false;
+				return;
+			}
+
+			if(_actionRepeater.NextRepeatTime > idEngine.Instance.ElapsedTime)
+			{
+				return;
+			}
+
+			// need to hold down longer on the first iteration before we continue to scroll
+			if(_actionRepeater.RepetitionCount == 0) 
+			{
+				_actionRepeater.NextRepeatTime = idEngine.Instance.ElapsedTime + 400;
+			} 
+			else 
+			{
+				_actionRepeater.NextRepeatTime = idEngine.Instance.ElapsedTime + _actionRepeater.RepeatDelay;
+			}
+
+			if(_actionRepeater.Widget != null)
+			{
+				_actionRepeater.Widget.HandleAction(_actionRepeater.Action, _actionRepeater.Event, _actionRepeater.Widget);
+				_actionRepeater.RepetitionCount++;
+			}
+		}
+
+		protected void ClearWidgetActionRepeater()
+		{
+			_actionRepeater.IsActive = false;
+		}
+
+		protected class ActionRepeater
+		{
+			#region Members
+			public idMenuWidget Widget;
+			public idWidgetEvent Event;
+			public idWidgetAction Action;
+			public int RepetitionCount;
+			public long	NextRepeatTime;
+			public int RepeatDelay;
+			public ShellArea ScreenIndex;
+			public bool IsActive;
+			#endregion
+
+			#region Constructor
+			public ActionRepeater()
+			{
+				this.ScreenIndex = ShellArea.Invalid;
+				this.RepeatDelay = GameConstants.DefaultRepeatTime;
+			}
+			#endregion
 		}
 		#endregion
 	}

@@ -882,8 +882,9 @@ namespace idTech4
 				}*/
 
 				CreateMainMenu();
+				CreateDialog();
 
-				/*commonDialog.Init();
+				/*
 
 				// load the console history file
 				consoleHistory.LoadHistoryFile();*/
@@ -971,6 +972,14 @@ namespace idTech4
 				throw new Exception("Uh oh!", ex);
 				Sys_Error("Error during initialization");
 			}
+		}
+
+		private void CreateDialog()
+		{
+			IGame game     = this.GetService<IGame>();
+			IDialog dialog = game.CreateDialog();
+
+			this.Services.AddService(typeof(IDialog), dialog);
 		}
 
 		private void CreateMainMenu()
