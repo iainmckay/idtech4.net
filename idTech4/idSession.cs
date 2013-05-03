@@ -686,4 +686,13 @@ namespace idTech4
 		/// </summary>
 		SelfWaiting
 	}
+
+	public enum VoiceStateDisplay
+	{
+		None,
+		NotTalking,
+		Talking,
+		TalkingGlobal,
+		Muted
+	}
 }

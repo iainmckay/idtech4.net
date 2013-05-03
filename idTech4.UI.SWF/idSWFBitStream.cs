@@ -156,7 +156,7 @@ namespace idTech4.UI.SWF
 				a[0] =
 					a[1] =
 					a[2] =
-					a[3] = 256;
+					a[3] = 0;
 			}
 			else
 			{

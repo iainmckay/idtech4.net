@@ -353,7 +353,7 @@ namespace idTech4.Game.Menus
 				}
 
 				// TAB PREV
-				idSWFScriptObject btnTabPrev = nav.GetNestedObject("options", "btnTbtnTabPrevabNext");
+				idSWFScriptObject btnTabPrev = nav.GetNestedObject("options", "btnTabPrev");
 				
 				if(btnTabPrev != null) 
 				{

@@ -102,6 +102,7 @@
     <Compile Include="Menus\idMenuScreen.cs" />
     <Compile Include="Menus\idMenuScreen_Shell_ControllerLayout.cs" />
     <Compile Include="Menus\idMenuScreen_Shell_Credits.cs" />
+    <Compile Include="Menus\idMenuScreen_Shell_GameLobby.cs" />
     <Compile Include="Menus\idMenuScreen_Shell_GamePad.cs" />
     <Compile Include="Menus\idMenuScreen_Shell_PressStart.cs" />
     <Compile Include="Menus\idMenuScreen_Shell_Root.cs" />
@@ -113,6 +114,8 @@
     <Compile Include="Menus\idMenuWidget_DynamicList.cs" />
     <Compile Include="Menus\idMenuWidget_Help.cs" />
     <Compile Include="Menus\idMenuWidget_List.cs" />
+    <Compile Include="Menus\idMenuWidget_LobbyButton.cs" />
+    <Compile Include="Menus\idMenuWidget_LobbyList.cs" />
     <Compile Include="Menus\idMenuWidget_MenuBar.cs" />
     <Compile Include="Menus\idMenuWidget_MenuButton.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

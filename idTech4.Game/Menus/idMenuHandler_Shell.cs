@@ -287,7 +287,7 @@ namespace idTech4.Game.Menus
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_SYSTEM_OPTIONS, idMenuScreen_Shell_SystemOptions, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_GAME_OPTIONS, idMenuScreen_Shell_GameOptions, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_PARTY_LOBBY, idMenuScreen_Shell_PartyLobby, this );");
-				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_GAME_LOBBY, idMenuScreen_Shell_GameLobby, this );");
+				RegisterShellScreen<idMenuScreen_Shell_GameLobby>(ShellArea.GameLobby, this);
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_STEREOSCOPICS, idMenuScreen_Shell_Stereoscopics, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_DIFFICULTY, idMenuScreen_Shell_Difficulty, this );");
 				idLog.Warning("TODO: BIND_SHELL_SCREEN( SHELL_AREA_CONTROLS, idMenuScreen_Shell_Controls, this );");
@@ -1042,10 +1042,13 @@ namespace idTech4.Game.Menus
 		{
 			if(_smallFrameShowing == true)
 			{
-				if((_nextScreen != ShellArea.Playstation) && (_nextScreen != ShellArea.Settings) && (_nextScreen != ShellArea.Campaign) && (_nextScreen != ShellArea.Developer))
+				if((_nextScreen != ShellArea.Playstation) && (_nextScreen != ShellArea.Settings) 
+					&& (_nextScreen != ShellArea.Campaign) && (_nextScreen != ShellArea.Developer))
 				{
-					if((_nextScreen != ShellArea.Resolution) && (_nextScreen != ShellArea.GamePad) && (_nextScreen != ShellArea.Difficulty) && (_nextScreen != ShellArea.SystemOptions) && (_nextScreen != ShellArea.GameOptions) && (_nextScreen != ShellArea.NewGame) && (_nextScreen != ShellArea.Stereoscopics)
-						&& (_nextScreen != ShellArea.Controls))
+					if((_nextScreen != ShellArea.Resolution) && (_nextScreen != ShellArea.GamePad) 
+						&& (_nextScreen != ShellArea.Difficulty) && (_nextScreen != ShellArea.SystemOptions) 
+						&& (_nextScreen != ShellArea.GameOptions) && (_nextScreen != ShellArea.NewGame) 
+						&& (_nextScreen != ShellArea.Stereoscopics) && (_nextScreen != ShellArea.Controls))
 					{
 						idLog.Warning("TODO: ShowSmallFrame(false);");
 					}
@@ -1053,29 +1056,38 @@ namespace idTech4.Game.Menus
 			} 
 			else 
 			{
-				if((_nextScreen == ShellArea.Resolution) || (_nextScreen == ShellArea.GamePad) || (_nextScreen == ShellArea.Playstation) || (_nextScreen == ShellArea.Settings) || (_nextScreen == ShellArea.Campaign) || (_nextScreen == ShellArea.Controls) || (_nextScreen == ShellArea.Developer) || (_nextScreen == ShellArea.Difficulty))
+				if((_nextScreen == ShellArea.Resolution) || (_nextScreen == ShellArea.GamePad) 
+					|| (_nextScreen == ShellArea.Playstation) || (_nextScreen == ShellArea.Settings) 
+					|| (_nextScreen == ShellArea.Campaign) || (_nextScreen == ShellArea.Controls) 
+					|| (_nextScreen == ShellArea.Developer) || (_nextScreen == ShellArea.Difficulty))
 				{
 					idLog.Warning("TODO: ShowSmallFrame(true);");
 				}		
 			}
-
+			
 			if(_largeFrameShowing == true)
 			{
-				if((_nextScreen != ShellArea.PartyLobby) && (_nextScreen != ShellArea.GameLobby) && (_nextScreen != ShellArea.ControllerLayout) && (_nextScreen != ShellArea.Keyboard) && (_nextScreen != ShellArea.LeaderBoards) && (_nextScreen != ShellArea.MatchSettings) && (_nextScreen != ShellArea.ModeSelect) &&
-					(_nextScreen != ShellArea.Browser) && (_nextScreen != ShellArea.Load) && (_nextScreen != ShellArea.Save) && (_nextScreen != ShellArea.Credits))
+				if((_nextScreen != ShellArea.PartyLobby) && (_nextScreen != ShellArea.GameLobby) 
+					&& (_nextScreen != ShellArea.ControllerLayout) && (_nextScreen != ShellArea.Keyboard) 
+					&& (_nextScreen != ShellArea.LeaderBoards) && (_nextScreen != ShellArea.MatchSettings) 
+					&& (_nextScreen != ShellArea.ModeSelect) && (_nextScreen != ShellArea.Browser) 
+					&& (_nextScreen != ShellArea.Load) && (_nextScreen != ShellArea.Save) && (_nextScreen != ShellArea.Credits))
 				{
 					idLog.Warning("TODO: ShowMPFrame(false);");
 				}
 			} 
 			else 
 			{
-				if((_nextScreen == ShellArea.PartyLobby) || (_nextScreen == ShellArea.ControllerLayout) || (_nextScreen == ShellArea.GameLobby) || (_nextScreen == ShellArea.Keyboard) || (_nextScreen == ShellArea.LeaderBoards) || (_nextScreen == ShellArea.MatchSettings) || (_nextScreen == ShellArea.ModeSelect) ||
-					(_nextScreen == ShellArea.Browser) || (_nextScreen == ShellArea.Load) || (_nextScreen == ShellArea.Save) || (_nextScreen == ShellArea.Credits))
+				if((_nextScreen == ShellArea.PartyLobby) || (_nextScreen == ShellArea.ControllerLayout) 
+					|| (_nextScreen == ShellArea.GameLobby) || (_nextScreen == ShellArea.Keyboard) 
+					|| (_nextScreen == ShellArea.LeaderBoards) || (_nextScreen == ShellArea.MatchSettings) 
+					|| (_nextScreen == ShellArea.ModeSelect) || (_nextScreen == ShellArea.Browser) 
+					|| (_nextScreen == ShellArea.Load) || (_nextScreen == ShellArea.Save) || (_nextScreen == ShellArea.Credits))
 				{
 					idLog.Warning("TODO: ShowMPFrame(true);");
 				}
 			}
-
+			
 			if((_smallFrameShowing == true) || (_largeFrameShowing == true) || (_nextScreen == ShellArea.Start))
 			{
 				ShowLogo(false);

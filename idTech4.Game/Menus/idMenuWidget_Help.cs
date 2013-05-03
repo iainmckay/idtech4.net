@@ -116,7 +116,7 @@ namespace idTech4.Game.Menus
 
 			string msg = (_lastHoveredMessage.Length > 0) ? _lastHoveredMessage : _lastFocusedMessage;
 
-			if((msg.Length > 0) && (_hideMessage == false))
+			if((string.IsNullOrEmpty(msg) == false) && (_hideMessage == false))
 			{
 				// try to show it if...
 				//		- we are on the first frame

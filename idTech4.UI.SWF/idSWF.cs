@@ -400,7 +400,7 @@ namespace idTech4.UI.SWF
 			{
 				return;
 			}
-
+						
 			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
 
 			if(((renderState.ColorXForm.Mul.W + renderState.ColorXForm.Add.W) <= AlphaEpsilon) && (cvarSystem.GetFloat("swf_forceAlpha") <= 0.0f))
@@ -409,9 +409,11 @@ namespace idTech4.UI.SWF
 			}
 
 			List<idSWFDisplayEntry> activeMasks = new List<idSWFDisplayEntry>();
-
-			foreach(idSWFDisplayEntry display in spriteInstance.DisplayList)
+			
+			for(int i = 0; i < spriteInstance.DisplayList.Count; i++)
 			{
+				idSWFDisplayEntry display = spriteInstance.DisplayList[i];
+
 				for(int j = 0; j < activeMasks.Count; j++)
 				{
 					idSWFDisplayEntry mask = activeMasks[j];
@@ -421,7 +423,6 @@ namespace idTech4.UI.SWF
 						DrawMask(renderSystem, mask, renderState, StencilDecrement);
 						activeMasks.RemoveAt(j);
 					}
-
 				}
 
 				if(display.ClipDepth > 0)
@@ -668,7 +669,8 @@ namespace idTech4.UI.SWF
 			/*if(textInstance.IsVisible == false)
 			{
 				return;
-			}
+			}*/
+			return;
 
 			ILocalization localization = idEngine.Instance.GetService<ILocalization>();
 			ICVarSystem cvarSystem     = idEngine.Instance.GetService<ICVarSystem>();
@@ -1644,8 +1646,8 @@ namespace idTech4.UI.SWF
 				idSWFShapeDrawLine line = shape.Lines[i];
 				
 				idSWFColorXForm color = new idSWFColorXForm();
-				color.Mul = line.Style.StartColor.ToVector4();
-				color = color.Multiply(renderState.ColorXForm);
+				color.Mul             = line.Style.StartColor.ToVector4();
+				color                 = color.Multiply(renderState.ColorXForm);
 
 				if(cvarSystem.GetFloat("swf_forceAlpha") > 0.0f)
 				{
@@ -1996,7 +1998,7 @@ namespace idTech4.UI.SWF
 			idSWFScriptObject obj = context.ShortcutKeys;
 			obj.Clear();
 
-			// TODO: obj.Set("clear",            this);
+			obj.Set("clear",            new idSWFScriptFunction_Nested<idSWF>(ScriptFunction_clearShortcutKeys, this));
 			obj.Set("JOY1",             "ENTER");
 			obj.Set("JOY2",             "BACKSPACE");
 			obj.Set("JOY3",             "START");

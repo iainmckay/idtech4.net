@@ -305,7 +305,7 @@ namespace idTech4.Game
 			switch(session.State)
 			{
 				case SessionState.PressStart:
-					_shellHandler.State = ShellState.PressStart;
+					_shellHandler.State = ShellState.Idle;
 					break;
 
 				case SessionState.InGame:
