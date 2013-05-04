@@ -10,7 +10,6 @@ using Microsoft.Xna.Framework.Content.Pipeline.Serialization.Compiler;
 
 using idTech4.Content.Pipeline.Intermediate.SWF;
 
-// TODO: replace this with the type you want to write out.
 using TWrite = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
 
 namespace idTech4.Content.Pipeline.Compiler

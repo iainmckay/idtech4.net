@@ -170,15 +170,15 @@ namespace idTech4.UI.SWF
 			_currentByte = regCurrentByte;
 
 			idSWFColorXForm colorXForm = new idSWFColorXForm();
-			colorXForm.Mul.X = Fixed8(m[0]);
-			colorXForm.Mul.Y = Fixed8(m[1]);
-			colorXForm.Mul.Z = Fixed8(m[2]);
-			colorXForm.Mul.W = Fixed8(m[3]);
+			colorXForm.Mul.X = idSWFHelper.Fixed8(m[0]);
+			colorXForm.Mul.Y = idSWFHelper.Fixed8(m[1]);
+			colorXForm.Mul.Z = idSWFHelper.Fixed8(m[2]);
+			colorXForm.Mul.W = idSWFHelper.Fixed8(m[3]);
 
-			colorXForm.Add.X = Fixed8(a[0]);
-			colorXForm.Add.Y = Fixed8(a[1]);
-			colorXForm.Add.Z = Fixed8(a[2]);
-			colorXForm.Add.W = Fixed8(a[3]);
+			colorXForm.Add.X = idSWFHelper.Fixed8(a[0]);
+			colorXForm.Add.Y = idSWFHelper.Fixed8(a[1]);
+			colorXForm.Add.Z = idSWFHelper.Fixed8(a[2]);
+			colorXForm.Add.W = idSWFHelper.Fixed8(a[3]);
 
 			return colorXForm;
 		}
@@ -257,12 +257,12 @@ namespace idTech4.UI.SWF
 			_currentByte = regCurrentByte;
 			
 			idSWFMatrix matrix = new idSWFMatrix();
-			matrix.XX = Fixed16(xx);
-			matrix.YY = Fixed16(yy);
-			matrix.YX = Fixed16(yx);
-			matrix.XY = Fixed16(xy);
-			matrix.TX = Twip(tx);
-			matrix.TY = Twip(ty);
+			matrix.XX = idSWFHelper.Fixed16(xx);
+			matrix.YY = idSWFHelper.Fixed16(yy);
+			matrix.YX = idSWFHelper.Fixed16(yx);
+			matrix.XY = idSWFHelper.Fixed16(xy);
+			matrix.TX = idSWFHelper.Twip(tx);
+			matrix.TY = idSWFHelper.Twip(ty);
 
 			return matrix;
 		}
@@ -335,21 +335,6 @@ namespace idTech4.UI.SWF
 		{
 			_currentBit  = 0;
 			_currentByte = 0;
-		}
-
-		private float Twip(int twip)
-		{
-			return (twip * (1.0f / 20.0f));
-		}
-
-		private float Fixed16(int fix) 
-		{
-			return (fix * (1.0f / 65536.0f));
-		}
-
-		private float Fixed8(int fix)
-		{
-			return (fix * (1.0f / 256.0f));
 		}
 		#endregion
 	}

@@ -25,6 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework.Content;
 
 namespace idTech4.UI.SWF
@@ -33,6 +35,11 @@ namespace idTech4.UI.SWF
 	{
 		protected override idSWF Read(ContentReader input, idSWF existingInstance)
 		{
+			if(existingInstance != null)
+			{
+				throw new NotSupportedException("Loading content in to an existing instance is not supported.");
+			}
+
 			idSWF swf = new idSWF();
 			swf.LoadFrom(input);
 

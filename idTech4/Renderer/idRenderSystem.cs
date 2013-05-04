@@ -27,10 +27,12 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Content;
 using Microsoft.Xna.Framework.Graphics;
 using Microsoft.Xna.Framework.Graphics.PackedVector;
 
@@ -92,7 +94,72 @@ namespace idTech4.Renderer
 		#region Methods
 		public idFont LoadFont(string fontName)
 		{
-			idLog.Warning("TODO: LoadFont");
+			string name = fontName.Replace("fonts/", "").ToLower();
+			
+			idFont alias = RemapFont(name);
+
+			if(alias != null)
+			{
+				return alias;
+			}
+
+			name = Path.Combine("newfonts", name, "48");
+
+			try
+			{
+				return idEngine.Instance.Content.Load<idFont>(name);
+			}
+			catch(ContentLoadException)
+			{
+				if(fontName.Equals(Constants.DefaultFont, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					idEngine.Instance.FatalError("Could not load default font \"{0}\"", Constants.DefaultFont);
+				}
+				else 
+				{
+					idLog.Warning("Could not load font {0}", name);
+
+					return LoadFont(Constants.DefaultFont);
+				}
+			}
+
+			return null;
+		}
+
+		private idFont RemapFont(string baseName)
+		{
+			string cleanName = baseName;
+
+			if(cleanName == Constants.DefaultFont)
+			{
+				return null;
+			}
+
+			ILocalization localization = idEngine.Instance.GetService<ILocalization>();
+			string remapped            = localization.Find("#key_" + cleanName.Replace("\\", "/"));
+
+			if(remapped != null)
+			{
+				return LoadFont(remapped);
+			}
+
+			string wildCard = localization.Find("#font_*");
+
+			if((wildCard != null) && (cleanName.Equals(wildCard, StringComparison.OrdinalIgnoreCase) == false))
+			{
+				return LoadFont(wildCard);
+			}
+
+			//note single | so both sides are always executed
+			string origName = cleanName;
+			cleanName = cleanName.Replace(' ', '_');
+			cleanName = cleanName.Replace('-', '_');
+
+			if(cleanName != origName)
+			{
+				return LoadFont(cleanName);
+			}
+
 			return null;
 		}
 		#endregion

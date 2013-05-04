@@ -111,6 +111,10 @@
       <Project>{80C83BA7-1260-46F2-9E9E-BAA94A249A48}</Project>
       <Name>idTech4.Content.Pipeline.BSWFImporter</Name>
     </ProjectReference>
+    <ProjectReference Include="..\idTech4.Content.Pipeline.FontImporter\idTech4.Content.Pipeline.FontImporter.csproj">
+      <Project>{97FDF23D-B8DE-4C45-9293-7577A10FECE4}</Project>
+      <Name>idTech4.Content.Pipeline.FontImporter</Name>
+    </ProjectReference>
     <ProjectReference Include="..\idTech4.Content.Pipeline.SWFImporter\idTech4.Content.Pipeline.SWFImporter.csproj">
       <Project>{9037E97E-683A-45C3-95EC-BE641D252D69}</Project>
       <Name>idTech4.Content.Pipeline.SWFImporter</Name>
@@ -129,6 +133,11 @@
     </Compile>
     <Compile Include="generated\images\guis\assets\white#__0200.bimage">
       <Name>white#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\newfonts\arial_narrow\48#__0400.bimage">
+      <Name>48#__0400</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>
@@ -621,6 +630,26 @@
     </Content>
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="newfonts\arial_narrow\48.dat">
+      <Name>48</Name>
+      <Importer>FontImporter</Importer>
+      <Processor>FontProcessor</Processor>
+    </Compile>
+    <Compile Include="newfonts\chainlink_semi_bold\48.dat">
+      <Name>48</Name>
+      <Importer>FontImporter</Importer>
+      <Processor>FontProcessor</Processor>
+    </Compile>
+    <Compile Include="newfonts\dfpheiseigothicw7\48.dat">
+      <Name>48</Name>
+      <Importer>FontImporter</Importer>
+      <Processor>FontProcessor</Processor>
+    </Compile>
+    <Compile Include="newfonts\microgrammadbolext\48.dat">
+      <Name>48</Name>
+      <Importer>FontImporter</Importer>
+      <Processor>FontProcessor</Processor>
+    </Compile>
     <Compile Include="renderprogs\xna\gui.fx">
       <Name>gui</Name>
       <Importer>EffectImporter</Importer>
@@ -647,6 +676,45 @@
     </Compile>
     <Compile Include="generated\images\guis\assets\mainmenu\doom_cover#__0200.bimage">
       <Name>doom_cover#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="newfonts\bankgothic_md_bt\48.dat">
+      <Name>48</Name>
+      <Importer>FontImporter</Importer>
+      <Processor>FontProcessor</Processor>
+    </Compile>
+    <Compile Include="newfonts\sarasori_rg\48.dat">
+      <Name>48</Name>
+      <Importer>FontImporter</Importer>
+      <Processor>FontProcessor</Processor>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\newfonts\bankgothic_md_bt\48#__0400.bimage">
+      <Name>48#__0400</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\newfonts\chainlink_semi_bold\48#__0400.bimage">
+      <Name>48#__0400</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\newfonts\dfpheiseigothicw7\48#__0400.bimage">
+      <Name>48#__0400</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\newfonts\microgrammadbolext\48#__0400.bimage">
+      <Name>48#__0400</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+    </Compile>
+    <Compile Include="generated\images\newfonts\sarasori_rg\48#__0400.bimage">
+      <Name>48#__0400</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
     </Compile>

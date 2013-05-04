@@ -25,6 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework.Content;
 
 namespace idTech4.UI.SWF
@@ -32,11 +34,43 @@ namespace idTech4.UI.SWF
 	public class idSWFEditText : idSWFDictionaryEntry
 	{
 		#region Properties
+		public idSWFRect Bounds
+		{
+			get
+			{
+				return _bounds;
+			}
+		}
+
 		public idSWFColorRGBA Color
 		{
 			get
 			{
 				return _color;
+			}
+		}
+
+		public EditTextFlags Flags
+		{
+			get
+			{
+				return _flags;
+			}
+		}
+
+		public ushort FontHeight
+		{
+			get
+			{
+				return _fontHeight;
+			}
+		}
+
+		public ushort FontID
+		{
+			get
+			{
+				return _fontID;
 			}
 		}
 
@@ -59,7 +93,7 @@ namespace idTech4.UI.SWF
 
 		#region Members
 		private idSWFRect _bounds;
-		private uint _flags;
+		private EditTextFlags _flags;
 		private ushort _fontID;
 		private ushort _fontHeight;
 
@@ -81,7 +115,7 @@ namespace idTech4.UI.SWF
 		{
 			_bounds.LoadFrom(input);
 
-			_flags       = input.ReadUInt32();
+			_flags       = (EditTextFlags) input.ReadUInt32();
 			_fontID      = input.ReadUInt16();
 			_fontHeight  = input.ReadUInt16();
 
@@ -98,5 +132,17 @@ namespace idTech4.UI.SWF
 			_initialText = input.ReadString();
 		}
 		#endregion
+	}
+
+	[Flags]
+	public enum EditTextFlags
+	{
+		None,
+		WordWrap  = 1 << 0,
+		MultiLine = 1 << 1,
+		Password  = 1 << 2,
+		ReadOnly  = 1 << 3,
+		AutoSize  = 1 << 4,
+		Border    = 1 << 5
 	}
 }

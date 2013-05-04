@@ -2642,6 +2642,8 @@ namespace idTech4.Renderer
 		/// <returns></returns>
 		public override bool Parse(string text)
 		{
+			IImageManager imageManager = idEngine.Instance.GetService<IImageManager>();
+
 			idLexer lexer = new idLexer(idDeclFile.LexerOptions);
 			lexer.LoadMemory(text, this.FileName, this.LineNumber);
 			lexer.SkipUntilString("{");
@@ -2770,17 +2772,16 @@ namespace idTech4.Renderer
 			{
 				MaterialStage stage = _parsingData.Stages[i];
 
-				idLog.Warning("TODO: if(stage.Texture.Image == ImageManager.OriginalCurrentRenderImage)");
-				/*if(stage.Texture.Image == ImageManager.OriginalCurrentRenderImage)
+				if(stage.Texture.Image == imageManager.OriginalCurrentRenderImage)
 				{
 					if(_sort != (float) MaterialSort.PortalSky)
 					{
-						_sort = (float) MaterialSort.PostProcess;
+						_sort     = (float) MaterialSort.PostProcess;
 						_coverage = MaterialCoverage.Translucent;
 					}
 
 					break;
-				}*/
+				}
 
 				if(stage.NewStage.IsEmpty == false)
 				{
@@ -2789,18 +2790,17 @@ namespace idTech4.Renderer
 
 					for(int j = 0; j < imageCount; j++)
 					{
-						idLog.Warning("TODO: ImageManager.OriginalCurrentRenderImage)");
-						/*if(newShaderStage.FragmentProgramImages[j] == ImageManager.OriginalCurrentRenderImage)
+						if(newShaderStage.FragmentProgramImages[j] == imageManager.OriginalCurrentRenderImage)
 						{
 							if(_sort != (float) MaterialSort.PortalSky)
 							{
-								_sort = (float) MaterialSort.PostProcess;
+								_sort     = (float) MaterialSort.PostProcess;
 								_coverage = MaterialCoverage.Translucent;
 							}
 
 							i = _stageCount;
 							break;
-						}*/
+						}
 					}
 				}
 			}

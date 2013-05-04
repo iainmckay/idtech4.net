@@ -1,4 +1,4 @@
-/*
+﻿/*
 ===========================================================================
 
 Doom 3 GPL Source Code
@@ -25,19 +25,27 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using Microsoft.Xna.Framework.Content.Pipeline;
+using System;
 
-using TInput  = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
-using TOutput = idTech4.Content.Pipeline.Intermediate.SWF.SWFContent;
+using Microsoft.Xna.Framework.Content;
+
+using idTech4.Renderer;
 
 namespace idTech4.Content.Pipeline
 {
-	[ContentProcessor(DisplayName = "SWF - idTech4")]
-	public class BSWFProcessor : ContentProcessor<TInput, TOutput>
+	internal class FontReader : ContentTypeReader<idFont>
 	{
-		public override TOutput Process(TInput input, ContentProcessorContext context)
-		{			
-			return input;
+		protected override idFont Read(ContentReader input, idFont existingInstance)
+		{
+			if(existingInstance != null)
+			{
+				throw new NotSupportedException("Loading content in to an existing instance is not supported.");
+			}
+			
+			idFont font = new idFont();
+			font.LoadFrom(input);
+
+			return font;
 		}
 	}
 }

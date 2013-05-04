@@ -538,24 +538,29 @@ namespace idTech4.Game.Menus
 
 				if(cmdBar != null)
 				{
-					idLog.Warning("TODO: Shell_Root update");
-			
-					/*cmdBar->ClearAllButtons();
-					idMenuWidget_CommandBar::buttonInfo_t * buttonInfo;
-			
-					if ( !g_demoMode.GetBool() ) {				
-						buttonInfo = cmdBar->GetButton( idMenuWidget_CommandBar::BUTTON_JOY2 );
-						if ( menuData->GetPlatform() != 2 ) {
-							buttonInfo->label = "#str_00395";
+					cmdBar.ClearAllButtons();
+					ButtonInfo buttonInfo;
+
+					if(idEngine.Instance.GetService<ICVarSystem>().GetBool("g_demoMode") == false)
+					{
+						buttonInfo = cmdBar.GetButton(Button.Joystick2);
+
+						if(_menuData.GetPlatform() != 2)
+						{
+							buttonInfo.Label = "#str_00395";
 						}
-						buttonInfo->action.Set( WIDGET_ACTION_GO_BACK );
+
+						buttonInfo.Action.Set(WidgetActionType.GoBack);
 					}
 
-					buttonInfo = cmdBar->GetButton( idMenuWidget_CommandBar::BUTTON_JOY1 );
-					if ( menuData->GetPlatform() != 2 ) {
-						buttonInfo->label = "#str_SWF_SELECT";
+					buttonInfo = cmdBar.GetButton(Button.Joystick1);
+
+					if(_menuData.GetPlatform() != 2) 
+					{
+						buttonInfo.Label = "#str_SWF_SELECT";
 					}
-					buttonInfo->action.Set( WIDGET_ACTION_PRESS_FOCUSED );*/
+
+					buttonInfo.Action.Set(WidgetActionType.PressFocused);
 				}		
 			}
 

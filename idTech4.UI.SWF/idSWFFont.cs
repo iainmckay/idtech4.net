@@ -35,6 +35,16 @@ namespace idTech4.UI.SWF
 {
 	public class idSWFFont : idSWFDictionaryEntry
 	{
+		#region Properties
+		public idFont Font
+		{
+			get
+			{
+				return _font;
+			}
+		}
+		#endregion
+
 		#region Members
 		private short _ascent;
 		private short _descent;

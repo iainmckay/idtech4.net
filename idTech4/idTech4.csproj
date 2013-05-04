@@ -94,6 +94,7 @@
   <ItemGroup>
     <Compile Include="Commands.cs" />
     <Compile Include="Constants.cs" />
+    <Compile Include="Content\Pipeline\FontReader.cs" />
     <Compile Include="CVars.cs" />
     <Compile Include="Extensions.cs" />
     <Compile Include="idColor.cs" />

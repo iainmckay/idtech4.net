@@ -25,73 +25,23 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-
-using idTech4.Services;
-
-namespace idTech4.Text
+namespace idTech4.UI.SWF
 {
-	public class idLocalization : ILocalization
+	public class idSWFHelper
 	{
-		#region Members
-		private bool _initialized;
-		private idLangDict _languageDict = new idLangDict();
-		#endregion
-
-		#region Constructor
-		public idLocalization()
+		public static float Twip(int twip)
 		{
-
-		}
-		#endregion
-
-		#region ILocalization implementation
-		public void Clear()
-		{
-			_languageDict.Clear();
+			return (twip * (1.0f / 20.0f));
 		}
 
-		#region Initialization
-		#region Properties
-		public bool IsInitialized
+		public static float Fixed16(int fix)
 		{
-			get
-			{
-				return _initialized;
-			}
-		}
-		#endregion
-
-		#region Methods
-		public void Initialize()
-		{
-			if(this.IsInitialized == true)
-			{
-				throw new Exception("idLocalization has already been initialized.");
-			}
-
-			_initialized = true;
-		}
-		#endregion
-		#endregion
-
-		public bool Load(string buffer, string name)
-		{
-			return _languageDict.Load(buffer, name);
+			return (fix * (1.0f / 65536.0f));
 		}
 
-		public string Get(string key)
+		public static float Fixed8(int fix)
 		{
-			return _languageDict.Get(key);
+			return (fix * (1.0f / 256.0f));
 		}
-
-		public string Find(string key)
-		{
-			return _languageDict.Find(key);
-		}
-		#endregion
 	}
 }

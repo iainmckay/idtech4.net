@@ -31,6 +31,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline.Ma
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline", "idTech4.Content.Pipeline\idTech4.Content.Pipeline.csproj", "{885EDF81-B727-4D39-BB0F-AAB689DAB016}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline.FontImporter", "idTech4.Content.Pipeline.FontImporter\idTech4.Content.Pipeline.FontImporter.csproj", "{97FDF23D-B8DE-4C45-9293-7577A10FECE4}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -197,6 +199,18 @@ Global
 		{885EDF81-B727-4D39-BB0F-AAB689DAB016}.Release|x86.ActiveCfg = Debug|x86
 		{885EDF81-B727-4D39-BB0F-AAB689DAB016}.Release|x86.Build.0 = Debug|x86
 		{885EDF81-B727-4D39-BB0F-AAB689DAB016}.Release|Xbox 360.ActiveCfg = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Debug|Any CPU.ActiveCfg = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Debug|Mixed Platforms.ActiveCfg = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Debug|Mixed Platforms.Build.0 = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Debug|x86.ActiveCfg = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Debug|x86.Build.0 = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Debug|Xbox 360.ActiveCfg = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Release|Any CPU.ActiveCfg = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Release|Mixed Platforms.ActiveCfg = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Release|Mixed Platforms.Build.0 = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Release|x86.ActiveCfg = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Release|x86.Build.0 = Debug|x86
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4}.Release|Xbox 360.ActiveCfg = Debug|x86
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
@@ -210,5 +224,6 @@ Global
 		{9037E97E-683A-45C3-95EC-BE641D252D69} = {508C0F2C-DAC7-4899-A6F9-D8EE8F48FDEF}
 		{0EF75A2D-1E37-42C8-AD92-AF6F1AA1540A} = {508C0F2C-DAC7-4899-A6F9-D8EE8F48FDEF}
 		{885EDF81-B727-4D39-BB0F-AAB689DAB016} = {508C0F2C-DAC7-4899-A6F9-D8EE8F48FDEF}
+		{97FDF23D-B8DE-4C45-9293-7577A10FECE4} = {508C0F2C-DAC7-4899-A6F9-D8EE8F48FDEF}
 	EndGlobalSection
 EndGlobal

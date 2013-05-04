@@ -36,7 +36,6 @@ namespace idTech4.Content.Pipeline
 	{
 		public override TImport Import(string filename, ContentImporterContext context)
 		{
-			//System.Diagnostics.Debugger.Launch();
 			return BSWFFile.LoadFrom(filename);
 		}
 	}

@@ -47,6 +47,9 @@ namespace idTech4.Renderer
 		private idImage _whiteImage;					// full of 0xff
 		private idImage _noFalloffImage;				// all 255, but zero clamped
 
+		private idImage _currentRenderImage;			// for SS_POST_PROCESS shaders
+		private idImage _currentDepthImage;				// for motion blur
+		private idImage _originalCurrentRenderImage;	// currentRenderImage before any changes for stereo rendering
 		private idImage _loadingIconImage;				// loading icon must exist always
 		private idImage _hellLoadingIconImage;			// loading icon must exist always
 
@@ -62,6 +65,19 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region IImageManager implementation
+		#region Properties
+		/// <summary>
+		/// currentRenderImage before any changes for stereo rendering.
+		/// </summary>
+		public idImage OriginalCurrentRenderImage
+		{
+			get
+			{
+				return _originalCurrentRenderImage;
+			}
+		}
+		#endregion
+
 		#region Fetching
 		public void BindNullTexture()
 		{

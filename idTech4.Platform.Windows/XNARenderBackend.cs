@@ -1639,7 +1639,6 @@ namespace idTech4.Platform.Windows
 
 		private void SetDefaultState()
 		{
-			return;
 			// TODO: RENDERLOG_PRINTF( "--- GL_SetDefaultState ---\n" );
 
 			ICVarSystem cvarSystem        = idEngine.Instance.GetService<ICVarSystem>();
@@ -1680,7 +1679,7 @@ namespace idTech4.Platform.Windows
 		}
 		#endregion
 
-		#region Shader		
+		#region Shader
 		private void SetColor(Vector4 color)
 		{
 			Vector4 parm = new Vector4(

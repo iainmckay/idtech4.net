@@ -12,6 +12,10 @@ namespace idTech4.Services
 {
 	public interface IImageManager
 	{
+		#region Properties
+		idImage OriginalCurrentRenderImage { get; }
+		#endregion
+
 		#region Fetching
 		void BindNullTexture();
 		idImage DefaultImage { get; }

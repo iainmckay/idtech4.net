@@ -777,7 +777,7 @@ namespace idTech4.Game.Menus
 
 				if(_nextState == ShellState.PressStart)
 				{
-					idLog.Warning("TODO: HidePacifier();");
+					HidePacifier();
 
 					_nextScreen = ShellArea.Start;
 					_transition = MainMenuTransition.Simple;
@@ -790,7 +790,7 @@ namespace idTech4.Game.Menus
 				} 
 				else if(_nextState == ShellState.Idle)
 				{
-					idLog.Warning("TODO: HidePacifier();");
+					HidePacifier();
 
 					if((_nextScreen == ShellArea.Start) || (_nextScreen == ShellArea.PartyLobby) || (_nextScreen == ShellArea.GameLobby) || (_nextScreen == ShellArea.Invalid))
 					{

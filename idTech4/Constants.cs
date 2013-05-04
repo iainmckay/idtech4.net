@@ -67,6 +67,8 @@ namespace idTech4
 		public const long EngineHzNumerator             = 100L * 1000L;
 		public const long EngineHzDenominator           = 100L * 60L;
 
+		public const string DefaultFont                 = "Arial_Narrow";
+
 		public static Guid FolderID_SavedGames_IdTech5	= new Guid(0x4c5c32ff, 0xbb9d, 0x43b0, 0xb5, 0xb4, 0x2d, 0x72, 0xe5, 0x4e, 0xaa, 0xa4);
 	}
 }

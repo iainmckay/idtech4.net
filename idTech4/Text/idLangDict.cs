@@ -37,6 +37,10 @@ namespace idTech4
 {
 	public sealed class idLangDict
 	{
+		#region Constants
+		private const int MaxRedirectionDepth = 2;
+		#endregion
+
 		#region Members
 		private int _regexReplaceIndex;
 		private Dictionary<string, string> _elements = new Dictionary<string, string>(StringComparer.OrdinalIgnoreCase);
@@ -58,7 +62,23 @@ namespace idTech4
 
 		public string Get(string key)
 		{
-			string val;
+			string val = Find(key);
+
+			if(val == null)
+			{
+				return key;
+			}
+
+			return val;
+		}
+
+		public string Find(string key)
+		{
+			int depth = 0;
+
+			return Find_r(key, depth);
+		}
+		/*	string val;
 
 			if((key.StartsWith("#str_") == false) && (key.StartsWith("#font_") == false))
 			{
@@ -71,8 +91,41 @@ namespace idTech4
 			}
 
 			idLog.Warning("Unknown string id {0}", key);
-			
-			return key;
+
+			return null;
+		}*/
+
+		private string Find_r(string key, int depth)
+		{
+			depth++;
+
+			if(depth > MaxRedirectionDepth)
+			{
+				// This isn't an error because we assume the error will be obvious somewhere in a GUI or something,
+				// and the whole point of tracking the depth is to avoid a crash.
+				idLog.Warning("String '{0}', indirection depth > {1}", key, MaxRedirectionDepth);
+				return null;
+			}
+
+			if(string.IsNullOrEmpty(key) == true)
+			{
+				return null;
+			}
+
+			if(_elements.ContainsKey(key) == false)
+			{
+				return null;
+			}
+
+			string value = _elements[key];
+
+			if(value.StartsWith("#str_", StringComparison.OrdinalIgnoreCase) == true)
+			{
+				// this string is re-directed to another entry
+				return Find_r(value, depth);
+			}
+
+			return value;
 		}
 
 		public bool Load(string buffer, string name)

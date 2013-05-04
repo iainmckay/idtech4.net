@@ -47,7 +47,7 @@ namespace idTech4.Content.Pipeline
 			
 			for(int i = 0; i < image.LevelCount; i++)
 			{
-				BitmapContent content = ProcessLevel(i, image);
+				BitmapContent content = ProcessLevel(context, i, image);
 
 				if(content != null)
 				{
@@ -68,7 +68,7 @@ namespace idTech4.Content.Pipeline
 			return outContent;
 		}
 
-		private BitmapContent ProcessLevel(int level, BImage image)
+		private BitmapContent ProcessLevel(ContentImporterContext context, int level, BImage image)
 		{
 			BImageData imageData  = image.GetData(level);
 			BitmapContent content = null;
@@ -84,7 +84,7 @@ namespace idTech4.Content.Pipeline
 							break;
 
 						default:
-							throw new NotSupportedException(string.Format("{0} color format is not supported", image.ColorFormat));
+							throw new NotSupportedException(string.Format("{0} DXT5 color format is not supported", image.ColorFormat));
 					}
 					break;
 
@@ -96,8 +96,15 @@ namespace idTech4.Content.Pipeline
 							content.SetPixelData(imageData.Data);
 							break;
 
+						case BImageColorFormat.GreenAlpha:
+							content = new Dxt1BitmapContent(imageData.Width, imageData.Height);
+							content.SetPixelData(imageData.Data);
+							
+							context.Logger.LogWarning(null, null, "GreenAlpha DXT1 color format not properly supported, todo.");
+							break;
+
 						default:
-							throw new NotSupportedException(string.Format("{0} color format is not supported", image.ColorFormat));
+							throw new NotSupportedException(string.Format("{0} DXT1 color format is not supported", image.ColorFormat));
 					}
 					break;
 
@@ -110,7 +117,7 @@ namespace idTech4.Content.Pipeline
 							break;
 
 						default:
-							throw new NotSupportedException(string.Format("{0} color format is not supported", image.ColorFormat));
+							throw new NotSupportedException(string.Format("{0} RGB565 color format is not supported", image.ColorFormat));
 					}
 					break;
 

@@ -1855,7 +1855,7 @@ namespace idTech4.UI.SWF
 			// Do this to touch any external references (like sounds)
 			// But disable script warnings because many globals won't have been created yet
 			int debug = cvarSystem.GetInt("swf_debug");
-			//cvarSystem.Set("swf_debug", 0);						
+			cvarSystem.Set("swf_debug", 0);						
 
 			_mainSpriteInstance.Run();
 			_mainSpriteInstance.RunActions();
@@ -1917,6 +1917,23 @@ namespace idTech4.UI.SWF
 			if(_dictionary.Length < (characterID + 1))
 			{
 				idLog.Warning("could not find character {0}", characterID);
+				return null;
+			}
+
+			return _dictionary[characterID];
+		}
+
+		public idSWFDictionaryEntry FindDictionaryEntry(int characterID, Type type)
+		{
+			if(_dictionary.Length < (characterID + 1))
+			{
+				idLog.Warning("could not find character {0}", characterID);
+				return null;
+			}
+
+			if(_dictionary[characterID].GetType() != type)
+			{
+				idLog.Warning("character {0} is the wrong type", characterID);
 				return null;
 			}
 

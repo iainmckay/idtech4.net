@@ -27,6 +27,7 @@ If you have questions concerning this license or the applicable additional terms
 */
 using System;
 
+using idTech4.Renderer;
 using idTech4.Services;
 using idTech4.UI.SWF.Scripting;
 
@@ -75,23 +76,22 @@ namespace idTech4.UI.SWF
 			get
 			{
 				// CURRENTLY ONLY WORKS FOR SINGLE LINE TEXTFIELDS
-
-				// TODO:
-				/*ILocalization localization = idEngine.Instance.GetService<ILocalization>();
+				ILocalization localization = idEngine.Instance.GetService<ILocalization>();
+				ICVarSystem cvarSystem     = idEngine.Instance.GetService<ICVarSystem>();
 				
-				if((_lengthCalculated > 0) && (string.IsNullOrEmpty(_variable) == true))
+				if((_lengthCalculated == true) && (string.IsNullOrEmpty(_variable) == true))
 				{
 					return _textLength;
 				}
 
 				string lengthCheck = "";
 				float length       = 0.0f;
-
-				if(_swf != null)
+				
+				if(_owner != null)
 				{
 					if(string.IsNullOrEmpty(_variable) == false)
 					{
-						idSWFScriptVariable var = _swf.GetGlobal(_variable);
+						idSWFScriptVariable var = _owner.GetGlobal(_variable);
 
 						if(var.IsUndefined == true)
 						{
@@ -102,46 +102,48 @@ namespace idTech4.UI.SWF
 							lengthCheck = var.ToString();
 						}
 
-						length = localization.GetString(lengthCheck);
+						lengthCheck = localization.Get(lengthCheck);
 					}
 					else 
 					{
-						lengthCheck = localization.GetString(_text);
+						lengthCheck = localization.Get(_text);
 					}
 
-					idSWFEditText shape            = _editText;
-					idSWFDictionaryEntry fontEntry = _swf.FindDictionaryEntry(shape.FontID, SWF_DICT_FONT);
-					idSWFFont swfFont              = fontEntry.Font;
+					idSWFEditText shape = _editText;
+					idSWFFont swfFont   = _owner.FindDictionaryEntry(shape.FontID, typeof(idSWFFont)) as idSWFFont;
 
-					float width = XMath.Abs(shape.Bounds.BR.X - shape.Bounds.T1.X);
-					float postTrans = SWFTWIP(shape.FontHeight);
+					float width     = XMath.Abs(shape.Bounds.BottomRight.X - shape.Bounds.TopLeft.X);
+					float postTrans = idSWFHelper.Twip(shape.FontHeight);
 				
-					const idFont * fontInfo = swfFont->fontID;
+					idFont fontInfo  = swfFont.Font;
 					float glyphScale = postTrans / 48.0f;
 
-					int tlen = txtLengthCheck.Length();
+					int tlen  = lengthCheck.Length;
 					int index = 0;
-					while ( index < tlen ) {
-						scaledGlyphInfo_t glyph;
-						fontInfo->GetScaledGlyph( glyphScale, txtLengthCheck.UTF8Char( index ), glyph );
 
-						len += glyph.xSkip;
-						if ( useStroke ) {
-							len += ( swf_textStrokeSizeGlyphSpacer.GetFloat() * strokeWeight * glyphScale );
+					while(index < tlen) 
+					{
+						ScaledGlyph glyph = fontInfo.GetScaledGlyph(glyphScale, lengthCheck[index]);
+
+						length += glyph.SkipX;
+
+						if(_useStroke == true) 
+						{
+							length += (cvarSystem.GetFloat("swf_textStrokeSizeGlyphSpacer") * _strokeWeight * glyphScale);
 						}
 
-						if ( !( shape->flags & SWF_ET_AUTOSIZE ) && len >= width ) {
-							len = width;
+						if(((shape.Flags & EditTextFlags.AutoSize) == 0) && (length >= width)) 
+						{
+							length = width;
 							break;
 						}
 					}
 				}
 
-				lengthCalculated = true;
-				textLength = len;
-				return textLength;*/
-
-				return 0;
+				_lengthCalculated = true;
+				_textLength       = (int) length;
+				
+				return _textLength;
 			}
 		}
 

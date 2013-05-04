@@ -41,6 +41,8 @@ namespace idTech4.Services
 
 		void Clear();
 		string Get(string key);
+		string Find(string key);
+
 		bool Load(string buffer, string name);
 	}
 }

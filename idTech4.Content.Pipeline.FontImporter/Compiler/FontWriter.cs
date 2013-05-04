@@ -48,6 +48,8 @@ namespace idTech4.Content.Pipeline.Compiler
 			{
 				output.Write(value.Ascii[i]);
 			}
+
+			output.Write(value.MaterialName);
 		}
 
 		public class FontContent
