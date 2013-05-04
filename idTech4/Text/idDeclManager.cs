@@ -235,13 +235,13 @@ namespace idTech4.Text
 
 				if(makeDefault == true)
 				{
-					idDecl newDecl = _declTypes[type].Allocator.Create();
-					newDecl.Name = canonicalName;
-					newDecl.Type = type;
-					newDecl.State = DeclState.Unparsed;
-					newDecl.SourceFile = _implicitDecls;
+					idDecl newDecl                 = _declTypes[type].Allocator.Create();
+					newDecl.Name                   = canonicalName.Replace("\\", "/");
+					newDecl.Type                   = type;
+					newDecl.State                  = DeclState.Unparsed;
+					newDecl.SourceFile             = _implicitDecls;
 					newDecl.ParsedOutsideLevelLoad = !_insideLevelLoad;
-					newDecl.Index = _declsByType[type].Count;
+					newDecl.Index                  = _declsByType[type].Count;
 
 					_declsByType[type].Add(newDecl);
 

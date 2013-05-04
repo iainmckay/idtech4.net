@@ -1,9 +1,0 @@
-E:\Projects\idtech4.net\idTech4.Content.Pipeline.FontImporter\bin\x86\Debug\idTech4.Content.Pipeline.FontImporter.dll
-E:\Projects\idtech4.net\idTech4.Content.Pipeline.FontImporter\bin\x86\Debug\idTech4.Content.Pipeline.FontImporter.pdb
-E:\Projects\idtech4.net\idTech4.Content.Pipeline.FontImporter\obj\x86\Debug\idTech4.Content.Pipeline.FontImporter.dll
-E:\Projects\idtech4.net\idTech4.Content.Pipeline.FontImporter\obj\x86\Debug\idTech4.Content.Pipeline.FontImporter.pdb
-E:\Projects\idtech4.net\idTech4.Content.Pipeline.FontImporter\obj\x86\Debug\idTech4.Content.Pipeline.FontImporter.csprojResolveAssemblyReference.cache
-E:\Projects\idtech4.net\idTech4.Content.Pipeline.FontImporter\bin\x86\Debug\idTech4.Content.Pipeline.dll
-E:\Projects\idtech4.net\idTech4.Content.Pipeline.FontImporter\bin\x86\Debug\idTech4.dll
-E:\Projects\idtech4.net\idTech4.Content.Pipeline.FontImporter\bin\x86\Debug\idTech4.Content.Pipeline.pdb
-E:\Projects\idtech4.net\idTech4.Content.Pipeline.FontImporter\bin\x86\Debug\idTech4.pdb

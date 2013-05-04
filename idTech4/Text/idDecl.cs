@@ -417,8 +417,8 @@ namespace idTech4.Text
 		#region Constructor
 		public idDecl()
 		{
-			_name = "unnamed";
-			_type = DeclType.EntityDef;
+			_name  = "unnamed";
+			_type  = DeclType.EntityDef;
 			_state = DeclState.Unparsed;
 		}
 
