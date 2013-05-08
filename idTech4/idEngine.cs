@@ -100,6 +100,14 @@ namespace idTech4
 		#endregion
 
 		#region Timing
+		public int FrameNumber
+		{
+			get
+			{
+				return _frameNumber;
+			}
+		}
+
 		/// <summary>
 		/// Gets the total amount of time elapsed since the game started in milliseconds.
 		/// </summary>
@@ -1332,7 +1340,7 @@ namespace idTech4
 				renderSystem.DrawStretchPicture(Constants.ScreenWidth - barWidth, 0, barWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
 			}
 
-			renderSystem.Color = new Color(1.0f, 1.0f, 1.0f, 1.0f);
+			renderSystem.Color = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
 			renderSystem.DrawStretchPicture(barWidth, barHeight, Constants.ScreenWidth - barWidth * 2.0f, Constants.ScreenHeight - barHeight * 2.0f, 0, 0, 1, 1, _splashScreen);
 			
 			LinkedListNode<idRenderCommand> cmd = renderSystem.SwapCommandBuffers(out _speeds_Frontend, out _speeds_Backend, out _speeds_Shadows, out _speeds_Gpu);
@@ -2082,7 +2090,7 @@ namespace idTech4
 			else 
 			{
 				idLog.Warning("DRAWING NOOOOOOOOOOOOOOOOOOOOOOTHIN");
-				renderSystem.Color = new Color(1.0f, 0.0f, 0.0f, 1.0f);
+				renderSystem.Color = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
 				renderSystem.DrawStretchPicture(0, 0, Constants.ScreenWidth, Constants.ScreenHeight, 0, 0, 1, 1, _whiteMaterial);
 			}
 

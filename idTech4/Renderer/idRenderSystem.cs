@@ -76,7 +76,7 @@ namespace idTech4.Renderer
 		// GUI drawing variables for surface creation
 		private int _guiRecursionLevel;		// to prevent infinite overruns
 		private idGuiModel _guiModel;
-		private Color _currentColor;
+		private Vector4 _currentColor;
 
 		private ulong _currentRenderState;
 
@@ -299,7 +299,7 @@ namespace idTech4.Renderer
 
 			_identitySpace      = new idViewEntity();
 			_currentRenderCrop  = 0;
-			_currentColor       = Color.White;
+			_currentColor       = idColor.White;
 			_currentRenderState = 0;
 			_guiRecursionLevel  = 0;
 			_guiModel           = null;
@@ -597,7 +597,7 @@ namespace idTech4.Renderer
 
 		#region Rendering
 		#region Properties
-		public Color Color
+		public Vector4 Color
 		{
 			get
 			{
@@ -1256,8 +1256,8 @@ namespace idTech4.Renderer
 		public HalfVector2 TextureCoordinates;
 		public Byte4 Normal;
 		public Byte4 Tangent;
-		public Color Color;
-		public Color Color2;
+		public Vector4 Color;
+		public Vector4 Color2;
 		
 		public void Clear()
 		{
@@ -1270,13 +1270,13 @@ namespace idTech4.Renderer
 			this.Normal             = new Byte4(0, 0, 1, 0);
 			this.Tangent            = new Byte4(1, 0, 0, 0);
 			
-			this.Color              = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-			this.Color2             = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+			this.Color              = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+			this.Color2             = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 		}
 
 		public void ClearColor2()
 		{
-			this.Color2 = new Color(0.5f, 0.5f, 0.5f, 1.0f);
+			this.Color2 = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
 		}
 
 		public static VertexDeclaration VertexDeclaration = new VertexDeclaration(
@@ -1285,8 +1285,8 @@ namespace idTech4.Renderer
 						new VertexElement(12, VertexElementFormat.HalfVector2, VertexElementUsage.TextureCoordinate, 0),
 						new VertexElement(16, VertexElementFormat.Byte4,       VertexElementUsage.Normal, 0),
 						new VertexElement(20, VertexElementFormat.Byte4,       VertexElementUsage.Tangent, 0),
-						new VertexElement(24, VertexElementFormat.Color,       VertexElementUsage.Color, 0),
-						new VertexElement(28, VertexElementFormat.Color,       VertexElementUsage.Color, 1)
+						new VertexElement(24, VertexElementFormat.Vector4,     VertexElementUsage.Color, 0),
+						new VertexElement(40, VertexElementFormat.Vector4,     VertexElementUsage.Color, 1)
 					}
 				);
 	}

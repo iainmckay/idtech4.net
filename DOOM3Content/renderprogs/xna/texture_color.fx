@@ -45,7 +45,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 		output.TexCoord.y = mul(input.TexCoord.xy , g_TextureMatrixT);
 	}
 	
-	float4 vertexColor = (float4(1,1,1,1) /*input.Color*/ * g_VertexColorModulate) + g_VertexColorAdd;
+	float4 vertexColor = (input.Color * g_VertexColorModulate) + g_VertexColorAdd;
 	output.Color = vertexColor * g_Color;
 
     return output;

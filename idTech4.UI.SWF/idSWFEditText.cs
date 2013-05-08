@@ -34,6 +34,14 @@ namespace idTech4.UI.SWF
 	public class idSWFEditText : idSWFDictionaryEntry
 	{
 		#region Properties
+		public TextAlign Align
+		{
+			get
+			{
+				return _align;
+			}
+		}
+
 		public idSWFRect Bounds
 		{
 			get
@@ -82,6 +90,30 @@ namespace idTech4.UI.SWF
 			}
 		}
 
+		public short Leading
+		{
+			get
+			{
+				return _leading;
+			}
+		}
+
+		public ushort LeftMargin
+		{
+			get
+			{
+				return _leftMargin;
+			}
+		}
+
+		public ushort RightMargin
+		{
+			get
+			{
+				return _rightMargin;
+			}
+		}
+
 		public string Variable
 		{
 			get
@@ -99,7 +131,7 @@ namespace idTech4.UI.SWF
 
 		private idSWFColorRGBA _color = idSWFColorRGBA.Default;
 				
-		private int _align;
+		private TextAlign _align;
 		private ushort _leftMargin;
 		private ushort _rightMargin;
 		private ushort _indent;
@@ -122,7 +154,7 @@ namespace idTech4.UI.SWF
 			_color.LoadFrom(input);
 
 			_maxLength   = input.ReadUInt16();
-			_align       = input.ReadInt32();
+			_align       = (TextAlign) input.ReadInt32();
 			_leftMargin  = input.ReadUInt16();
 			_rightMargin = input.ReadUInt16();
 			_indent      = input.ReadUInt16();

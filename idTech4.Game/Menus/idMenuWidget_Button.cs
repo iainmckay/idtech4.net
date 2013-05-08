@@ -313,7 +313,7 @@ namespace idTech4.Game.Menus
 						{
 							idSWFTextInstance text = textObject.Text;
 							text.IgnoreColor       = _ignoreColor;
-							text.Tooltip           = _ignoreColor; // ignoreColor does double duty as "allow tooltips"
+							text.IsTooltip         = _ignoreColor; // ignoreColor does double duty as "allow tooltips"
 							text.Text              = _values[val];
 							text.SetStrokeInfo(true, 0.75f, 2.0f);
 						}
@@ -348,7 +348,7 @@ namespace idTech4.Game.Menus
 				{
 					idSWFTextInstance text = textObject.Text;
 					text.IgnoreColor       = _ignoreColor;
-					text.Tooltip           = _ignoreColor; // ignoreColor does double duty as "allow tooltips"
+					text.IsTooltip         = _ignoreColor; // ignoreColor does double duty as "allow tooltips"
 					text.Text              = _label;
 					text.SetStrokeInfo(true, 0.75f, 2.0f);
 				}

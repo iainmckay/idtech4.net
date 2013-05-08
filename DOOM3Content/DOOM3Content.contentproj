@@ -635,21 +635,6 @@
       <Importer>FontImporter</Importer>
       <Processor>FontProcessor</Processor>
     </Compile>
-    <Compile Include="newfonts\chainlink_semi_bold\48.dat">
-      <Name>48</Name>
-      <Importer>FontImporter</Importer>
-      <Processor>FontProcessor</Processor>
-    </Compile>
-    <Compile Include="newfonts\dfpheiseigothicw7\48.dat">
-      <Name>48</Name>
-      <Importer>FontImporter</Importer>
-      <Processor>FontProcessor</Processor>
-    </Compile>
-    <Compile Include="newfonts\microgrammadbolext\48.dat">
-      <Name>48</Name>
-      <Importer>FontImporter</Importer>
-      <Processor>FontProcessor</Processor>
-    </Compile>
     <Compile Include="renderprogs\xna\gui.fx">
       <Name>gui</Name>
       <Importer>EffectImporter</Importer>
@@ -678,18 +663,6 @@
       <Name>doom_cover#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
-    </Compile>
-  </ItemGroup>
-  <ItemGroup>
-    <Compile Include="newfonts\bankgothic_md_bt\48.dat">
-      <Name>48</Name>
-      <Importer>FontImporter</Importer>
-      <Processor>FontProcessor</Processor>
-    </Compile>
-    <Compile Include="newfonts\sarasori_rg\48.dat">
-      <Name>48</Name>
-      <Importer>FontImporter</Importer>
-      <Processor>FontProcessor</Processor>
     </Compile>
   </ItemGroup>
   <ItemGroup>

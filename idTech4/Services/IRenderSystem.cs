@@ -73,7 +73,7 @@ namespace idTech4.Services
 
 		#region Rendering
 		#region Properties
-		Color Color { get; set; }
+		Vector4 Color { get; set; }
 		int FrameCount { get; }
 		int Width { get; }
 		int Height { get; }

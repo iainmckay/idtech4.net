@@ -25,6 +25,7 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
 using System.Text;
 
 using Microsoft.Xna.Framework;
@@ -33,22 +34,62 @@ namespace idTech4
 {
 	public class idColor
 	{
-		public static readonly Color Black      = new Color(0.0f, 0.0f, 0.0f, 1.0f);
-		public static readonly Color White      = new Color(1.0f, 1.0f, 1.0f, 1.0f);
-		public static readonly Color Red        = new Color(1.0f, 0.0f, 0.0f, 1.0f);
-		public static readonly Color Green      = new Color(0.0f, 1.0f, 0.0f, 1.0f);
-		public static readonly Color Blue       = new Color(0.0f, 0.0f, 1.0f, 1.0f);
-		public static readonly Color Yellow     = new Color(1.0f, 1.0f, 0.0f, 1.0f);
-		public static readonly Color Magenta    = new Color(1.0f, 0.0f, 1.0f, 1.0f);
-		public static readonly Color Cyan       = new Color(0.0f, 1.0f, 1.0f, 1.0f);
-		public static readonly Color Orange     = new Color(1.0f, 0.5f, 0.0f, 1.0f);
-		public static readonly Color Purple     = new Color(0.6f, 0.0f, 0.6f, 1.0f);
-		public static readonly Color Pink       = new Color(0.73f, 0.4f, 0.48f, 1.0f);
-		public static readonly Color Brown      = new Color(0.4f, 0.35f, 0.08f, 1.0f);
-		public static readonly Color Grey       = new Color(0.5f, 0.5f, 0.5f, 1.0f);
-		public static readonly Color LightGrey  = new Color(0.75f, 0.75f, 0.75f, 1.0f);
-		public static readonly Color MediumGrey = new Color(0.0f, 0.5f, 0.5f, 1.0f);
-		public static readonly Color DarkGrey   = new Color(0.25f, 0.25f, 0.25f, 1.0f);
+		public static readonly Vector4 Black      = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
+		public static readonly Vector4 White      = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+		public static readonly Vector4 Red        = new Vector4(1.0f, 0.0f, 0.0f, 1.0f);
+		public static readonly Vector4 Green      = new Vector4(0.0f, 1.0f, 0.0f, 1.0f);
+		public static readonly Vector4 Blue       = new Vector4(0.0f, 0.0f, 1.0f, 1.0f);
+		public static readonly Vector4 Yellow     = new Vector4(1.0f, 1.0f, 0.0f, 1.0f);
+		public static readonly Vector4 Magenta    = new Vector4(1.0f, 0.0f, 1.0f, 1.0f);
+		public static readonly Vector4 Cyan       = new Vector4(0.0f, 1.0f, 1.0f, 1.0f);
+		public static readonly Vector4 Orange     = new Vector4(1.0f, 0.5f, 0.0f, 1.0f);
+		public static readonly Vector4 Purple     = new Vector4(0.6f, 0.0f, 0.6f, 1.0f);
+		public static readonly Vector4 Pink       = new Vector4(0.73f, 0.4f, 0.48f, 1.0f);
+		public static readonly Vector4 Brown      = new Vector4(0.4f, 0.35f, 0.08f, 1.0f);
+		public static readonly Vector4 Grey       = new Vector4(0.5f, 0.5f, 0.5f, 1.0f);
+		public static readonly Vector4 LightGrey  = new Vector4(0.75f, 0.75f, 0.75f, 1.0f);
+		public static readonly Vector4 MediumGrey = new Vector4(0.0f, 0.5f, 0.5f, 1.0f);
+		public static readonly Vector4 DarkGrey   = new Vector4(0.25f, 0.25f, 0.25f, 1.0f);
+
+		public static Vector4 FromIndex(int index)
+		{
+			idColorIndex tmp;
+
+			if(Enum.TryParse<idColorIndex>(index.ToString(), out tmp) == true)
+			{
+				switch(tmp)
+				{
+					case idColorIndex.Red:
+						return idColor.Red;
+
+					case idColorIndex.Green:
+						return idColor.Green;
+
+					case idColorIndex.Yellow:
+						return idColor.Yellow;
+
+					case idColorIndex.Blue:
+						return idColor.Blue;
+
+					case idColorIndex.Cyan:
+						return idColor.Cyan;
+
+					case idColorIndex.Magenta:
+						return idColor.Magenta;
+
+					case idColorIndex.White:
+						return idColor.White;
+
+					case idColorIndex.Gray:
+						return idColor.Grey;
+
+					case idColorIndex.Black:
+						return idColor.Black;
+				}
+			}
+
+			return idColor.White;
+		}
 
 		public static bool IsColor(string buffer, int index)
 		{

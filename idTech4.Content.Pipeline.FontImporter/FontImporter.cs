@@ -49,10 +49,12 @@ namespace idTech4.Content.Pipeline
 
 		public override TImport Import(string filename, ContentImporterContext context)
 		{
+			//System.Diagnostics.Debugger.Launch();
+
 			TImport outContent = new TImport();
 			Stream source      = File.OpenRead(filename);
 			
-			using(BinaryReader r = new idBinaryReader(source))
+			using(idBinaryReader r = new idBinaryReader(source))
 			{
 				uint version = r.ReadUInt32();
 
@@ -84,12 +86,16 @@ namespace idTech4.Content.Pipeline
 					outContent.Glyphs[i].Top                = r.ReadByte();
 					outContent.Glyphs[i].Left               = r.ReadByte();
 					outContent.Glyphs[i].SkipX              = r.ReadByte();
-					outContent.Glyphs[i].TextureCoordinates = new Vector2(r.ReadUInt16(), r.ReadUInt16());
+					
+					// padding
+					r.ReadByte();
+				
+					outContent.Glyphs[i].TextureCoordinates = new Vector2(r.ReadUInt16(false), r.ReadUInt16(false));
 				}
 
 				for(int i = 0; i < outContent.CharacterIndices.Length; i++)
 				{
-					outContent.CharacterIndices[i] = r.ReadUInt32();
+					outContent.CharacterIndices[i] = r.ReadUInt32(false);
 				}
 
 				outContent.Ascii = new char[128];

@@ -71,6 +71,11 @@ namespace idTech4.Renderer
 		#endregion
 
 		#region Metrics.
+		public float GetAscender(float scale)
+		{
+			return (scale * _ascender);
+		}
+
 		public ScaledGlyph GetScaledGlyph(float scale, uint index)
 		{
 			int i        = GetGlyphIndex((int) index);

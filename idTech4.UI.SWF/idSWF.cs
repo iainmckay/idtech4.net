@@ -356,7 +356,7 @@ namespace idTech4.UI.SWF
 
 				if(barWidth > 0.0f)
 				{
-					renderSystem.Color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+					renderSystem.Color = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 
 					DrawStretchPicture(0, 0, barWidth, sysHeight, 0, 0, 1, 1, _white);
 					DrawStretchPicture(sysWidth - barWidth, 0, barWidth, sysHeight, 0, 0, 1, 1, _white);
@@ -364,7 +364,7 @@ namespace idTech4.UI.SWF
 
 				if(barHeight > 0.0f)
 				{
-					renderSystem.Color = new Color(0.0f, 0.0f, 0.0f, 1.0f);
+					renderSystem.Color = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 
 					DrawStretchPicture(0, 0, sysWidth, barHeight, 0, 0, 1, 1, _white);
 					DrawStretchPicture(0, sysHeight - barHeight, sysWidth, barHeight, 0, 0, 1, 1, _white);
@@ -658,30 +658,27 @@ namespace idTech4.UI.SWF
 
 		private void DrawEditText(IRenderSystem renderSystem, idSWFTextInstance textInstance, idSWFRenderState renderState, long time, bool isSplitScreen)
 		{
-			idLog.Warning("TODO: draw edit text");
-
 			if(textInstance == null)
 			{
 				idLog.Warning("RenderEditText: textInstance == null");
 				return;
 			}
 
-			/*if(textInstance.IsVisible == false)
+			if(textInstance.IsVisible == false)
 			{
 				return;
-			}*/
-			return;
+			}
 
 			ILocalization localization = idEngine.Instance.GetService<ILocalization>();
 			ICVarSystem cvarSystem     = idEngine.Instance.GetService<ICVarSystem>();
 
-			/*idSWFEditText shape = textInstance.EditText;
+			idSWFEditText shape = textInstance.EditText;
 
-			string text;
+			string text = string.Empty;
 
 			if(textInstance.Variable == string.Empty)
 			{
-				if(textInstance.RenderMode == idSWFTextRenderMode.Paragraph)
+				if(textInstance.RenderMode == TextRenderMode.Paragraph)
 				{
 					idLog.Warning("TODO: text render paragraph");
 			
@@ -689,8 +686,8 @@ namespace idTech4.UI.SWF
 						textInstance->StartParagraphText( Sys_Milliseconds() );
 					}
 					text = textInstance->GetParagraphText( Sys_Milliseconds() );*/
-				/*} 
-				else if((textInstance.RenderMode == idSWFTextRenderMode.RandomAppear) || (textInstance.RenderMode == idSWFTextRenderMode.RandomAppearCapitals))
+				} 
+				else if((textInstance.RenderMode == TextRenderMode.RandomAppear) || (textInstance.RenderMode == TextRenderMode.RandomAppearCapitals))
 				{
 					idLog.Warning("TODO: text render random");
 
@@ -698,7 +695,7 @@ namespace idTech4.UI.SWF
 						textInstance->StartRandomText( Sys_Milliseconds() );
 					}
 					text = textInstance->GetRandomText( Sys_Milliseconds() );*/
-				/*} 
+				} 
 				else 
 				{
 					text = localization.Get(textInstance.Text);
@@ -737,7 +734,7 @@ namespace idTech4.UI.SWF
 				tooltipIconList.Clear();
 			}*/
 
-			/*int selectionStart = textInstance.SelectionStart;
+			int selectionStart = textInstance.SelectionStart;
 			int selectionEnd   = textInstance.SelectionEnd;
 			int cursorPosition = selectionEnd;
 
@@ -751,15 +748,17 @@ namespace idTech4.UI.SWF
 				inputField = true;
 			}
 
-			// TODO: draw cursor
-			/*if ( inputField && ( ( idLib::frameNumber >> 4 ) & 1 ) == 0 ) {
-				cursorPos = selEnd;
-				drawCursor = true;
-			}*/
-
-			/*if(selectionStart > selectionEnd)
+			if((inputField == true) && (((idEngine.Instance.FrameNumber >> 4) & 1) == 0))
 			{
-				SwapValues( selStart, selEnd );
+				cursorPosition = selectionEnd;
+				drawCursor     = true;
+			}
+
+			if(selectionStart > selectionEnd)
+			{
+				int tmp        = selectionEnd;
+				selectionEnd   = selectionStart;
+				selectionStart = tmp;
 			}
 
 			Vector2 xScaleVector = renderState.Matrix.Scale(new Vector2(1, 0));
@@ -782,7 +781,7 @@ namespace idTech4.UI.SWF
 			matrix.YY *= invYScale;
 			matrix.YX *= invYScale;
 
-			idSWFDictionaryEntry fontEntry = FindDictionaryEntry(shape.FontID, idSWFDictionaryType.Font);
+			idSWFFont fontEntry = FindDictionaryEntry(shape.FontID, typeof(idSWFFont)) as idSWFFont;
 
 			if(fontEntry == null)
 			{
@@ -790,43 +789,42 @@ namespace idTech4.UI.SWF
 				return;
 			}
 
-			idSWFFont swfFont = fontEntry.Font;
-			idFont fontInfo   = swfFont.FontID;
+			idFont fontInfo = fontEntry.Font;
 
-			float postTransformHeight = SWFTWIP( shape->fontHeight ) * yScale;
+			float postTransformHeight = idSWFHelper.Twip(shape.FontHeight) * yScale;
 			float glyphScale          = postTransformHeight / 48.0f;
 			float imageScale          = postTransformHeight / 24.0f;
 	
-			textInstance.GlyphScale = glyphScale;
+			textInstance.GlyphScale   = glyphScale;
 
 			Vector4 defaultColor = textInstance.Color.ToVector4();
-			defaultColor = Vector4.Multiply(defaultColor, renderState.ColorXForm.Mul) + renderState.ColorXForm.Add;
+			defaultColor         = Vector4.Multiply(defaultColor, renderState.ColorXForm.Mul) + renderState.ColorXForm.Add;
 
 			if(cvarSystem.GetFloat("swf_forceAlpha") > 0.0f)
 			{
 				defaultColor.W = cvarSystem.GetFloat("swf_forceAlpha");
 			}
 
-			if(defaultColor.W <= ALPHA_EPSILON) 
+			if(defaultColor.W <= AlphaEpsilon) 
 			{
 				return;
 			}
 
 			Vector4 selectionColor = defaultColor;
-			selectionColor.W *= 0.5f;
+			selectionColor.W      *= 0.5f;
 
 			renderSystem.Color = defaultColor;
 			renderSystem.SetRenderState(StateForRenderState(renderState));
 
 			idSWFRect bounds     = new idSWFRect();
-			bounds.TopLeft.X     = xScale * (shape.Bounds.TopLeft.X + SWFTWIP( shape.LeftMargin));
-			bounds.BottomRight.X = xScale * (shape.Bounds.BottomRight.X - SWFTWIP( shape.RightMargin));
+			bounds.TopLeft.X     = xScale * (shape.Bounds.TopLeft.X + idSWFHelper.Twip(shape.LeftMargin));
+			bounds.BottomRight.X = xScale * (shape.Bounds.BottomRight.X - idSWFHelper.Twip(shape.RightMargin));
 
 			float lineSpacing = fontInfo.GetAscender(1.15f * glyphScale);
 	
-			if(shapeLeading != 0) 
+			if(shape.Leading != 0) 
 			{
-				linespacing += SWFTWIP(shape.Leading);
+				lineSpacing += idSWFHelper.Twip(shape.Leading);
 			}
 
 			bounds.TopLeft.Y     = yScale * (shape.Bounds.TopLeft.Y + (1.15f * glyphScale));
@@ -835,9 +833,10 @@ namespace idTech4.UI.SWF
 			textInstance.LineSpacing = lineSpacing;
 			textInstance.Bounds      = bounds;
 				
-			if ( shape->flags & SWF_ET_AUTOSIZE ) {
-				bounds.br.x = frameWidth;
-				bounds.br.y = frameHeight;
+			if((shape.Flags & EditTextFlags.AutoSize) == EditTextFlags.AutoSize)
+			{
+				bounds.BottomRight.X = _frameWidth;
+				bounds.BottomRight.Y = _frameHeight;
 			}
 	
 			if((drawCursor == true) && (cursorPosition <= 0))
@@ -849,7 +848,7 @@ namespace idTech4.UI.SWF
 				fontInfo->GetScaledGlyph( glyphScale, ' ', glyph );
 				yPos = glyph.height / 2.0f;
 				DrawEditCursor( gui, bounds.tl.x, yPos, 1.0f, linespacing, matrix );*/
-			/*}
+			}
 
 			if(textInstance.IsSubtitle == true)
 			{
@@ -875,102 +874,139 @@ namespace idTech4.UI.SWF
 
 			textInstance.MaxLines = maxLines;
 
-	idList< idStr > textLines;
-	idStr * currentLine = &textLines.Alloc();
+			List<string> textLines = new List<string>();
+			textLines.Add(string.Empty);
 
-	// tracks the last breakable character we found
-	int lastbreak = 0;
-	float lastbreakX = 0;
+			int currentLine = 0;
 
-	bool insertingImage = false;
-	int iconIndex = 0;
+			// tracks the last breakable character we found
+			int lastBreak    = 0;
+			float lastBreakX = 0;
 
-	int charIndex = 0;
+			bool insertingImage = false;
+			int iconIndex       = 0;
 
-	if ( textInstance->IsSubtitle() ) {
-		charIndex = textInstance->GetSubStartIndex();
-	}
+			int charIndex = 0;
 
-	while ( charIndex < text.Length() ) {
-		if ( text[ charIndex ] == '\n' ) {
-			if ( shape->flags & SWF_ET_MULTILINE ) {
-				currentLine->Append( '\n' );
-				x = bounds.tl.x;
-				y += linespacing;
-				currentLine = &textLines.Alloc();			
-				lastbreak = 0;
-				charIndex++;
-				continue;
-			} else {
-				break;
+			if(textInstance.IsSubtitle == true) 
+			{
+				charIndex = textInstance.SubtitleStartIndex;
 			}
-		}
-		int glyphStart = charIndex;
-		uint32 tc = text.UTF8Char( charIndex );
-		scaledGlyphInfo_t glyph;
-		fontInfo->GetScaledGlyph( glyphScale, tc, glyph );
-		float glyphSkip = glyph.xSkip;
-		if ( textInstance->HasStroke() ) {
-			glyphSkip += ( swf_textStrokeSizeGlyphSpacer.GetFloat() * textInstance->GetStrokeWeight() * glyphScale );
-		}
 
-		tooltipIcon_t iconCheck;
-		
-		if ( iconIndex < tooltipIconList.Num() ) {
-			iconCheck = tooltipIconList[iconIndex];
-		}
+			while(charIndex < text.Length)
+			{
+				if(text[charIndex] == '\n')
+				{
+					if((shape.Flags & EditTextFlags.MultiLine) == EditTextFlags.MultiLine)
+					{
+						textLines[currentLine] += '\n';
+						x = bounds.TopLeft.X;
+						y += lineSpacing;
 
-		float imageSkip = 0.0f;
-
-		if ( charIndex - 1 == iconCheck.startIndex ) {
-			insertingImage = true;
-			imageSkip = iconCheck.imageWidth * imageScale;
-		} else if ( charIndex - 1 == iconCheck.endIndex ) {
-			insertingImage = false;
-			iconIndex++;
-			glyphSkip = 0.0f;
-		}
-
-		if ( insertingImage ) {
-			glyphSkip = 0.0f;
-		}
-
-		if ( !inputField ) { // only break lines of text when we are not inputting data
-			if ( x + glyphSkip > bounds.br.x || x + imageSkip > bounds.br.x ) {
-				if ( shape->flags & ( SWF_ET_MULTILINE | SWF_ET_WORDWRAP ) ) {
-					if ( lastbreak > 0 ) {
-						int curLineIndex = currentLine - &textLines[0];
-						idStr * newline = &textLines.Alloc();
-						currentLine = &textLines[ curLineIndex ];
-						if ( maxLines == 1 ) {
-							currentLine->CapLength( currentLine->Length() - 3 );
-							currentLine->Append( "..." );
-							break;
-						} else {
-							*newline = currentLine->c_str() + lastbreak;
-							currentLine->CapLength( lastbreak );
-							currentLine = newline;
-							x -= lastbreakX;
-						}
-					} else {
-						currentLine = &textLines.Alloc();
-						x = bounds.tl.x;
+						textLines.Add(string.Empty);
+						currentLine++;
+						lastBreak = 0;
+						charIndex++;
+				
+						continue;
+					} 
+					else 
+					{
+						break;
 					}
-					lastbreak = 0;
-				} else {
-					break;
+				}
+		
+				int glyphStart = charIndex;
+				char character = text[charIndex++];
+
+				ScaledGlyph glyph = fontInfo.GetScaledGlyph(glyphScale, character);
+				float glyphSkip = glyph.SkipX;
+
+				if(textInstance.HasStroke == true) 
+				{
+					glyphSkip += (cvarSystem.GetFloat("swf_textStrokeSizeGlyphSpacer") * textInstance.StrokeWeight * glyphScale);
+				}
+
+				// TODO: tooltips
+				/*tooltipIcon_t iconCheck;
+		
+				if ( iconIndex < tooltipIconList.Num() ) {
+					iconCheck = tooltipIconList[iconIndex];
+				}*/
+
+				float imageSkip = 0.0f;
+
+				/*if ( charIndex - 1 == iconCheck.startIndex ) {
+					insertingImage = true;
+					imageSkip = iconCheck.imageWidth * imageScale;
+				} else if ( charIndex - 1 == iconCheck.endIndex ) {
+					insertingImage = false;
+					iconIndex++;
+					glyphSkip = 0.0f;
+				}*/
+
+				if(insertingImage == true)
+				{
+					glyphSkip = 0.0f;
+				}
+
+				 // only break lines of text when we are not inputting data
+				if(inputField == false)
+				{
+					if(((x + glyphSkip) > bounds.BottomRight.X) || ((x + imageSkip) > bounds.BottomRight.X)) 
+					{
+						if((shape.Flags & (EditTextFlags.MultiLine | EditTextFlags.WordWrap)) != 0)
+						{
+							if(lastBreak > 0) 
+							{
+								int curLineIndex = currentLine;
+								currentLine++;
+								textLines.Add(string.Empty);
+
+								if(maxLines == 1) 
+								{
+									textLines[curLineIndex] = textLines[curLineIndex].Substring(0, textLines[curLineIndex].Length - 3);
+									textLines[curLineIndex] += "...";
+
+									break;
+								} 
+								else
+								{
+									textLines[curLineIndex] = textLines[curLineIndex].Substring(0, lastBreak);
+
+									x -= lastBreakX;
+								}
+							} 
+							else 
+							{
+								textLines.Add(string.Empty);
+
+								currentLine++;
+								x = bounds.TopLeft.X;
+							}
+
+							lastBreak = 0;
+						} 
+						else 
+						{
+							break;
+						}
+					}
+				}
+
+				while((glyphStart < charIndex) && (glyphStart < text.Length)) 
+				{
+					textLines[currentLine] += text[ glyphStart++];
+				}
+
+				x += glyphSkip + imageSkip;
+
+				if((character == ' ') || (character == '-')) 
+				{
+					lastBreak  = textLines[currentLine].Length;
+					lastBreakX = x;
 				}
 			}
-		}
-		while ( glyphStart < charIndex && glyphStart < text.Length() ) {
-			currentLine->Append( text[ glyphStart++ ] );
-		}
-		x += glyphSkip + imageSkip;
-		if ( tc == ' ' || tc == '-' ) {
-			lastbreak = currentLine->Length();
-			lastbreakX = x;
-		}
-	}
 
 			// subtitle functionality
 			if((textInstance.IsSubtitle == true) && (textInstance.IsUpdatingSubtitle == true))
@@ -1038,7 +1074,7 @@ namespace idTech4.UI.SWF
 					parms.Clear();
 					textInstance->SubtitleCleanup();
 				}*/
-			/*}
+			}
 
 			//*************************************************
 			// CALCULATE THE NUMBER OF SCROLLS LINES LEFT
@@ -1046,12 +1082,12 @@ namespace idTech4.UI.SWF
 
 			idLog.Warning("TODO: scroll lines");
 
-			/*textInstance->CalcMaxScroll( textLines.Num() - maxLines );
+			/*textInstance->CalcMaxScroll( textLines.Num() - maxLines );*/
 
 			int c = 1;
-			int textLine = textInstance->scroll;	
+			int textLine = 0; //textInstance->scroll;	
 
-			if ( textLine + maxLines > textLines.Num() && maxLines < textLines.Num() ) {
+			/*if ( textLine + maxLines > textLines.Num() && maxLines < textLines.Num() ) {
 				textLine = textLines.Num() - maxLines;
 				textInstance->scroll = textLine;
 			} else if ( textLine < 0 || textLines.Num() <= maxLines ) {
@@ -1065,7 +1101,7 @@ namespace idTech4.UI.SWF
 			// END SCROLL CALCULATION
 			//*************************************************
 
-			/*int index = 0;
+			int index = 0;
 
 			int startCharacter      = 0;
 			int endCharacter        = 0;
@@ -1103,7 +1139,7 @@ namespace idTech4.UI.SWF
 					bool endFound = false;
 					int c = startCheckIndex;
 					while ( c < text.Length() ) {
-						uint32 tc = text.UTF8Char( c );
+						uint32 tc = text.UTF8Char( c++ );
 						scaledGlyphInfo_t glyph;
 						fontInfo->GetScaledGlyph( glyphScale, tc, glyph );
 						float glyphSkip = glyph.xSkip;
@@ -1132,7 +1168,7 @@ namespace idTech4.UI.SWF
 								break;
 							}
 						} 
-						inputText.AppendUTF8Char( tc );
+						inputText.AppendUTF8Char( tc++ );
 						left += glyphSkip;
 					}
 
@@ -1144,7 +1180,7 @@ namespace idTech4.UI.SWF
 					textInstance->SetInputStartCharacter( startCheckIndex );
 					endCharacter = startCheckIndex;
 				}*/
-		/*	}
+			}
 	
 			for(int t = 0; t < textLines.Count; t++)
 			{
@@ -1155,12 +1191,12 @@ namespace idTech4.UI.SWF
 		
 				if(t < textLine)
 				{
-					string text = textLines[t];
-					c += text.Length();
+					text = textLines[t];
+					c    += text.Length;
 			
 					startCharacter = endCharacter;
-					endCharacter   = startCharacter + text.Length();
-					overallIndex   += text.Length();
+					endCharacter   = startCharacter + text.Length;
+					overallIndex   += text.Length;
 
 					idLog.Warning("TODO: tooltip icons");
 
@@ -1173,7 +1209,7 @@ namespace idTech4.UI.SWF
 						}
 					}*/
 
-				/*	continue;
+					continue;
 				}
 
 				if(index == maxLines) 
@@ -1182,315 +1218,378 @@ namespace idTech4.UI.SWF
 				}
 
 				startCharacter = endCharacter;
+				text           = textLines[textLine];
+				int lastChar   = text.Length;
 
-	/*	idStr & text = textLines[textLine];
-		int lastChar = text.Length();
-		if ( textInstance->IsSubtitle() ) {
-			lastChar = textInstance->GetSubEndIndex();
-		}
-
-		textLine++;
-
-		if ( inputField ) {
-			if ( inputEndChar == 0 ) {
-				inputEndChar += 1;
-			}
-			selStart -= startCharacter;
-			selEnd -= startCharacter;
-			cursorPos -= startCharacter;
-			endCharacter = inputEndChar;
-			lastChar = endCharacter;
-			text = text.Mid( startCharacter, endCharacter - startCharacter );
-		} else {
-
-			if ( lastChar == 0 ) {
-				// blank line so add space char
-				endCharacter = startCharacter + 1;
-			} else {
-				endCharacter = startCharacter + lastChar;
-			}
-		}
-
-		float width = 0.0f;
-		insertingImage = false;
-		int i = 0;
-		while ( i < lastChar ) {
-			if ( curIcon < tooltipIconList.Num() && tooltipIconList[curIcon].startIndex == startCharacter + i ) {
-				width += tooltipIconList[curIcon].imageWidth * imageScale;
-				i += tooltipIconList[curIcon].endIndex - tooltipIconList[curIcon].startIndex - 1;
-				curIcon++;
-			} else {
-				if ( i < text.Length() ) {
-					scaledGlyphInfo_t glyph;
-					fontInfo->GetScaledGlyph( glyphScale, text.UTF8Char( i ), glyph );
-					width += glyph.xSkip;
-					if ( textInstance->HasStroke() ) {
-						width += ( swf_textStrokeSizeGlyphSpacer.GetFloat() * textInstance->GetStrokeWeight() * glyphScale );
-					}
-				} else {
-					i++;
+				if(textInstance.IsSubtitle == true) 
+				{
+					lastChar = textInstance.SubtitleEndIndex;
 				}
-			}
-		}
 
-		y = bounds.tl.y + ( index * linespacing );
+				textLine++;
 
-		float biggestGlyphHeight = 0.0f;		*/
-		/*for ( int image = 0; image < tooltipIconList.Num(); ++image ) {
-			if ( tooltipIconList[image].startIndex >= startCharacter && tooltipIconList[image].endIndex < endCharacter ) {
-				biggestGlyphHeight = tooltipIconList[image].imageHeight > biggestGlyphHeight ? tooltipIconList[image].imageHeight : biggestGlyphHeight;
-			}
-		}*/
+				if(inputField == true) 
+				{
+					if(inputEndChar == 0) 
+					{
+						inputEndChar += 1;
+					}
 
-		/*float yBottomOffset = 0.0f;
-		float yTopOffset = 0.0f;
+					selectionStart -= startCharacter;
+					selectionEnd   -= startCharacter;
+					cursorPosition -= startCharacter;
+					endCharacter    = inputEndChar;
+					lastChar        = endCharacter;
+					text            = text.Substring(startCharacter, endCharacter - startCharacter);
+				} 
+				else 
+				{
+					if(lastChar == 0) 
+					{
+						// blank line so add space char
+						endCharacter = startCharacter + 1;
+					} 
+					else 
+					{
+						endCharacter = startCharacter + lastChar;
+					}
+				}
 
-		if ( biggestGlyphHeight > 0.0f ) {
-		
-			float topSpace = 0.0f;
-			float bottomSpace = 0.0f;
+				float width    = 0.0f;
+				insertingImage = false;
+				int i          = 0;
 
-			int idx = 0;
-			scaledGlyphInfo_t glyph;
-			fontInfo->GetScaledGlyph( glyphScale, text.UTF8Char( idx ), glyph );
+				while(i < lastChar) 
+				{
+					// TODO: tooltips
+					/*if ( curIcon < tooltipIconList.Num() && tooltipIconList[curIcon].startIndex == startCharacter + i ) {
+						width += tooltipIconList[curIcon].imageWidth * imageScale;
+						i += tooltipIconList[curIcon].endIndex - tooltipIconList[curIcon].startIndex - 1;
+						curIcon++;
+					} else*/
+					{
+						if(i < text.Length) 
+						{
+							ScaledGlyph glyph = fontInfo.GetScaledGlyph(glyphScale, text[i++]);
+							width            += glyph.SkipX;
 
-			topSpace = ( ( biggestGlyphHeight * imageScale ) - glyph.height ) / 2.0f;
-
-			bottomSpace = topSpace;
-
-			if ( topSpace > 0.0f && t != 0 ) {
-				yTopOffset += topSpace;
-			}
-
-			if ( bottomSpace > 0.0f ) {
-				yBottomOffset += bottomSpace;
-			}
-		} else {
-			yBottomOffset = 0.0f;
-		}
-
-		if ( t != 0 ) {
-			if ( yPrevBottomOffset > 0 || yTopOffset > 0 ) {
-				yOffset += yTopOffset > yPrevBottomOffset ? yTopOffset : yPrevBottomOffset;
-			}
-		}
-
-		y += yOffset;		
-		yPrevBottomOffset = yBottomOffset;		
-
-		float extraSpace = 0.0f;
-		switch ( shape->align ) {
-		case SWF_ET_ALIGN_LEFT:
-			x = bounds.tl.x;
-			break;
-		case SWF_ET_ALIGN_RIGHT:
-			x = bounds.br.x - width;
-			break;
-		case SWF_ET_ALIGN_CENTER:
-			x = ( bounds.tl.x + bounds.br.x - width ) * 0.5f;
-			break;
-		case SWF_ET_ALIGN_JUSTIFY:
-			x = bounds.tl.x;
-			if ( width > ( bounds.br.x - bounds.tl.x ) * 0.5f && index < textLines.Num() - 1 ) {
-				extraSpace = ( ( bounds.br.x - bounds.tl.x ) - width ) / ( (float) lastChar - 1.0f );
-			}
-			break;
-		}
-
-		tooltipIcon_t icon;
-		insertingImage = false;
-
-		// find the right icon index if we scrolled passed the previous ones
-		for ( int iconChar = iconIndex; iconChar < tooltipIconList.Num(); ++iconChar ) {
-			if ( overallIndex > tooltipIconList[iconChar].startIndex ) {
-				iconIndex++;
-			} else {
-				break;
-			}
-		}
-
-		float baseLine = y + ( fontInfo->GetAscender( glyphScale ) );
-
-		i = 0;
-		int overallLineIndex = 0;
-		idVec4 textColor = defaultColor;
-		while ( i < lastChar ) {		
-
-			if ( i >= text.Length() ) {
-				break;
-			}
-
-			// Support colors
-			if ( !textInstance->ignoreColor ) {
-				if ( text[ i ] == C_COLOR_ESCAPE ) {
-					if ( idStr::IsColor( text.c_str() + i++ ) ) {
-						if ( text[ i ] == C_COLOR_DEFAULT ) {
+							if(textInstance.HasStroke == true) 
+							{
+								width += (cvarSystem.GetFloat("swf_textStrokeSizeGlyphSpacer") * textInstance.StrokeWeight * glyphScale);
+							}
+						} 
+						else 
+						{
 							i++;
-							textColor = defaultColor;
-						} else {
-							textColor = idStr::ColorForIndex( text[ i++ ] );
-							textColor.w = defaultColor.w;
 						}
+					}
+				}
+
+				y = bounds.TopLeft.Y + (index * lineSpacing);
+
+				float biggestGlyphHeight = 0.0f;		
+
+				/*for ( int image = 0; image < tooltipIconList.Num(); ++image ) {
+					if ( tooltipIconList[image].startIndex >= startCharacter && tooltipIconList[image].endIndex < endCharacter ) {
+						biggestGlyphHeight = tooltipIconList[image].imageHeight > biggestGlyphHeight ? tooltipIconList[image].imageHeight : biggestGlyphHeight;
+					}
+				}*/
+
+				float yBottomOffset = 0.0f;
+				float yTopOffset    = 0.0f;
+
+				if(biggestGlyphHeight > 0.0f) 
+				{			
+					float topSpace    = 0.0f;
+					float bottomSpace = 0.0f;
+					int idx           = 0;
+
+					ScaledGlyph glyph = fontInfo.GetScaledGlyph(glyphScale, text[idx++]);
+					topSpace          = ((biggestGlyphHeight * imageScale) - glyph.Height) / 2.0f;
+					bottomSpace       = topSpace;
+
+					if((topSpace > 0.0f) && (t != 0)) 
+					{
+						yTopOffset += topSpace;
+					}
+
+					if(bottomSpace > 0.0f) 
+					{
+						yBottomOffset += bottomSpace;
+					}
+				} 
+				else 
+				{
+					yBottomOffset = 0.0f;
+				}
+
+				if(t != 0) 
+				{
+					if((yPrevBottomOffset > 0) || (yTopOffset > 0)) 
+					{
+						yOffset += (yTopOffset > yPrevBottomOffset) ? yTopOffset : yPrevBottomOffset;
+					}
+				}
+
+				y                += yOffset;		
+				yPrevBottomOffset = yBottomOffset;		
+
+				float extraSpace = 0.0f;
+
+				switch(shape.Align)
+				{
+					case TextAlign.Left:
+						x = bounds.TopLeft.X;
+						break;
+
+					case TextAlign.Right:
+						x = bounds.BottomRight.X - width;
+						break;
+
+					case TextAlign.Center:
+						x = (bounds.TopLeft.X + bounds.BottomRight.X - width) * 0.5f;
+						break;
+
+					case TextAlign.Justify:
+						x = bounds.TopLeft.X;
+
+						if((width > (bounds.BottomRight.X - bounds.TopLeft.X) * 0.5f) && (index < textLines.Count - 1)) 
+						{
+							extraSpace = ((bounds.BottomRight.X - bounds.TopLeft.X ) - width ) / ((float) lastChar - 1.0f);
+						}
+						break;
+				}
+
+				// TODO: tooltipIcon_t icon;
+				insertingImage = false;
+
+				// find the right icon index if we scrolled passed the previous ones
+				// TODO: tooltips
+				/*for ( int iconChar = iconIndex; iconChar < tooltipIconList.Num(); ++iconChar ) {
+					if ( overallIndex > tooltipIconList[iconChar].startIndex ) {
+						iconIndex++;
+					} else {
+						break;
+					}
+				}*/
+
+				float baseLine       = y + fontInfo.GetAscender(glyphScale);
+				int overallLineIndex = 0;
+				Vector4 textColor    = defaultColor;
+				i                    = 0;
+				
+				while(i < lastChar) 
+				{		
+					if(i >= text.Length) 
+					{
+						break;
+					}
+
+					// support colors
+					if(textInstance.IgnoreColor == false) 
+					{
+						if(text[i] == (int) idColorIndex.Escape)
+						{
+							if(idColor.IsColor(text, i++) == true)
+							{
+								if(text[i] == (int) idColorIndex.Default)
+								{
+									i++;
+									textColor = defaultColor;
+								} 
+								else 
+								{
+									textColor   = idColor.FromIndex(text[i++]);
+									textColor.W = defaultColor.W;
+								}
+						
+								continue;
+							}
+						}
+					}
+
+					char character = text[i++];
+
+					if(character == '\n') 
+					{
+						c++;
+				
+						overallIndex    += i - overallLineIndex;
+						overallLineIndex = i;
+				
 						continue;
 					}
-				}
-			}
 
-			uint32 character = text.UTF8Char( i );
+					// skip a single leading space
+					if((character == ' ') && (i == 1))
+					{
+						c++;
 
-			if ( character == '\n' ) {
-				c++;
-				overallIndex += i - overallLineIndex;
-				overallLineIndex = i;;
-				continue;
-			}
+						overallIndex    += i - overallLineIndex;
+						overallLineIndex = i;
+						
+						continue;
+					}
 
-			// Skip a single leading space
-			if ( character == ' ' && i == 1 ) {
-				c++;
-				overallIndex += i - overallLineIndex;
-				overallLineIndex = i;
-				continue;
-			}
-
-			if ( iconIndex <  tooltipIconList.Num() ) {
-				icon = tooltipIconList[iconIndex];
-			}
+					// TODO: tooltips
+					/*if ( iconIndex <  tooltipIconList.Num() ) {
+						icon = tooltipIconList[iconIndex];
+					}*/
 			
-			if ( overallIndex == icon.startIndex ) {
-				insertingImage = true;
+					/*if(overallIndex == icon.startIndex) 
+					{
+						insertingImage = true;
 
-				scaledGlyphInfo_t glyph;
-				fontInfo->GetScaledGlyph( glyphScale, character, glyph );
+						scaledGlyphInfo_t glyph;
+						fontInfo->GetScaledGlyph( glyphScale, character, glyph );
 
-				float imageHeight = icon.imageHeight * imageScale;
-				float glyphHeight = glyph.height;
+						float imageHeight = icon.imageHeight * imageScale;
+						float glyphHeight = glyph.height;
 
-				float imageY = 0.0f;
-				if ( icon.baseline == 0 ) {
-					imageY = baseLine - glyph.top;
-					imageY += ( glyphHeight - imageHeight ) * 0.5f;
-					imageY += 2.0f;
-				} else {
-					imageY = ( y + glyphHeight ) - ( ( icon.imageHeight * imageScale ) - ( glyphHeight ) );	
-				} 
+						float imageY = 0.0f;
+						if ( icon.baseline == 0 ) {
+							imageY = baseLine - glyph.top;
+							imageY += ( glyphHeight - imageHeight ) * 0.5f;
+							imageY += 2.0f;
+						} else {
+							imageY = ( y + glyphHeight ) - ( ( icon.imageHeight * imageScale ) - ( glyphHeight ) );	
+						} 
 				
-				float imageX = x + glyph.left;
-				float imageW = icon.imageWidth * imageScale;
-				float imageH = icon.imageHeight * imageScale;
+						float imageX = x + glyph.left;
+						float imageW = icon.imageWidth * imageScale;
+						float imageH = icon.imageHeight * imageScale;
 
-				idVec2 topl = matrix.Transform( idVec2( imageX, imageY ) );
-				idVec2 topr = matrix.Transform( idVec2( imageX + imageW, imageY ) );
-				idVec2 br = matrix.Transform( idVec2( imageX + imageW, imageY + imageH ) );
-				idVec2 bl = matrix.Transform( idVec2( imageX, imageY + imageH ) );
+						idVec2 topl = matrix.Transform( idVec2( imageX, imageY ) );
+						idVec2 topr = matrix.Transform( idVec2( imageX + imageW, imageY ) );
+						idVec2 br = matrix.Transform( idVec2( imageX + imageW, imageY + imageH ) );
+						idVec2 bl = matrix.Transform( idVec2( imageX, imageY + imageH ) );
 
-				float s1 = 0.0f;
-				float t1 = 0.0f;
-				float s2 = 1.0f;
-				float t2 = 1.0f;
+						float s1 = 0.0f;
+						float t1 = 0.0f;
+						float s2 = 1.0f;
+						float t2 = 1.0f;
 
-				//uint32 color = gui->GetColor();
-				idVec4 imgColor = colorWhite;
-				imgColor.w = defaultColor.w;
-				gui->SetColor( imgColor );
-				DrawStretchPic( idVec4( topl.x, topl.y, s1, t1 ), idVec4( topr.x, topr.y, s2, t1 ), idVec4( br.x, br.y, s2, t2 ), idVec4( bl.x, bl.y, s1, t2 ), icon.material );
-				gui->SetColor( defaultColor );
+						//uint32 color = gui->GetColor();
+						idVec4 imgColor = colorWhite;
+						imgColor.w = defaultColor.w;
+						gui->SetColor( imgColor );
+						DrawStretchPic( idVec4( topl.x, topl.y, s1, t1 ), idVec4( topr.x, topr.y, s2, t1 ), idVec4( br.x, br.y, s2, t2 ), idVec4( bl.x, bl.y, s1, t2 ), icon.material );
+						gui->SetColor( defaultColor );
 
-				x += icon.imageWidth * imageScale;
-				x += extraSpace;
+						x += icon.imageWidth * imageScale;
+						x += extraSpace;
+					
+					} else if ( overallIndex == icon.endIndex ) {
+						insertingImage = false;
+						iconIndex++;	
+					}*/
 
-			} else if ( overallIndex == icon.endIndex ) {
-				insertingImage = false;
-				iconIndex++;	
-			}
+					if(insertingImage == true) 
+					{
+						overallIndex    += i - overallLineIndex;
+						overallLineIndex = i;
 
-			if ( insertingImage ) {
-				overallIndex += i - overallLineIndex;
-				overallLineIndex = i;
-				continue;
-			}
+						continue;
+					}
 
-			// the glyphs texcoords assume nearest filtering, to get proper
-			// bilinear support we need to go an extra half texel on each side
-			scaledGlyphInfo_t glyph;
-			fontInfo->GetScaledGlyph( glyphScale, character, glyph );
+					// the glyphs texcoords assume nearest filtering, to get proper
+					// bilinear support we need to go an extra half texel on each side
+					ScaledGlyph glyph = fontInfo.GetScaledGlyph(glyphScale, character);
 
-			float glyphSkip = glyph.xSkip;
-			if ( textInstance->HasStroke() ) {
-				glyphSkip += ( swf_textStrokeSizeGlyphSpacer.GetFloat() * textInstance->GetStrokeWeight() * glyphScale );
-			}
+					float glyphSkip = glyph.SkipX;
 
-			float glyphW = glyph.width + 1.0f;	// +1 for bilinear half texel on each side
-			float glyphH = glyph.height + 1.0f;
+					if(textInstance.HasStroke == true) 
+					{
+						glyphSkip += (cvarSystem.GetFloat("swf_textStrokeSizeGlyphSpacer") * textInstance.StrokeWeight * glyphScale);
+					}
 
-			float glyphY = baseLine - glyph.top;
-			float glyphX = x + glyph.left;
+					float glyphW = glyph.Width + 1.0f;	// +1 for bilinear half texel on each side
+					float glyphH = glyph.Height + 1.0f;
 
-			idVec2 topl = matrix.Transform( idVec2( glyphX, glyphY ) );
-			idVec2 topr = matrix.Transform( idVec2( glyphX + glyphW, glyphY ) );
-			idVec2 br = matrix.Transform( idVec2( glyphX + glyphW, glyphY + glyphH ) );
-			idVec2 bl = matrix.Transform( idVec2( glyphX, glyphY + glyphH ) );
+					float glyphY = baseLine - glyph.Top;
+					float glyphX = x + glyph.Left;
 
-			float s1 = glyph.s1;
-			float t1 = glyph.t1;
-			float s2 = glyph.s2;
-			float t2 = glyph.t2;
-			if ( c > selStart && c <= selEnd ) {
-				idVec2 topl = matrix.Transform( idVec2( x, y ) );
-				idVec2 topr = matrix.Transform( idVec2( x + glyphSkip, y ) );
-				idVec2 br = matrix.Transform( idVec2( x + glyphSkip, y + linespacing ) );
-				idVec2 bl = matrix.Transform( idVec2( x, y + linespacing ) );
-				gui->SetColor( selColor );
-				DrawStretchPic( idVec4( topl.x, topl.y, 0, 0 ), idVec4( topr.x, topr.y, 1, 0 ), idVec4( br.x, br.y, 1, 1 ), idVec4( bl.x, bl.y, 0, 1 ), white );
-				gui->SetColor( textColor );
-			}
+					Vector2 topLeft     = matrix.Transform(new Vector2(glyphX, glyphY));
+					Vector2 topRight    = matrix.Transform(new Vector2(glyphX + glyphW, glyphY));
+					Vector2 bottomRight = matrix.Transform(new Vector2(glyphX + glyphW, glyphY + glyphH));
+					Vector2 bottomLeft  = matrix.Transform(new Vector2(glyphX, glyphY + glyphH));
 
-			if ( textInstance->GetHasDropShadow() ) {
-			
-				float dsY = glyphY + glyphScale * 2.0f;
-				float dsX = glyphX + glyphScale * 2.0f;
+					float s1 = glyph.S1;
+					float t1 = glyph.T1;
+					float s2 = glyph.S2;
+					float t2 = glyph.T2;
 
-				idVec2 dstopl = matrix.Transform( idVec2( dsX, dsY ) );
-				idVec2 dstopr = matrix.Transform( idVec2( dsX + glyphW, dsY ) );
-				idVec2 dsbr = matrix.Transform( idVec2( dsX + glyphW, dsY + glyphH ) );
-				idVec2 dsbl = matrix.Transform( idVec2( dsX, dsY + glyphH ) );
+					if((c > selectionStart) && (c <= selectionEnd))
+					{
+						Vector2 sTopLeft     = matrix.Transform(new Vector2(x, y));
+						Vector2 sTopRight    = matrix.Transform(new Vector2(x + glyphSkip, y));
+						Vector2 sBottomRight = matrix.Transform(new Vector2(x + glyphSkip, y + lineSpacing));
+						Vector2 sBottomLeft  = matrix.Transform(new Vector2(x, y + lineSpacing));
 
-				idVec4 dsColor = colorBlack;
-				dsColor.w = defaultColor.w;
-				gui->SetColor( dsColor );
-				DrawStretchPic( idVec4( dstopl.x, dstopl.y, s1, t1 ), idVec4( dstopr.x, dstopr.y, s2, t1 ), idVec4( dsbr.x, dsbr.y, s2, t2 ), idVec4( dsbl.x, dsbl.y, s1, t2 ), glyph.material );
-				gui->SetColor( textColor );
-			} else if ( textInstance->HasStroke() ) {
-				
-				idVec4 strokeColor = colorBlack;
-				strokeColor.w = textInstance->GetStrokeStrength() * defaultColor.w;
-				gui->SetColor( strokeColor );
-				for ( int index = 0; index < 4; ++index ) {
-					float xPos = glyphX + ( ( strokeXOffsets[ index ] * textInstance->GetStrokeWeight() ) * glyphScale );
-					float yPos = glyphY + ( ( strokeYOffsets[ index ] * textInstance->GetStrokeWeight() ) * glyphScale );
-					idVec2 topLeft = matrix.Transform( idVec2( xPos, yPos ) );
-					idVec2 topRight = matrix.Transform( idVec2( xPos + glyphW, yPos ) );
-					idVec2 botRight = matrix.Transform( idVec2( xPos + glyphW, yPos + glyphH ) );
-					idVec2 botLeft = matrix.Transform( idVec2( xPos, yPos + glyphH ) );					
-					DrawStretchPic( idVec4( topLeft.x, topLeft.y, s1, t1 ), idVec4( topRight.x, topRight.y, s2, t1 ), idVec4( botRight.x, botRight.y, s2, t2 ), idVec4( botLeft.x, botLeft.y, s1, t2 ), glyph.material );					
+						renderSystem.Color = selectionColor;
+						DrawStretchPicture(new Vector4(sTopLeft.X, sTopLeft.Y, 0, 0), new Vector4(sTopRight.X, sTopRight.Y, 1, 0), new Vector4(sBottomRight.X, sBottomRight.Y, 1, 1), new Vector4(sBottomLeft.X, sBottomLeft.Y, 0, 1), _white);
+						renderSystem.Color = textColor;
+					}
+
+					if(textInstance.HasDropShadow == true) 
+					{			
+						float dsY = glyphY + glyphScale * 2.0f;
+						float dsX = glyphX + glyphScale * 2.0f;
+
+						Vector2 dsTopLeft = matrix.Transform(new Vector2(dsX, dsY));
+						Vector2 dsTopRight = matrix.Transform(new Vector2(dsX + glyphW, dsY));
+						Vector2 dsBottomRight   = matrix.Transform(new Vector2(dsX + glyphW, dsY + glyphH));
+						Vector2 dsBottomLeft   = matrix.Transform(new Vector2(dsX, dsY + glyphH));
+
+						Vector4 dsColor = idColor.Black;
+						dsColor.W       = defaultColor.W;
+
+						renderSystem.Color = dsColor;
+						DrawStretchPicture(new Vector4(dsTopLeft.X, dsTopLeft.Y, s1, t1), new Vector4(dsTopRight.X, dsTopRight.Y, s2, t1), new Vector4(dsBottomRight.X, dsBottomRight.Y, s2, t2), new Vector4(dsBottomLeft.X, dsBottomLeft.Y, s1, t2), glyph.Material);
+						renderSystem.Color = textColor;
+					} 
+					else if(textInstance.HasStroke == true) 
+					{
+						Vector4 strokeColor = idColor.Black;
+						strokeColor.W       = textInstance.StrokeStrength * defaultColor.W;
+
+						renderSystem.Color = strokeColor;
+
+						for(index = 0; index < 4; ++index) 
+						{
+							float xPos = glyphX + ((strokeXOffsets[index] * textInstance.StrokeWeight) * glyphScale);
+							float yPos = glyphY + ((strokeYOffsets[index] * textInstance.StrokeWeight) * glyphScale);
+							
+							Vector2 sTopLeft     = matrix.Transform(new Vector2(xPos, yPos));
+							Vector2 sTopRight    = matrix.Transform(new Vector2(xPos + glyphW, yPos));
+							Vector2 sBottomRight = matrix.Transform(new Vector2(xPos + glyphW, yPos + glyphH));
+							Vector2 sBottomLeft  = matrix.Transform(new Vector2(xPos, yPos + glyphH));
+
+							DrawStretchPicture(new Vector4(sTopLeft.X, sTopLeft.Y, s1, t1), new Vector4(sTopRight.X, sTopRight.Y, s2, t1), new Vector4(sBottomRight.X, sBottomRight.Y, s2, t2), new Vector4(sBottomLeft.X, sBottomLeft.Y, s1, t2), glyph.Material);
+						}
+
+						renderSystem.Color = textColor;
+					}
+
+					DrawStretchPicture(new Vector4(topLeft.X, topLeft.Y, s1, t1), new Vector4(topRight.X, topRight.Y, s2, t1), new Vector4(bottomRight.X, bottomRight.Y, s2, t2), new Vector4(bottomLeft.X, bottomLeft.Y, s1, t2), glyph.Material);
+
+					x += glyphSkip;
+					x += extraSpace;
+
+					if(cursorPosition == c) 
+					{
+						idLog.Warning("TODO: DrawEditCursor( gui, x - 1.0f, y, 1.0f, linespacing, matrix );");
+					}
+
+					c++;
+
+					overallIndex    += i - overallLineIndex;
+					overallLineIndex = i;
 				}
-				gui->SetColor( textColor );
-			}
 
-			DrawStretchPic( idVec4( topl.x, topl.y, s1, t1 ), idVec4( topr.x, topr.y, s2, t1 ), idVec4( br.x, br.y, s2, t2 ), idVec4( bl.x, bl.y, s1, t2 ), glyph.material );
-			x += glyphSkip;
-			x += extraSpace;
-			if ( cursorPos == c ) {
-				DrawEditCursor( gui, x - 1.0f, y, 1.0f, linespacing, matrix );
+				index++;
 			}
-			c++;
-			overallIndex += i - overallLineIndex;
-			overallLineIndex = i;
 		}
-
-		index++;
-	}*/
-}
 
 		private void DrawMask(IRenderSystem renderSystem, idSWFDisplayEntry mask, idSWFRenderState renderState, int stencilMode)
 		{
@@ -1581,8 +1680,8 @@ namespace idTech4.UI.SWF
 					continue;
 				}
 
-				Color colorMul   = new Color(color.Mul);
-				Color colorAdd   = new Color(color.Add);
+				Vector4 colorMul   = color.Mul;
+				Vector4 colorAdd   = color.Add;
 				idSWFRect bounds = shape.StartBounds;
 
 				if(renderState.MaterialWidth > 0)
@@ -1671,8 +1770,8 @@ namespace idTech4.UI.SWF
 				
 					verts[j].Clear();
 					verts[j].Position = new Vector3(renderState.Matrix.Transform(xy) * _scaleToVirtual, 0);
-					verts[j].Color    = new Color(color.Mul);
-					verts[j].Color2   = new Color(color.Add.X * 0.5f + 0.5f, 
+					verts[j].Color    = color.Mul;
+					verts[j].Color2 =   new Vector4(color.Add.X * 0.5f + 0.5f, 
 						color.Add.Y * 0.5f + 0.5f, 
 						color.Add.Z * 0.5f + 0.5f, 
 						color.Add.W * 0.5f + 0.5f);
@@ -1685,6 +1784,16 @@ namespace idTech4.UI.SWF
 		private void DrawStretchPicture(float x, float y, float width, float height, float s1, float t1, float s2, float t2, idMaterial material)
 		{
 			idEngine.Instance.GetService<IRenderSystem>().DrawStretchPicture(x * _scaleToVirtual.X, y * _scaleToVirtual.Y, width * _scaleToVirtual.X, height * _scaleToVirtual.Y, s1, t1, s2, t2, material);
+		}
+
+		private void DrawStretchPicture(Vector4 topLeft, Vector4 topRight, Vector4 bottomRight, Vector4 bottomLeft, idMaterial material)
+		{
+			idEngine.Instance.GetService<IRenderSystem>().DrawStretchPicture(	
+				new Vector4(topLeft.X * _scaleToVirtual.X,     topLeft.Y * _scaleToVirtual.Y,     topLeft.Z,     topLeft.W),
+				new Vector4(topRight.X * _scaleToVirtual.X,    topRight.Y * _scaleToVirtual.Y,    topRight.Z,    topRight.W),
+				new Vector4(bottomRight.X * _scaleToVirtual.X, bottomRight.Y * _scaleToVirtual.Y, bottomRight.Z, bottomRight.W),
+				new Vector4(bottomLeft.X * _scaleToVirtual.X,  bottomLeft.Y * _scaleToVirtual.Y,  bottomLeft.Z,  bottomLeft.W),
+				material);
 		}
 
 		private ulong StateForRenderState(idSWFRenderState renderState)

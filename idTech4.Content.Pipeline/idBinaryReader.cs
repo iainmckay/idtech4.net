@@ -88,6 +88,7 @@ namespace idTech4.Content.Pipeline
 			return BitConverter.ToInt64(b, 0);
 		}
 
+
 		public override ushort ReadUInt16()
 		{
 			byte[] b = this.ReadBytes(sizeof(ushort));
@@ -96,10 +97,34 @@ namespace idTech4.Content.Pipeline
 			return BitConverter.ToUInt16(b, 0);
 		}
 
+		public ushort ReadUInt16(bool swap)
+		{
+			if(swap == true)
+			{
+				return ReadUInt16();
+			}
+
+			byte[] b = this.ReadBytes(sizeof(ushort));			
+
+			return BitConverter.ToUInt16(b, 0);
+		}
+
 		public override uint ReadUInt32()
 		{
 			byte[] b = this.ReadBytes(sizeof(uint));
 			Swap(ref b);
+
+			return BitConverter.ToUInt32(b, 0);
+		}
+
+		public uint ReadUInt32(bool swap)
+		{
+			if(swap == true)
+			{
+				return ReadUInt32();
+			}
+
+			byte[] b = this.ReadBytes(sizeof(uint));
 
 			return BitConverter.ToUInt32(b, 0);
 		}
