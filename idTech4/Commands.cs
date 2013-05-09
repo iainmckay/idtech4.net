@@ -373,7 +373,31 @@ namespace idTech4
 		[Command("bind", "binds a command to a key", CommandFlags.System /* TODO: idKeyInput::ArgCompletion_KeyName*/)]
 		private static void Input_Bind(idEngine engine, string key, string command = null)
 		{
-			idLog.WriteLine("TODO: bind");
+			IInputSystem inputSystem = idEngine.Instance.GetService<IInputSystem>();
+
+			Keys value = inputSystem.GetKeyFromString(key);
+
+			if(value == Keys.Invalid)
+			{
+				idLog.WriteLine("\"{0}\" isn't a valid key", key);
+			}
+			else if(command == null)
+			{
+				string binding = inputSystem.GetBinding(value);
+
+				if(binding.Length > 0)
+				{
+					idLog.WriteLine("\"{0}\" = \"{1}\"", key, binding);
+				}
+				else 
+				{
+					idLog.WriteLine("\"{0}\" is not bound", key);
+				}
+			}
+			else
+			{	
+				inputSystem.SetBinding(value, command);
+			}
 		}
 
 		[Command("bindunbindtwo", "binds a key but unbinds it first if there are more than two binds", CommandFlags.System)]
@@ -391,7 +415,12 @@ namespace idTech4
 		[Command("unbindall", "unbinds any commands from all keys", CommandFlags.System)]
 		private static void Input_UnbindAll(idEngine engine)
 		{
-			idLog.WriteLine("TODO: unbindall");
+			IInputSystem inputSystem = idEngine.Instance.GetService<IInputSystem>();
+
+			for(int i = 0; i < (int) Keys.LastKey; i++)
+			{
+				inputSystem.SetBinding((Keys) i, string.Empty);
+			}
 		}
 
 		[Command("listBinds", "lists key bindings", CommandFlags.System)]

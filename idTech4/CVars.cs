@@ -52,7 +52,8 @@ namespace idTech4
 			cvarSystem.Register("com_compressDemos",		"1", "Compression scheme for demo files\n0: None    (Fast, large files)\n1: LZW     (Fast to compress, Fast to decompress, medium/small files)\n2: LZSS    (Slow to compress, Fast to decompress, small files)\n3: Huffman (Fast to compress, Slow to decompress, medium files)\nSee also: The 'CompressDemo' command", CVarFlags.System | CVarFlags.Integer | CVarFlags.Archive);
 			cvarSystem.Register("com_deltaTimeClamp",		"50", "don't process more than this time in a single frame",	CVarFlags.Integer);
 			cvarSystem.Register("com_engineHz",				"60", 10.0f, 1024.0f, "Frames per second the engine runs at",	CVarFlags.Float | CVarFlags.Archive);
-			cvarSystem.Register("com_fixedTic",				"0", "run a single game frame per render frame",			CVarFlags.Bool);
+			cvarSystem.Register("com_fixedTic",				"0", "run a single game frame per render frame",				CVarFlags.Bool);
+			cvarSystem.Register("com_forceGenericSIMD",		"0", "force generic platform independent SIMD",					CVarFlags.Bool | CVarFlags.System | CVarFlags.NoCheat);
 			cvarSystem.Register("com_japaneseCensorship",	"0", "Enable Japanese censorship",								CVarFlags.NoCheat);
 			cvarSystem.Register("com_journal",				"0", 0, 2, "1 = record journal, 2 = play back journal",			CVarFlags.Init | CVarFlags.System, new ArgCompletion_Integer(0, 2));
 			cvarSystem.Register("com_logDemos",				"0", "Write demo.log with debug information in it",				CVarFlags.System | CVarFlags.Bool);
@@ -87,7 +88,7 @@ namespace idTech4
 			#endregion
 
 			#region Dialog
-			cvarSystem.Register("popupDialog_debug",			"0", "display debug spam",		CVarFlags.Bool | CVarFlags.Archive);
+			cvarSystem.Register("popupDialog_debug",		"0", "display debug spam",		CVarFlags.Bool | CVarFlags.Archive);
 			#endregion
 
 			#region Filesystem
@@ -116,12 +117,35 @@ namespace idTech4
 			cvarSystem.Register("gui_edit",				"0", "",															CVarFlags.Gui | CVarFlags.Bool);
 			#endregion
 
+			#region Input
+			cvarSystem.Register("in_alwaysRun",				"1", "always run (reverse _speed button) - only in MP",							CVarFlags.System | CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("in_anglespeedkey",			"1.5", "angle change scale when holding down _speed button",					CVarFlags.System | CVarFlags.Archive | CVarFlags.Float);
+			cvarSystem.Register("in_invertLook",			"0", "inverts the look controls so the forward looks up (flight controls) - the proper way to play games!", CVarFlags.System | CVarFlags.Bool);
+			cvarSystem.Register("in_joystickRumble",		"1", "enable joystick rumble",													CVarFlags.System | CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("in_mouse",					"1", "enable mouse input",														CVarFlags.System | CVarFlags.Bool);
+			cvarSystem.Register("in_mouseInvertLook",		"0", "inverts the look controls so the forward looks up (flight controls) - the proper way to play games!", CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("in_mouseSpeed",			"1", 0.25f, 4.0f, "speed at which the mouse moves",								CVarFlags.Archive | CVarFlags.Float);
+			cvarSystem.Register("in_pitchspeed",			"140", "pitch change speed when holding down look _lookUp or _lookDown button", CVarFlags.System | CVarFlags.Archive | CVarFlags.Float);
+			cvarSystem.Register("in_toggleCrouch",			"0", "pressing _movedown button toggles player crouching/standing",				CVarFlags.System | CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("in_toggleRun",				"0", "pressing _speed button toggles run on/off - only in MP",					CVarFlags.System | CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("in_toggleZoom",			"0", "pressing _zoom button toggles zoom on/off",								CVarFlags.System | CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("in_useJoystick",			"0", "enables/disables the gamepad for PC use",									CVarFlags.Archive | CVarFlags.Bool);
+			cvarSystem.Register("in_yawspeed",				"140", "yaw change speed when holding down _left or _right button",				CVarFlags.System | CVarFlags.Archive | CVarFlags.Float);
+					
+			cvarSystem.Register("m_pitch",					"0.022", "mouse pitch scale",													CVarFlags.System | CVarFlags.Archive | CVarFlags.Float);
+			cvarSystem.Register("m_showMouseRate",			"0", "shows mouse movement",													CVarFlags.System | CVarFlags.Bool);
+			cvarSystem.Register("m_smooth",					"1",  1, 8, "number of samples blended for mouse viewing",						CVarFlags.System | CVarFlags.Archive | CVarFlags.Integer, new ArgCompletion_Integer(1, 8));
+			cvarSystem.Register("m_yaw",					"0.022", "mouse yaw scale",														CVarFlags.System | CVarFlags.Archive | CVarFlags.Float);
+
+			cvarSystem.Register("sensitivity", "5", "mouse view sensitivity", CVarFlags.System | CVarFlags.Archive | CVarFlags.Float);
+			#endregion
+
 			#region Misc.
 			cvarSystem.Register("timescale",					"1", 0.001f, 100.0f, "Number of game frames to run per render frame",	CVarFlags.System | CVarFlags.Float);
 			#endregion
 
 			#region Network
-			cvarSystem.Register("net_migrateHost",				"-1", "Become host of session (0 = party, 1 = game) for testing purposes", CVarFlags.Integer);
+			cvarSystem.Register("net_migrateHost",			"-1", "Become host of session (0 = party, 1 = game) for testing purposes", CVarFlags.Integer);
 			#endregion
 
 			#region Renderer
@@ -270,7 +294,7 @@ namespace idTech4
 			cvarSystem.Register("win_allowMultipleInstances",	"0", "allow multiple instances running concurrently",	CVarFlags.System | CVarFlags.Bool);
 			#endregion
 			
-			/*new idCVar("in_mouse", "1", CVAR_SYSTEM | CVAR_BOOL, "enable mouse input" );
+			/*
 			static idCVar lcp_showFailures( "lcp_showFailures", "0", CVAR_BOOL, "show LCP solver failures" );
 
 			idCVar com_assertOutOfDebugger( "com_assertOutOfDebugger", "0", CVAR_BOOL, "by default, do not assert while not running under the debugger" );
@@ -316,7 +340,7 @@ idCVar net_allowCheats( "net_allowCheats", "0", CVAR_BOOL | CVAR_NOCHEAT, "Allow
 #endif
 
 			idCVar com_version( "si_version", version.string, CVAR_SYSTEM|CVAR_ROM|CVAR_SERVERINFO, "engine version" );
-idCVar com_forceGenericSIMD( "com_forceGenericSIMD", "0", CVAR_BOOL | CVAR_SYSTEM | CVAR_NOCHEAT, "force generic platform independent SIMD" );
+
 
 			
 
@@ -426,25 +450,7 @@ idCVar joy_yawSpeed( "joy_yawSpeed", "240",	CVAR_ARCHIVE | CVAR_FLOAT, "pitch sp
 idCVar joy_dampenLook( "joy_dampenLook", "1", CVAR_BOOL | CVAR_ARCHIVE, "Do not allow full acceleration on look" );
 idCVar joy_deltaPerMSLook( "joy_deltaPerMSLook", "0.003", CVAR_FLOAT | CVAR_ARCHIVE, "Max amount to be added on look per MS" );
 
-idCVar in_mouseSpeed( "in_mouseSpeed", "1",	CVAR_ARCHIVE | CVAR_FLOAT, "speed at which the mouse moves", 0.25f, 4.0f );
-idCVar in_alwaysRun( "in_alwaysRun", "1", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_BOOL, "always run (reverse _speed button) - only in MP" );
 
-idCVar in_useJoystick( "in_useJoystick", "0", CVAR_ARCHIVE | CVAR_BOOL, "enables/disables the gamepad for PC use" );
-idCVar in_joystickRumble( "in_joystickRumble", "1", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_BOOL, "enable joystick rumble" );
-idCVar in_invertLook( "in_invertLook", "0", CVAR_ARCHIVE | CVAR_BOOL, "inverts the look controls so the forward looks up (flight controls) - the proper way to play games!" );
-idCVar in_mouseInvertLook( "in_mouseInvertLook", "0", CVAR_ARCHIVE | CVAR_BOOL, "inverts the look controls so the forward looks up (flight controls) - the proper way to play games!" );
-
-			idCVar idUsercmdGenLocal::in_yawSpeed( "in_yawspeed", "140", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_FLOAT, "yaw change speed when holding down _left or _right button" );
-idCVar idUsercmdGenLocal::in_pitchSpeed( "in_pitchspeed", "140", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_FLOAT, "pitch change speed when holding down look _lookUp or _lookDown button" );
-idCVar idUsercmdGenLocal::in_angleSpeedKey( "in_anglespeedkey", "1.5", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_FLOAT, "angle change scale when holding down _speed button" );
-idCVar idUsercmdGenLocal::in_toggleRun( "in_toggleRun", "0", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_BOOL, "pressing _speed button toggles run on/off - only in MP" );
-idCVar idUsercmdGenLocal::in_toggleCrouch( "in_toggleCrouch", "0", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_BOOL, "pressing _movedown button toggles player crouching/standing" );
-idCVar idUsercmdGenLocal::in_toggleZoom( "in_toggleZoom", "0", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_BOOL, "pressing _zoom button toggles zoom on/off" );
-idCVar idUsercmdGenLocal::sensitivity( "sensitivity", "5", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_FLOAT, "mouse view sensitivity" );
-idCVar idUsercmdGenLocal::m_pitch( "m_pitch", "0.022", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_FLOAT, "mouse pitch scale" );
-idCVar idUsercmdGenLocal::m_yaw( "m_yaw", "0.022", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_FLOAT, "mouse yaw scale" );
-idCVar idUsercmdGenLocal::m_smooth( "m_smooth", "1", CVAR_SYSTEM | CVAR_ARCHIVE | CVAR_INTEGER, "number of samples blended for mouse viewing", 1, 8, idCmdSystem::ArgCompletion_Integer<1,8> );
-idCVar idUsercmdGenLocal::m_showMouseRate( "m_showMouseRate", "0", CVAR_SYSTEM | CVAR_BOOL, "shows mouse movement" );
 
 			idCVar zip_verbosity( "zip_verbosity", "0", CVAR_BOOL, "1 = verbose logging when building zip files" );
 

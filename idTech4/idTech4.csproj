@@ -114,6 +114,7 @@
     <Compile Include="idVersion.cs" />
     <Compile Include="Input\idInputField.cs" />
     <Compile Include="Input\idInputSystem.cs" />
+    <Compile Include="Input\idUserCommandGenerator.cs" />
     <Compile Include="IO\idFileSystem.cs" />
     <Compile Include="IO\idResourceContainer.cs" />
     <Compile Include="Math\idBounds.cs" />

@@ -98,7 +98,7 @@ namespace idTech4
 			}
 		}
 		#endregion
-
+		
 		#region Timing
 		public int FrameNumber
 		{
@@ -153,6 +153,8 @@ namespace idTech4
 		private Stopwatch _gameTimer;
 		private bool _shuttingDown;
 
+		private bool _generateEventsEntered;
+
 		// engine timing
 		private float _engineHzLatched    = 60.0f; // latched version of cvar, updated between map loads
 		private long _engineHzNumerator   = 100 * 1000;
@@ -163,7 +165,7 @@ namespace idTech4
 		private CurrentGame _currentGame;
 		private CurrentGame _idealCurrentGame; // defer game switching so that bad things don't happen in the middle of the frame.
 		private idMaterial _doomClassicMaterial;
-
+		
 		// com_speeds times
 		private int	_speeds_GameFrameCount;	    // total number of game frames that were run
 		private int	_speeds_GameFrame;			// game logic time
@@ -619,6 +621,7 @@ namespace idTech4
 		protected override void Initialize()
 		{
 			// done before Com/Sys_Init since we need this for error output
+			// TODO:
 			/*idLog.WriteLine("TODO: Sys_CreateConsole();");
 
 			idLog.WriteLine("TODO: optimalPCTBuffer( 0.5f );");*/
@@ -839,11 +842,8 @@ namespace idTech4
 				_gameThread.StartWorkerThread( "Game/Draw", ThreadCore.C_1B, ThreadPriority.BelowNormal, 0x100000);
 				// boost this thread's priority, so it will prevent job threads from running while
 				// the render back end still has work to do
-
-				// init the user command input code
-				/* TODO: usercmdGen->Init();
-
-				Sys_SetRumble( 0, 0, 0 );*/
+				
+				 idLog.Warning("TODO: Sys_SetRumble( 0, 0, 0 );");
 
 				// initialize the user interfaces
 				userInterfaceManager.Init();
@@ -957,6 +957,7 @@ namespace idTech4
 				idLog.WriteLine("--- Common Initialization Complete ---");
 				idLog.WriteLine("QA Timing IIS: {0}ms", _gameTimer.ElapsedMilliseconds);
 
+				// TODO:
 				/*if(win32.win_notaskkeys.GetInteger())
 				{
 					DisableTaskKeys(TRUE, FALSE, /*( win32.win_notaskkeys.GetInteger() == 2 )*/
@@ -1465,6 +1466,37 @@ namespace idTech4
 			Environment.Exit(1);
 		}
 
+		private void Sys_GenerateEvents() 
+		{
+			if(_generateEventsEntered == true)
+			{
+				return;
+			}
+
+			_generateEventsEntered = true;
+
+			// pump the message loop
+			//Sys_PumpEvents();
+
+			// grab or release the mouse cursor if necessary
+			idEngine.Instance.GetService<IInputSystem>().ProcessFrame();
+
+			// check for console commands
+			// TODO: console commands
+			/*s = Sys_ConsoleInput();
+			if ( s ) {
+				char	*b;
+				int		len;
+
+				len = strlen( s ) + 1;
+				b = (char *)Mem_Alloc( len, TAG_EVENTS );
+				strcpy( b, s );
+				Sys_QueEvent( SE_CONSOLE, 0, 0, len, b, 0 );
+			}*/
+
+			_generateEventsEntered = false;
+		}
+
 		private void Sys_Init()
 		{
 			ICVarSystem cvarSystem    = GetService<ICVarSystem>();
@@ -1620,8 +1652,10 @@ namespace idTech4
 
 			IRenderSystem renderSystem = this.GetService<IRenderSystem>();
 			ICVarSystem cvarSystem     = this.GetService<ICVarSystem>();
+			IInputSystem inputSystem   = this.GetService<IInputSystem>();
 			ISession session           = this.GetService<ISession>();
 			IGame game                 = this.GetService<IGame>();
+			IDialog dialog             = this.GetService<IDialog>();
 
 			LinkedListNode<idRenderCommand> renderCommands = null;
 
@@ -1633,22 +1667,24 @@ namespace idTech4
 				_frameNumber++;
 
 				// allow changing SIMD usage on the fly
-				/*if ( com_forceGenericSIMD.IsModified() ) {
-					idSIMD::InitProcessor( "doom", com_forceGenericSIMD.GetBool() );
-					com_forceGenericSIMD.ClearModified();
-				}*/
+				if(cvarSystem.IsModified("com_forceGenericSIMD") == true)
+				{
+					idLog.Warning("TODO: idSIMD::InitProcessor( \"doom\", com_forceGenericSIMD.GetBool() );");
+
+					cvarSystem.ClearModified("com_forceGenericSIMD");
+				}
 
 				// Do the actual switch between Doom 3 and the classics here so
 				// that things don't get confused in the middle of the frame.
 				PerformGameSwitch();
 
 				// pump all the events
-				/*Sys_GenerateEvents();
+				Sys_GenerateEvents();
 
 				// write config file if anything changed
-				WriteConfiguration(); 
+				// TODO: WriteConfiguration(); 
 
-				eventLoop->RunEventLoop();*/
+				_eventLoop.RunEventLoop();
 
 				// activate the shell if it's been requested
 				if((_showShellRequested == true) && (game != null))
@@ -1884,37 +1920,42 @@ namespace idTech4
 						Sys_PollJoystickInputEvents( i );
 						Sys_EndJoystickInputEvents();
 					}
-				}
-				if ( pauseGame ) {
-					usercmdGen->Clear();
+				}*/
+
+				if(pauseGame == true)
+				{
+					inputSystem.ClearGenerated();
 				}
 
-				usercmd_t newCmd = usercmdGen->GetCurrentUsercmd();
+				idUserCommand newCmd = inputSystem.CurrentUserCommand;
 
-				// Store server game time - don't let time go past last SS time in case we are extrapolating
-				if ( IsClient() ) {
+				// store server game time - don't let time go past last SS time in case we are extrapolating
+				/*if ( IsClient() ) {
 					newCmd.serverGameMilliseconds = std::min( Game()->GetServerGameTimeMs(), Game()->GetSSEndTime() );
 				} else {
 					newCmd.serverGameMilliseconds = Game()->GetServerGameTimeMs();
-				}
+				}*/
 
-				userCmdMgr.MakeReadPtrCurrentForPlayer( Game()->GetLocalClientNum() );
+				// TODO: userCmdMgr.MakeReadPtrCurrentForPlayer(game.LocalClientNumber);
 
-				// Stuff a copy of this userCmd for each game frame we are going to run.
-				// Ideally, the usercmds would be built in another thread so you could
+				// stuff a copy of this userCmd for each game frame we are going to run.
+				// ideally, the usercmds would be built in another thread so you could
 				// still get 60hz control accuracy when the game is running slower.
-				for ( int i = 0 ; i < numGameFrames ; i++ ) {
-					newCmd.clientGameMilliseconds = FRAME_TO_MSEC( gameFrame-numGameFrames+i+1 );
-					userCmdMgr.PutUserCmdForPlayer( game->GetLocalClientNum(), newCmd );
-				}
 
-				// If we're in Doom or Doom 2, run tics and upload the new texture.
-				if ( ( GetCurrentGame() == DOOM_CLASSIC || GetCurrentGame() == DOOM2_CLASSIC ) && !( Dialog().IsDialogPausing() || session->IsSystemUIShowing() ) ) {
+				// TODO: user command injection
+				/*for ( int i = 0 ; i < numGameFrames ; i++ ) {
+					newCmd.clientGameMilliseconds = FRAME_TO_MSEC( *gameFrame-numGameFrames+i+1 );
+					userCmdMgr.PutUserCmdForPlayer(game.LocalClientNumber, newCmd );
+				}*/
+
+				// if we're in Doom or Doom 2, run tics and upload the new texture.
+				// TODO:
+				/*if ( ( GetCurrentGame() == DOOM_CLASSIC || GetCurrentGame() == DOOM2_CLASSIC ) && !( Dialog().IsDialogPausing() || session->IsSystemUIShowing() ) ) {
 					RunDoomClassicFrame();
 				}*/
 		
 				// start the game / draw command generation thread going in the background
-				GameReturn ret = _gameThread.RunGameAndDraw(gameFrameCount, /* TODO: userCmdMgr*/ null, /*TODO: IsClient()*/ true, _gameFrame - gameFrameCount);
+				GameReturn ret = _gameThread.RunGameAndDraw(gameFrameCount, /*userCmdMgr*/ null, /*TODO: IsClient()*/ true, _gameFrame - gameFrameCount);
 
 				if(cvarSystem.GetBool("com_smp") == false)
 				{

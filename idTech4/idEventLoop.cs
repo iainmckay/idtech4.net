@@ -28,8 +28,6 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Text;
 
 using idTech4.Services;
 
@@ -109,6 +107,11 @@ namespace idTech4
 
 		#region Methods
 		#region Public
+		/// <summary>
+		/// Dispatches all pending events and returns the current time.
+		/// </summary>
+		/// <param name="commandExecution"></param>
+		/// <returns></returns>
 		public bool RunEventLoop(bool commandExecution = true)
 		{
 			SystemEvent ev;
@@ -136,7 +139,12 @@ namespace idTech4
 		#endregion
 
 		#region Private
-		private SystemEvent GetEvent()
+		/// <summary>
+		/// It is possible to get an event at the beginning of a frame that
+		/// has a time stamp lower than the last event from the previous frame.
+		/// </summary>
+		/// <returns></returns>
+		public SystemEvent GetEvent()
 		{
 			//idConsole.Warning("TODO: pushed events");
 			// TODO: pushed events
@@ -210,6 +218,8 @@ namespace idTech4
 
 		private void ProcessEvent(SystemEvent ev)
 		{
+			ICommandSystem cmdSystem = idEngine.Instance.GetService<ICommandSystem>();
+
 			// track key up / down states
 			if(ev.Type == SystemEventType.Key)
 			{
@@ -221,7 +231,6 @@ namespace idTech4
 				idLog.Warning("TODO: external console");
 
 				// from a text console outside the game window
-				// TODO: console
 				//cmdSystem->BufferCommandText( CMD_EXEC_APPEND, (char *)ev.evPtr );
 				//cmdSystem->BufferCommandText( CMD_EXEC_APPEND, "\n" );
 			}
