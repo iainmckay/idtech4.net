@@ -53,7 +53,7 @@ namespace idTech4.Services
 		/*void Shell_ClosePause() = 0;*/
 		void Shell_Show(bool show);
 		bool Shell_IsActive();
-		/*bool Shell_HandleGuiEvent( const sysEvent_t * sev ) = 0;*/
+		bool Shell_HandleGuiEvent(SystemEvent ev);
 		void Shell_Render();
 		/*void Shell_ResetMenu() = 0;*/
 		void Shell_SyncWithSession();

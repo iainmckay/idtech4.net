@@ -237,6 +237,120 @@ namespace idTech4.Game.Menus
 			
 				return base.HandleAction(action, ev, widget, forceHandled);
 		}
+
+		public override bool  HandleGuiEvent(SystemEvent ev)
+		{
+			if(this.IsPacifierVisible == true)
+			{
+				return true;
+			}
+
+			if(_showingIntro == true)
+			{
+				return true;
+			}
+
+			if(_waitForBinding == true)
+			{
+				if((ev.Type == SystemEventType.Key) && (ev.Value2 == 1))
+				{
+					Keys value = (Keys) ev.Value;
+
+					if((value >= Keys.Joystick1Up) && (value <= Keys.Joystick2Right))
+					{
+						return true;
+					}
+
+					if(value == Keys.Escape)
+					{
+						_waitForBinding = false;
+
+						idLog.Warning("TODO: binding screen");
+						/*idMenuScreen_Shell_Bindings * bindScreen = dynamic_cast< idMenuScreen_Shell_Bindings * >( menuScreens[ SHELL_AREA_KEYBOARD ] );
+						if ( bindScreen != NULL ) {
+							bindScreen->ToggleWait( false );
+							bindScreen->Update();
+						}*/
+					} 
+					else 
+					{
+						idLog.Warning("TODO: rest of binding screen");
+						/*if ( idStr::Icmp( idKeyInput::GetBinding( sev->evValue ), "" ) == 0 ) {	// no existing binding found
+
+							idKeyInput::SetBinding( sev->evValue, waitBind );
+					
+							idMenuScreen_Shell_Bindings * bindScreen = dynamic_cast< idMenuScreen_Shell_Bindings * >( menuScreens[ SHELL_AREA_KEYBOARD ] );
+							if ( bindScreen != NULL ) {
+								bindScreen->SetBindingChanged( true );
+								bindScreen->UpdateBindingDisplay();
+								bindScreen->ToggleWait( false );
+								bindScreen->Update();
+							}
+
+							waitForBinding = false;
+
+						} else {	// binding found prompt to change
+
+							const char * curBind = idKeyInput::GetBinding( sev->evValue );
+
+							if ( idStr::Icmp( waitBind, curBind ) == 0 ) {
+								idKeyInput::SetBinding( sev->evValue, "" );
+								idMenuScreen_Shell_Bindings * bindScreen = dynamic_cast< idMenuScreen_Shell_Bindings * >( menuScreens[ SHELL_AREA_KEYBOARD ] );
+								if ( bindScreen != NULL ) {
+									bindScreen->SetBindingChanged( true );
+									bindScreen->UpdateBindingDisplay();
+									bindScreen->ToggleWait( false );
+									bindScreen->Update();
+									waitForBinding = false;
+								}
+							} else {
+
+								idMenuScreen_Shell_Bindings * bindScreen = dynamic_cast< idMenuScreen_Shell_Bindings * >( menuScreens[ SHELL_AREA_KEYBOARD ] );
+								if ( bindScreen != NULL ) {
+									class idSWFScriptFunction_RebindKey : public idSWFScriptFunction_RefCounted {
+									public:
+										idSWFScriptFunction_RebindKey( idMenuScreen_Shell_Bindings * _menu, gameDialogMessages_t _msg, bool _accept, idMenuHandler_Shell * _mgr, int _key, const char * _bind ) {
+											menu = _menu;
+											msg = _msg;
+											accept = _accept;
+											mgr = _mgr;
+											key = _key;
+											bind = _bind;
+										}
+										idSWFScriptVar Call( idSWFScriptObject * thisObject, const idSWFParmList & parms ) {
+											common->Dialog().ClearDialog( msg );
+											mgr->ClearWaitForBinding();
+											menu->ToggleWait( false );
+											if ( accept ) {
+												idKeyInput::SetBinding( key, bind );
+												menu->SetBindingChanged( true );
+												menu->UpdateBindingDisplay();
+												menu->Update();
+											}
+											return idSWFScriptVar();
+										}
+									private:
+										idMenuScreen_Shell_Bindings * menu;
+										gameDialogMessages_t msg;
+										bool accept;
+										idMenuHandler_Shell * mgr;
+										int key;
+										const char * bind;
+									};
+
+									common->Dialog().AddDialog( GDM_BINDING_ALREDY_SET, DIALOG_ACCEPT_CANCEL, new idSWFScriptFunction_RebindKey( bindScreen, GDM_BINDING_ALREDY_SET, true, this, sev->evValue, waitBind ), new idSWFScriptFunction_RebindKey( bindScreen, GDM_BINDING_ALREDY_SET, false, this, sev->evValue, waitBind ), false );
+								}
+
+							}
+						}*/
+					}
+				}
+
+				return true;
+			}
+
+			return base.HandleGuiEvent(ev);
+		}
 		#endregion
 
 		#region Initialization
@@ -880,7 +994,7 @@ namespace idTech4.Game.Menus
 				if(_nextScreen == ShellArea.Invalid)
 				{
 					idLog.Warning("TODO: invalid shell area");
-					// TODO: 
+
 					/*if ( activeScreen > SHELL_AREA_INVALID && activeScreen < SHELL_NUM_AREAS && menuScreens[ activeScreen ] != NULL ) {
 						menuScreens[ activeScreen ]->HideScreen( static_cast<mainMenuTransition_t>(transition) );
 					}*/

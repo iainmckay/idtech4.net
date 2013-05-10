@@ -199,6 +199,16 @@ namespace idTech4.Game.Menus
 
 			return false;
 		}
+
+		public virtual bool HandleGuiEvent(SystemEvent ev)
+		{
+			if((_gui != null) && (_activeScreen != ShellArea.Invalid))
+			{
+				_gui.HandleEvent(ev);
+			}
+
+			return false; 
+		}
 		#endregion
 
 		#region Initialization

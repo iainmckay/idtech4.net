@@ -216,6 +216,11 @@ namespace idTech4
 			return ev;
 		}
 
+		public void Queue(SystemEventType type, int value, int value2, int deviceNumber)
+		{
+			_events.Enqueue(new SystemEvent(type, value, value2, deviceNumber));
+		}
+
 		private void ProcessEvent(SystemEvent ev)
 		{
 			ICommandSystem cmdSystem = idEngine.Instance.GetService<ICommandSystem>();
@@ -246,6 +251,14 @@ namespace idTech4
 	public sealed class SystemEvent : EventArgs
 	{
 		#region Properties
+		public int DeviceNumber
+		{
+			get
+			{
+				return _deviceNumber;
+			}
+		}
+
 		public SystemEventType Type
 		{
 			get
@@ -275,6 +288,7 @@ namespace idTech4
 		private SystemEventType _type;
 		private int _value;
 		private int _value2;
+		private int _deviceNumber;
 		#endregion
 
 		#region Constructor
@@ -284,11 +298,12 @@ namespace idTech4
 			_type = type;
 		}
 
-		public SystemEvent(SystemEventType type, int value, int value2)
+		public SystemEvent(SystemEventType type, int value, int value2, int deviceNumber)
 		{
-			_type = type;
-			_value = value;
-			_value2 = value2;
+			_type         = type;
+			_value        = value;
+			_value2       = value2;
+			_deviceNumber = deviceNumber;
 		}
 		#endregion
 	}
@@ -303,8 +318,10 @@ namespace idTech4
 		Char,
 		/// <summary>Value and Value2 are relative signed x / y moves.</summary>
 		Mouse,
+		/// <summary>Value and Value2 are meaninless, this indicates the mouse has left the client area.</summary>
+		MouseLeave,
 		/// <summary>Value is an axis number and Value2 is the current state (-127 to 127).</summary>
-		JoystickAxis,
+		Joystick,
 		/// <summary>Ptr is a char*, from typing something at a non-game console.</summary>
 		Console
 	}

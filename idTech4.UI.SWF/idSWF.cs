@@ -81,7 +81,7 @@ namespace idTech4.UI.SWF
 				_inhibitControl = value;
 			}
 		}
-
+		
 		public Random Random
 		{
 			get
@@ -145,6 +145,10 @@ namespace idTech4.UI.SWF
 		// mouse coords for all flash files
 		private static int _mouseX = -1;
 		private static int _mouseY = -1;
+		private static bool _isMouseInClientArea;
+
+		private idSWFScriptObject _mouseObject;
+		private idSWFScriptObject _hoverObject;
 		
 		private float _frameWidth;
 		private float _frameHeight;
@@ -371,18 +375,25 @@ namespace idTech4.UI.SWF
 				}
 			}
 
-			// TODO: mouse input
-			/*if ( isMouseInClientArea && ( mouseEnabled && useMouse ) && ( InhibitControl() || ( !InhibitControl() && !useInhibtControl ) ) ) {
-				gui->SetGLState( GLS_SRCBLEND_SRC_ALPHA | GLS_DSTBLEND_ONE_MINUS_SRC_ALPHA );
-				gui->SetColor( idVec4( 1.0f, 1.0f, 1.0f, 1.0f ) );
-				idVec2 mouse = renderState.matrix.Transform( idVec2( mouseX - 1, mouseY - 2 ) );
+			if((_isMouseInClientArea == true) 
+				&& ((_mouseEnabled == true) && (_useMouse == true)) 
+				&& ((this.InhibitControl == true) || ((this.InhibitControl == false) && (_useInhibitControl == false))))
+			{
+				renderSystem.SetRenderState((ulong) (MaterialStates.SourceBlendSourceAlpha | MaterialStates.DestinationBlendOneMinusSourceAlpha));
+				renderSystem.Color = new Vector4(1.0f, 1.0f, 1.0f, 1.0f);
+
+				Vector2 mouse = renderState.Matrix.Transform(new Vector2(_mouseX - 1, _mouseY - 2));
 				//idSWFScriptObject * hitObject = HitTest( mainspriteInstance, swfRenderState_t(), mouseX, mouseY, NULL );
-				if ( !hasHitObject ) { //hitObject == NULL ) {
-					DrawStretchPic( mouse.x, mouse.y, 32.0f, 32.0f, 0, 0, 1, 1, guiCursor_arrow );
-				} else {
-					DrawStretchPic( mouse.x, mouse.y, 32.0f, 32.0f, 0, 0, 1, 1, guiCursor_hand );
+
+				if(_hasHitObject == false) //hitObject == NULL ) {
+				{ 
+					DrawStretchPicture(mouse.X, mouse.Y, 32.0f, 32.0f, 0, 0, 1, 1, _guiCursorArrow);
+				} 
+				else
+				{
+					DrawStretchPicture(mouse.X, mouse.Y, 32.0f, 32.0f, 0, 0, 1, 1, _guiCursorHand);
 				}
-			}*/
+			}
 
 			// restore the GL State
 			renderSystem.SetRenderState(0);
@@ -1842,6 +1853,370 @@ namespace idTech4.UI.SWF
 		}
 		#endregion
 
+		#region Events
+		public bool HandleEvent(SystemEvent ev)
+		{
+			if((this.IsActive == false) || (((_inhibitControl == false) && (_useInhibitControl == true)) == false))
+			{
+		//		return false;
+			}
+
+			IInputSystem inputSystem = idEngine.Instance.GetService<IInputSystem>();
+
+			if(ev.Type == SystemEventType.Key)
+			{
+				return HandleKeyEvent(ev);
+			}
+			else if(ev.Type == SystemEventType.Char)
+			{
+				return HandleCharEvent(ev);
+			}
+			else if(ev.Type == SystemEventType.Mouse)
+			{
+				return HandleMouseEvent(ev);
+			}
+			else if(ev.Type == SystemEventType.MouseLeave)
+			{
+				_isMouseInClientArea = false;
+			}
+			else if(ev.Type == SystemEventType.Joystick)
+			{
+				idSWFParameterList parms = new idSWFParameterList();
+				parms.Add(ev.Value);
+				parms.Add(ev.Value2 / 32.0f);
+
+				Invoke("onJoystick", parms);
+			}
+	
+			return false;
+		}
+
+		private bool HandleKeyEvent(SystemEvent ev)
+		{
+			IInputSystem inputSystem = idEngine.Instance.GetService<IInputSystem>();
+			Keys value               = (Keys) ev.Value;
+			idSWFScriptVariable var  = null;
+
+			if(value == Keys.Mouse1)
+			{
+				_mouseEnabled = true;
+
+				idSWFParameterList parms;
+
+				if(ev.Value2 != 0)
+				{
+					idSWFScriptVariable waitInput = _globals.Get("waitInput");
+
+					if(waitInput.IsFunction == true)
+					{
+						_useMouse = false;
+
+						idSWFParameterList waitParms = new idSWFParameterList();
+						waitParms.Add(ev.Value);
+
+						waitInput.Function.Invoke(null, waitParms);
+						waitParms.Clear();
+					}
+					else
+					{
+						_useMouse = true;
+					}
+
+					idSWFScriptObject hitObject = HitTest(_mainSpriteInstance, new idSWFRenderState(), _mouseX, _mouseY, null);
+				
+					if(hitObject != null) 
+					{
+						_mouseObject = hitObject;
+						var          = hitObject.Get("onPress");
+
+						if(var.IsFunction == true)
+						{
+							parms = new idSWFParameterList();
+							parms.Add(ev.DeviceNumber);
+
+							var.Function.Invoke(hitObject, parms);
+							parms.Clear();
+
+							return true;
+						}
+
+
+						var = hitObject.Get("onDrag");
+
+						if(var.IsFunction == true)
+						{
+							parms = new idSWFParameterList();
+							parms.Add(_mouseX);
+							parms.Add(_mouseY);
+							parms.Add(true);
+
+							var.Function.Invoke(hitObject, parms);
+
+							parms.Clear();
+
+							return true;
+						}
+					}
+
+					parms = new idSWFParameterList();
+					parms.Add(hitObject);
+
+					Invoke("setHitObject", parms);
+				} 
+				else 
+				{
+					if(_mouseObject != null) 
+					{
+						var = _mouseObject.Get("onRelease");
+
+						if(var.IsFunction == true)
+						{
+							parms = new idSWFParameterList();
+							parms.Add(_mouseObject); // FIXME: Remove this
+
+							var.Function.Invoke(_mouseObject, parms);
+						}					
+
+						_mouseObject = null;
+					}
+
+					if(_hoverObject != null)
+					{
+						_hoverObject = null;
+					}
+
+					if(var.IsFunction == true)
+					{
+						return true;
+					}
+				}
+			
+				return false;
+			}
+
+			string keyName = inputSystem.GetStringFromKey((Keys) ev.Value);
+			var            = _shortcutKeys.Get(keyName);
+
+			// anything more than 32 levels of indirection we can be pretty sure is an infinite loop
+			for(int runaway = 0; runaway < 32; runaway++)
+			{
+				idSWFParameterList eventParms = new idSWFParameterList();
+				eventParms.Add(ev.DeviceNumber);
+
+				if(var.IsString == true)
+				{
+					// alias to another key
+					var = _shortcutKeys.Get(var.ToString());
+					continue;
+				}
+				else if(var.IsObject == true)
+				{
+					// if this object is a sprite, send fake mouse events to it
+					idSWFScriptObject obj = var.Object;
+				
+					// make sure we don't send an onRelease event unless we have already sent that object an onPress
+					bool wasPressed = obj.Get("_pressed").ToBool();
+
+					obj.Set("_pressed", ev.Value2);
+
+					if(ev.Value2 != 0)
+					{
+						var = obj.Get("onPress");
+					}
+					else if(wasPressed == true)
+					{
+						var = obj.Get("onRelease");
+					}
+
+					if(var.IsFunction == true)
+					{
+						var.Function.Invoke(obj, eventParms);
+						return true;
+					}
+				} 
+				else if(var.IsFunction == true)
+				{
+					if(ev.Value2 != 0)
+					{
+						// anonymous functions only respond to key down events
+						var.Function.Invoke(null, eventParms);
+						return true;
+					}
+				
+					return false;
+				}
+
+				idSWFScriptVariable useFunction = _globals.Get("useFunction");
+
+				if((useFunction.IsFunction == true) && (ev.Value2 != 0))
+				{
+					string action = inputSystem.GetBinding((Keys) ev.Value);
+
+					if(action == "_use")
+					{
+						useFunction.Function.Invoke(null, new idSWFParameterList());
+					}
+				}
+
+				idSWFScriptVariable waitInput = _globals.Get("waitInput");
+
+				if(waitInput.IsFunction == true)
+				{
+					_useMouse = false;
+
+					if(ev.Value2 != 0)
+					{
+						idSWFParameterList waitParms = new idSWFParameterList();
+						waitParms.Add(ev.Value);
+
+						waitInput.Function.Invoke(null, waitParms);
+					}
+				} 
+				else 
+				{
+					_useMouse = true;
+				}
+
+				idSWFScriptVariable focusWindow = _globals.Get("focusWindow");
+
+				if(focusWindow.IsFunction == true)
+				{
+					idSWFScriptVariable onKey = focusWindow.Object.Get("onKey");
+
+					if(onKey.IsFunction == true)
+					{
+						// make sure we don't send an onRelease event unless we have already sent that object an onPress
+						idSWFScriptObject obj = focusWindow.Object;
+						bool wasPressed       = obj.Get("_kpressed").ToBool();
+
+						obj.Set("_kpressed", ev.Value2);
+
+						if((ev.Value2 != 0) || (wasPressed == true))
+						{
+							idSWFParameterList parms = new idSWFParameterList();
+							parms.Add(ev.Value);
+							parms.Add(ev.Value2);
+
+							onKey.Function.Invoke(focusWindow.Object, parms).ToBool();
+
+							return true;
+						} 
+						else if((value == Keys.LeftShift) || (value == Keys.RightShift))
+						{
+							idSWFParameterList parms = new idSWFParameterList();
+							parms.Add(ev.Value);
+							parms.Add(ev.Value2);
+
+							onKey.Function.Invoke(focusWindow.Object, parms).ToBool();
+						}
+					}
+				}
+			
+				return false;
+			}
+
+			throw new Exception(string.Format("Circular reference in shortcutKeys.{0}", keyName));
+		} 
+
+		private bool HandleCharEvent(SystemEvent ev)
+		{	
+			IInputSystem inputSystem        = idEngine.Instance.GetService<IInputSystem>();
+			idSWFScriptVariable focusWindow = _globals.Get("focusWindow");
+
+			if(focusWindow.IsObject == true)
+			{
+				idSWFScriptVariable onChar = focusWindow.Object.Get("onChar");
+
+				if(onChar.IsFunction == true)
+				{
+					idSWFParameterList parms = new idSWFParameterList();
+					parms.Add(ev.Value);
+					parms.Add(inputSystem.GetStringFromKey((Keys) ev.Value));
+
+					onChar.Function.Invoke(focusWindow.Object, parms).ToBool();
+
+					return true;
+				}
+			}
+
+			return false;
+		}
+	
+		private bool HandleMouseEvent(SystemEvent ev)
+		{
+			_mouseEnabled        = true;
+			_isMouseInClientArea = true;
+			
+			_mouseX += ev.Value;
+			_mouseY += ev.Value2;
+
+			_mouseX = (int) idMath.Max(idMath.Min(_mouseX, (int) (_frameWidth + _renderBorder)), (int) (0.0f - _renderBorder));
+			_mouseY = (int) idMath.Max(idMath.Min(_mouseY, (int) _frameHeight), 0);
+			
+			bool retVal = false;
+
+			idSWFScriptObject hitObject = HitTest(_mainSpriteInstance, new idSWFRenderState(), _mouseX, _mouseY, null);
+
+			if(hitObject != null)
+			{
+				_hasHitObject = true;
+			}
+			else
+			{
+				_hasHitObject = false;
+			}
+
+			if(hitObject != _hoverObject)
+			{
+				// first check to see if we should call onRollOut on our previous hoverObject
+				if(_hoverObject != null)
+				{
+					idSWFScriptVariable var = _hoverObject.Get("onRollOut");
+
+					if(var.IsFunction == true)
+					{
+						var.Function.Invoke(_hoverObject, new idSWFParameterList());
+						retVal = true;
+					}
+
+					_hoverObject = null;
+				}
+
+				// then call onRollOver on our hitObject
+				if(hitObject != null)
+				{
+					_hoverObject            = hitObject;
+					idSWFScriptVariable var = hitObject.Get("onRollOver");
+
+					if(var.IsFunction == true)
+					{
+						var.Function.Invoke(hitObject, new idSWFParameterList());
+						retVal = true;
+					}
+				}
+			}
+
+			if(_mouseObject != null)
+			{
+				idSWFScriptVariable var = _mouseObject.Get("onDrag");
+
+				if(var.IsFunction == true)
+				{
+					idSWFParameterList parms = new idSWFParameterList();
+					parms.Add(_mouseX);
+					parms.Add(_mouseY);
+					parms.Add(false);
+
+					var.Function.Invoke(_mouseObject, parms);
+
+					return true;
+				}
+			}
+
+			return retVal;
+		}
+		#endregion
+
 		#region Loading
 		private void CreateGlobals()
 		{
@@ -2047,6 +2422,269 @@ namespace idTech4.UI.SWF
 			}
 
 			return _dictionary[characterID];
+		}
+
+		public idSWFScriptObject HitTest(idSWFSpriteInstance spriteInstance, idSWFRenderState renderState, int x, int y, idSWFScriptObject parentObject)
+		{
+			if(spriteInstance.Parent != null)
+			{
+				idSWFDisplayEntry displayEntry = spriteInstance.Parent.FindDisplayEntry(spriteInstance.Depth);
+
+				if((displayEntry.ColorXForm.Mul.W + displayEntry.ColorXForm.Add.W) < 0.001f)
+				{
+					return null;
+				}
+			}
+
+			if(spriteInstance.IsVisible == false)
+			{
+				return null;
+			}
+
+			if((spriteInstance.ScriptObject.HasValidProperty("onRelease") == true)
+				|| (spriteInstance.ScriptObject.HasValidProperty("onPress") == true)
+				|| (spriteInstance.ScriptObject.HasValidProperty("onRollOver") == true)
+				|| (spriteInstance.ScriptObject.HasValidProperty("onRollOut") == true)
+				|| (spriteInstance.ScriptObject.HasValidProperty("onDrag") == true))
+			{
+				parentObject = spriteInstance.ScriptObject;
+			}
+			
+			// rather than returning the first object we find, we actually want to return the last object we find
+			idSWFScriptObject returnObject = null;
+	
+			float xOffset = spriteInstance.OffsetX;
+			float yOffset = spriteInstance.OffsetY;
+
+			Matrix edgeEquations, edgeEquationsTemp;
+	
+			for(int i = 0; i < spriteInstance.DisplayList.Count; i++)
+			{
+				idSWFDisplayEntry display  = spriteInstance.DisplayList[i];
+				idSWFDictionaryEntry entry = FindDictionaryEntry(display.CharacterID);
+
+				if(entry == null)
+				{
+					continue;
+				}
+
+				idSWFRenderState renderState2 = new idSWFRenderState();
+				renderState2.Matrix           = display.Matrix.Multiply(renderState.Matrix);
+				renderState2.Ratio            = display.Ratio;
+
+				if(entry is idSWFMorphShape)
+				{
+					// FIXME: this should be roughly the same as SWF_DICT_SHAPE
+				} 
+				else if(entry is idSWFEditText)
+				{
+					// FIXME: this should be roughly the same as SWF_DICT_SHAPE
+				}
+				else if(entry is idSWFSprite)
+				{
+					idSWFScriptObject obj = HitTest(display.SpriteInstance, renderState2, x, y, parentObject);
+
+					if((obj != null) && (obj.Get("_visible").ToBool() == true))
+					{
+						returnObject = obj;
+					}
+				}
+				else if((entry is idSWFShape) && (parentObject != null))
+				{
+					idSWFShape shape = (idSWFShape) entry;
+
+					for(i = 0; i < shape.Fills.Length; i++)
+					{
+						idSWFShapeDrawFill fill = shape.Fills[i];
+
+						for(int j = 0; j < fill.Indices.Length; j += 3)
+						{
+							Vector2 xy1 = renderState2.Matrix.Transform(fill.StartVertices[fill.Indices[j + 0]]);
+							Vector2 xy2 = renderState2.Matrix.Transform(fill.StartVertices[fill.Indices[j + 1]]);
+							Vector2 xy3 = renderState2.Matrix.Transform(fill.StartVertices[fill.Indices[j + 2]]);
+
+							edgeEquationsTemp     = new Matrix();
+							edgeEquationsTemp.M11 = xy1.X + xOffset;
+							edgeEquationsTemp.M12 = xy1.Y + yOffset;
+							edgeEquationsTemp.M13 = 1.0f; ;
+
+							edgeEquationsTemp.M21 = xy2.X + xOffset;
+							edgeEquationsTemp.M22 = xy2.Y + yOffset;
+							edgeEquationsTemp.M23 = 1.0f;
+
+							edgeEquationsTemp.M31 = xy3.X + xOffset;
+							edgeEquationsTemp.M32 = xy3.Y + yOffset;
+							edgeEquationsTemp.M33 = 1.0f;
+
+							edgeEquations = Matrix.Invert(edgeEquationsTemp);
+
+							Vector3 p     = new Vector3(x, y, 1.0f);
+							Vector3 signs = Vector3.Transform(p, edgeEquations);
+
+							bool bx = signs.X > 0;
+							bool by = signs.Y > 0;
+							bool bz = signs.Z > 0;
+
+							if((bx == by) && (bx == bz))
+							{
+								// point inside
+								returnObject = parentObject;
+							}
+						}
+					}
+				} 
+				else if(entry is idSWFEditText)
+				{
+					idSWFScriptObject editObject = null;
+
+					if((display.TextInstance.ScriptObject.HasProperty("onRelease") == true)
+						|| (display.TextInstance.ScriptObject.HasProperty("onPress") == true))
+					{
+						// if the edit box itself can be clicked, then we want to return it when it's clicked on
+						editObject = display.TextInstance.ScriptObject;
+					} 
+					else if(parentObject != null) 
+					{
+						// otherwise, we want to return the parent object
+						editObject = parentObject;
+					}
+
+					if(editObject == null) 
+					{
+						continue;
+					}
+
+					if(display.TextInstance.Text == string.Empty)
+					{
+						continue;
+					}
+
+					idSWFEditText shape = entry as idSWFEditText;
+					idSWFEditText text  = display.TextInstance.EditText;
+					float textLength    = display.TextInstance.TextLength;
+
+					float lengthDiff = idMath.Abs(shape.Bounds.BottomRight.X - shape.Bounds.TopLeft.X) - textLength;
+			
+					Vector3 topLeft; 
+					Vector3 topRight; 
+					Vector3 bottomRight; 
+					Vector3 bottomLeft;
+
+					float topOffset = 0.0f;
+					xOffset         = spriteInstance.OffsetX;
+					yOffset         = spriteInstance.OffsetY;
+					
+					if(text.Align == TextAlign.Left)
+					{
+						topLeft     = renderState2.Matrix.Transform(new Vector2(shape.Bounds.TopLeft.X + xOffset, shape.Bounds.TopLeft.Y + topOffset + yOffset)).ToVector3();
+						topRight    = renderState2.Matrix.Transform(new Vector2(shape.Bounds.BottomRight.X - lengthDiff + xOffset, shape.Bounds.TopLeft.Y + topOffset + yOffset)).ToVector3();
+						bottomRight = renderState2.Matrix.Transform(new Vector2(shape.Bounds.BottomRight.X - lengthDiff + xOffset, shape.Bounds.BottomRight.Y + topOffset + yOffset)).ToVector3();
+						bottomLeft  = renderState2.Matrix.Transform(new Vector2(shape.Bounds.TopLeft.X + xOffset, shape.Bounds.BottomRight.Y + topOffset + yOffset)).ToVector3();				
+					} 
+					else if(text.Align == TextAlign.Right)
+					{
+						topLeft     = renderState2.Matrix.Transform(new Vector2(shape.Bounds.TopLeft.X + lengthDiff + xOffset, shape.Bounds.TopLeft.Y + topOffset + yOffset)).ToVector3();
+						topRight    = renderState2.Matrix.Transform(new Vector2(shape.Bounds.BottomRight.X + xOffset, shape.Bounds.TopLeft.Y + topOffset + yOffset)).ToVector3();
+						bottomRight = renderState2.Matrix.Transform(new Vector2(shape.Bounds.BottomRight.X + xOffset, shape.Bounds.BottomRight.Y + topOffset + yOffset)).ToVector3();
+						bottomLeft  = renderState2.Matrix.Transform(new Vector2(shape.Bounds.TopLeft.X + lengthDiff + xOffset, shape.Bounds.BottomRight.Y + topOffset + yOffset)).ToVector3();
+					}
+					else if(text.Align == TextAlign.Center)
+					{
+						float middle = ((shape.Bounds.BottomRight.X + xOffset) + (shape.Bounds.TopLeft.X + xOffset)) / 2.0f;
+
+						topLeft     = renderState2.Matrix.Transform(new Vector2(middle - (textLength / 2.0f), shape.Bounds.TopLeft.Y + topOffset + yOffset)).ToVector3();
+						topRight    = renderState2.Matrix.Transform(new Vector2(middle + (textLength / 2.0f), shape.Bounds.TopLeft.Y + topOffset + yOffset)).ToVector3();
+						bottomRight = renderState2.Matrix.Transform(new Vector2(middle + (textLength / 2.0f), shape.Bounds.BottomRight.Y + topOffset + yOffset)).ToVector3();
+						bottomLeft  = renderState2.Matrix.Transform(new Vector2(middle - (textLength / 2.0f), shape.Bounds.BottomRight.Y + topOffset + yOffset)).ToVector3();
+					} 
+					else
+					{
+						topLeft     = renderState2.Matrix.Transform(new Vector2(shape.Bounds.TopLeft.X + xOffset, shape.Bounds.TopLeft.Y + topOffset + yOffset)).ToVector3();
+						topRight    = renderState2.Matrix.Transform(new Vector2(shape.Bounds.BottomRight.X + xOffset, shape.Bounds.TopLeft.Y + topOffset + yOffset)).ToVector3();
+						bottomRight = renderState2.Matrix.Transform(new Vector2(shape.Bounds.BottomRight.X + xOffset, shape.Bounds.BottomRight.Y + topOffset + yOffset)).ToVector3();
+						bottomLeft  = renderState2.Matrix.Transform(new Vector2(shape.Bounds.TopLeft.X + xOffset, shape.Bounds.BottomRight.Y + topOffset + yOffset)).ToVector3();
+					}
+
+					topLeft.Z   = 1.0f;
+					topRight.Z  = 1.0f;
+					bottomRight.Z = 1.0f;
+					bottomLeft.Z  = 1.0f;
+
+					edgeEquationsTemp = new Matrix();
+					edgeEquationsTemp.M11 = topLeft.X;
+					edgeEquationsTemp.M12 = topLeft.Y;
+					edgeEquationsTemp.M13 = topLeft.Z;
+
+					edgeEquationsTemp.M21 = topRight.X;
+					edgeEquationsTemp.M22 = topRight.Y;
+					edgeEquationsTemp.M23 = topRight.Z;
+
+					edgeEquationsTemp.M31 = bottomRight.X;
+					edgeEquationsTemp.M32 = bottomRight.Y;
+					edgeEquationsTemp.M33 = bottomRight.Z;
+
+					edgeEquations = Matrix.Invert(edgeEquationsTemp);
+
+					Vector3 p     = new Vector3(x, y, 1.0f);
+					Vector3 signs = Vector3.Transform(p, edgeEquations);
+
+					bool bx = signs.X > 0;
+					bool by = signs.Y > 0;
+					bool bz = signs.Z > 0;
+
+					if((bx == by) && (bx == bz))
+					{
+						// point inside top right triangle
+						returnObject = editObject;
+					}
+
+					edgeEquationsTemp = new Matrix();
+					edgeEquationsTemp.M11 = topLeft.X;
+					edgeEquationsTemp.M12 = topLeft.Y;
+					edgeEquationsTemp.M13 = topLeft.Z;
+
+					edgeEquationsTemp.M21 = bottomRight.X;
+					edgeEquationsTemp.M22 = bottomRight.Y;
+					edgeEquationsTemp.M23 = bottomRight.Z;
+
+					edgeEquationsTemp.M31 = bottomLeft.X;
+					edgeEquationsTemp.M32 = bottomLeft.Y;
+					edgeEquationsTemp.M33 = bottomLeft.Z;
+
+					edgeEquations = Matrix.Invert(edgeEquationsTemp);
+					
+					signs = Vector3.Transform(p, edgeEquations);
+
+					bx = signs.X > 0;
+					by = signs.Y > 0;
+					bz = signs.Z > 0;
+
+					if((bx == by) && (bx == bz))
+					{
+						// point inside bottom left triangle
+						returnObject = editObject;
+					}
+				}
+			}
+
+			return returnObject;
+		}
+
+		public void Invoke(string function, idSWFParameterList parms)
+		{
+			ICVarSystem cvarSystem  = idEngine.Instance.GetService<ICVarSystem>();
+			idSWFScriptObject obj   = _mainSpriteInstance.ScriptObject;
+			idSWFScriptVariable var = obj.Get(function);
+
+			if(cvarSystem.GetBool("swf_debugInvoke") == true)
+			{
+				idLog.WriteLine("SWF: Invoke {0} with {1} parms", function, parms.Count);
+			}
+
+			if(var.IsFunction == true)
+			{
+				var.Function.Invoke(null, parms);
+			}
 		}
 		#endregion
 

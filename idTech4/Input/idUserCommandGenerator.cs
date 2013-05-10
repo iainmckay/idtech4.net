@@ -29,8 +29,12 @@ using System;
 using System.Collections.Generic;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 using idTech4.Services;
+
+using Keys  = idTech4.Services.Keys;
+using XKeys = Microsoft.Xna.Framework.Input.Keys;
 
 namespace idTech4.Input
 {
@@ -66,15 +70,24 @@ namespace idTech4.Input
 		private int _continuousMouseY;
 		private int	_mouseButton;
 		private bool _mouseDown;
+		private bool _mouseLeftClientArea;
 
 		private Impulse _impulse;
 		private int _impulseSequence;
 		private Vector3 _viewAngles;
 
 		private bool[] _keyState;
+		private bool[] _previousKeyState;
 		private int[] _commandButtonState;
 
 		private idUserCommand _currentCommand;
+
+		private long	_pollTime;
+		private long	_lastPollTime;
+		private float _lastLookValuePitch;
+		private float _lastLookValueYaw;
+
+		private idEventLoop _eventLoop;
 		#endregion
 
 		#region Command map
@@ -146,6 +159,36 @@ namespace idTech4.Input
 
 		#region Methods
 		#region Public
+		public void BuildCurrentUserCommand(int deviceNum)
+		{
+			_pollTime = idEngine.Instance.ElapsedTime;
+
+			if((_pollTime - _lastPollTime) > 100)
+			{
+				_lastPollTime = _pollTime - 100;
+			}
+
+			// initialize current usercmd
+			InitCurrent();
+
+			// process the system mouse events
+			ProcessMouse();
+
+			// process the system keyboard events
+			ProcessKeyboard();
+
+			// process the system joystick events
+			// TODO: joystick
+			/*if ( deviceNum >= 0 && in_useJoystick.GetBool() ) {
+				Joystick( deviceNum );
+			}*/
+
+			// create the usercmd
+			MakeCurrent();
+
+			_lastPollTime = _pollTime;
+		}
+
 		public void Clear()
 		{
 			// clears all key states 
@@ -160,9 +203,10 @@ namespace idTech4.Input
 			_mouseDown       = true;
 		}
 				
-		public void Init()
+		public void Init(idEventLoop eventLoop)
 		{
 			_initialized = true;
+			_eventLoop   = eventLoop;
 		}
 
 		public void InitForNewMap()
@@ -182,10 +226,20 @@ namespace idTech4.Input
 		#endregion
 
 		#region Private
-		private void MakeCurrent()
+		private void InitCurrent()
 		{
 			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
-			Vector3 oldAngles      = _viewAngles;
+
+			_currentCommand                 = new idUserCommand();
+			_currentCommand.ImpulseSequence = (byte) _impulseSequence;
+			_currentCommand.Impulse         = _impulse;
+			_currentCommand.Buttons	       |= ((cvarSystem.GetBool("in_alwaysRun") == true) && (idEngine.Instance.IsMultiplayer == true)) ? Button.Run : 0;
+		}
+
+		private void MakeCurrent()
+		{
+			ICVarSystem cvarSystem   = idEngine.Instance.GetService<ICVarSystem>();
+			Vector3 oldAngles        = _viewAngles;
 
 			if(this.Inhibited == false)
 			{
@@ -251,65 +305,150 @@ namespace idTech4.Input
 
 			_impulseSequence = _currentCommand.ImpulseSequence;
 			_impulse         = _currentCommand.Impulse;
-		}		
+		}
+
+		private void ProcessKeyboard()
+		{
+			KeyboardState keyState = Keyboard.GetState();
+			MouseState mouseState  = Mouse.GetState();
+
+			int mouse1 = (int) Keys.Mouse1;
+			int mouse2 = (int) Keys.Mouse2;
+			int mouse3 = (int) Keys.Mouse3;
+			
+			_previousKeyState = (bool[]) _keyState.Clone();
+
+			foreach(Keys key in Enum.GetValues(typeof(Keys)))
+			{
+				if((key != Keys.Invalid) && (key != Keys.LastKey))
+				{
+					_keyState[(int) key] = false;
+				}
+			}
+
+			foreach(XKeys key in keyState.GetPressedKeys())
+			{
+				_keyState[(int) key] = true;
+			}
+
+			_keyState[mouse1] = (mouseState.LeftButton   == ButtonState.Pressed);
+			_keyState[mouse2] = (mouseState.MiddleButton == ButtonState.Pressed);
+			_keyState[mouse3] = (mouseState.RightButton  == ButtonState.Pressed);
+
+			foreach(Keys key in Enum.GetValues(typeof(Keys)))
+			{
+				if((key != Keys.Invalid) && (key != Keys.LastKey))
+				{
+					int keyCode = (int) key;
+
+					if(_previousKeyState[keyCode] != _keyState[keyCode])
+					{
+						Key(key, _keyState[keyCode]);
+					}
+				}
+			}
+		}
+
+		private void ProcessMouse()
+		{
+			IInputSystem inputSystem   = idEngine.Instance.GetService<IInputSystem>();
+			IRenderSystem renderSystem = idEngine.Instance.GetService<IRenderSystem>();
+			MouseState mouseState      = Mouse.GetState();
+			
+			int screenHalfWidth  = renderSystem.Width / 2;
+			int screenHalfHeight = renderSystem.Height / 2;
+
+			_mouseDeltaX = (mouseState.X - screenHalfWidth);
+			_mouseDeltaY = (mouseState.Y - screenHalfHeight);
+
+			_continuousMouseX += _mouseDeltaX;
+			_continuousMouseY += _mouseDeltaY;
+
+			bool mouse1State = mouseState.LeftButton   == ButtonState.Pressed;
+			bool mouse2State = mouseState.RightButton  == ButtonState.Pressed;
+			bool mouse3State = mouseState.MiddleButton == ButtonState.Pressed;
+
+			if(mouse1State != _keyState[(int) Keys.Mouse1])
+			{
+				_eventLoop.Queue(SystemEventType.Key, (int) Keys.Mouse1, mouse1State ? 1 : 0, 0);
+			}
+
+			if(mouse2State != _keyState[(int) Keys.Mouse2])
+			{
+				_eventLoop.Queue(SystemEventType.Key, (int) Keys.Mouse2, mouse2State ? 1 : 0, 0);
+			}
+
+			if(mouse3State != _keyState[(int) Keys.Mouse3])
+			{
+				_eventLoop.Queue(SystemEventType.Key, (int) Keys.Mouse3, mouse3State ? 1 : 0, 0);
+			}
+
+			// is the mouse still within the bounds of the client area?
+			if((mouseState.IsInsideWindow() == false) && (_mouseLeftClientArea == false))
+			{
+				_eventLoop.Queue(SystemEventType.MouseLeave, 0, 0, 0);
+				_mouseLeftClientArea = true;
+			}
+			else if((mouseState.IsInsideWindow() == true) && (_mouseLeftClientArea == true))
+			{
+				_mouseLeftClientArea = false;
+			}
+
+			if(_mouseLeftClientArea == false)
+			{
+				if((_mouseDeltaX != 0) || (_mouseDeltaY != 0))
+				{
+					_eventLoop.Queue(SystemEventType.Mouse, _mouseDeltaX, _mouseDeltaY, 0);
+				}
+			}
+
+			if(inputSystem.GrabMouse == true)
+			{
+				Mouse.SetPosition(screenHalfWidth, screenHalfHeight);
+			}
+		}
+
+		private void Key(Keys key, bool state)
+		{
+			IInputSystem inputSystem = idEngine.Instance.GetService<IInputSystem>();
+			int keyCode              = (int) key;
+
+			// sanity check, sometimes we get double message :(
+			if(_keyState[keyCode] == state)
+			{
+				return;
+			}
+
+			_keyState[keyCode] = state;
+
+			UserCommandButton action = inputSystem.GetUserCommandButtonFromKey(key);
+
+			if(state == false)
+			{
+				_commandButtonState[(int) action]++;
+
+				if(this.Inhibited == false)
+				{
+					if((action >= UserCommandButton.Impulse0) && (action <= UserCommandButton.Impulse31))
+					{
+						_currentCommand.Impulse = (Impulse) (action - UserCommandButton.Impulse0);
+						_currentCommand.ImpulseSequence++;
+		
+					}
+				}
+			}
+			else
+			{
+				_commandButtonState[(int) action]--;
+		
+				// we might have one held down across an app active transition
+				if(_commandButtonState[(int) action] < 0) 
+				{
+					_commandButtonState[(int) action] = 0;
+				}
+			}
+		}
 		#endregion
 		#endregion
-	}
-	
-	public enum UserCommandButton
-	{
-		None,
-
-		MoveUp,
-		MoveDown,
-		LookLeft,
-		LookRight,
-		MoveForward,
-		MoveBack,
-		LookUp,
-		LookDown,
-		MoveLeft,
-		MoveRight,
-
-		Attack,
-		Speed,
-		Zoom,
-		ShowScores,
-		Use,
-
-		Impulse0,
-		Impulse1,
-		Impulse2,
-		Impulse3,
-		Impulse4,
-		Impulse5,
-		Impulse6,
-		Impulse7,
-		Impulse8,
-		Impulse9,
-		Impulse10,
-		Impulse11,
-		Impulse12,
-		Impulse13,
-		Impulse14,
-		Impulse15,
-		Impulse16,
-		Impulse17,
-		Impulse18,
-		Impulse19,
-		Impulse20,
-		Impulse21,
-		Impulse22,
-		Impulse23,
-		Impulse24,
-		Impulse25,
-		Impulse26,
-		Impulse27,
-		Impulse28,
-		Impulse29,
-		Impulse30,
-		Impulse31,
-
-		MaxButtons
 	}
 }

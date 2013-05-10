@@ -275,7 +275,7 @@ namespace idTech4.Game.Menus
 			}
 			else if(_itemList.MoveToIndexTarget == 1)
 			{
-				// TODO: signin manager
+				idLog.Warning("TODO: signin manager");
 				/*if ( session->GetSignInManager().GetMasterLocalUser() == NULL ) {
 					const int device = event.parms[ 0 ].ToInteger();
 					session->GetSignInManager().RegisterLocalUser( device );

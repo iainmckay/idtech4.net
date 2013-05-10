@@ -336,7 +336,10 @@ namespace idTech4
 		{
 			idLog.Warning("TODO: ProcessEvent");
 
+			IGame game = GetService<IGame>();
+
 			// hitting escape anywhere brings up the menu
+			// TODO: ingame
 			/*if ( game && game->IsInGame() ) {
 				if ( event->evType == SE_KEY && event->evValue2 == 1 && ( event->evValue == K_ESCAPE || event->evValue == K_JOY9 ) ) {
 					if ( !game->Shell_IsActive() ) {
@@ -361,23 +364,27 @@ namespace idTech4
 						game->Shell_ClosePause();
 					}
 				} 
-			}
+			}*/
 
 			// let the pull-down console take it if desired
-			if ( console->ProcessEvent( event, false ) ) {
+			// TODO: console
+			/*if ( console->ProcessEvent( event, false ) ) {
 				return true;
-			}
-			if ( session->ProcessInputEvent( event ) ) {
+			}*/
+
+			// TODO: shell
+			/*if ( session->ProcessInputEvent( event ) ) {
 				return true;
-			}
+			}*/
 	
-			if ( Dialog().IsDialogActive() ) {
+			/*if ( Dialog().IsDialogActive() ) {
 				Dialog().HandleDialogEvent( event );
 				return true;
-			}
+			}*/
 
 			// Let Doom classic run events.
-			if ( IsPlayingDoomClassic() ) {
+			// TODO: classic doom
+			/*if ( IsPlayingDoomClassic() ) {
 				// Translate the event to Doom classic format.
 				event_t classicEvent;
 				if ( event->evType == SE_KEY ) {
@@ -401,15 +408,16 @@ namespace idTech4
 
 				// Let the classics eat all events.
 				return true;
-			}
+			}*/
 
 			// menus / etc
-			if ( MenuEvent( event ) ) {
+			if(ProcessMenuEvent(ev) == true)
+			{
 				return true;
 			}
 
 			// if we aren't in a game, force the console to take it
-			if ( !mapSpawned ) {
+			/*if ( !mapSpawned ) {
 				console->ProcessEvent( event, true );
 				return true;
 			}
@@ -419,6 +427,28 @@ namespace idTech4
 				idKeyInput::ExecKeyBinding( event->evValue );
 				return true;
 			}*/
+
+			return false;
+		}
+
+		private bool ProcessMenuEvent(SystemEvent ev)
+		{
+			// TODO: signin manager
+			/*if ( session->GetSignInManager().ProcessInputEvent( event ) ) {
+				return true;
+			}*/
+
+			IGame game = GetService<IGame>();
+
+			if((game != null) && (game.Shell_IsActive() == true))
+			{
+				return game.Shell_HandleGuiEvent(ev);
+			}
+
+			if(game != null)
+			{
+				idLog.Warning("TODO: return game->HandlePlayerGuiEvent( event );");
+			}
 
 			return false;
 		}
@@ -688,9 +718,12 @@ namespace idTech4
 				idLog.WriteLine("QA Timing INIT");
 				idLog.WriteLine(idVersion.ToString(platform));
 
+				// init journalling, etc
+				_eventLoop = new idEventLoop();
+
 				// initialize key input/binding, done early so bind command exists
 				// init the console so we can take prints
-				inputSystem.Initialize();
+				inputSystem.Initialize(_eventLoop);
 				console.Initialize();
 
 				// get architecture info
@@ -730,10 +763,7 @@ namespace idTech4
 
 				// initialize the declaration manager
 				declManager.Initialize();
-
-				// init journalling, etc
-				_eventLoop = new idEventLoop();
-
+							
 				// init the parallel job manager
 				idLog.WriteLine("WARNING: parallelJobManager->Init();");
 
@@ -903,8 +933,8 @@ namespace idTech4
 				while((this.ElapsedTime - legalStartTime) < legalMinTime)
 				{
 					RenderSplash();
-
-					// TODO: Sys_GenerateEvents();
+			
+					Sys_GenerateEvents();
 					Thread.Sleep(10);
 				}
 
@@ -1913,9 +1943,12 @@ namespace idTech4
 				/*const usercmd_t	previousCmd = usercmdGen->GetCurrentUsercmd();
 
 				// build a new usercmd
-				int deviceNum = session->GetSignInManager().GetMasterInputDevice();
-				usercmdGen->BuildCurrentUsercmd( deviceNum );
-				if ( deviceNum == -1 ) {
+				int deviceNum = session->GetSignInManager().GetMasterInputDevice();*/
+				int deviceNum = 0;
+
+				inputSystem.BuildCurrentUserCommand(deviceNum);
+
+				/*if ( deviceNum == -1 ) {
 					for ( int i = 0; i < MAX_INPUT_DEVICES; i++ ) {
 						Sys_PollJoystickInputEvents( i );
 						Sys_EndJoystickInputEvents();

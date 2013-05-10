@@ -275,6 +275,16 @@ namespace idTech4.Game
 			}
 		}
 
+		public bool Shell_HandleGuiEvent(SystemEvent ev)
+		{
+			if(_shellHandler != null)
+			{
+				return _shellHandler.HandleGuiEvent(ev);
+			}
+
+			return false;
+		}
+
 		public bool Shell_IsActive()
 		{
 			if(_shellHandler != null)

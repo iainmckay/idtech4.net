@@ -96,7 +96,6 @@ namespace idTech4.Input
 			new KeyName(Keys.L, "L"),
 			new KeyName(Keys.SemiColon, "SEMICOLON", "#str_07129"),
 			new KeyName(Keys.Apostrophe, "APOSTROPHE", "#str_07130"),
-			new KeyName(Keys.Grave, "GRAVE", "`"),
 			new KeyName(Keys.LeftShift, "LSHIFT", "#str_07029"),
 			new KeyName(Keys.Backslash, "BACKSLASH", "\\"),
 			new KeyName(Keys.Z, "Z"),
@@ -126,18 +125,18 @@ namespace idTech4.Input
 			new KeyName(Keys.F10, "F10", "#str_07045"),
 			new KeyName(Keys.NumLock, "NUMLOCK", "#str_07125"),
 			new KeyName(Keys.Scroll, "SCROLL", "#str_07035"),
-			new KeyName(Keys.Keypad7, "KP_7", "#str_07110"),
-			new KeyName(Keys.Keypad8, "KP_8", "#str_07111"),
-			new KeyName(Keys.Keypad9, "KP_9", "#str_07112"),
+			new KeyName(Keys.NumPad7, "KP_7", "#str_07110"),
+			new KeyName(Keys.NumPad8, "KP_8", "#str_07111"),
+			new KeyName(Keys.NumPad9, "KP_9", "#str_07112"),
 			new KeyName(Keys.Minus, "KP_MINUS", "#str_07123"),
-			new KeyName(Keys.Keypad4, "KP_4", "#str_07113"),
-			new KeyName(Keys.Keypad5, "KP_5", "#str_07114"),
-			new KeyName(Keys.Keypad6, "KP_6", "#str_07115"),
+			new KeyName(Keys.NumPad4, "KP_4", "#str_07113"),
+			new KeyName(Keys.NumPad5, "KP_5", "#str_07114"),
+			new KeyName(Keys.NumPad6, "KP_6", "#str_07115"),
 			new KeyName(Keys.KeypadPlus, "KP_PLUS", "#str_07124"),
-			new KeyName(Keys.Keypad1, "KP_1", "#str_07116"),
-			new KeyName(Keys.Keypad2, "KP_2", "#str_07117"),
-			new KeyName(Keys.Keypad3, "KP_3", "#str_07118"),
-			new KeyName(Keys.Keypad0, "KP_0", "#str_07120"),
+			new KeyName(Keys.NumPad1, "KP_1", "#str_07116"),
+			new KeyName(Keys.NumPad2, "KP_2", "#str_07117"),
+			new KeyName(Keys.NumPad3, "KP_3", "#str_07118"),
+			new KeyName(Keys.NumPad0, "KP_0", "#str_07120"),
 			new KeyName(Keys.KeypadDot, "KP_DOT", "#str_07121"),
 			new KeyName(Keys.F11, "F11", "#str_07046"),
 			new KeyName(Keys.F12, "F12", "#str_07047"),
@@ -147,16 +146,11 @@ namespace idTech4.Input
 			new KeyName(Keys.Kana, "KANA"),
 			new KeyName(Keys.Convert, "CONVERT"),
 			new KeyName(Keys.NoConvert, "NOCONVERT"),
-			new KeyName(Keys.Yen, "YEN"),
 			new KeyName(Keys.KeypadEquals, "KP_EQUALS", "#str_07127"),
-			new KeyName(Keys.Circumflex, "CIRCUMFLEX"),
-			new KeyName(Keys.AT, "AT", "@"),
 			new KeyName(Keys.Colon, "COLON", ":"),
 			new KeyName(Keys.Underline, "UNDERLINE", "_"),
 			new KeyName(Keys.Kanji, "KANJI"),
 			new KeyName(Keys.Stop, "STOP"),
-			new KeyName(Keys.AX, "AX"),
-			new KeyName(Keys.Unlabeled, "UNLABELED"),
 			new KeyName(Keys.KeypadEnter, "KP_ENTER", "#str_07119"),
 			new KeyName(Keys.RightControl, "RCTRL", "#str_bind_RCTRL"),
 			new KeyName(Keys.KeypadComma, "KP_COMMA", ","),
@@ -240,15 +234,15 @@ namespace idTech4.Input
 			new KeyName(Keys.Apps, "MENU", string.Empty),
 			new KeyName(Keys.LeftAlt, "COMMAND", string.Empty),
 
-			new KeyName(Keys.Keypad7, "KP_HOME", string.Empty),
-			new KeyName(Keys.Keypad8, "KP_UPARROW", string.Empty),
-			new KeyName(Keys.Keypad9, "KP_PGUP", string.Empty),
-			new KeyName(Keys.Keypad4, "KP_LEFTARROW", string.Empty),
-			new KeyName(Keys.Keypad6, "KP_RIGHTARROW", string.Empty),
-			new KeyName(Keys.Keypad1, "KP_END", string.Empty),
-			new KeyName(Keys.Keypad2, "KP_DOWNARROW", string.Empty),
-			new KeyName(Keys.Keypad3, "KP_PGDN", string.Empty),
-			new KeyName(Keys.Keypad0, "KP_INS", string.Empty),
+			new KeyName(Keys.NumPad7, "KP_HOME", string.Empty),
+			new KeyName(Keys.NumPad8, "KP_UPARROW", string.Empty),
+			new KeyName(Keys.NumPad9, "KP_PGUP", string.Empty),
+			new KeyName(Keys.NumPad4, "KP_LEFTARROW", string.Empty),
+			new KeyName(Keys.NumPad6, "KP_RIGHTARROW", string.Empty),
+			new KeyName(Keys.NumPad1, "KP_END", string.Empty),
+			new KeyName(Keys.NumPad2, "KP_DOWNARROW", string.Empty),
+			new KeyName(Keys.NumPad3, "KP_PGDN", string.Empty),
+			new KeyName(Keys.NumPad0, "KP_INS", string.Empty),
 			new KeyName(Keys.KeypadDot, "KP_DEL", string.Empty),
 			new KeyName(Keys.NumLock, "KP_NUMLOCK", string.Empty),
 
@@ -265,6 +259,16 @@ namespace idTech4.Input
 		};
 		#endregion
 
+		#region Properties
+		public bool GrabMouse
+		{
+			get
+			{
+				return _mouseGrabbed;
+			}
+		}
+		#endregion
+
 		#region Members
 		private bool _initialized;
 		private KeyState[] _keys;
@@ -275,7 +279,6 @@ namespace idTech4.Input
 
 		private idUserCommandGenerator _userCommandGenerator;
 		#endregion
-
 
 		#region Binding
 		public string GetBinding(Keys key)
@@ -314,6 +317,11 @@ namespace idTech4.Input
 		#endregion
 
 		#region Frame
+		public void BuildCurrentUserCommand(int deviceNum)
+		{
+			_userCommandGenerator.BuildCurrentUserCommand(deviceNum);
+		}
+
 		public void ProcessFrame()
 		{
 			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
@@ -379,13 +387,13 @@ namespace idTech4.Input
 		#endregion
 
 		#region Methods
-		public void Initialize()
+		public void Initialize(idEventLoop eventLoop)
 		{
 			_initialized          = true;
 			_keys                 = new KeyState[(int) Keys.LastKey];
 
 			_userCommandGenerator = new idUserCommandGenerator();
-			_userCommandGenerator.Init();
+			_userCommandGenerator.Init(eventLoop);
 
 			for(int i = 0; i < _keys.Length; i++)
 			{
@@ -396,6 +404,11 @@ namespace idTech4.Input
 		#endregion
 
 		#region Misc.
+		public UserCommandButton GetUserCommandButtonFromKey(Keys key)
+		{
+			return _keys[(int) key].UserCommandButton;
+		}
+
 		public Keys GetKeyFromString(string key)
 		{
 			if(string.IsNullOrEmpty(key) == true)
@@ -413,6 +426,20 @@ namespace idTech4.Input
 			}
 
 			return Keys.None;
+		}
+
+		public string GetStringFromKey(Keys key)
+		{
+			// scan for a text match
+			foreach(KeyName keyName in _keyNames)
+			{
+				if(keyName.Key == key)
+				{
+					return keyName.Name;
+				}
+			}
+
+			return "?";
 		}
 		#endregion
 
@@ -450,7 +477,7 @@ namespace idTech4.Input
 			/// <summary>
 			/// For testing by the asyncronous usercmd generation.
 			/// </summary>
-			public int UserCommandAction;
+			public UserCommandButton UserCommandButton;
 		}
 		#endregion
 	}

@@ -359,6 +359,11 @@ namespace idTech4.UI.SWF.Scripting
 			Set(name, new idSWFScriptVariable(value));
 		}
 
+		public void Set(string name, int value)
+		{
+			Set(name, new idSWFScriptVariable(value));
+		}
+
 		public void Set(string name, idSWFScriptFunction value)
 		{
 			Set(name, new idSWFScriptVariable(value));
@@ -507,6 +512,35 @@ namespace idTech4.UI.SWF.Scripting
 		public bool HasProperty(string name)
 		{
 			return (GetVariable(name, false) != null);
+		}
+
+		public bool HasValidProperty(string name)
+		{
+			idSWFNamedVariable var = GetVariable(name, false);
+
+			if(var == null)
+			{
+				return false;
+			}
+
+			if(var.Native != null)
+			{
+				idSWFScriptVariable nativeVar = var.Native.Get(this);
+
+				if((nativeVar.IsNull == true) || (nativeVar.IsUndefined == true))
+				{
+					return false;
+				}
+			}
+			else
+			{
+				if((var.Value.IsNull == true) || (var.Value.IsUndefined == true))
+				{
+					return false;
+				}
+			}
+
+			return true;
 		}
 		#endregion
 

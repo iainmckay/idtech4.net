@@ -28,6 +28,7 @@ If you have questions concerning this license or the applicable additional terms
 using System;
 
 using Microsoft.Xna.Framework;
+using Microsoft.Xna.Framework.Input;
 
 namespace idTech4
 {
@@ -73,6 +74,15 @@ namespace idTech4
 		}
 		#endregion
 
+		#region MouseState
+		public static bool IsInsideWindow(this MouseState mouseState)
+		{
+			Point mousePosition = new Point(mouseState.X, mouseState.Y);
+
+			return idEngine.Instance.GraphicsDevice.Viewport.Bounds.Contains(mousePosition);
+		}
+		#endregion
+
 		#region Vector2
 		public static float Get(this Vector2 v, int component)
 		{
@@ -88,57 +98,17 @@ namespace idTech4
 			throw new ArgumentOutOfRangeException("component");
 		}
 
-		/*public static void Set(this Vector2 v, int component, float value)
+		public static Vector3 ToVector3(this Vector2 v)
 		{
-			if(component == 0)
-			{
-				v.X = value;
-			}
-			else if(component == 1)
-			{
-				v.Y = value;
-			}
-		}*/
+			return new Vector3(v.X, v.Y, 0);
+		}
 		#endregion
 
 		#region Vector3
-		/*public static void Set(this Vector3 v, int component, float value)
+		public static Vector2 ToVector2(this Vector3 v)
 		{
-			if(component == 0)
-			{
-				v.X = value;
-			}
-			else if(component == 1)
-			{
-				v.Y = value;
-			}
-			else if(component == 2)
-			{
-				v.Z = value;
-			}
-		}*/
-		#endregion
-
-		#region Vector4
-		/*public static void Set(this Vector4 v, int component, float value)
-		{
-			if(component == 0)
-			{
-				v.X = value;
-			}
-			else if(component == 1)
-			{
-				v.Y = value;
-			}
-			else if(component == 2)
-			{
-				v.Z = value;
-			}
-			else if(component == 3)
-			{
-				v.W = value;
-			}
-		}*/
+			return new Vector2(v.X, v.Y);
+		}
 		#endregion
 	}
 }

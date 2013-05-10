@@ -115,6 +115,14 @@ namespace idTech4.UI.SWF.Scripting
 			_list.Add(var);
 		}
 
+		public void Add(bool value)
+		{
+			idSWFScriptVariable var = new idSWFScriptVariable();
+			var.Set(value);
+
+			_list.Add(var);
+		}
+
 		public void Add(int value)
 		{
 			idSWFScriptVariable var = new idSWFScriptVariable();
@@ -122,6 +130,23 @@ namespace idTech4.UI.SWF.Scripting
 
 			_list.Add(var);
 		}
+
+		public void Add(float value)
+		{
+			idSWFScriptVariable var = new idSWFScriptVariable();
+			var.Set(value);
+
+			_list.Add(var);
+		}
+
+		public void Add(idSWFScriptObject value)
+		{
+			idSWFScriptVariable var = new idSWFScriptVariable();
+			var.Set(value);
+
+			_list.Add(var);
+		}
+
 
 		public void Add(idSWFScriptVariable var)
 		{
