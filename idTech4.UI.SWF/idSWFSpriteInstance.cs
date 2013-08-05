@@ -481,6 +481,26 @@ namespace idTech4.UI.SWF
 			return _currentFrame;
 		}
 
+		public bool FrameExists(string label)
+		{
+			int frameNum;
+
+			if(int.TryParse(label, out frameNum) == true)
+			{
+				return (frameNum <= _sprite.FrameCount);
+			}
+
+			for(int i = 0; i < _sprite.FrameLabels.Length; i++) 
+			{
+				if(_sprite.FrameLabels[i].Label.Equals(label, StringComparison.OrdinalIgnoreCase) == true)
+				{
+					return true;
+				}
+			}
+
+			return false;
+		}
+
 		/// <summary>
 		/// Checks if the current frame is between the given inclusive range.
 		/// </summary>

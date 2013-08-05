@@ -264,7 +264,11 @@ namespace idTech4.Input
 		{
 			get
 			{
-				return _mouseGrabbed;
+				return !_mouseReleased;
+			}
+			set
+			{
+				_mouseReleased = !value;
 			}
 		}
 		#endregion
@@ -281,6 +285,28 @@ namespace idTech4.Input
 		#endregion
 
 		#region Binding
+		public bool ExecuteBinding(Keys key)
+		{
+			ICommandSystem cmdSystem = idEngine.Instance.GetService<ICommandSystem>();
+
+			// commands that are used by the async thread
+			// don't add text
+			int keyCode = (int) key;
+
+			if(_keys[keyCode].UserCommandButton != 0)
+			{
+				return false;
+			}
+
+			// send the bound action
+			if(_keys[keyCode].Binding.Length > 0)
+			{
+				cmdSystem.BufferCommandText(_keys[keyCode].Binding + "\n");
+			}
+
+			return true;
+		}
+
 		public string GetBinding(Keys key)
 		{
 			if(key == Keys.Invalid)
@@ -387,13 +413,13 @@ namespace idTech4.Input
 		#endregion
 
 		#region Methods
-		public void Initialize(idEventLoop eventLoop)
+		public void Initialize()
 		{
 			_initialized          = true;
 			_keys                 = new KeyState[(int) Keys.LastKey];
 
 			_userCommandGenerator = new idUserCommandGenerator();
-			_userCommandGenerator.Init(eventLoop);
+			_userCommandGenerator.Initialize();
 
 			for(int i = 0; i < _keys.Length; i++)
 			{
@@ -458,6 +484,32 @@ namespace idTech4.Input
 		public void ClearGenerated()
 		{
 			_userCommandGenerator.Clear();
+		}
+
+		/// <summary>
+		/// Checks if the key is currently pressed.
+		/// </summary>
+		/// <param name="key"></param>
+		/// <returns></returns>
+		public bool IsKeyDown(Keys key)
+		{
+			if(key == Keys.Invalid)
+			{
+				return false;
+			}
+
+			return _keys[(int) key].Down;
+		}
+
+		/// <summary>
+		/// Tracks global key up/down state.
+		/// </summary>
+		/// <remarks>
+		/// Called by the system for both key up and key down events.
+		/// </remarks>
+		public void PreliminaryKeyEvent(Keys key, bool down)
+		{
+			_keys[(int) key].Down = down;
 		}
 		#endregion
 		#endregion

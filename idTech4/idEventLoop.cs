@@ -40,21 +40,8 @@ namespace idTech4
 	/// The event loop also handles journaling.
 	/// The file system copies .cfg files to the journaled file.
 	/// </remarks>
-	public sealed class idEventLoop
+	public sealed class idEventLoop : IEventLoop
 	{
-		#region Properties
-		/// <summary>
-		/// Gets the current time in a way that will be journaled properly, as opposed to idEngine.ElapsedTime, which always reads a real timer.
-		/// </summary>
-		public long ElapsedTime
-		{
-			get
-			{
-				return (idEngine.Instance.ElapsedTime - _initialTimeOffset);
-			}
-		}
-		#endregion
-
 		#region Members
 		// all events will have this subtracted from their time
 		private long _initialTimeOffset;
@@ -68,83 +55,17 @@ namespace idTech4
 		#region Constructor
 		public idEventLoop()
 		{
-			idEngine engine = idEngine.Instance;
-			ICVarSystem cvarSystem = engine.GetService<ICVarSystem>();
-			IFileSystem fileSystem = engine.GetService<IFileSystem>();
-
-			_initialTimeOffset = engine.ElapsedTime;
-
-			engine.StartupVariable("journal");
-
-			switch(cvarSystem.GetInt("com_journal"))
-			{
-				case 1:
-					idLog.WriteLine("Journaling events");
-
-					_journalFile = fileSystem.OpenFileWrite("journal.dat");
-					_journalDataFile = fileSystem.OpenFileWrite("journaldata.dat");
-					break;
-
-				case 2:
-					idLog.WriteLine("Replaying journaled events");
-
-					_journalFile = fileSystem.OpenFileRead("journal.dat");
-					_journalDataFile = fileSystem.OpenFileRead("journaldata.dat");
-					break;
-			}
-
-			if((_journalFile == null) || (_journalDataFile == null))
-			{
-				cvarSystem.Set("com_journal", 0);
-
-				_journalFile = null;
-				_journalDataFile = null;
-
-				idLog.WriteLine("Couldn't open journal files");
-			}	
+			
 		}
 		#endregion
 
 		#region Methods
-		#region Public
-		/// <summary>
-		/// Dispatches all pending events and returns the current time.
-		/// </summary>
-		/// <param name="commandExecution"></param>
-		/// <returns></returns>
-		public bool RunEventLoop(bool commandExecution = true)
-		{
-			SystemEvent ev;
-			ICommandSystem cmdSystem = idEngine.Instance.GetService<ICommandSystem>();
-
-			while(true)
-			{
-				if(commandExecution == true)
-				{
-					// execute any bound commands before processing another event
-					cmdSystem.ExecuteCommandBuffer();
-				}
-
-				ev = GetEvent();
-
-				// if no more events are available
-				if(ev.Type == SystemEventType.None)
-				{
-					return false;
-				}
-
-				ProcessEvent(ev);
-			}
-		}
-		#endregion
-
-		#region Private
 		/// <summary>
 		/// It is possible to get an event at the beginning of a frame that
 		/// has a time stamp lower than the last event from the previous frame.
 		/// </summary>
 		/// <returns></returns>
-		public SystemEvent GetEvent()
+		private SystemEvent GetEvent()
 		{
 			//idConsole.Warning("TODO: pushed events");
 			// TODO: pushed events
@@ -168,7 +89,7 @@ namespace idTech4
 			if(cvarSystem.GetInt("com_journal") == 2)
 			{
 				idLog.Warning("TODO: journalling");
-				
+
 				/*r = com_journalFile->Read(&ev, sizeof(ev));
 				if(r != sizeof(ev))
 				{
@@ -216,19 +137,15 @@ namespace idTech4
 			return ev;
 		}
 
-		public void Queue(SystemEventType type, int value, int value2, int deviceNumber)
-		{
-			_events.Enqueue(new SystemEvent(type, value, value2, deviceNumber));
-		}
-
 		private void ProcessEvent(SystemEvent ev)
 		{
 			ICommandSystem cmdSystem = idEngine.Instance.GetService<ICommandSystem>();
+			IInputSystem inputSystem = idEngine.Instance.GetService<IInputSystem>();
 
 			// track key up / down states
 			if(ev.Type == SystemEventType.Key)
 			{
-				idLog.Warning("TODO: idKeyInput::PreliminaryKeyEvent( ev.evValue, ( ev.evValue2 != 0 ) );");
+				inputSystem.PreliminaryKeyEvent((Keys) ev.Value, (ev.Value2 != 0));
 			}
 
 			if(ev.Type == SystemEventType.Console)
@@ -245,84 +162,99 @@ namespace idTech4
 			}
 		}
 		#endregion
-		#endregion
-	}
 
-	public sealed class SystemEvent : EventArgs
-	{
+		#region IEventLoop implementation
+		#region Frame
 		#region Properties
-		public int DeviceNumber
+		/// <summary>
+		/// Gets the current time in a way that will be journaled properly, as opposed to idEngine.ElapsedTime, which always reads a real timer.
+		/// </summary>
+		public long ElapsedTime
 		{
 			get
 			{
-				return _deviceNumber;
-			}
-		}
-
-		public SystemEventType Type
-		{
-			get
-			{
-				return _type;
-			}
-		}
-
-		public int Value
-		{
-			get
-			{
-				return _value;
-			}
-		}
-
-		public int Value2
-		{
-			get
-			{
-				return _value2;
+				return (idEngine.Instance.ElapsedTime - _initialTimeOffset);
 			}
 		}
 		#endregion
 
-		#region Members
-		private SystemEventType _type;
-		private int _value;
-		private int _value2;
-		private int _deviceNumber;
-		#endregion
-
-		#region Constructor
-		public SystemEvent(SystemEventType type)
-			: base()
+		#region Methods
+		public void Queue(SystemEventType type, int value, int value2, int deviceNumber)
 		{
-			_type = type;
+			_events.Enqueue(new SystemEvent(type, value, value2, deviceNumber));
 		}
 
-		public SystemEvent(SystemEventType type, int value, int value2, int deviceNumber)
+		/// <summary>
+		/// Dispatches all pending events and returns the current time.
+		/// </summary>
+		/// <param name="commandExecution"></param>
+		/// <returns></returns>
+		public bool RunEventLoop(bool commandExecution = true)
 		{
-			_type         = type;
-			_value        = value;
-			_value2       = value2;
-			_deviceNumber = deviceNumber;
+			SystemEvent ev;
+			ICommandSystem cmdSystem = idEngine.Instance.GetService<ICommandSystem>();
+
+			while(true)
+			{
+				if(commandExecution == true)
+				{
+					// execute any bound commands before processing another event
+					cmdSystem.ExecuteCommandBuffer();
+				}
+
+				ev = GetEvent();
+
+				// if no more events are available
+				if(ev.Type == SystemEventType.None)
+				{
+					return false;
+				}
+
+				ProcessEvent(ev);
+			}
 		}
 		#endregion
-	}
+		#endregion
 
-	public enum SystemEventType
-	{
-		/// <summary>EventTime is still valid.</summary>
-		None,
-		/// <summary>Value is a key code, Value2 is the down flag.</summary>
-		Key,
-		/// <summary>Value is an ascii character.</summary>
-		Char,
-		/// <summary>Value and Value2 are relative signed x / y moves.</summary>
-		Mouse,
-		/// <summary>Value and Value2 are meaninless, this indicates the mouse has left the client area.</summary>
-		MouseLeave,
-		/// <summary>Value is an axis number and Value2 is the current state (-127 to 127).</summary>
-		Joystick,
-		/// <summary>Ptr is a char*, from typing something at a non-game console.</summary>
-		Console
+		#region Initialization
+		public void Initialize()
+		{
+			idEngine engine        = idEngine.Instance;
+			ICVarSystem cvarSystem = engine.GetService<ICVarSystem>();
+			IFileSystem fileSystem = engine.GetService<IFileSystem>();
+
+			_initialTimeOffset = engine.ElapsedTime;
+
+			engine.StartupVariable("journal");
+
+			switch(cvarSystem.GetInt("com_journal"))
+			{
+				case 1:
+					idLog.WriteLine("Journaling events");
+
+					_journalFile     = fileSystem.OpenFileWrite("journal.dat");
+					_journalDataFile = fileSystem.OpenFileWrite("journaldata.dat");
+					break;
+
+				case 2:
+					idLog.WriteLine("Replaying journaled events");
+
+					_journalFile     = fileSystem.OpenFileRead("journal.dat");
+					_journalDataFile = fileSystem.OpenFileRead("journaldata.dat");
+					break;
+			}
+
+			if((_journalFile == null) || (_journalDataFile == null))
+			{
+				cvarSystem.Set("com_journal", 0);
+
+				_journalFile     = null;
+				_journalDataFile = null;
+
+				idLog.WriteLine("Couldn't open journal files");
+			}	
+		}
+		#endregion
+		#endregion
 	}
 }

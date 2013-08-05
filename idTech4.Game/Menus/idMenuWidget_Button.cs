@@ -57,6 +57,25 @@ namespace idTech4.Game.Menus
 	/// </remarks>
 	public class idMenuWidget_Button : idMenuWidget
 	{
+		#region Constants
+		//---------------------------------
+		// Animation State Transitions
+		//
+		// Maps animations that should be called when transitioning states:
+		//
+		//		X-axis = state transitioning FROM
+		//		Y-axis = state transitioning TO
+		//
+		// An empty string indicates remain at current animation.
+		//---------------------------------
+		private static readonly string[] AnimationStateTransitions = {
+			// UP			DOWN			OVER
+			"",				"release",		"out",		// UP
+			"down",			"",				"down",		// DOWN
+			"over",			"over",			"",			// OVER
+		};
+		#endregion
+
 		#region Properties
 		public ButtonState ButtonState
 		{
@@ -186,20 +205,22 @@ namespace idTech4.Game.Menus
 
 			if(this.Sprite != null)
 			{
-				idLog.Warning("TODO: AnimateToState");
+				WidgetTransition transition = SetupTransitionInfo(this.State, this.ButtonState, targetState);
+				
+				if(string.IsNullOrEmpty(transition.AnimationName) == false)
+				{
+					for(int i = 0; i < transition.Prefixes.Count; ++i)
+					{
+						string frameLabel = string.Format("{0}{1}", transition.Prefixes[i], transition.AnimationName);
 
-				/*widgetTransition_t trans;
-				SetupTransitionInfo( trans, GetState(), GetAnimState(), targetAnimState );
-				if ( trans.animationName[0] != '\0' ) {
-					for ( int i = 0; i < trans.prefixes.Num(); ++i ) {
-						const char * const frameLabel = va( "%s%s", trans.prefixes[ i ], trans.animationName );
-						if ( GetSprite()->FrameExists( frameLabel ) ) {
-							GetSprite()->PlayFrame( frameLabel );
+						if(this.Sprite.FrameExists(frameLabel) == true)
+						{
+							this.Sprite.PlayFrame(frameLabel);
 							Update();
 							break;
 						}
 					}
-				}*/
+				}
 
 				idSWFSpriteInstance focusSprite = this.Sprite.ScriptObject.GetSprite("focusIndicator");
 
@@ -217,6 +238,31 @@ namespace idTech4.Game.Menus
 			}
 
 			this.ButtonState = targetState;
+		}
+
+		private WidgetTransition SetupTransitionInfo(WidgetState buttonState, ButtonState sourceAnimState, ButtonState destAnimState)
+		{
+			WidgetTransition transition = new WidgetTransition();
+
+			if(buttonState == WidgetState.Disabled)
+			{
+				transition.AnimationName = "disabled";
+			}
+			else
+			{
+				int animIndex = (int) destAnimState * (int) ButtonState.Max + (int) sourceAnimState;
+
+				transition.AnimationName = AnimationStateTransitions[animIndex];
+
+				if(buttonState == WidgetState.Selecting)
+				{
+					transition.Prefixes.Add("sel_");
+				}
+			}
+
+			transition.Prefixes.Add("");
+
+			return transition;
 		}
 		#endregion
 
@@ -264,12 +310,12 @@ namespace idTech4.Game.Menus
 			
 					case WidgetEventType.FocusOff:
 						this.State = WidgetState.Normal;
-						handled = true;
+						handled    = true;
 						break;
 			
 					case WidgetEventType.FocusOn:
 						this.State = WidgetState.Selecting;
-						handled = true;
+						handled    = true;
 						break;
 			
 					case WidgetEventType.ScrollLeftRelease:
@@ -375,6 +421,20 @@ namespace idTech4.Game.Menus
 	{
 		Up,
 		Down,
-		Over
+		Over,
+		Max
+	}
+
+	public class WidgetTransition
+	{
+		/// <summary>
+		/// Name of the animation to run.
+		/// </summary>
+		public string AnimationName;
+
+		/// <summary>
+		/// Prefixes to try to use for animation.
+		/// </summary>
+		public List<string> Prefixes = new List<string>();
 	}
 }

@@ -139,11 +139,11 @@ namespace idTech4.Game.Menus
 
 			SetSpritePath("menuControllerLayout");
 
-			_options = new idMenuWidget_DynamicList();
+			_options                    = new idMenuWidget_DynamicList();
 			_options.VisibleOptionCount = LayoutOptionCount;
+			_options.IsWrappingAllowed  = true;
+			_options.ControlList        = true;
 			_options.SetSpritePath(this.SpritePath, "info", "controlInfo", "options");
-			_options.IsWrappingAllowed = true;
-			_options.ControlList       = true;
 			_options.Initialize(data);
 
 			AddChild(_options);
@@ -157,8 +157,8 @@ namespace idTech4.Game.Menus
 			AddChild(_backButton);
 			
 			idMenuWidget_ControlButton control = new idMenuWidget_ControlButton();
-			control.OptionType = MenuOptionType.ButtonFullTextSlider;
-			control.Label = "CONTROL LAYOUT";	// Auto Weapon Reload
+			control.OptionType                 = MenuOptionType.ButtonFullTextSlider;
+			control.Label                      = "CONTROL LAYOUT";	// Auto Weapon Reload
 			idLog.Warning("TODO: control.SetDataSource(layoutData, Layo control->SetDataSource( &layoutData, idMenuDataSource_LayoutSettings::LAYOUT_FIELD_LAYOUT );");
 			control.SetupEvents(GameConstants.DefaultRepeatTime, _options.Children.Length);
 			control.AddEventAction(WidgetEventType.Press).Set(WidgetActionType.PressFocused, _options.Children.Length);

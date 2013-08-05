@@ -59,9 +59,9 @@ namespace idTech4.Renderer
 		{
 			IRenderSystem renderSystem = idEngine.Instance.GetService<IRenderSystem>();
 
-			_maxVertexCount = renderSystem.Capabilities.MaxVertexBufferElements;
-			_maxIndexCount  = renderSystem.Capabilities.MaxIndexBufferElements;
-
+			_maxVertexCount = renderSystem.Capabilities.MaxVertexBufferElements * 5;
+			_maxIndexCount  = renderSystem.Capabilities.MaxIndexBufferElements * 3;
+			
 			_vertexBuffer = renderSystem.CreateDynamicVertexBuffer(idVertex.VertexDeclaration, _maxVertexCount, BufferUsage.WriteOnly);			
 			_indexBuffer  = renderSystem.CreateDynamicIndexBuffer(IndexElementSize.SixteenBits, _maxIndexCount, BufferUsage.WriteOnly);
 			
@@ -95,12 +95,14 @@ namespace idTech4.Renderer
 
 			if((indexes.Length + _indexCount) > _maxIndexCount)
 			{
+				idLog.Warning("WRAPPED INDEXES");
 				_indexCount = 0;
 				indexDataOptions = SetDataOptions.Discard;
 			}
 
 			if((vertices.Length + _vertexCount) > _maxVertexCount)
 			{
+				idLog.Warning("WRAPPED VERTICES");
 				_vertexCount = 0;
 				vertexDataOptions = SetDataOptions.Discard;
 			}

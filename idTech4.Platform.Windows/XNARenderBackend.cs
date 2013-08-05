@@ -201,7 +201,7 @@ namespace idTech4.Platform.Windows
 			ICVarSystem cvarSystem = idEngine.Instance.GetService<ICVarSystem>();
 			MaterialStates diff    = state ^ _backendState.StateBits;
 
-			if((cvarSystem.GetBool("r_useStateCaching") == false) || (force == false))
+			if((cvarSystem.GetBool("r_useStateCaching") == false) || (force == true))
 			{
 				// make sure everything is set all the time, so we
 				// can see if our delta checking is screwing up
@@ -260,8 +260,13 @@ namespace idTech4.Platform.Windows
 			//
 			// check blend bits
 			//
-			if((diff & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) == 0)
+			if((diff & (MaterialStates.SourceBlendBits | MaterialStates.DestinationBlendBits)) != 0)
 			{
+				blendState.ColorSourceBlend      = Blend.One;
+				blendState.AlphaSourceBlend      = Blend.One;
+				blendState.ColorDestinationBlend = Blend.Zero;
+				blendState.ColorSourceBlend      = Blend.Zero;
+
 				switch(state & MaterialStates.SourceBlendBits)
 				{
 					case MaterialStates.SourceBlendZero:
@@ -285,8 +290,8 @@ namespace idTech4.Platform.Windows
 						break;
 
 					case MaterialStates.SourceBlendSourceAlpha:
-						blendState.ColorSourceBlend = Blend.SourceAlpha;
-						blendState.AlphaSourceBlend = Blend.SourceAlpha;
+						blendState.ColorSourceBlend = Blend.One;
+						blendState.AlphaSourceBlend = Blend.One;
 						break;
 
 					case MaterialStates.SourceBlendOneMinusSourceAlpha:
@@ -332,8 +337,8 @@ namespace idTech4.Platform.Windows
 						break;
 
 					case MaterialStates.DestinationBlendSourceAlpha:
-						blendState.ColorDestinationBlend = Blend.SourceAlpha;
-						blendState.AlphaDestinationBlend = Blend.SourceAlpha;
+						blendState.ColorDestinationBlend = Blend.One;
+						blendState.AlphaDestinationBlend = Blend.One;
 						break;
 
 					case MaterialStates.DestinationBlendOneMinusSourceAlpha:
@@ -420,7 +425,8 @@ namespace idTech4.Platform.Windows
 				}
 				else
 				{
-					rasterizerState.DepthBias = 0;
+					rasterizerState.DepthBias           = 0;
+					rasterizerState.SlopeScaleDepthBias = 0;
 				}
 			}
 
@@ -442,7 +448,7 @@ namespace idTech4.Platform.Windows
 			if((diff & (MaterialStates.StencilFunctionBits | MaterialStates.StencilFunctionReferenceBits | MaterialStates.StencilFunctionMaskBits)) != 0)
 			{
 				depthState.ReferenceStencil = (int) (state & MaterialStates.StencilFunctionReferenceBits) >> (int) MaterialStates.StencilFunctionReferenceShift;
-				depthState.StencilMask = (int) (state & MaterialStates.StencilFunctionMaskBits) >> (int) MaterialStates.StencilFunctionMaskShift;
+				depthState.StencilMask      = (int) (state & MaterialStates.StencilFunctionMaskBits) >> (int) MaterialStates.StencilFunctionMaskShift;
 
 				switch(state & MaterialStates.StencilFunctionBits)
 				{
@@ -602,7 +608,7 @@ namespace idTech4.Platform.Windows
 
 			if(color == true)
 			{
-				_graphicsDeviceManager.GraphicsDevice.Clear(new Color(r, g, b, a));
+				_graphicsDeviceManager.GraphicsDevice.Clear(Color.FromNonPremultiplied(new Vector4(r, g, b, a)));
 			}
 
 			if(depth == true)
@@ -807,7 +813,7 @@ namespace idTech4.Platform.Windows
 				{
 					continue;
 				}
-								
+							
 				// TODO: xray
 				/*if ( backEnd.viewDef->isXraySubview && surf->space->entityDef ) {
 					if ( surf->space->entityDef->parms.xrayIndex != 2 ) {
@@ -1086,11 +1092,10 @@ namespace idTech4.Platform.Windows
 					{
 						idLog.Warning("TODO: renderProgManager.BindShader_TextureTexGenVertexColor();");
 					} 
-					// TODO: cinematic
-					/*else if(pStage->texture.cinematic) 
+					else if(stage.Texture.Cinematic != null)
 					{
-						renderProgManager.BindShader_Bink();
-					}*/ 
+						idLog.Warning("TODO: renderProgManager.BindShader_Bink();");
+					}
 					else
 					{
 						// TODO: skinning
@@ -1669,7 +1674,7 @@ namespace idTech4.Platform.Windows
 			qglPolygonMode( GL_FRONT_AND_BACK, GL_FILL );*/
 
 			// these should never be changed
-			graphicsDevice.BlendState        = BlendState.Opaque;
+			graphicsDevice.BlendState        = BlendState.AlphaBlend;
 			graphicsDevice.DepthStencilState = DepthStencilState.Default;
 
 			if(cvarSystem.GetBool("r_useScissor") == true)
@@ -1925,7 +1930,6 @@ namespace idTech4.Platform.Windows
 				else
 				{
 					idEngine.Instance.Error("ExecuteBackendCommands: bad command type");
-					break;
 				}
 			}
 
@@ -2033,6 +2037,7 @@ namespace idTech4.Platform.Windows
 					if(GetModeListForDisplay(fullMode - 1, modeList) == false)
 					{
 						idLog.WriteLine("r_fullscreen reset from {0} to 1 because mode list failed.", fullMode);
+
 						cvarSystem.Set("r_fullscreen", 1);
 						GetModeListForDisplay(0, modeList);
 					}
@@ -2209,7 +2214,7 @@ namespace idTech4.Platform.Windows
 			modeList.Clear();
 
 			bool verbose = idEngine.Instance.GetService<ICVarSystem>().GetBool("developer");
-
+			
 			for(int displayNum = requestedDisplayNum; ; displayNum++)
 			{
 				GraphicsAdapter adapter = GraphicsAdapter.Adapters[displayNum];

@@ -86,8 +86,6 @@ namespace idTech4.Input
 		private long	_lastPollTime;
 		private float _lastLookValuePitch;
 		private float _lastLookValueYaw;
-
-		private idEventLoop _eventLoop;
 		#endregion
 
 		#region Command map
@@ -171,20 +169,23 @@ namespace idTech4.Input
 			// initialize current usercmd
 			InitCurrent();
 
-			// process the system mouse events
-			ProcessMouse();
+			if(idEngine.Instance.IsActive == true)
+			{
+				// process the system mouse events
+				ProcessMouse();
 
-			// process the system keyboard events
-			ProcessKeyboard();
+				// process the system keyboard events
+				ProcessKeyboard();
 
-			// process the system joystick events
-			// TODO: joystick
-			/*if ( deviceNum >= 0 && in_useJoystick.GetBool() ) {
-				Joystick( deviceNum );
-			}*/
+				// process the system joystick events
+				// TODO: joystick
+				/*if ( deviceNum >= 0 && in_useJoystick.GetBool() ) {
+					Joystick( deviceNum );
+				}*/
 
-			// create the usercmd
-			MakeCurrent();
+				// create the usercmd
+				MakeCurrent();
+			}
 
 			_lastPollTime = _pollTime;
 		}
@@ -203,10 +204,9 @@ namespace idTech4.Input
 			_mouseDown       = true;
 		}
 				
-		public void Init(idEventLoop eventLoop)
+		public void Initialize()
 		{
 			_initialized = true;
-			_eventLoop   = eventLoop;
 		}
 
 		public void InitForNewMap()
@@ -353,6 +353,7 @@ namespace idTech4.Input
 		{
 			IInputSystem inputSystem   = idEngine.Instance.GetService<IInputSystem>();
 			IRenderSystem renderSystem = idEngine.Instance.GetService<IRenderSystem>();
+			IEventLoop eventLoop       = idEngine.Instance.GetService<IEventLoop>();
 			MouseState mouseState      = Mouse.GetState();
 			
 			int screenHalfWidth  = renderSystem.Width / 2;
@@ -370,23 +371,23 @@ namespace idTech4.Input
 
 			if(mouse1State != _keyState[(int) Keys.Mouse1])
 			{
-				_eventLoop.Queue(SystemEventType.Key, (int) Keys.Mouse1, mouse1State ? 1 : 0, 0);
+				eventLoop.Queue(SystemEventType.Key, (int) Keys.Mouse1, mouse1State ? 1 : 0, 0);
 			}
 
 			if(mouse2State != _keyState[(int) Keys.Mouse2])
 			{
-				_eventLoop.Queue(SystemEventType.Key, (int) Keys.Mouse2, mouse2State ? 1 : 0, 0);
+				eventLoop.Queue(SystemEventType.Key, (int) Keys.Mouse2, mouse2State ? 1 : 0, 0);
 			}
 
 			if(mouse3State != _keyState[(int) Keys.Mouse3])
 			{
-				_eventLoop.Queue(SystemEventType.Key, (int) Keys.Mouse3, mouse3State ? 1 : 0, 0);
+				eventLoop.Queue(SystemEventType.Key, (int) Keys.Mouse3, mouse3State ? 1 : 0, 0);
 			}
 
 			// is the mouse still within the bounds of the client area?
 			if((mouseState.IsInsideWindow() == false) && (_mouseLeftClientArea == false))
 			{
-				_eventLoop.Queue(SystemEventType.MouseLeave, 0, 0, 0);
+				eventLoop.Queue(SystemEventType.MouseLeave, 0, 0, 0);
 				_mouseLeftClientArea = true;
 			}
 			else if((mouseState.IsInsideWindow() == true) && (_mouseLeftClientArea == true))
@@ -398,7 +399,7 @@ namespace idTech4.Input
 			{
 				if((_mouseDeltaX != 0) || (_mouseDeltaY != 0))
 				{
-					_eventLoop.Queue(SystemEventType.Mouse, _mouseDeltaX, _mouseDeltaY, 0);
+					eventLoop.Queue(SystemEventType.Mouse, _mouseDeltaX, _mouseDeltaY, 0);
 				}
 			}
 

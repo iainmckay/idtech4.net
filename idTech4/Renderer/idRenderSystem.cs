@@ -29,6 +29,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 
 using Microsoft.Xna.Framework;
@@ -725,6 +726,163 @@ namespace idTech4.Renderer
 			return _backend.CreateVertexBuffer(vertexDeclaration, vertexCount, usage);
 		}
 
+		public void DrawBigCharacter(int x, int y, char c)
+		{
+			int ch = (int) c;
+			ch    &= 255;
+
+			if(ch == ' ')
+			{
+				return;
+			}
+
+			if(y < -Constants.BigCharacterHeight)
+			{
+				return;
+			}
+
+			int row = ch >> 4;
+			int col = ch & 15;
+
+			float frow = row * 0.0625f;
+			float fcol = col * 0.0625f;
+			float size = 0.0625f;
+
+			DrawStretchPicture(x, y, Constants.BigCharacterWidth, Constants.BigCharacterHeight, fcol, frow, fcol + size, frow + size, _charSetMaterial);
+		}
+
+		/// <summary>
+		/// Draws a multi-colored string with a drop shadow, optionally forcing to a fixed color.
+		/// </summary>
+		/// <remarks>
+		/// Coordinates are at 640 by 480 virtual resolution.
+		/// </remarks>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="str"></param>
+		/// <param name="color"></param>
+		/// <param name="forceColor"></param>
+		public void DrawBigString(int x, int y, string str, Vector4 color, bool forceColor)
+		{
+			// draw the colored text
+			int xx = x;
+			Vector4 tmpColor;
+
+			this.Color = color;
+
+			for(int i = 0; i < str.Length; i++)
+			{
+				if(idColor.IsColor(str, i) == true)
+				{
+					if(forceColor == false)
+					{
+						if(str[i + 1] == (int) idColorIndex.Default)
+						{
+							this.Color = color;
+						}
+						else
+						{
+							tmpColor = idColor.FromIndex(str[i + 1]);
+							tmpColor.W = color.W;
+
+							this.Color = color;
+						}
+					}
+
+					i++;
+					continue;
+				}
+
+				DrawBigCharacter(xx, y, str[i]);
+
+				xx += Constants.BigCharacterWidth;
+			}
+
+			this.Color = idColor.White;
+		}
+
+		public void DrawFilled(Vector4 color, float x, float y, float w, float h) 
+		{
+			this.Color = color;
+		
+			DrawStretchPicture(x, y, w, h, 0.0f, 0.0f, 1.0f, 1.0f, _whiteMaterial);
+		}
+
+		public void DrawSmallCharacter(int x, int y, char c)
+		{
+			int ch = (int) c;
+			ch    &= 255;
+
+			if(ch == ' ')
+			{
+				return;
+			}
+
+			if(y < -Constants.SmallCharacterHeight)
+			{
+				return;
+			}
+
+			int row = ch >> 4;
+			int col = ch & 15;
+			
+			float frow = row * 0.0625f;
+			float fcol = col * 0.0625f;
+			float size = 0.0625f;
+
+			DrawStretchPicture(x, y, Constants.SmallCharacterWidth, Constants.SmallCharacterHeight, fcol, frow,  fcol + size, frow + size, _charSetMaterial);
+		}
+
+		/// <summary>
+		/// Draws a multi-colored string with a drop shadow, optionally forcing to a fixed color.
+		/// </summary>
+		/// <remarks>
+		/// Coordinates are at 640 by 480 virtual resolution.
+		/// </remarks>
+		/// <param name="x"></param>
+		/// <param name="y"></param>
+		/// <param name="str"></param>
+		/// <param name="color"></param>
+		/// <param name="forceColor"></param>
+		public void DrawSmallString(int x, int y, string str, Vector4 color, bool forceColor)
+		{
+			// draw the colored text
+			int xx = x;
+			Vector4 tmpColor;
+
+			this.Color = color;
+
+			for(int i = 0; i < str.Length; i++)
+			{
+				if(idColor.IsColor(str, i) == true)
+				{
+					if(forceColor == false)
+					{
+						if(str[i + 1] == (int) idColorIndex.Default)
+						{
+							this.Color = color;
+						}
+						else
+						{
+							tmpColor = idColor.FromIndex(str[i + 1]);
+							tmpColor.W = color.W;
+
+							this.Color = color;
+						}
+					}
+
+					i++;
+					continue;
+				}
+
+				DrawSmallCharacter(xx, y, str[i]);
+
+				xx += Constants.SmallCharacterWidth;
+			}
+
+			this.Color = idColor.White;
+		}
+
 		public void DrawStretchPicture(float x, float y, float width, float height, float s1, float t1, float s2, float t2, idMaterial material) 
 		{
 			DrawStretchPicture(new Vector4(x, y, s1, t1), new Vector4(x + width, y, s2, t1), new Vector4(x + width, y + height, s2, t2), new Vector4(x, y + height, s1, t2), material);
@@ -1250,6 +1408,7 @@ namespace idTech4.Renderer
 		public float PixelAspect;
 	}
 
+	[StructLayout(LayoutKind.Sequential)]
 	public struct idVertex
 	{
 		public Vector3 Position;
@@ -1269,7 +1428,7 @@ namespace idTech4.Renderer
 
 			this.Normal             = new Byte4(0, 0, 1, 0);
 			this.Tangent            = new Byte4(1, 0, 0, 0);
-			
+
 			this.Color              = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 			this.Color2             = new Vector4(0.0f, 0.0f, 0.0f, 1.0f);
 		}

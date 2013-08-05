@@ -32,6 +32,7 @@ namespace idTech4
 	public class Constants
 	{
 		public const int ConsoleTextSize				= 0x30000;
+		public const int ConsoleRepeat                  = 100;
 
 		public const int MaxEntityMaterialParameters	= 12;
 		public const int MaxExpressionRegisters			= 4096;

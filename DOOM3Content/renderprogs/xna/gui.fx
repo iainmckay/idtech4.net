@@ -3,7 +3,6 @@ float4x4 g_ModelViewProjectionMatrix;
 texture g_Texture0;
 sampler2D g_TextureSampler0 = sampler_state {
     Texture = g_Texture0;
-	mipfilter = LINEAR; 
 };
 
 struct VertexShaderInput
@@ -37,7 +36,7 @@ VertexShaderOutput VertexShaderFunction(VertexShaderInput input)
 
 float4 PixelShaderFunction(VertexShaderOutput input) : COLOR0
 {
-	float4 color = (tex2D(g_TextureSampler0 , input.TexCoord0))/* * input.Color) + input.TexCoord1*/;
+	float4 color = (tex2D(g_TextureSampler0 , input.TexCoord0) * input.Color) + input.TexCoord1;
 	color.xyz    = color.xyz * color.w;
 	
 	return color;

@@ -25,6 +25,8 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System;
+
 using Microsoft.Xna.Framework;
 
 using idTech4.Renderer;
@@ -107,12 +109,12 @@ namespace idTech4
 
 		public static MaterialStates MakeStencilReference(ulong x)
 		{
-			return (MaterialStates) ((x << (int) MaterialStates.StencilFunctionReferenceShift) & ((int) MaterialStates.StencilFunctionReferenceBits));
+			return (MaterialStates) ((x << (int) MaterialStates.StencilFunctionReferenceShift) & ((ulong) MaterialStates.StencilFunctionReferenceBits));
 		}
 
 		public static MaterialStates MakeStencilMask(ulong x)
 		{
-			return (MaterialStates) ((x << (int) MaterialStates.StencilFunctionReferenceShift) & ((int) MaterialStates.StencilFunctionReferenceBits));
+			return (MaterialStates) ((x << (int) MaterialStates.StencilFunctionMaskShift) & ((ulong) MaterialStates.StencilFunctionMaskBits));
 		}
 	}
 }

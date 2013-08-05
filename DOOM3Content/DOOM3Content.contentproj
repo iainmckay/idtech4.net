@@ -125,21 +125,25 @@
       <Name>dot#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\guis\assets\white#__0000.bimage">
       <Name>white#__0000</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\guis\assets\white#__0200.bimage">
       <Name>white#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\newfonts\arial_narrow\48#__0400.bimage">
       <Name>48#__0400</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\swf\dialog.bswf">
       <Name>dialog</Name>
@@ -207,61 +211,73 @@
       <Name>dialog#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\doomintro#__0200.bimage">
       <Name>doomintro#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\hud#__0200.bimage">
       <Name>hud#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\leintro#__0200.bimage">
       <Name>leintro#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\loading\default#__0200.bimage">
       <Name>default#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\mp_messages#__0200.bimage">
       <Name>mp_messages#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\pause#__0200.bimage">
       <Name>pause#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\pda#__0200.bimage">
       <Name>pda#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\roeintro#__0200.bimage">
       <Name>roeintro#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\save_indicator#__0200.bimage">
       <Name>save_indicator#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\scoreboard#__0200.bimage">
       <Name>scoreboard#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\generated\swf\shell#__0200.bimage">
       <Name>shell#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -269,21 +285,25 @@
       <Name>bigchars#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\textures\black#__0200.bimage">
       <Name>black#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\textures\loadingicon2#__0200.bimage">
       <Name>loadingicon2#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\textures\loadingicon3#__0200.bimage">
       <Name>loadingicon3#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -297,166 +317,199 @@
       <Name>baronflash#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\biground1#__0500.bimage">
       <Name>biground1#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\blamplight#__0500.bimage">
       <Name>blamplight#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\blamplight_cv#__0500.bimage">
       <Name>blamplight_cv#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\desertlight#__0500.bimage">
       <Name>desertlight#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\duolight02grey#__0500.bimage">
       <Name>duolight02grey#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\fanblade3#__0500.bimage">
       <Name>fanblade3#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\flashlight5#__0500.bimage">
       <Name>flashlight5#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\floorpgrate#__0500.bimage">
       <Name>floorpgrate#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\floorvent01x#__0500.bimage">
       <Name>floorvent01x#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\grate5#__0500.bimage">
       <Name>grate5#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\grate7#__0500.bimage">
       <Name>grate7#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\grate8sqr#__0500.bimage">
       <Name>grate8sqr#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\impflash#__0500.bimage">
       <Name>impflash#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\lightgratelight#__0500.bimage">
       <Name>lightgratelight#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\lightgratelight2#__0500.bimage">
       <Name>lightgratelight2#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\newalphagrate3#__0500.bimage">
       <Name>newalphagrate3#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\newalphagrate3b#__0500.bimage">
       <Name>newalphagrate3b#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\newalphagrate4#__0500.bimage">
       <Name>newalphagrate4#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\newalphagrate5#__0500.bimage">
       <Name>newalphagrate5#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\rotate3#__0500.bimage">
       <Name>rotate3#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\rotate3_blue#__0500.bimage">
       <Name>rotate3_blue#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\rotate3_blue_full#__0500.bimage">
       <Name>rotate3_blue_full#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\rotate3_red_full#__0500.bimage">
       <Name>rotate3_red_full#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\round#__0500.bimage">
       <Name>round#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\roundfire#__0500.bimage">
       <Name>roundfire#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\spot01#__0500.bimage">
       <Name>spot01#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\squareblast#__0500.bimage">
       <Name>squareblast#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\squareishlight#__0500.bimage">
       <Name>squareishlight#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\squarelight#__0500.bimage">
       <Name>squarelight#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\squarelight1#__0500.bimage">
       <Name>squarelight1#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\squarelight1a#__0500.bimage">
       <Name>squarelight1a#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\lights\triangle1#__0500.bimage">
       <Name>triangle1#__0500</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -470,21 +523,25 @@
       <Name>flashoff#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\makeintensity\lights\roundfire#__0200.bimage">
       <Name>roundfire#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\makeintensity\lights\squarelight1a#__0200.bimage">
       <Name>squarelight1a#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\makeintensity\lights\xfalloff#__0200.bimage">
       <Name>xfalloff#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -492,16 +549,19 @@
       <Name>legal_english#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\guis\assets\splash\legal_figs#__0200.bimage">
       <Name>legal_figs#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\guis\assets\splash\legal_french#__0200.bimage">
       <Name>legal_french#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -515,86 +575,103 @@
       <Name>guicursor_arrow#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\guicursor_hand#__0200.bimage">
       <Name>guicursor_hand#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\guicursor_hand_a#__0200.bimage">
       <Name>guicursor_hand_a#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\guicursor_hand_b#__0200.bimage">
       <Name>guicursor_hand_b#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\guicursor_hand_circle#__0200.bimage">
       <Name>guicursor_hand_circle#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\guicursor_hand_cross#__0200.bimage">
       <Name>guicursor_hand_cross#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\guicursor_hand_square#__0200.bimage">
       <Name>guicursor_hand_square#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\guicursor_hand_triangle#__0200.bimage">
       <Name>guicursor_hand_triangle#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\guicursor_hand_x#__0200.bimage">
       <Name>guicursor_hand_x#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\guicursor_hand_y#__0200.bimage">
       <Name>guicursor_hand_y#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\scrollbarh#__0200.bimage">
       <Name>scrollbarh#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\scrollbarv#__0200.bimage">
       <Name>scrollbarv#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\scrollbar_down#__0200.bimage">
       <Name>scrollbar_down#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\scrollbar_left#__0200.bimage">
       <Name>scrollbar_left#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\scrollbar_right#__0200.bimage">
       <Name>scrollbar_right#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\scrollbar_thumb#__0200.bimage">
       <Name>scrollbar_thumb#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\ui\assets\scrollbar_up#__0200.bimage">
       <Name>scrollbar_up#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -653,16 +730,19 @@
       <Name>doom2_cover#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\guis\assets\mainmenu\doom3_cover#__0200.bimage">
       <Name>doom3_cover#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\guis\assets\mainmenu\doom_cover#__0200.bimage">
       <Name>doom_cover#__0200</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
   </ItemGroup>
   <ItemGroup>
@@ -670,26 +750,63 @@
       <Name>48#__0400</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\newfonts\chainlink_semi_bold\48#__0400.bimage">
       <Name>48#__0400</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\newfonts\dfpheiseigothicw7\48#__0400.bimage">
       <Name>48#__0400</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\newfonts\microgrammadbolext\48#__0400.bimage">
       <Name>48#__0400</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
     <Compile Include="generated\images\newfonts\sarasori_rg\48#__0400.bimage">
       <Name>48#__0400</Name>
       <Importer>BImageImporter</Importer>
       <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="generated\images\guis\assets\mainmenu\eye_left#__0200.bimage">
+      <Name>eye_left#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\mainmenu\stars#__0200.bimage">
+      <Name>stars#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\mainmenu\wink#__0200.bimage">
+      <Name>wink#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\mainmenu\winkmask#__0200.bimage">
+      <Name>winkmask#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
+    </Compile>
+    <Compile Include="generated\images\guis\assets\mainmenu\winktest#__0200.bimage">
+      <Name>winktest#__0200</Name>
+      <Importer>BImageImporter</Importer>
+      <Processor>TextureProcessor</Processor>
+      <ProcessorParameters_PremultiplyAlpha>False</ProcessorParameters_PremultiplyAlpha>
     </Compile>
   </ItemGroup>
   <Import Project="$(MSBuildExtensionsPath)\Microsoft\XNA Game Studio\$(XnaFrameworkVersion)\Microsoft.Xna.GameStudio.ContentPipeline.targets" />

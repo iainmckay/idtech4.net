@@ -47,6 +47,8 @@ using idTech4.Text;
 using idTech4.Threading;
 using idTech4.UI;
 
+using Keys = idTech4.Services.Keys;
+
 namespace idTech4
 {
 	/// <summary>
@@ -130,7 +132,6 @@ namespace idTech4
 
 		private string[] _rawCommandLineArguments;
 		private CommandArguments[] _commandLineArguments = new CommandArguments[] { };
-		private idEventLoop _eventLoop;
 
 		private idMaterial _splashScreen;
 		private idMaterial _whiteMaterial;
@@ -336,7 +337,9 @@ namespace idTech4
 		{
 			idLog.Warning("TODO: ProcessEvent");
 
-			IGame game = GetService<IGame>();
+			IGame game               = GetService<IGame>();
+			IConsole console         = GetService<IConsole>();
+			IInputSystem inputSystem = GetService<IInputSystem>();
 
 			// hitting escape anywhere brings up the menu
 			// TODO: ingame
@@ -367,16 +370,17 @@ namespace idTech4
 			}*/
 
 			// let the pull-down console take it if desired
-			// TODO: console
-			/*if ( console->ProcessEvent( event, false ) ) {
+			if(console.ProcessEvent(ev, false) == true) 
+			{
 				return true;
-			}*/
+			}
 
 			// TODO: shell
 			/*if ( session->ProcessInputEvent( event ) ) {
 				return true;
 			}*/
 	
+			// TODO: dialog
 			/*if ( Dialog().IsDialogActive() ) {
 				Dialog().HandleDialogEvent( event );
 				return true;
@@ -417,16 +421,18 @@ namespace idTech4
 			}
 
 			// if we aren't in a game, force the console to take it
-			/*if ( !mapSpawned ) {
-				console->ProcessEvent( event, true );
+			if(_mapSpawned == false)
+			{
+				console.ProcessEvent(ev, true);
 				return true;
 			}
 
 			// in game, exec bindings for all key downs
-			if ( event->evType == SE_KEY && event->evValue2 == 1 ) {
-				idKeyInput::ExecKeyBinding( event->evValue );
+			if((ev.Type == SystemEventType.Key) && (ev.Value2 == 1))
+			{
+				inputSystem.ExecuteBinding((Keys) ev.Value);
 				return true;
-			}*/
+			}
 
 			return false;
 		}
@@ -686,6 +692,7 @@ namespace idTech4
 				IRenderSystem renderSystem                 = new idRenderSystem();
 				IResolutionScale resolutionScale           = new idResolutionScale();
 				IUserInterfaceManager userInterfaceManager = new idUserInterfaceManager();
+				IEventLoop eventLoop                       = new idEventLoop();
 				ISession session                           = FindSession();
 
 				this.Services.AddService(typeof(ICVarSystem), cvarSystem);
@@ -700,6 +707,7 @@ namespace idTech4
 				this.Services.AddService(typeof(IResolutionScale), resolutionScale);
 				this.Services.AddService(typeof(IUserInterfaceManager), userInterfaceManager);
 				this.Services.AddService(typeof(ISession), session);
+				this.Services.AddService(typeof(IEventLoop), eventLoop);
 
 				cvarSystem.Initialize();
 				cmdSystem.Initialize();
@@ -719,11 +727,11 @@ namespace idTech4
 				idLog.WriteLine(idVersion.ToString(platform));
 
 				// init journalling, etc
-				_eventLoop = new idEventLoop();
+				eventLoop.Initialize();
 
 				// initialize key input/binding, done early so bind command exists
 				// init the console so we can take prints
-				inputSystem.Initialize(_eventLoop);
+				inputSystem.Initialize();
 				console.Initialize();
 
 				// get architecture info
@@ -1003,7 +1011,7 @@ namespace idTech4
 				{
 					Sys_ShowConsole(0, false);
 				}*/
-
+				
 				_initialized = true;
 			}
 			catch(Exception ex)
@@ -1686,6 +1694,7 @@ namespace idTech4
 			ISession session           = this.GetService<ISession>();
 			IGame game                 = this.GetService<IGame>();
 			IDialog dialog             = this.GetService<IDialog>();
+			IEventLoop eventLoop       = this.GetService<IEventLoop>();
 
 			LinkedListNode<idRenderCommand> renderCommands = null;
 
@@ -1714,7 +1723,7 @@ namespace idTech4
 				// write config file if anything changed
 				// TODO: WriteConfiguration(); 
 
-				_eventLoop.RunEventLoop();
+				eventLoop.RunEventLoop();
 
 				// activate the shell if it's been requested
 				if((_showShellRequested == true) && (game != null))
@@ -1959,7 +1968,7 @@ namespace idTech4
 				{
 					inputSystem.ClearGenerated();
 				}
-
+				
 				idUserCommand newCmd = inputSystem.CurrentUserCommand;
 
 				// store server game time - don't let time go past last SS time in case we are extrapolating
@@ -2083,6 +2092,7 @@ namespace idTech4
 			ICVarSystem cvarSystem      = this.GetService<ICVarSystem>();
 			IRenderSystem renderSystem  = this.GetService<IRenderSystem>();
 			IGame game                  = this.GetService<IGame>();
+			IConsole console            = this.GetService<IConsole>();
 
 			// debugging tool to test frame dropping behavior
 			if(cvarSystem.GetInt("com_sleepDraw") > 0)
@@ -2175,10 +2185,10 @@ namespace idTech4
 				// draw the wipe material on top of this if it hasn't completed yet
 				DrawWipeModel();
 
-				Dialog().Render( loadGUI != NULL );
+				Dialog().Render( loadGUI != NULL );*/
 
 				// draw the half console / notify console on top of everything
-				console->Draw( false );*/
+				console.Draw(false);
 			}
 		}
 

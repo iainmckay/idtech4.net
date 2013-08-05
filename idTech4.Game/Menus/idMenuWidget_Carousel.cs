@@ -45,7 +45,7 @@ namespace idTech4.Game.Menus
 			}
 			set
 			{
-				_imageList = value;
+				_imageList = (idMaterial[]) value.Clone();
 			}
 		}
 
@@ -147,8 +147,8 @@ namespace idTech4.Game.Menus
 		{
 			if(instant == true)
 			{
-				_viewIndex = index;
-				_moveDiff = 0;
+				_viewIndex   = index;
+				_moveDiff    = 0;
 				_moveToIndex = _viewIndex;
 
 				idSWFScriptObject root = this.SWFObject.RootObject;
@@ -165,8 +165,8 @@ namespace idTech4.Game.Menus
 				if(index == 0)
 				{
 					_fastScroll = false;
-					_moveDiff = 0;
-					_viewIndex = _moveToIndex;
+					_moveDiff   = 0;
+					_viewIndex  = _moveToIndex;
 				}
 				else
 				{
@@ -176,7 +176,7 @@ namespace idTech4.Game.Menus
 
 					if(index > midPoint)
 					{
-						_moveDiff = index - midPoint;
+						_moveDiff   = index - midPoint;
 						_scrollLeft = true;
 					}
 					else
@@ -191,8 +191,7 @@ namespace idTech4.Game.Menus
 						if(_moveToIndex < 0)
 						{
 							_moveToIndex = 0;
-							int diff     = 0 - _moveToIndex;
-							_moveDiff -= diff;
+							_moveDiff   -= (0 - _moveToIndex);
 						}
 					}
 					else
@@ -201,7 +200,7 @@ namespace idTech4.Game.Menus
 
 						if(_moveToIndex >= this.TotalNumberOfOptions)
 						{
-							_moveDiff = this.TotalNumberOfOptions - this.ViewIndex - 1;
+							_moveDiff    = this.TotalNumberOfOptions - this.ViewIndex - 1;
 							_moveToIndex = this.TotalNumberOfOptions - 1;
 						}
 					}

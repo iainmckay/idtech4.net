@@ -435,8 +435,7 @@ namespace idTech4.Game.Menus
 
 			while(_menuBar.Children.Length < MaxMenuOptions)
 			{
-				idMenuWidget_MenuButton navButton = new idMenuWidget_MenuButton();
-				
+				idMenuWidget_MenuButton navButton  = new idMenuWidget_MenuButton();				
 				idMenuScreen_Shell_Root rootScreen = _menuScreens[(int) ShellArea.Root] as idMenuScreen_Shell_Root;
 
 				if(rootScreen != null)
@@ -924,8 +923,6 @@ namespace idTech4.Game.Menus
 				} 
 				else if(_nextState == ShellState.PartyLobby)
 				{
-					idLog.Warning("TODO: nextState party lobby");
-
 					HidePacifier();
 
 					_nextState  = ShellState.PartyLobby;

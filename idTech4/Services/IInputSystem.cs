@@ -37,6 +37,8 @@ namespace idTech4.Services
 		#region Binding
 		string GetBinding(Keys key);
 		void SetBinding(Keys key, string binding);
+
+		bool ExecuteBinding(Keys key);
 		#endregion
 
 		#region Frame
@@ -50,7 +52,7 @@ namespace idTech4.Services
 		#endregion
 
 		#region Methods
-		void Initialize(idEventLoop eventLoop);
+		void Initialize();
 		#endregion
 		#endregion
 
@@ -62,12 +64,24 @@ namespace idTech4.Services
 
 		#region State
 		#region Properties
-		bool GrabMouse { get; }
+		bool GrabMouse { get; set; }
 		idUserCommand CurrentUserCommand { get; }
 		#endregion
 
 		#region Methods
 		void ClearGenerated();
+
+		/// <summary>
+		/// Checks if the key is currently pressed.
+		/// </summary>
+		/// <param name="key"></param>
+		/// <returns></returns>
+		bool IsKeyDown(Keys key);
+
+		/// <summary>
+		/// Tracks global key up/down state.
+		/// </summary>
+		void PreliminaryKeyEvent(Keys key, bool down);
 		#endregion
 		#endregion
 	}
@@ -136,6 +150,7 @@ namespace idTech4.Services
 		Space        = 32,
 		CapsLock     = 20,
 		NumLock      = 144,
+		Grave        = 223,
 		F1           = 112,
 		F2           = 113,
 		F3           = 114,

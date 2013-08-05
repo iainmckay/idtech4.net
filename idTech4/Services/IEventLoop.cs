@@ -26,32 +26,102 @@ If you have questions concerning this license or the applicable additional terms
 ===========================================================================
 */
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace idTech4.Services
 {
-	public interface IConsole
+	public interface IEventLoop
 	{
-		#region Drawing
-		void Draw(bool forceFullScreen);
-		#endregion
-
-		#region Initialization
+		#region Frame
 		#region Properties
-		bool IsInitialized { get; }
+		long ElapsedTime { get; }
 		#endregion
 
 		#region Methods
+		void Queue(SystemEventType type, int value, int value2, int deviceNumber);
+		bool RunEventLoop(bool commandExecution = true);
+		#endregion
+		#endregion
+
+		#region Initialization
 		void Initialize();
 		#endregion
+	}
+
+	public sealed class SystemEvent : EventArgs
+	{
+		#region Properties
+		public int DeviceNumber
+		{
+			get
+			{
+				return _deviceNumber;
+			}
+		}
+
+		public SystemEventType Type
+		{
+			get
+			{
+				return _type;
+			}
+		}
+
+		public int Value
+		{
+			get
+			{
+				return _value;
+			}
+		}
+
+		public int Value2
+		{
+			get
+			{
+				return _value2;
+			}
+		}
 		#endregion
 
-		#region Events
-		bool ProcessEvent(SystemEvent ev, bool forceAccept);
+		#region Members
+		private SystemEventType _type;
+		private int _value;
+		private int _value2;
+		private int _deviceNumber;
 		#endregion
 
-		void Close();
+		#region Constructor
+		public SystemEvent(SystemEventType type)
+			: base()
+		{
+			_type = type;
+		}
+
+		public SystemEvent(SystemEventType type, int value, int value2, int deviceNumber)
+		{
+			_type         = type;
+			_value        = value;
+			_value2       = value2;
+			_deviceNumber = deviceNumber;
+		}
+		#endregion
+	}
+
+	public enum SystemEventType
+	{
+		/// <summary>EventTime is still valid.</summary>
+		None,
+		/// <summary>Value is a key code, Value2 is the down flag.</summary>
+		Key,
+		/// <summary>Value is an ascii character.</summary>
+		Char,
+		/// <summary>Value and Value2 are relative signed x / y moves.</summary>
+		Mouse,
+		/// <summary>Value and Value2 are meaninless, this indicates the mouse has left the client area.</summary>
+		MouseLeave,
+		/// <summary>Value is an axis number and Value2 is the current state (-127 to 127).</summary>
+		Joystick,
+		/// <summary>Ptr is a char*, from typing something at a non-game console.</summary>
+		Console
 	}
 }

@@ -83,6 +83,31 @@ namespace idTech4
 		}
 		#endregion
 
+		#region String
+		public static int Length(this String s, bool withColors = true)
+		{
+			if(withColors == true)
+			{
+				return s.Length;
+			}
+
+			int length = 0;
+
+			for(int i = 0; i < s.Length; i++)
+			{
+				if(idColor.IsColor(s, i) == true)
+				{
+					i += 2;
+					continue;
+				}
+
+				length++;
+			}
+
+			return length;
+		}
+		#endregion
+
 		#region Vector2
 		public static float Get(this Vector2 v, int component)
 		{

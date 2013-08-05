@@ -51,6 +51,11 @@ namespace idTech4
 		public static readonly Vector4 MediumGrey = new Vector4(0.0f, 0.5f, 0.5f, 1.0f);
 		public static readonly Vector4 DarkGrey   = new Vector4(0.25f, 0.25f, 0.25f, 1.0f);
 
+		public static Vector4 FromIndex(idColorIndex index)
+		{
+			return FromIndex((int) index);
+		}
+
 		public static Vector4 FromIndex(int index)
 		{
 			idColorIndex tmp;

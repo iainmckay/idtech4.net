@@ -1718,7 +1718,7 @@ namespace idTech4.UI.SWF
 				
 					verts[j].Clear();
 					verts[j].Position = new Vector3(renderState.Matrix.Transform(xy) * _scaleToVirtual, 0);
-					verts[j].Color = colorMul;
+					verts[j].Color    = colorMul;
 					verts[j].Color2   = colorAdd;
 
 					// for some reason I don't understand, having texcoords
@@ -1856,9 +1856,9 @@ namespace idTech4.UI.SWF
 		#region Events
 		public bool HandleEvent(SystemEvent ev)
 		{
-			if((this.IsActive == false) || (((_inhibitControl == false) && (_useInhibitControl == true)) == false))
+			if((this.IsActive == false) || (((_inhibitControl == false) && (_useInhibitControl == true)) == true))
 			{
-		//		return false;
+				return false;
 			}
 
 			IInputSystem inputSystem = idEngine.Instance.GetService<IInputSystem>();
@@ -1895,7 +1895,7 @@ namespace idTech4.UI.SWF
 		{
 			IInputSystem inputSystem = idEngine.Instance.GetService<IInputSystem>();
 			Keys value               = (Keys) ev.Value;
-			idSWFScriptVariable var  = null;
+			idSWFScriptVariable var  = new idSWFScriptVariable();
 
 			if(value == Keys.Mouse1)
 			{

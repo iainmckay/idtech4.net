@@ -91,6 +91,11 @@ namespace idTech4.Services
 		IndexBuffer CreateIndexBuffer(IndexElementSize indexElementSize, int indexCount, BufferUsage usage);
 		VertexBuffer CreateVertexBuffer(VertexDeclaration vertexDeclaration, int vertexCount, BufferUsage usage);
 
+		void DrawBigCharacter(int x, int y, char c);
+		void DrawBigString(int x, int y, string str, Vector4 color, bool forceColor);
+		void DrawFilled(Vector4 color, float x, float y, float w, float h);
+		void DrawSmallCharacter(int x, int y, char c);
+		void DrawSmallString(int x, int y, string str, Vector4 color, bool forceColor);
 		void DrawStretchPicture(float x, float y, float w, float h, float s1, float t1, float s2, float t2, idMaterial material);
 		void DrawStretchPicture(Vector4 topLeft, Vector4 topRight, Vector4 bottomRight, Vector4 bottomLeft, idMaterial material);
 		void DrawView(idViewDefinition view, bool guiOnly);
