@@ -27,12 +27,12 @@ If you have questions concerning this license or the applicable additional terms
 */
 using idTech4;
 
-namespace idTech4.Platform.Windows
+namespace idTech4.Platform.PC
 {
-	public class WindowsSession : idSession
+	public class PCSession : idSession
 	{
 		#region Constructor
-		public WindowsSession()
+		public PCSession()
 		{
 			// TODO:
 			/*signInManager		= new (TAG_SYSTEM) idSignInManagerWin;
@@ -43,7 +43,7 @@ namespace idTech4.Platform.Windows
 			lobbyBackends.Zero();*/
 		}
 
-		~WindowsSession()
+		~PCSession()
 		{
 			// TODO: 
 			/*delete voiceChat;

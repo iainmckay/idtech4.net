@@ -37,7 +37,7 @@ using Microsoft.Xna.Framework.Graphics.PackedVector;
 using idTech4.Renderer;
 using idTech4.Services;
 
-namespace idTech4.Platform.Windows
+namespace idTech4.Platform.PC
 {
 	public class XNARenderBackend : IRenderBackend
 	{

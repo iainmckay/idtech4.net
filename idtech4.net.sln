@@ -15,7 +15,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline.BS
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline.SWFImporter", "idTech4.Content.Pipeline.SWFImporter\idTech4.Content.Pipeline.SWFImporter.csproj", "{9037E97E-683A-45C3-95EC-BE641D252D69}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Platform.Windows", "idTech4.Platform.Windows\idTech4.Platform.Windows.csproj", "{CAA53DFA-989F-4DDD-B36E-AF7564EC9290}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Platform.PC", "idTech4.Platform.PC\idTech4.Platform.PC.csproj", "{CAA53DFA-989F-4DDD-B36E-AF7564EC9290}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Platform.Xbox360", "idTech4.Platform.Xbox360\idTech4.Platform.Xbox360.csproj", "{4AAA5AA0-E145-432C-B1D8-3AB53FC66C03}"
 EndProject

@@ -5,8 +5,8 @@ using System.Runtime.InteropServices;
 // General Information about an assembly is controlled through the following 
 // set of attributes. Change these attribute values to modify the information
 // associated with an assembly.
-[assembly: AssemblyTitle("idTech4.Platform.Windows")]
-[assembly: AssemblyProduct("idTech4.Platform.Windows")]
+[assembly: AssemblyTitle("idTech4.Platform.PC")]
+[assembly: AssemblyProduct("idTech4.Platform.PC")]
 [assembly: AssemblyDescription("")]
 [assembly: AssemblyCompany("")]
 [assembly: AssemblyCopyright("Copyright ©  2013")]

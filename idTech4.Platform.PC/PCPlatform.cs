@@ -33,9 +33,9 @@ using Microsoft.Xna.Framework;
 using idTech4.Renderer;
 using idTech4.Services;
 
-namespace idTech4.Platform.Windows
+namespace idTech4.Platform.PC
 {
-	public sealed class WindowsPlatform : BasePlatform
+	public sealed class PCPlatform : BasePlatform
 	{
 		#region Members
 		private uint _currentClockSpeed;
@@ -49,7 +49,7 @@ namespace idTech4.Platform.Windows
 		#endregion
 
 		#region Constructor
-		public WindowsPlatform()
+		public PCPlatform()
 			: base()
 		{
 			
