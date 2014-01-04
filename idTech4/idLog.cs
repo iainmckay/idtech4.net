@@ -336,7 +336,7 @@ namespace idTech4
 		{
 			string msg = string.Format(Escape(format), args);
 
-			Debug.WriteLine(msg);
+			Debug.Write(msg);
 
 			// TODO: IMPORTANT! conbuf_appendtext
 			/*if ( win32.win_outputEditString.GetBool() && idLib::IsMainThread() ) {
