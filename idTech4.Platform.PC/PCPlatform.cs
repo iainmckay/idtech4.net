@@ -133,6 +133,14 @@ namespace idTech4.Platform.PC
 		{
 			get
 			{
+				switch(Environment.OSVersion.Platform)
+				{
+					case PlatformID.Xbox:
+					case PlatformID.MacOSX:
+					case PlatformID.Unix:
+						return false;
+				}
+
 				return true;
 			}
 		}
