@@ -1542,8 +1542,7 @@ namespace idTech4
 			//
 			OperatingSystem osInfo = Environment.OSVersion;
 
-			if((osInfo.Version.Major < 4)
-				|| (osInfo.Platform == PlatformID.Win32S)
+			if((osInfo.Platform == PlatformID.Win32S)
 				|| (osInfo.Platform == PlatformID.Win32Windows))
 			{
 				Error("{0} requires Windows XP or above", idLicensee.GameName);
