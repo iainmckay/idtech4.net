@@ -1,0 +1,64 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{1FEE3BFB-C108-4CF6-96A4-8A007D43515D}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>idTech4.Platform.PC</RootNamespace>
+    <AssemblyName>idTech4.Platform.PC</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;MONOGAME</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="MonoGame.Framework, Version=3.0.0.0, Culture=neutral">
+      <Private>False</Private>
+    </Reference>
+    <Reference Include="System.Windows.Forms" />
+    <Reference Include="System.Management" />
+    <Reference Include="System.Drawing" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="..\..\idTech4.Platform.PC\PCPlatform.cs">
+      <Link>PCPlatform.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Platform.PC\PCSession.cs">
+      <Link>PCSession.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Platform.PC\XNARenderBackend.cs">
+      <Link>XNARenderBackend.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Platform.PC\XNARenderProgramManager.cs">
+      <Link>XNARenderProgramManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Platform.PC\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4\idTech4.csproj">
+      <Project>{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}</Project>
+      <Name>idTech4</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

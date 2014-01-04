@@ -1,0 +1,130 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{40426DE9-B4C9-49CB-AC24-DB6F360DB4DF}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>idTech4.UI.SWF</RootNamespace>
+    <AssemblyName>idTech4.UI.SWF</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="MonoGame.Framework, Version=3.0.0.0, Culture=neutral">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="..\..\idTech4.UI.SWF\SWFTypeReader.cs">
+      <Link>SWFTypeReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWF.cs">
+      <Link>idSWF.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFBitStream.cs">
+      <Link>idSWFBitStream.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFDictionaryEntry.cs">
+      <Link>idSWFDictionaryEntry.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFEditText.cs">
+      <Link>idSWFEditText.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFFont.cs">
+      <Link>idSWFFont.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFHelper.cs">
+      <Link>idSWFHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFImage.cs">
+      <Link>idSWFImage.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFManager.cs">
+      <Link>idSWFManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFMorphShape.cs">
+      <Link>idSWFMorphShape.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFShape.cs">
+      <Link>idSWFShape.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFSprite.cs">
+      <Link>idSWFSprite.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFSpriteInstance.cs">
+      <Link>idSWFSpriteInstance.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFText.cs">
+      <Link>idSWFText.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\idSWFTextInstance.cs">
+      <Link>idSWFTextInstance.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptFunction.cs">
+      <Link>Scripting\idSWFScriptFunction.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptFunction_Nested.cs">
+      <Link>Scripting\idSWFScriptFunction_Nested.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptFunction_Script.cs">
+      <Link>Scripting\idSWFScriptFunction_Script.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptFunction_Sprite.cs">
+      <Link>Scripting\idSWFScriptFunction_Sprite.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptFunction_Text.cs">
+      <Link>Scripting\idSWFScriptFunction_Text.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptNativeVariable.cs">
+      <Link>Scripting\idSWFScriptNativeVariable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptNativeVariable_Nested.cs">
+      <Link>Scripting\idSWFScriptNativeVariable_Nested.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptNativeVariable_Sprite.cs">
+      <Link>Scripting\idSWFScriptNativeVariable_Sprite.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptObject.cs">
+      <Link>Scripting\idSWFScriptObject.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptObject_SpriteInstancePrototype.cs">
+      <Link>Scripting\idSWFScriptObject_SpriteInstancePrototype.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptObject_TextInstancePrototype.cs">
+      <Link>Scripting\idSWFScriptObject_TextInstancePrototype.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.UI.SWF\Scripting\idSWFScriptVariable.cs">
+      <Link>Scripting\idSWFScriptVariable.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4\idTech4.csproj">
+      <Project>{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}</Project>
+      <Name>idTech4</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

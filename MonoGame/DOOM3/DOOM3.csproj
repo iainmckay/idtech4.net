@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C2BC64EA-F923-4D3D-B26E-1A8383F85B42}</ProjectGuid>
+    <OutputType>Exe</OutputType>
+    <RootNamespace>DOOM3</RootNamespace>
+    <AssemblyName>DOOM3</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>..\..\Build</OutputPath>
+    <DefineConstants>DEBUG;LINUX</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>True</Externalconsole>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>..\..\Build</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <Externalconsole>True</Externalconsole>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="MonoGame.Framework, Version=3.0.0.0, Culture=neutral" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4\idTech4.csproj">
+      <Project>{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}</Project>
+      <Name>idTech4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\idTech4.Platform.PC\idTech4.Platform.PC.csproj">
+      <Project>{1FEE3BFB-C108-4CF6-96A4-8A007D43515D}</Project>
+      <Name>idTech4.Platform.PC</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="..\..\DOOM3\Game.ico">
+      <Link>Game.ico</Link>
+    </None>
+    <None Include="..\..\DOOM3\GameThumbnail.png">
+      <Link>GameThumbnail.png</Link>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\DOOM3\Program.cs">
+      <Link>Program.cs</Link>
+    </Compile>
+    <Compile Include="..\..\DOOM3\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

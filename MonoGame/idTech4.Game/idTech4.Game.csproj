@@ -1,0 +1,131 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{F03754AC-834F-4660-8C02-32726DDF1D28}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>idTech4.Game</RootNamespace>
+    <AssemblyName>idTech4.Game</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="MonoGame.Framework, Version=3.0.0.0, Culture=neutral">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4\idTech4.csproj">
+      <Project>{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}</Project>
+      <Name>idTech4</Name>
+    </ProjectReference>
+    <ProjectReference Include="..\idTech4.UI.SWF\idTech4.UI.SWF.csproj">
+      <Project>{40426DE9-B4C9-49CB-AC24-DB6F360DB4DF}</Project>
+      <Name>idTech4.UI.SWF</Name>
+    </ProjectReference>
+  </ItemGroup>
+  <ItemGroup>
+    <Compile Include="..\..\idTech4.Game\GameConstants.cs">
+      <Link>GameConstants.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\idGame.cs">
+      <Link>idGame.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\idGameEdit.cs">
+      <Link>idGameEdit.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idDialog.cs">
+      <Link>Menus\idDialog.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuDataSource.cs">
+      <Link>Menus\idMenuDataSource.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuHandler.cs">
+      <Link>Menus\idMenuHandler.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuHandler_Shell.cs">
+      <Link>Menus\idMenuHandler_Shell.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuScreen.cs">
+      <Link>Menus\idMenuScreen.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuScreen_Shell_ControllerLayout.cs">
+      <Link>Menus\idMenuScreen_Shell_ControllerLayout.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuScreen_Shell_Credits.cs">
+      <Link>Menus\idMenuScreen_Shell_Credits.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuScreen_Shell_GameLobby.cs">
+      <Link>Menus\idMenuScreen_Shell_GameLobby.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuScreen_Shell_GamePad.cs">
+      <Link>Menus\idMenuScreen_Shell_GamePad.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuScreen_Shell_PressStart.cs">
+      <Link>Menus\idMenuScreen_Shell_PressStart.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuScreen_Shell_Root.cs">
+      <Link>Menus\idMenuScreen_Shell_Root.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget.cs">
+      <Link>Menus\idMenuWidget.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_Button.cs">
+      <Link>Menus\idMenuWidget_Button.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_Carousel.cs">
+      <Link>Menus\idMenuWidget_Carousel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_CommandBar.cs">
+      <Link>Menus\idMenuWidget_CommandBar.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_ControlButton.cs">
+      <Link>Menus\idMenuWidget_ControlButton.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_DynamicList.cs">
+      <Link>Menus\idMenuWidget_DynamicList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_Help.cs">
+      <Link>Menus\idMenuWidget_Help.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_List.cs">
+      <Link>Menus\idMenuWidget_List.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_LobbyButton.cs">
+      <Link>Menus\idMenuWidget_LobbyButton.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_LobbyList.cs">
+      <Link>Menus\idMenuWidget_LobbyList.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_MenuBar.cs">
+      <Link>Menus\idMenuWidget_MenuBar.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Menus\idMenuWidget_MenuButton.cs">
+      <Link>Menus\idMenuWidget_MenuButton.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Game\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>

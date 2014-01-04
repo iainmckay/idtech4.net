@@ -1,0 +1,234 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual Studio 2010
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4", "idTech4\idTech4.csproj", "{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DOOM3", "DOOM3\DOOM3.csproj", "{C2BC64EA-F923-4D3D-B26E-1A8383F85B42}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Game", "idTech4.Game\idTech4.Game.csproj", "{F03754AC-834F-4660-8C02-32726DDF1D28}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.UI.SWF", "idTech4.UI.SWF\idTech4.UI.SWF.csproj", "{40426DE9-B4C9-49CB-AC24-DB6F360DB4DF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Platforms", "Platforms", "{509158A9-31D5-4A00-84CA-DA7C80421554}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Platform.PC", "idTech4.Platform.PC\idTech4.Platform.PC.csproj", "{1FEE3BFB-C108-4CF6-96A4-8A007D43515D}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Content", "Content", "{5ABBC09E-739C-42A2-AD2F-4444346AB681}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Pipeline", "Pipeline", "{086AB06B-EBE8-47D6-995A-D267BAA8E6AD}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline", "idTech4.Content.Pipeline\idTech4.Content.Pipeline.csproj", "{4B73A4AF-FBDE-4317-A0AB-6845FC67A716}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline.BImageImporter", "idTech4.Content.Pipeline.BImageImporter\idTech4.Content.Pipeline.BImageImporter.csproj", "{C2E26A18-1248-4556-A0D7-1AF7A3D57A90}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline.BSWFImporter", "idTech4.Content.Pipeline.BSWFImporter\idTech4.Content.Pipeline.BSWFImporter.csproj", "{FCA33177-ED2D-485C-85F1-38C4C83A05F9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline.SWFImporter", "idTech4.Content.Pipeline.SWFImporter\idTech4.Content.Pipeline.SWFImporter.csproj", "{7D949390-8579-442E-B1D2-241EABA2F3E9}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "idTech4.Content.Pipeline.FontImporter", "idTech4.Content.Pipeline.FontImporter\idTech4.Content.Pipeline.FontImporter.csproj", "{F597398C-1964-4AEE-B3C1-A220FA4E2229}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Any CPU = Debug|Any CPU
+		Release|Any CPU = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{1FEE3BFB-C108-4CF6-96A4-8A007D43515D}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1FEE3BFB-C108-4CF6-96A4-8A007D43515D}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1FEE3BFB-C108-4CF6-96A4-8A007D43515D}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1FEE3BFB-C108-4CF6-96A4-8A007D43515D}.Release|Any CPU.Build.0 = Release|Any CPU
+		{40426DE9-B4C9-49CB-AC24-DB6F360DB4DF}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{40426DE9-B4C9-49CB-AC24-DB6F360DB4DF}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{40426DE9-B4C9-49CB-AC24-DB6F360DB4DF}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{40426DE9-B4C9-49CB-AC24-DB6F360DB4DF}.Release|Any CPU.Build.0 = Release|Any CPU
+		{4B73A4AF-FBDE-4317-A0AB-6845FC67A716}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{4B73A4AF-FBDE-4317-A0AB-6845FC67A716}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{4B73A4AF-FBDE-4317-A0AB-6845FC67A716}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{4B73A4AF-FBDE-4317-A0AB-6845FC67A716}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}.Release|Any CPU.Build.0 = Release|Any CPU
+		{7D949390-8579-442E-B1D2-241EABA2F3E9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{7D949390-8579-442E-B1D2-241EABA2F3E9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{7D949390-8579-442E-B1D2-241EABA2F3E9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{7D949390-8579-442E-B1D2-241EABA2F3E9}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2BC64EA-F923-4D3D-B26E-1A8383F85B42}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2BC64EA-F923-4D3D-B26E-1A8383F85B42}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2BC64EA-F923-4D3D-B26E-1A8383F85B42}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2BC64EA-F923-4D3D-B26E-1A8383F85B42}.Release|Any CPU.Build.0 = Release|Any CPU
+		{C2E26A18-1248-4556-A0D7-1AF7A3D57A90}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{C2E26A18-1248-4556-A0D7-1AF7A3D57A90}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{C2E26A18-1248-4556-A0D7-1AF7A3D57A90}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{C2E26A18-1248-4556-A0D7-1AF7A3D57A90}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F03754AC-834F-4660-8C02-32726DDF1D28}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F03754AC-834F-4660-8C02-32726DDF1D28}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F03754AC-834F-4660-8C02-32726DDF1D28}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F03754AC-834F-4660-8C02-32726DDF1D28}.Release|Any CPU.Build.0 = Release|Any CPU
+		{F597398C-1964-4AEE-B3C1-A220FA4E2229}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F597398C-1964-4AEE-B3C1-A220FA4E2229}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F597398C-1964-4AEE-B3C1-A220FA4E2229}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F597398C-1964-4AEE-B3C1-A220FA4E2229}.Release|Any CPU.Build.0 = Release|Any CPU
+		{FCA33177-ED2D-485C-85F1-38C4C83A05F9}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{FCA33177-ED2D-485C-85F1-38C4C83A05F9}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{FCA33177-ED2D-485C-85F1-38C4C83A05F9}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{FCA33177-ED2D-485C-85F1-38C4C83A05F9}.Release|Any CPU.Build.0 = Release|Any CPU
+	EndGlobalSection
+	GlobalSection(NestedProjects) = preSolution
+		{1FEE3BFB-C108-4CF6-96A4-8A007D43515D} = {509158A9-31D5-4A00-84CA-DA7C80421554}
+		{086AB06B-EBE8-47D6-995A-D267BAA8E6AD} = {5ABBC09E-739C-42A2-AD2F-4444346AB681}
+		{4B73A4AF-FBDE-4317-A0AB-6845FC67A716} = {086AB06B-EBE8-47D6-995A-D267BAA8E6AD}
+		{C2E26A18-1248-4556-A0D7-1AF7A3D57A90} = {086AB06B-EBE8-47D6-995A-D267BAA8E6AD}
+		{FCA33177-ED2D-485C-85F1-38C4C83A05F9} = {086AB06B-EBE8-47D6-995A-D267BAA8E6AD}
+		{7D949390-8579-442E-B1D2-241EABA2F3E9} = {086AB06B-EBE8-47D6-995A-D267BAA8E6AD}
+		{F597398C-1964-4AEE-B3C1-A220FA4E2229} = {086AB06B-EBE8-47D6-995A-D267BAA8E6AD}
+	EndGlobalSection
+	GlobalSection(MonoDevelopProperties) = preSolution
+		StartupItem = DOOM3\DOOM3.csproj
+		Policies = $0
+		$0.DotNetNamingPolicy = $1
+		$1.DirectoryNamespaceAssociation = None
+		$1.ResourceNamePolicy = FileFormatDefault
+		$0.TextStylePolicy = $2
+		$2.FileWidth = 120
+		$2.TabsToSpaces = False
+		$2.inheritsSet = VisualStudio
+		$2.inheritsScope = text/plain
+		$2.scope = text/plain
+		$0.StandardHeader = $3
+		$3.Text = 
+		$3.IncludeInNewFiles = True
+		$0.NameConventionPolicy = $4
+		$4.Rules = $5
+		$5.NamingRule = $6
+		$6.Name = Namespaces
+		$6.AffectedEntity = Namespace
+		$6.VisibilityMask = VisibilityMask
+		$6.NamingStyle = PascalCase
+		$6.IncludeInstanceMembers = True
+		$6.IncludeStaticEntities = True
+		$5.NamingRule = $7
+		$7.Name = Types
+		$7.AffectedEntity = Class, Struct, Enum, Delegate
+		$7.VisibilityMask = Public
+		$7.NamingStyle = PascalCase
+		$7.IncludeInstanceMembers = True
+		$7.IncludeStaticEntities = True
+		$5.NamingRule = $8
+		$8.Name = Interfaces
+		$8.RequiredPrefixes = $9
+		$9.String = I
+		$8.AffectedEntity = Interface
+		$8.VisibilityMask = Public
+		$8.NamingStyle = PascalCase
+		$8.IncludeInstanceMembers = True
+		$8.IncludeStaticEntities = True
+		$5.NamingRule = $10
+		$10.Name = Attributes
+		$10.RequiredSuffixes = $11
+		$11.String = Attribute
+		$10.AffectedEntity = CustomAttributes
+		$10.VisibilityMask = Public
+		$10.NamingStyle = PascalCase
+		$10.IncludeInstanceMembers = True
+		$10.IncludeStaticEntities = True
+		$5.NamingRule = $12
+		$12.Name = Event Arguments
+		$12.RequiredSuffixes = $13
+		$13.String = EventArgs
+		$12.AffectedEntity = CustomEventArgs
+		$12.VisibilityMask = Public
+		$12.NamingStyle = PascalCase
+		$12.IncludeInstanceMembers = True
+		$12.IncludeStaticEntities = True
+		$5.NamingRule = $14
+		$14.Name = Exceptions
+		$14.RequiredSuffixes = $15
+		$15.String = Exception
+		$14.AffectedEntity = CustomExceptions
+		$14.VisibilityMask = VisibilityMask
+		$14.NamingStyle = PascalCase
+		$14.IncludeInstanceMembers = True
+		$14.IncludeStaticEntities = True
+		$5.NamingRule = $16
+		$16.Name = Methods
+		$16.AffectedEntity = Methods
+		$16.VisibilityMask = Protected, Public
+		$16.NamingStyle = PascalCase
+		$16.IncludeInstanceMembers = True
+		$16.IncludeStaticEntities = True
+		$5.NamingRule = $17
+		$17.Name = Static Readonly Fields
+		$17.AffectedEntity = ReadonlyField
+		$17.VisibilityMask = Protected, Public
+		$17.NamingStyle = PascalCase
+		$17.IncludeInstanceMembers = False
+		$17.IncludeStaticEntities = True
+		$5.NamingRule = $18
+		$18.Name = Fields
+		$18.AffectedEntity = Field
+		$18.VisibilityMask = Protected, Public
+		$18.NamingStyle = PascalCase
+		$18.IncludeInstanceMembers = True
+		$18.IncludeStaticEntities = True
+		$5.NamingRule = $19
+		$19.Name = ReadOnly Fields
+		$19.AffectedEntity = ReadonlyField
+		$19.VisibilityMask = Protected, Public
+		$19.NamingStyle = PascalCase
+		$19.IncludeInstanceMembers = True
+		$19.IncludeStaticEntities = False
+		$5.NamingRule = $20
+		$20.Name = Constant Fields
+		$20.AffectedEntity = ConstantField
+		$20.VisibilityMask = Protected, Public
+		$20.NamingStyle = PascalCase
+		$20.IncludeInstanceMembers = True
+		$20.IncludeStaticEntities = True
+		$5.NamingRule = $21
+		$21.Name = Properties
+		$21.AffectedEntity = Property
+		$21.VisibilityMask = Protected, Public
+		$21.NamingStyle = PascalCase
+		$21.IncludeInstanceMembers = True
+		$21.IncludeStaticEntities = True
+		$5.NamingRule = $22
+		$22.Name = Events
+		$22.AffectedEntity = Event
+		$22.VisibilityMask = Protected, Public
+		$22.NamingStyle = PascalCase
+		$22.IncludeInstanceMembers = True
+		$22.IncludeStaticEntities = True
+		$5.NamingRule = $23
+		$23.Name = Enum Members
+		$23.AffectedEntity = EnumMember
+		$23.VisibilityMask = VisibilityMask
+		$23.NamingStyle = PascalCase
+		$23.IncludeInstanceMembers = True
+		$23.IncludeStaticEntities = True
+		$5.NamingRule = $24
+		$24.Name = Parameters
+		$24.AffectedEntity = Parameter
+		$24.VisibilityMask = VisibilityMask
+		$24.NamingStyle = CamelCase
+		$24.IncludeInstanceMembers = True
+		$24.IncludeStaticEntities = True
+		$5.NamingRule = $25
+		$25.Name = Type Parameters
+		$25.RequiredPrefixes = $26
+		$26.String = T
+		$25.AffectedEntity = TypeParameter
+		$25.VisibilityMask = VisibilityMask
+		$25.NamingStyle = PascalCase
+		$25.IncludeInstanceMembers = True
+		$25.IncludeStaticEntities = True
+		$0.VersionControlPolicy = $27
+		$27.inheritsSet = Mono
+		$0.ChangeLogPolicy = $28
+		$28.UpdateMode = None
+		$28.MessageStyle = $29
+		$29.LineAlign = 0
+		$28.inheritsSet = Mono
+		outputpath = ..\Build
+	EndGlobalSection
+EndGlobal

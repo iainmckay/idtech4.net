@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{4B73A4AF-FBDE-4317-A0AB-6845FC67A716}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>idTech4.Content.Pipeline</RootNamespace>
+    <AssemblyName>idTech4.Content.Pipeline</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="MonoGame.Framework.Content.Pipeline, Version=1.0.0.0, Culture=neutral">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="..\..\idTech4.Content.Pipeline\idBinaryReader.cs">
+      <Link>idBinaryReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Content.Pipeline\Lexer\LexerKeyword.cs">
+      <Link>Lexer\LexerKeyword.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Content.Pipeline\Lexer\LexerKeywordAttribute.cs">
+      <Link>Lexer\LexerKeywordAttribute.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Content.Pipeline\Lexer\LexerKeywordFactory.cs">
+      <Link>Lexer\LexerKeywordFactory.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Content.Pipeline\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4\idTech4.csproj">
+      <Project>{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}</Project>
+      <Name>idTech4</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

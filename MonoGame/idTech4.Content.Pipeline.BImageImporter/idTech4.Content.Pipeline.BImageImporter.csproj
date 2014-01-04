@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{C2E26A18-1248-4556-A0D7-1AF7A3D57A90}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>idTech4.Content.Pipeline.BImageImporter</RootNamespace>
+    <AssemblyName>idTech4.Content.Pipeline.BImageImporter</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="System.Xml" />
+    <Reference Include="MonoGame.Framework.Content.Pipeline" />
+    <Reference Include="MonoGame.Framework" />
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="..\..\idTech4.Content.Pipeline.BImageImporter\BImage.cs">
+      <Link>BImage.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Content.Pipeline.BImageImporter\BImageImporter.cs">
+      <Link>BImageImporter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4.Content.Pipeline.BImageImporter\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\idTech4.Content.Pipeline\idTech4.Content.Pipeline.csproj">
+      <Project>{4B73A4AF-FBDE-4317-A0AB-6845FC67A716}</Project>
+      <Name>idTech4.Content.Pipeline</Name>
+    </ProjectReference>
+  </ItemGroup>
+</Project>

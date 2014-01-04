@@ -1,0 +1,286 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup>
+    <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+    <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+    <ProductVersion>10.0.0</ProductVersion>
+    <SchemaVersion>2.0</SchemaVersion>
+    <ProjectGuid>{7A3E6D6A-18DD-4A1F-B75C-A459822F65ED}</ProjectGuid>
+    <OutputType>Library</OutputType>
+    <RootNamespace>idTech4</RootNamespace>
+    <AssemblyName>idTech4</AssemblyName>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+    <DebugSymbols>True</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>False</Optimize>
+    <OutputPath>bin\Debug</OutputPath>
+    <DefineConstants>DEBUG;LINUX</DefineConstants>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+    <DebugType>none</DebugType>
+    <Optimize>True</Optimize>
+    <OutputPath>bin\Release</OutputPath>
+    <ErrorReport>prompt</ErrorReport>
+    <WarningLevel>4</WarningLevel>
+    <ConsolePause>False</ConsolePause>
+  </PropertyGroup>
+  <ItemGroup>
+    <Reference Include="System" />
+    <Reference Include="MonoGame.Framework, Version=3.0.0.0, Culture=neutral">
+      <Private>False</Private>
+    </Reference>
+  </ItemGroup>
+  <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
+  <ItemGroup>
+    <Compile Include="..\..\idTech4\CVars.cs">
+      <Link>CVars.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Commands.cs">
+      <Link>Commands.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Constants.cs">
+      <Link>Constants.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Extensions.cs">
+      <Link>Extensions.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idCVar.cs">
+      <Link>idCVar.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idCVarSystem.cs">
+      <Link>idCVarSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idColor.cs">
+      <Link>idColor.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idCommandSystem.cs">
+      <Link>idCommandSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idConsole.cs">
+      <Link>idConsole.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idDict.cs">
+      <Link>idDict.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idEngine.cs">
+      <Link>idEngine.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idEventLoop.cs">
+      <Link>idEventLoop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idHelper.cs">
+      <Link>idHelper.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idLanguage.cs">
+      <Link>idLanguage.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idLicensee.cs">
+      <Link>idLicensee.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idLog.cs">
+      <Link>idLog.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idSession.cs">
+      <Link>idSession.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idUtil.cs">
+      <Link>idUtil.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\idVersion.cs">
+      <Link>idVersion.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Content\Pipeline\FontReader.cs">
+      <Link>Content\Pipeline\FontReader.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\IO\idFileSystem.cs">
+      <Link>IO\idFileSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\IO\idResourceContainer.cs">
+      <Link>IO\idResourceContainer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Input\idInputField.cs">
+      <Link>Input\idInputField.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Input\idInputSystem.cs">
+      <Link>Input\idInputSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Input\idUserCommandGenerator.cs">
+      <Link>Input\idUserCommandGenerator.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Math\idBounds.cs">
+      <Link>Math\idBounds.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Math\idMath.cs">
+      <Link>Math\idMath.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Math\idRectangle.cs">
+      <Link>Math\idRectangle.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Math\idRotation.cs">
+      <Link>Math\idRotation.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Platform\BasePlatform.cs">
+      <Link>Platform\BasePlatform.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Properties\AssemblyInfo.cs">
+      <Link>Properties\AssemblyInfo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Renderer\IRenderBackend.cs">
+      <Link>Renderer\IRenderBackend.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Renderer\idFont.cs">
+      <Link>Renderer\idFont.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Renderer\idGuiModel.cs">
+      <Link>Renderer\idGuiModel.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Renderer\idImage.cs">
+      <Link>Renderer\idImage.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Renderer\idImageManager.cs">
+      <Link>Renderer\idImageManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Renderer\idMaterial.cs">
+      <Link>Renderer\idMaterial.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Renderer\idRenderSystem.cs">
+      <Link>Renderer\idRenderSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Renderer\idResolutionScale.cs">
+      <Link>Renderer\idResolutionScale.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Renderer\idScreenRect.cs">
+      <Link>Renderer\idScreenRect.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\ICVarSystem.cs">
+      <Link>Services\ICVarSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\ICommandSystem.cs">
+      <Link>Services\ICommandSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IConsole.cs">
+      <Link>Services\IConsole.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IDeclManager.cs">
+      <Link>Services\IDeclManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IDialog.cs">
+      <Link>Services\IDialog.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IEventLoop.cs">
+      <Link>Services\IEventLoop.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IFileSystem.cs">
+      <Link>Services\IFileSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IGame.cs">
+      <Link>Services\IGame.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IGameEdit.cs">
+      <Link>Services\IGameEdit.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IImageManager.cs">
+      <Link>Services\IImageManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IInputSystem.cs">
+      <Link>Services\IInputSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\ILocalization.cs">
+      <Link>Services\ILocalization.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IPlatformService.cs">
+      <Link>Services\IPlatformService.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IRenderSystem.cs">
+      <Link>Services\IRenderSystem.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IResolutionScale.cs">
+      <Link>Services\IResolutionScale.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\ISession.cs">
+      <Link>Services\ISession.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Services\IUserInterfaceManager.cs">
+      <Link>Services\IUserInterfaceManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Sound\idSoundEmitter.cs">
+      <Link>Sound\idSoundEmitter.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Sound\idSoundMaterial.cs">
+      <Link>Sound\idSoundMaterial.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\idDecl.cs">
+      <Link>Text\idDecl.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\idDeclFile.cs">
+      <Link>Text\idDeclFile.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\idDeclManager.cs">
+      <Link>Text\idDeclManager.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\idImageProgramParser.cs">
+      <Link>Text\idImageProgramParser.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\idLangDict.cs">
+      <Link>Text\idLangDict.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\idLexer.cs">
+      <Link>Text\idLexer.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\idLocalization.cs">
+      <Link>Text\idLocalization.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\idToken.cs">
+      <Link>Text\idToken.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\Decls\idDeclAudio.cs">
+      <Link>Text\Decls\idDeclAudio.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\Decls\idDeclEmail.cs">
+      <Link>Text\Decls\idDeclEmail.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\Decls\idDeclEntity.cs">
+      <Link>Text\Decls\idDeclEntity.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\Decls\idDeclFX.cs">
+      <Link>Text\Decls\idDeclFX.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\Decls\idDeclPDA.cs">
+      <Link>Text\Decls\idDeclPDA.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\Decls\idDeclParticle.cs">
+      <Link>Text\Decls\idDeclParticle.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\Decls\idDeclSkin.cs">
+      <Link>Text\Decls\idDeclSkin.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\Decls\idDeclTable.cs">
+      <Link>Text\Decls\idDeclTable.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Text\Decls\idDeclVideo.cs">
+      <Link>Text\Decls\idDeclVideo.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Threading\idGameThread.cs">
+      <Link>Threading\idGameThread.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Threading\idSysThread.cs">
+      <Link>Threading\idSysThread.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\Threading\idThread.cs">
+      <Link>Threading\idThread.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\UI\idDeviceContext.cs">
+      <Link>UI\idDeviceContext.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\UI\idDeviceContextOptimized.cs">
+      <Link>UI\idDeviceContextOptimized.cs</Link>
+    </Compile>
+    <Compile Include="..\..\idTech4\UI\idUserInterfaceManager.cs">
+      <Link>UI\idUserInterfaceManager.cs</Link>
+    </Compile>
+  </ItemGroup>
+</Project>
