@@ -288,7 +288,10 @@ namespace idTech4
 
 		private void OnAssemblyLoad(object sender, AssemblyLoadEventArgs args)
 		{
-			Scan(args.LoadedAssembly);
+			if(args.LoadedAssembly.GetName().Name.StartsWith("idTech4") == true)
+			{
+				Scan(args.LoadedAssembly);
+			}
 		}
 		#endregion
 		#endregion
