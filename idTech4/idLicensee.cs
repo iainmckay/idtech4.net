@@ -25,12 +25,14 @@ If you have questions concerning this license or the applicable additional terms
 
 ===========================================================================
 */
+using System.IO;
+
 namespace idTech4
 {
 	public class idLicensee
 	{
 		public const string GameName			= "DOOM 3: BFG Edition"; // appears on window titles and errors
-		public const string SavePath			= "\\id Software\\DOOM 3 BFG";
+		public static readonly string SavePath	= Path.DirectorySeparatorChar + "id Software" + Path.DirectorySeparatorChar + "DOOM 3 BFG";
 		public const string EngineVersion		= "D3BFG 1"; // printed in console
 		public const string BaseGameDirectory	= "base";
 		public const string ConfigFile			= "D3BFGConfig.cfg";

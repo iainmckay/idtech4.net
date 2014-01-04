@@ -353,7 +353,7 @@ namespace idTech4.IO
 				if(path == null)
 				{
 					path = Environment.GetFolderPath(Environment.SpecialFolder.Personal, Environment.SpecialFolderOption.Create);
-					path += "\\My Games";
+					path += Path.DirectorySeparatorChar + "My Games";
 				}
 
 				path += idLicensee.SavePath;
