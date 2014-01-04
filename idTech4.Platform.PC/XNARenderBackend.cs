@@ -2164,11 +2164,20 @@ namespace idTech4.Platform.PC
 
 			_graphicsDeviceManager.ApplyChanges();
 
-			Form window     = (Form) Form.FromHandle(idEngine.Instance.Window.Handle);
-			window.Text     = idLicensee.GameName;
-			window.Location = new System.Drawing.Point(x, y);
+			GameWindow gameWindow = idEngine.Instance.Window;
 
-			idLog.WriteLine("...created window @ {0},{1} ({2}x{3})", x, y, width, height);
+			if(idEngine.Instance.GetService<IPlatformService>().IsWindows == false)
+			{
+				gameWindow.Title = idLicensee.GameName;
+			}
+			else
+			{
+				Form window = (Form) Form.FromHandle(gameWindow.Handle);
+				window.Text = idLicensee.GameName;
+				window.Location = new System.Drawing.Point(x, y);
+			}
+
+			idLog.WriteLine("...created window @ {0},{1} ({2}x{3})", gameWindow.ClientBounds.Location.X, gameWindow.ClientBounds.Location.Y, width, height);
 
 			// check to see if we can get a stereo pixel format, even if we aren't going to use it,
 			// so the menu option can be 
