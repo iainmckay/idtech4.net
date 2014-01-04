@@ -29,7 +29,7 @@ using idTech4;
 
 namespace DOOM3
 {
-#if WINDOWS || XBOX
+#if WINDOWS || LINUX || XBOX
 	public static class Program
 	{
 		/// <summary>
