@@ -220,7 +220,8 @@ namespace idTech4.Platform.PC
 		{
 			base.Initialize();
 
-			using(ManagementObjectSearcher mosInfo = new ManagementObjectSearcher("SELECT * FROM Win32_Processor"))
+			// FIXME: not implemented in mono
+			/*using(ManagementObjectSearcher mosInfo = new ManagementObjectSearcher("SELECT * FROM Win32_Processor"))
 			{
 				// FIXME: ha! going to limit this to one cpu, who in the universe would have more than one, eh?!
 				// might come to regret this.
@@ -232,7 +233,7 @@ namespace idTech4.Platform.PC
 					if(Environment.OSVersion.Version.Major >= 6)
 					{
 						_coreCount = (uint) mosObj["NumberOfCores"];
-						_threadCount = (uint) mosObj["NumberOfLogicalProcessors"];
+						_threadCount = Environment.ProcessorCount;
 					}
 					else
 					{
@@ -267,7 +268,7 @@ namespace idTech4.Platform.PC
 				//	_totalVideoMemory = (uint) mosObj["AdapterRAM"] / 1024 / 1024;
 					break;
 				}
-			}
+			}*/
 		}
 		#endregion
 		#endregion
