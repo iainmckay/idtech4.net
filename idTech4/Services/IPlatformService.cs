@@ -105,7 +105,7 @@ namespace idTech4.Services
 		#endregion
 
 		#region Methods
-		IRenderBackend CreateRenderBackend();
+		IRenderBackend CreateRenderBackend(GraphicsDeviceManager graphicsDeviceManager);
 
 		#region Initialization
 		#region Properties

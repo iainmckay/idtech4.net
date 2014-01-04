@@ -119,7 +119,7 @@ namespace idTech4.Platform
 		#endregion
 
 		#region Methods
-		public virtual IRenderBackend CreateRenderBackend()
+		public virtual IRenderBackend CreateRenderBackend(GraphicsDeviceManager graphicsDeviceManager)
 		{
 			return null;
 		}

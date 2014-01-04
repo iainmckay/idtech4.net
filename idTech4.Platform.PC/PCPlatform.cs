@@ -211,9 +211,9 @@ namespace idTech4.Platform.PC
 		#endregion
 
 		#region Methods
-		public override IRenderBackend CreateRenderBackend()
+		public override IRenderBackend CreateRenderBackend(GraphicsDeviceManager graphicsDeviceManager)
 		{
-			return new XNARenderBackend();
+			return new XNARenderBackend(graphicsDeviceManager);
 		}
 
 		public override void Initialize()

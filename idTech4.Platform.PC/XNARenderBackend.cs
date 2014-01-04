@@ -61,11 +61,11 @@ namespace idTech4.Platform.PC
 		#endregion
 
 		#region Constructor
-		public XNARenderBackend()
+		public XNARenderBackend(GraphicsDeviceManager graphicsDeviceManager)
 			: base()
 		{
 			_renderCaps            = new idRenderCapabilities();
-			_graphicsDeviceManager = new GraphicsDeviceManager(idEngine.Instance);
+			_graphicsDeviceManager = graphicsDeviceManager;
 		}
 		#endregion
 
@@ -1965,10 +1965,13 @@ namespace idTech4.Platform.PC
 			// recheck all the extensions (FIXME: this might be dangerous)
 			CheckCapabilities();
 
+#if !MONOGAME
 			idLog.WriteLine("Device      : {0}", _graphicsDeviceManager.GraphicsDevice.Adapter.Description);
+#endif
+
 			idLog.WriteLine("Profile     : {0}", _graphicsDeviceManager.GraphicsProfile);
 			idLog.WriteLine("Shader Model: {0}", _renderCaps.ShaderModel);
-
+	
 			_renderProgramManager = new XNARenderProgramManager(_backendState);
 			_renderProgramManager.Initialize();
 
@@ -2143,7 +2146,12 @@ namespace idTech4.Platform.PC
 			_graphicsDeviceManager.PreferredBackBufferHeight      = height;
 			_graphicsDeviceManager.PreferMultiSampling            = (multiSamples > 1);
 			_graphicsDeviceManager.IsFullScreen                   = (fullScreen > 0);
+
+#if !MONOGAME
 			_graphicsDeviceManager.GraphicsProfile                = adapter.IsProfileSupported(GraphicsProfile.HiDef) ? GraphicsProfile.HiDef : GraphicsProfile.Reach;
+#else
+			_graphicsDeviceManager.GraphicsProfile = GraphicsProfile.HiDef;
+#endif
 
 			/*_graphicsDeviceManager.PreparingDeviceSettings       += delegate(object sender, PreparingDeviceSettingsEventArgs args)
 			{
@@ -2218,6 +2226,9 @@ namespace idTech4.Platform.PC
 			for(int displayNum = requestedDisplayNum; ; displayNum++)
 			{
 				GraphicsAdapter adapter = GraphicsAdapter.Adapters[displayNum];
+
+				// FIXME: fix this on monogame
+#if !MONOGAME
 				Screen monitor          = Screen.FromHandle(adapter.MonitorHandle);
 
 				if(monitor == null)
@@ -2226,12 +2237,13 @@ namespace idTech4.Platform.PC
 				}
 
 				if(verbose == true)
-				{
+				{7
 					idLog.WriteLine("display device: {0}", displayNum);
 					idLog.WriteLine("  DeviceName  : {0}", adapter.DeviceName);
 					idLog.WriteLine("  DeviceID    : {0}", adapter.DeviceId);
 					idLog.WriteLine("      DeviceName  : {0}", monitor.DeviceName);
 				}
+#endif
 
 				int modeNum = 0;
 

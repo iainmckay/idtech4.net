@@ -124,6 +124,8 @@ namespace idTech4
 		#endregion
 
 		#region Members
+		private GraphicsDeviceManager _graphicsDeviceManager;
+
 		private bool _firstTick = true;
 		private bool _initialized;
 
@@ -191,6 +193,7 @@ namespace idTech4
 			this.Content.RootDirectory = idLicensee.BaseGameDirectory;
 
 			_gameTimer = Stopwatch.StartNew();
+			_graphicsDeviceManager = new GraphicsDeviceManager(this);
 		}
 		#endregion
 
@@ -689,7 +692,7 @@ namespace idTech4
 				IInputSystem inputSystem                   = new idInputSystem();
 				IConsole console                           = new idConsole();
 				IDeclManager declManager                   = new idDeclManager();
-				IRenderSystem renderSystem                 = new idRenderSystem();
+				IRenderSystem renderSystem                 = new idRenderSystem(_graphicsDeviceManager);
 				IResolutionScale resolutionScale           = new idResolutionScale();
 				IUserInterfaceManager userInterfaceManager = new idUserInterfaceManager();
 				IEventLoop eventLoop                       = new idEventLoop();
@@ -1200,12 +1203,9 @@ namespace idTech4
 		private IPlatformService FindPlatform()
 		{
 			// TODO: clean this up
-#if WINDOWS
-			string assemblyName = "idTech4.Platform.Windows.dll";
-			string typeName     = "idTech4.Platform.Windows.WindowsPlatform";
-#elif XBOX
-			string assemblyName = "idTech4.Platform.Xbox360.dll";
-			string typeName = "idTech4.Platform.Xbox360.Xbox360Platform";
+#if WINDOWS || LINUX
+			string assemblyName = "idTech4.Platform.PC.dll";
+			string typeName     = "idTech4.Platform.PC.PCPlatform";
 #else
 			return null;
 #endif
@@ -1218,12 +1218,9 @@ namespace idTech4
 		private ISession FindSession()
 		{
 			// TODO: clean this up
-#if WINDOWS
-			string assemblyName = "idTech4.Platform.Windows.dll";
-			string typeName     = "idTech4.Platform.Windows.WindowsSession";
-#elif XBOX
-			string assemblyName = "idTech4.Platform.Xbox360.dll";
-			string typeName = "idTech4.Platform.Xbox360.Xbox360Session";
+#if WINDOWS || LINUX
+			string assemblyName = "idTech4.Platform.PC.dll";
+			string typeName     = "idTech4.Platform.PC.PCSession";
 #else
 			return null;
 #endif

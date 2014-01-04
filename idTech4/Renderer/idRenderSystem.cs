@@ -82,12 +82,14 @@ namespace idTech4.Renderer
 		private ulong _currentRenderState;
 
 		private ushort[] _quadIndexes = { 3, 0, 2, 2, 0, 1 };
+
+		private GraphicsDeviceManager _graphicsDeviceManager;
 		#endregion
 
 		#region Constructor
-		public idRenderSystem()
+		public idRenderSystem(GraphicsDeviceManager graphicsDeviceManager)
 		{
-					
+			_graphicsDeviceManager = graphicsDeviceManager;
 		}
 		#endregion
 
@@ -183,7 +185,7 @@ namespace idTech4.Renderer
 		#region Methods
 		private IRenderBackend FindBackend()
 		{
-			return idEngine.Instance.GetService<IPlatformService>().CreateRenderBackend();
+			return idEngine.Instance.GetService<IPlatformService>().CreateRenderBackend(_graphicsDeviceManager);
 		}
 
 		private void Init()
