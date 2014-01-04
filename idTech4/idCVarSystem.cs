@@ -190,6 +190,9 @@ namespace idTech4
 				throw new Exception("idCVarSystem has already been initialized.");
 			}
 
+			// register all static CVars
+			CVars.Register();
+
 			_initialized = true;
 		}
 		#endregion

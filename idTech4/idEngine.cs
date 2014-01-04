@@ -718,9 +718,6 @@ namespace idTech4
 				localization.Initialize();
 				fileSystem.Initialize();
 
-				// register all static CVars
-				CVars.Register();
-
 				// scan for commands
 				cmdSystem.Scan();
 
