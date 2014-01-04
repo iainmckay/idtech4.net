@@ -6,6 +6,8 @@ idTech4/obj
 idTech4/bin
 idTech4.ContentPipeline.BImage/bin
 idTech4.ContentPipeline.BImage/obj
+idTech4.Game/bin
+idTech4.Game/obj
 idTech4.Platform.Win32/bin
 idTech4.Platform.Win32/obj
 idTech4.Platform.Xbox360/bin
@@ -37,6 +39,8 @@ MonoGame/idTech4/obj
 MonoGame/idTech4/bin
 MonoGame/idTech4.ContentPipeline.BImage/bin
 MonoGame/idTech4.ContentPipeline.BImage/obj
+MonoGame/idTech4.Game/bin
+MonoGame/idTech4.Game/obj
 MonoGame/idTech4.Platform.Win32/bin
 MonoGame/idTech4.Platform.Win32/obj
 MonoGame/idTech4.Platform.Xbox360/bin
