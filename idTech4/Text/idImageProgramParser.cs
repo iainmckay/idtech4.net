@@ -33,6 +33,8 @@ using Microsoft.Xna.Framework.Graphics;
 using idTech4.Services;
 using idTech4.Renderer;
 
+using TextureUsage = idTech4.Renderer.TextureUsage;
+
 namespace idTech4.Text
 {
 	public class idImageProgramParser

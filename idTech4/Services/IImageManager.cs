@@ -7,6 +7,7 @@ using Microsoft.Xna.Framework.Graphics;
 
 using idTech4.Renderer;
 using TextureFilter = idTech4.Renderer.TextureFilter;
+using TextureUsage = idTech4.Renderer.TextureUsage;
 
 namespace idTech4.Services
 {
