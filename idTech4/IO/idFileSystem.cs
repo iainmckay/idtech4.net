@@ -159,7 +159,12 @@ namespace idTech4.IO
 			_searchPaths.Add(new SearchPath(path, directory));
 
 			string resourceDirectory = GetAbsolutePath(path, directory, string.Empty);
-			
+
+			if(Directory.Exists(resourceDirectory) == false)
+			{
+				return;
+			}
+
 			// get a list of resource files
 			string[] resourceFiles = Directory.GetFiles(resourceDirectory, "*.resources");
 			Array.Sort(resourceFiles);
