@@ -19,6 +19,7 @@
     <ErrorReport>prompt</ErrorReport>
     <WarningLevel>4</WarningLevel>
     <Externalconsole>True</Externalconsole>
+    <Commandlineparameters>+set developer 1 +set win_viewlog 1 +set decl_show 3 +set image_showBackgroundLoads 1 +set logfile 3 +set r_fullscreen 0 +set com_allowConsole 1 +set com_showFPS 1 +set com_showMemoryUsage 1 +set com_skipIntroVideos 1 +set com_smp 0 +set logFileName qconsole_xna.log</Commandlineparameters>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
     <DebugType>none</DebugType>
