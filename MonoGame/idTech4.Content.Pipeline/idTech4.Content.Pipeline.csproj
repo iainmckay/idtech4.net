@@ -9,6 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>idTech4.Content.Pipeline</RootNamespace>
     <AssemblyName>idTech4.Content.Pipeline</AssemblyName>
+    <UseMSBuildEngine>False</UseMSBuildEngine>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
@@ -30,9 +31,7 @@
   </PropertyGroup>
   <ItemGroup>
     <Reference Include="System" />
-    <Reference Include="MonoGame.Framework.Content.Pipeline, Version=1.0.0.0, Culture=neutral">
-      <Private>False</Private>
-    </Reference>
+    <Reference Include="MonoGame.Framework.Content.Pipeline, Version=1.0.0.0, Culture=neutral" />
   </ItemGroup>
   <Import Project="$(MSBuildBinPath)\Microsoft.CSharp.targets" />
   <ItemGroup>

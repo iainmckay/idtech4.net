@@ -9,6 +9,7 @@
     <OutputType>Library</OutputType>
     <RootNamespace>idTech4.Content.Pipeline.FontImporter</RootNamespace>
     <AssemblyName>idTech4.Content.Pipeline.FontImporter</AssemblyName>
+    <UseMSBuildEngine>False</UseMSBuildEngine>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>True</DebugSymbols>
